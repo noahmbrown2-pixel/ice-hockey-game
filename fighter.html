@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>STREET BRAWL</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#000;display:flex;justify-content:center;align-items:center;height:100vh;font-family:'Segoe UI',Arial,sans-serif;overflow:hidden;user-select:none}
+  canvas{}
+  #overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;flex-direction:column;background:rgba(0,0,0,0.9);z-index:10}
+  #overlay h1{color:#ff3300;font-size:64px;text-shadow:0 0 30px #ff3300,0 4px 0 #880000;letter-spacing:6px;margin-bottom:8px}
+  #overlay h2{color:#ffaa00;font-size:18px;margin-bottom:30px;font-weight:normal;letter-spacing:3px}
+  #overlay .controls{color:#888;font-size:13px;line-height:2;text-align:center;margin-bottom:30px}
+  #overlay .controls b{color:#fff}
+  #overlay button{padding:16px 50px;font-size:22px;background:#ff3300;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;letter-spacing:2px;transition:background 0.2s}
+  #overlay button:hover{background:#ff5500}
+  #announce{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);font-size:70px;font-weight:bold;color:#fff;text-shadow:0 0 40px #ff3300,0 4px 0 #880000;display:none;z-index:5;pointer-events:none;letter-spacing:4px}
+  #combo-text{position:absolute;top:58%;left:50%;transform:translate(-50%,-50%);font-size:36px;font-weight:bold;color:#ffaa00;text-shadow:0 0 20px #ff8800;display:none;z-index:5;pointer-events:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="announce"></div>
+<div id="combo-text"></div>
+<div id="overlay">
+  <h1>STREET BRAWL</h1>
+  <h2>ROUND-BASED FIGHTING</h2>
+  <div class="controls">
+    <b>A / D</b> &mdash; Move Left / Right<br>
+    <b>W</b> &mdash; Jump<br>
+    <b>J</b> &mdash; Punch &nbsp; <b>K</b> &mdash; Kick &nbsp; <b>L</b> &mdash; Block<br>
+    <b>S + J</b> &mdash; Uppercut &nbsp; <b>S + K</b> &mdash; Sweep Kick<br>
+    <b>SPACE</b> &mdash; Super Move (when meter is full)<br>
+    <b>Best of 3 rounds &mdash; KO your opponent!</b>
+  </div>
+  <button id="startBtn">FIGHT</button>
+</div>
+
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const W=960,H=540;
+canvas.width=W;canvas.height=H;
+
+const GROUND=H-80;
+const GRAVITY=0.7;
+const WALK_SPEED=4;
+const JUMP_FORCE=-14;
+const MAX_HP=100;
+const MAX_SUPER=100;
+const ROUNDS_TO_WIN=2;
+
+let keys={},gameRunning=false,paused=false;
+let roundWins=[0,0],currentRound=1;
+let announceTimer=0,announceText='';
+let comboCount=0,comboTimer=0,lastComboSide=0;
+let slowMo=0;
+let particles=[],sparks=[],shakeX=0,shakeY=0,shakeTimer=0;
+let frameCount=0;
+
+document.addEventListener('keydown',e=>{keys[e.code]=true;e.preventDefault()});
+document.addEventListener('keyup',e=>{keys[e.code]=false});
+document.getElementById('startBtn').addEventListener('click',startGame);
+
+// Fighter class
+class Fighter{
+  constructor(x,facingRight,isPlayer,color1,color2,name){
+    this.x=x;this.y=GROUND;this.vx=0;this.vy=0;
+    this.w=50;this.h=90;
+    this.facingRight=facingRight;
+    this.isPlayer=isPlayer;
+    this.color1=color1;this.color2=color2;this.name=name;
+    this.hp=MAX_HP;this.super=0;
+    this.state='idle';this.stateTimer=0;
+    this.hitStun=0;this.blockStun=0;
+    this.attacking=false;this.attackHit=false;
+    this.attackBox=null;
+    this.grounded=true;
+    this.animFrame=0;
+    this.idleTimer=0;
+    // combo tracking
+    this.comboHits=0;this.comboTimer=0;
+    // AI
+    this.aiTimer=0;this.aiAction='';this.aiReact=0;
+  }
+  reset(x){
+    this.x=x;this.y=GROUND;this.vx=0;this.vy=0;
+    this.hp=MAX_HP;this.super=0;
+    this.state='idle';this.stateTimer=0;
+    this.hitStun=0;this.blockStun=0;
+    this.attacking=false;this.attackHit=false;
+    this.attackBox=null;this.grounded=true;
+    this.comboHits=0;this.comboTimer=0;
+  }
+}
+
+let p1,p2;
+
+function createFighters(){
+  p1=new Fighter(200,true,true,'#cc2222','#ffaa00','RYU');
+  p2=new Fighter(W-200,false,false,'#2244cc','#44ddff','KEN');
+}
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  createFighters();
+  roundWins=[0,0];currentRound=1;
+  gameRunning=true;
+  startRound();
+  requestAnimationFrame(loop);
+}
+
+function startRound(){
+  p1.reset(200);p2.reset(W-200);
+  p1.facingRight=true;p2.facingRight=false;
+  announce(`ROUND ${currentRound}`,90);
+  setTimeout(()=>announce('FIGHT!',50),1500);
+  paused=true;
+  setTimeout(()=>{paused=false},2200);
+}
+
+function announce(text,dur){
+  announceText=text;announceTimer=dur;
+  const el=document.getElementById('announce');
+  el.textContent=text;el.style.display='block';el.style.opacity=1;
+}
+
+function showCombo(hits){
+  const el=document.getElementById('combo-text');
+  el.textContent=hits+' HIT COMBO!';
+  el.style.display='block';el.style.opacity=1;
+  comboTimer=60;
+}
+
+function screenShake(intensity){shakeTimer=intensity;shakeX=0;shakeY=0}
+
+function spawnHitSparks(x,y,big){
+  const count=big?20:8;
+  for(let i=0;i<count;i++){
+    const a=Math.random()*Math.PI*2;
+    const s=2+Math.random()*(big?8:4);
+    sparks.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,life:15+Math.random()*10,
+      color:big?`hsl(${Math.random()*60},100%,${50+Math.random()*40}%)`:'#fff',size:big?3+Math.random()*3:2+Math.random()*2});
+  }
+}
+
+function spawnBlockSparks(x,y){
+  for(let i=0;i<6;i++){
+    sparks.push({x,y:y-20+Math.random()*40,vx:(Math.random()-0.5)*3,vy:-Math.random()*3,
+      life:10+Math.random()*5,color:'#88ccff',size:2});
+  }
+}
+
+// Attack data: {damage, hitstun, blockstun, startup, active, recovery, knockback, launch, superGain}
+const ATTACKS={
+  punch:{damage:6,hitstun:12,blockstun:8,startup:3,active:4,recovery:8,knockback:3,launch:0,superGain:8,name:'PUNCH'},
+  kick:{damage:9,hitstun:15,blockstun:10,startup:5,active:5,recovery:12,knockback:5,launch:0,superGain:10,name:'KICK'},
+  uppercut:{damage:14,hitstun:20,blockstun:12,startup:6,active:4,recovery:18,knockback:4,launch:-10,superGain:15,name:'UPPERCUT'},
+  sweep:{damage:10,hitstun:25,blockstun:14,startup:7,active:5,recovery:16,knockback:6,launch:0,superGain:12,name:'SWEEP'},
+  jumpPunch:{damage:8,hitstun:14,blockstun:9,startup:3,active:5,recovery:6,knockback:3,launch:0,superGain:8,name:'AIR PUNCH'},
+  jumpKick:{damage:11,hitstun:18,blockstun:12,startup:4,active:6,recovery:8,knockback:5,launch:0,superGain:10,name:'AIR KICK'},
+  super:{damage:28,hitstun:35,blockstun:20,startup:10,active:8,recovery:25,knockback:12,launch:-8,superGain:0,name:'SUPER'}
+};
+
+function doAttack(fighter,attackName){
+  if(fighter.attacking||fighter.hitStun>0||fighter.blockStun>0)return;
+  const atk=ATTACKS[attackName];
+  fighter.state=attackName;
+  fighter.stateTimer=0;
+  fighter.attacking=true;
+  fighter.attackHit=false;
+  fighter.attackBox=null;
+  if(attackName==='super')fighter.super=0;
+}
+
+function getAttackBox(f,atk){
+  const dir=f.facingRight?1:-1;
+  const range=atk===ATTACKS.sweep?70:atk===ATTACKS.super?90:55;
+  const hh=atk===ATTACKS.sweep?20:atk===ATTACKS.uppercut?70:40;
+  const oy=atk===ATTACKS.sweep?-10:atk===ATTACKS.uppercut?-60:f.grounded?-50:-40;
+  return{
+    x:f.x+(dir>0?20:-20-range+20),
+    y:f.y+oy,
+    w:range,h:hh
+  };
+}
+
+function boxOverlap(a,b){
+  return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+}
+
+function getFighterBox(f){return{x:f.x-f.w/2,y:f.y-f.h,w:f.w,h:f.h}}
+
+function updateFighter(f,other){
+  if(f.hitStun>0){f.hitStun--;if(f.hitStun<=0){f.state='idle';f.vx=0}}
+  if(f.blockStun>0){f.blockStun--;if(f.blockStun<=0)f.state='idle'}
+
+  // facing
+  if(f.hitStun<=0&&f.blockStun<=0&&!f.attacking){
+    f.facingRight=f.x<other.x;
+  }
+
+  // attack phases
+  if(f.attacking){
+    f.stateTimer++;
+    const atk=ATTACKS[f.state];
+    if(!atk){f.attacking=false;f.state='idle';return}
+
+    if(f.stateTimer>=atk.startup&&f.stateTimer<atk.startup+atk.active){
+      f.attackBox=getAttackBox(f,atk);
+    }else{
+      f.attackBox=null;
+    }
+
+    if(f.stateTimer>=atk.startup+atk.active+atk.recovery){
+      f.attacking=false;f.state='idle';f.attackBox=null;
+    }
+
+    // check hit
+    if(f.attackBox&&!f.attackHit){
+      const otherBox=getFighterBox(other);
+      if(boxOverlap(f.attackBox,otherBox)){
+        f.attackHit=true;
+        const isBlocking=other.state==='block'&&
+          ((other.facingRight&&f.x>other.x)||(!other.facingRight&&f.x<other.x));
+
+        if(isBlocking){
+          other.blockStun=atk.blockstun;
+          other.hp-=Math.floor(atk.damage*0.15);
+          other.vx=(f.facingRight?1:-1)*atk.knockback*0.3;
+          spawnBlockSparks(other.x,other.y-45);
+          screenShake(3);
+        }else{
+          other.hp-=atk.damage;
+          other.hitStun=atk.hitstun;
+          other.state='hit';
+          other.attacking=false;other.attackBox=null;
+          other.vx=(f.facingRight?1:-1)*atk.knockback;
+          if(atk.launch)other.vy=atk.launch;
+          f.super=Math.min(MAX_SUPER,f.super+atk.superGain);
+          other.super=Math.min(MAX_SUPER,other.super+atk.superGain*0.5);
+
+          const hitX=(f.x+other.x)/2;
+          const hitY=other.y-45;
+          spawnHitSparks(hitX,hitY,f.state==='super');
+          screenShake(f.state==='super'?12:atk.damage>10?6:3);
+          if(f.state==='super')slowMo=15;
+
+          // combo
+          f.comboHits++;f.comboTimer=45;
+          if(f.comboHits>=2)showCombo(f.comboHits);
+        }
+      }
+    }
+  }
+
+  // combo timer
+  if(f.comboTimer>0){f.comboTimer--;if(f.comboTimer<=0)f.comboHits=0}
+
+  // gravity
+  if(!f.grounded){
+    f.vy+=GRAVITY;
+    f.y+=f.vy;
+    if(f.y>=GROUND){
+      f.y=GROUND;f.vy=0;f.grounded=true;
+      if(f.state==='jump')f.state='idle';
+    }
+  }
+
+  // movement friction
+  if(f.hitStun>0||f.blockStun>0){
+    f.vx*=0.85;
+    f.x+=f.vx;
+  }
+
+  // bounds
+  if(f.x<40)f.x=40;
+  if(f.x>W-40)f.x=W-40;
+
+  // push apart
+  const dx=f.x-other.x;
+  if(Math.abs(dx)<f.w&&f.grounded&&other.grounded){
+    const push=dx>0?1:-1;
+    f.x+=push*1.5;
+  }
+}
+
+function updatePlayer(){
+  if(paused||p1.hitStun>0||p1.blockStun>0)return;
+  if(p1.hp<=0)return;
+
+  // block
+  if(keys['KeyL']&&!p1.attacking&&p1.grounded){
+    p1.state='block';return;
+  }else if(p1.state==='block'&&!keys['KeyL']){
+    p1.state='idle';
+  }
+
+  // movement
+  if(!p1.attacking&&p1.state!=='block'){
+    if(keys['KeyA']){p1.x-=WALK_SPEED;p1.state=p1.grounded?'walk':'jump'}
+    else if(keys['KeyD']){p1.x+=WALK_SPEED;p1.state=p1.grounded?'walk':'jump'}
+    else if(p1.grounded&&p1.state==='walk')p1.state='idle';
+
+    if(keys['KeyW']&&p1.grounded){
+      p1.vy=JUMP_FORCE;p1.grounded=false;p1.state='jump';
+    }
+  }
+
+  // attacks
+  if(keys['Space']&&p1.super>=MAX_SUPER&&!p1.attacking){
+    doAttack(p1,'super');
+  }else if(keys['KeyJ']&&!p1.attacking){
+    if(!p1.grounded)doAttack(p1,'jumpPunch');
+    else if(keys['KeyS'])doAttack(p1,'uppercut');
+    else doAttack(p1,'punch');
+  }else if(keys['KeyK']&&!p1.attacking){
+    if(!p1.grounded)doAttack(p1,'jumpKick');
+    else if(keys['KeyS'])doAttack(p1,'sweep');
+    else doAttack(p1,'kick');
+  }
+}
+
+function updateAI(){
+  if(paused||p2.hp<=0)return;
+  p2.aiTimer++;
+
+  const dist=Math.abs(p2.x-p1.x);
+  const playerAttacking=p1.attacking;
+
+  // reaction check
+  if(p2.hitStun>0||p2.blockStun>0)return;
+
+  // decide action every few frames
+  if(p2.aiTimer%8===0){
+    const r=Math.random();
+
+    if(playerAttacking&&dist<100&&r<0.5){
+      // block
+      p2.state='block';p2.aiAction='block';p2.aiReact=20;
+      return;
+    }
+
+    if(dist>150){
+      // approach
+      p2.aiAction='approach';
+    }else if(dist<80){
+      // attack or back off
+      if(r<0.35&&!p2.attacking)doAttack(p2,Math.random()<0.5?'punch':'kick');
+      else if(r<0.5&&!p2.attacking&&p2.grounded)doAttack(p2,'uppercut');
+      else if(r<0.6)p2.aiAction='retreat';
+      else if(p2.super>=MAX_SUPER&&r<0.75&&!p2.attacking)doAttack(p2,'super');
+      else p2.aiAction='approach';
+    }else{
+      if(r<0.2&&!p2.attacking)doAttack(p2,Math.random()<0.5?'punch':'kick');
+      else if(r<0.25&&p2.grounded&&!p2.attacking){
+        p2.vy=JUMP_FORCE;p2.grounded=false;p2.state='jump';
+        setTimeout(()=>{if(!p2.grounded&&!p2.attacking)doAttack(p2,'jumpKick')},200);
+      }
+      else p2.aiAction='approach';
+    }
+  }
+
+  // unblock
+  if(p2.state==='block'){
+    p2.aiReact--;
+    if(p2.aiReact<=0||!playerAttacking)p2.state='idle';
+    return;
+  }
+
+  // execute movement
+  if(!p2.attacking){
+    const dir=p1.x<p2.x?-1:1;
+    if(p2.aiAction==='approach'){
+      p2.x+=dir*WALK_SPEED*0.8;
+      p2.state=p2.grounded?'walk':'jump';
+    }else if(p2.aiAction==='retreat'){
+      p2.x-=dir*WALK_SPEED*0.6;
+      p2.state=p2.grounded?'walk':'jump';
+    }else if(p2.grounded)p2.state='idle';
+  }
+}
+
+function checkRoundEnd(){
+  if(p1.hp<=0||p2.hp<=0){
+    if(p1.hp<=0)p1.hp=0;
+    if(p2.hp<=0)p2.hp=0;
+    const winner=p1.hp>0?0:1;
+    roundWins[winner]++;
+    paused=true;
+
+    setTimeout(()=>{
+      announce(winner===0?'K.O.!':'K.O.!',80);
+      screenShake(15);
+    },500);
+
+    setTimeout(()=>{
+      if(roundWins[winner]>=ROUNDS_TO_WIN){
+        announce(winner===0?'YOU WIN!':'YOU LOSE!',120);
+        setTimeout(()=>{
+          gameRunning=false;
+          const ov=document.getElementById('overlay');
+          ov.style.display='flex';
+          ov.querySelector('h1').textContent=winner===0?'VICTORY':'DEFEAT';
+          ov.querySelector('h2').textContent=`${roundWins[0]} - ${roundWins[1]}`;
+          ov.querySelector('button').textContent='REMATCH';
+        },3000);
+      }else{
+        currentRound++;
+        startRound();
+      }
+    },2500);
+  }
+}
+
+// ---- DRAWING ----
+
+function drawBackground(){
+  // sky/stage
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#1a0a2e');
+  bg.addColorStop(0.6,'#2d1b4e');
+  bg.addColorStop(1,'#0a0a15');
+  ctx.fillStyle=bg;
+  ctx.fillRect(0,0,W,H);
+
+  // city silhouette
+  ctx.fillStyle='#15102a';
+  const buildings=[
+    [0,180,60],[60,140,50],[110,160,70],[180,100,55],[235,150,45],[280,120,65],
+    [345,170,50],[395,90,60],[455,140,55],[510,110,70],[580,160,45],[625,130,60],
+    [685,150,50],[735,100,65],[800,170,55],[855,120,50],[905,145,55]
+  ];
+  buildings.forEach(([bx,bh,bw])=>{
+    ctx.fillRect(bx,GROUND-bh-80,bw,bh+80);
+    // windows
+    ctx.fillStyle='rgba(255,200,50,0.15)';
+    for(let wy=GROUND-bh-60;wy<GROUND-80;wy+=18){
+      for(let wx=bx+8;wx<bx+bw-8;wx+=14){
+        if(Math.random()>0.4)ctx.fillRect(wx,wy,6,8);
+      }
+    }
+    ctx.fillStyle='#15102a';
+  });
+
+  // ground
+  const grd=ctx.createLinearGradient(0,GROUND,0,H);
+  grd.addColorStop(0,'#3a3040');
+  grd.addColorStop(1,'#1a1520');
+  ctx.fillStyle=grd;
+  ctx.fillRect(0,GROUND,W,H-GROUND);
+
+  // ground line
+  ctx.strokeStyle='rgba(255,255,255,0.1)';
+  ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(0,GROUND);ctx.lineTo(W,GROUND);ctx.stroke();
+}
+
+// --- Limb drawing helpers ---
+function drawLimb(x1,y1,x2,y2,thickA,thickB,color,highlight){
+  // Draws a tapered limb segment with shading
+  const ang=Math.atan2(y2-y1,x2-x1);
+  const perp=ang+Math.PI/2;
+  const ax1=x1+Math.cos(perp)*thickA/2, ay1=y1+Math.sin(perp)*thickA/2;
+  const ax2=x1-Math.cos(perp)*thickA/2, ay2=y1-Math.sin(perp)*thickA/2;
+  const bx1=x2+Math.cos(perp)*thickB/2, by1=y2+Math.sin(perp)*thickB/2;
+  const bx2=x2-Math.cos(perp)*thickB/2, by2=y2-Math.sin(perp)*thickB/2;
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(ax1,ay1);ctx.lineTo(bx1,by1);ctx.lineTo(bx2,by2);ctx.lineTo(ax2,ay2);
+  ctx.closePath();ctx.fill();
+  // highlight edge
+  if(highlight){
+    ctx.strokeStyle=highlight;ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(ax1,ay1);ctx.lineTo(bx1,by1);ctx.stroke();
+  }
+}
+function drawJoint(x,y,r,color){
+  ctx.fillStyle=color;
+  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+}
+function lerp(a,b,t){return a+(b-a)*t}
+function easeOut(t){return 1-Math.pow(1-t,3)}
+function easeIn(t){return t*t*t}
+function getAttackProgress(f,atkData){
+  const t=f.stateTimer;
+  if(t<atkData.startup)return{phase:'startup',t:t/atkData.startup};
+  if(t<atkData.startup+atkData.active)return{phase:'active',t:(t-atkData.startup)/atkData.active};
+  return{phase:'recovery',t:(t-atkData.startup-atkData.active)/atkData.recovery};
+}
+
+function drawFighter(f){
+  ctx.save();
+  const dir=f.facingRight?1:-1;
+  ctx.translate(f.x,f.y);
+  ctx.scale(dir,1);
+
+  const hit=f.hitStun>0;
+  const blocking=f.state==='block';
+  const isSuper=f.state==='super'&&f.attacking;
+  f.idleTimer++;
+
+  const skin=hit?'#f4a0a0':'#e2b07a';
+  const skinHi=hit?'#ffcccc':'#f0c896';
+  const skinSh=hit?'#d07070':'#c4904a';
+  const pantsCol=f.isPlayer?'#1a1a2a':'#0c1430';
+  const pantsHi=f.isPlayer?'#2a2a40':'#1a2550';
+  const shirtCol=hit?'#ffcccc':f.color1;
+  const shirtHi=hit?'#ffe0e0':(f.isPlayer?'#ee4444':'#4466ee');
+  const shoeCol=f.isPlayer?'#cc8800':'#3377bb';
+  const hairCol=f.isPlayer?'#1a1000':'#996600';
+  const bandCol=f.color2;
+
+  // idle breathing/bob
+  const breathe=Math.sin(f.idleTimer*0.06)*2;
+  const sway=Math.sin(f.idleTimer*0.04)*1;
+  const sy=hit?4:0;
+  const lean=hit?-6:blocking?-4:0;
+
+  // walk cycle
+  const walking=f.state==='walk';
+  const wt=f.idleTimer*0.15;
+  const walkCycleF=walking?Math.sin(wt):0;
+  const walkCycleB=walking?Math.sin(wt+Math.PI):0;
+
+  // ---- POSE CALCULATION ----
+  // All positions relative to (0,0) = feet center on ground
+  // Hip center
+  const hipX=lean*0.3+sway;
+  const hipY=-(38+sy-breathe*0.3+(blocking?4:0));
+  // Shoulder center
+  const shoulderX=lean*0.5+sway;
+  const shoulderY=-(78+sy+breathe+(blocking?6:0));
+  // Head
+  const headX=shoulderX+lean*0.15;
+  const headY=shoulderY-20+breathe*0.3;
+
+  // -- Leg IK targets --
+  let lFootX,lFootY,rFootX,rFootY; // front leg, back leg
+  if(walking){
+    lFootX=8+walkCycleF*16; lFootY=-2;
+    rFootX=-8+walkCycleB*16; rFootY=-2;
+  }else if(blocking){
+    lFootX=12; lFootY=-1;
+    rFootX=-12; rFootY=-1;
+  }else{
+    lFootX=8; lFootY=-1;
+    rFootX=-8; rFootY=-1;
+  }
+  // Knee hints (midpoint with outward bias)
+  let lKneeX=(hipX+lFootX)/2+5, lKneeY=(hipY+lFootY)/2+4;
+  let rKneeX=(hipX+rFootX)/2-3, rKneeY=(hipY+rFootY)/2+4;
+  if(walking){
+    lKneeY+=-Math.abs(walkCycleF)*6;
+    rKneeY+=-Math.abs(walkCycleB)*6;
+  }
+
+  // -- Arm targets --
+  let lShoulderX=shoulderX+10, lShoulderY=shoulderY+4;
+  let rShoulderX=shoulderX-10, rShoulderY=shoulderY+4;
+  let lElbowX,lElbowY,lHandX,lHandY;
+  let rElbowX,rElbowY,rHandX,rHandY;
+  let fistSize=6;
+  let showSuperAura=false;
+
+  // Default fighting stance arms
+  const guardBob=Math.sin(f.idleTimer*0.07)*2;
+  // front arm (lead, lower guard)
+  lElbowX=lShoulderX+16; lElbowY=lShoulderY+8+guardBob;
+  lHandX=lElbowX+6; lHandY=lElbowY-12+guardBob;
+  // back arm (rear, higher guard)
+  rElbowX=rShoulderX-8; rElbowY=rShoulderY-2-guardBob;
+  rHandX=rElbowX+4; rHandY=rElbowY-14-guardBob;
+
+  // -- Override poses for attacks/states --
+  if(f.state==='punch'&&f.attacking){
+    const p=getAttackProgress(f,ATTACKS.punch);
+    let ext=0;
+    if(p.phase==='startup')ext=easeIn(p.t)*0.4;
+    else if(p.phase==='active')ext=0.4+easeOut(p.t)*0.6;
+    else ext=1-easeOut(p.t);
+    // front arm punches forward
+    lElbowX=lShoulderX+12+ext*10; lElbowY=lShoulderY-4-ext*6;
+    lHandX=lElbowX+10+ext*32; lHandY=lShoulderY-6;
+    fistSize=7;
+    // back arm tucks
+    rElbowX=rShoulderX-6; rElbowY=rShoulderY+2;
+    rHandX=rElbowX; rHandY=rElbowY-10;
+    // torso twist
+  }else if(f.state==='kick'&&f.attacking){
+    const p=getAttackProgress(f,ATTACKS.kick);
+    let ext=0;
+    if(p.phase==='startup')ext=easeIn(p.t)*0.3;
+    else if(p.phase==='active')ext=0.3+easeOut(p.t)*0.7;
+    else ext=1-easeOut(p.t);
+    // front leg kicks out
+    lFootX=10+ext*45; lFootY=-18-ext*8;
+    lKneeX=hipX+10+ext*15; lKneeY=hipY+10+ext*2;
+    // lean back
+    // arms guard
+    lElbowX=lShoulderX+8; lElbowY=lShoulderY+10;
+    lHandX=lElbowX+4; lHandY=lElbowY-8;
+  }else if(f.state==='uppercut'&&f.attacking){
+    const p=getAttackProgress(f,ATTACKS.uppercut);
+    let ext=0;
+    if(p.phase==='startup')ext=easeIn(p.t)*0.3;
+    else if(p.phase==='active')ext=0.3+easeOut(p.t)*0.7;
+    else ext=1-easeOut(p.t);
+    // back arm swings up
+    rElbowX=rShoulderX+ext*8; rElbowY=rShoulderY-ext*20;
+    rHandX=rElbowX+6+ext*10; rHandY=rElbowY-16-ext*30;
+    fistSize=8;
+    // crouch then rise
+    lFootX=14; rFootX=-14;
+  }else if(f.state==='sweep'&&f.attacking){
+    const p=getAttackProgress(f,ATTACKS.sweep);
+    let ext=0;
+    if(p.phase==='startup')ext=easeIn(p.t)*0.4;
+    else if(p.phase==='active')ext=0.4+easeOut(p.t)*0.6;
+    else ext=1-easeOut(p.t);
+    // crouch low, front leg sweeps wide
+    const crouchAmt=ext*16;
+    lFootX=10+ext*50; lFootY=-2;
+    lKneeX=hipX+15+ext*20; lKneeY=hipY+12+crouchAmt;
+    rFootX=-12; rFootY=-1;
+    rKneeY+=crouchAmt;
+  }else if(f.state==='jumpPunch'&&f.attacking){
+    const p=getAttackProgress(f,ATTACKS.jumpPunch);
+    let ext=p.phase==='startup'?easeIn(p.t):p.phase==='active'?1:1-easeOut(p.t);
+    lElbowX=lShoulderX+14; lElbowY=lShoulderY-2;
+    lHandX=lElbowX+12+ext*28; lHandY=lShoulderY-4;
+    fistSize=7;
+    lFootX=12; rFootX=-6; lFootY=-8; rFootY=-4;
+    lKneeY-=10; rKneeY-=8;
+  }else if(f.state==='jumpKick'&&f.attacking){
+    const p=getAttackProgress(f,ATTACKS.jumpKick);
+    let ext=p.phase==='startup'?easeIn(p.t):p.phase==='active'?1:1-easeOut(p.t);
+    lFootX=10+ext*42; lFootY=-16-ext*4;
+    lKneeX=hipX+12+ext*16; lKneeY=hipY+6;
+    rFootX=-10; rFootY=-6;
+    rKneeY-=8;
+  }else if(isSuper){
+    const p=getAttackProgress(f,ATTACKS.super);
+    let ext=p.phase==='startup'?easeIn(p.t):p.phase==='active'?1:1-easeOut(p.t)*0.6;
+    showSuperAura=true;
+    // both hands thrust forward
+    lElbowX=lShoulderX+14; lElbowY=lShoulderY-6;
+    lHandX=lElbowX+16+ext*35; lHandY=lShoulderY-8;
+    rElbowX=rShoulderX+10; rElbowY=rShoulderY-2;
+    rHandX=rElbowX+14+ext*30; rHandY=rShoulderY-6;
+    fistSize=9;
+    lFootX=16; rFootX=-16;
+  }else if(blocking){
+    // arms crossed in front
+    lElbowX=shoulderX+6; lElbowY=shoulderY+6;
+    lHandX=shoulderX+10; lHandY=shoulderY-8;
+    rElbowX=shoulderX-2; rElbowY=shoulderY+4;
+    rHandX=shoulderX+4; rHandY=shoulderY-12;
+  }
+
+  // ---- SHADOW ----
+  ctx.fillStyle='rgba(0,0,0,0.35)';
+  ctx.beginPath();ctx.ellipse(0,4,28,7,0,0,Math.PI*2);ctx.fill();
+
+  // ---- SUPER AURA ----
+  if(showSuperAura){
+    ctx.save();
+    const pulse=0.7+Math.sin(f.idleTimer*0.3)*0.3;
+    ctx.globalAlpha=0.25*pulse;
+    ctx.shadowColor=bandCol;ctx.shadowBlur=40;
+    ctx.fillStyle=bandCol;
+    ctx.beginPath();ctx.ellipse(shoulderX,shoulderY+20,35*pulse,50*pulse,0,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.globalAlpha=1;
+    ctx.restore();
+  }
+
+  // ---- BACK LEG (right/rear) ----
+  drawLimb(hipX-4,hipY,rKneeX,rKneeY,13,11,pantsCol,pantsHi);
+  drawJoint(rKneeX,rKneeY,5.5,pantsCol);
+  drawLimb(rKneeX,rKneeY,rFootX,rFootY,10,8,pantsCol,pantsHi);
+  // shoe
+  ctx.fillStyle=shoeCol;
+  ctx.beginPath();
+  ctx.ellipse(rFootX+4,rFootY+2,10,5,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.15)';
+  ctx.beginPath();ctx.ellipse(rFootX+6,rFootY,6,3,-0.2,0,Math.PI*2);ctx.fill();
+
+  // ---- BACK ARM (right/rear) ----
+  drawLimb(rShoulderX,rShoulderY,rElbowX,rElbowY,9,7,skin,skinHi);
+  drawJoint(rElbowX,rElbowY,4,skinSh);
+  drawLimb(rElbowX,rElbowY,rHandX,rHandY,7,8,skin,skinHi);
+  // fist/glove
+  ctx.fillStyle=bandCol;
+  ctx.beginPath();ctx.arc(rHandX,rHandY,fistSize,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.2)';
+  ctx.beginPath();ctx.arc(rHandX-1,rHandY-1,fistSize*0.5,0,Math.PI*2);ctx.fill();
+
+  // ---- TORSO ----
+  ctx.save();
+  // torso as a tapered shape with muscle shading
+  const tw=20, th=shoulderY-hipY;
+  ctx.beginPath();
+  ctx.moveTo(shoulderX-tw-2,shoulderY);
+  ctx.quadraticCurveTo(shoulderX-tw-4,(shoulderY+hipY)/2,hipX-14,hipY);
+  ctx.lineTo(hipX+14,hipY);
+  ctx.quadraticCurveTo(shoulderX+tw+4,(shoulderY+hipY)/2,shoulderX+tw+2,shoulderY);
+  ctx.closePath();
+  ctx.fillStyle=shirtCol;ctx.fill();
+
+  // shirt shading
+  const tGrad=ctx.createLinearGradient(shoulderX-tw,shoulderY,shoulderX+tw,hipY);
+  tGrad.addColorStop(0,'rgba(255,255,255,0.12)');
+  tGrad.addColorStop(0.5,'rgba(0,0,0,0)');
+  tGrad.addColorStop(1,'rgba(0,0,0,0.15)');
+  ctx.fillStyle=tGrad;
+  ctx.beginPath();
+  ctx.moveTo(shoulderX-tw-2,shoulderY);
+  ctx.quadraticCurveTo(shoulderX-tw-4,(shoulderY+hipY)/2,hipX-14,hipY);
+  ctx.lineTo(hipX+14,hipY);
+  ctx.quadraticCurveTo(shoulderX+tw+4,(shoulderY+hipY)/2,shoulderX+tw+2,shoulderY);
+  ctx.closePath();ctx.fill();
+
+  // center line detail
+  ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(shoulderX,shoulderY+2);ctx.lineTo(hipX,hipY-2);ctx.stroke();
+
+  // collar
+  ctx.strokeStyle=shirtHi;ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.arc(shoulderX,shoulderY-2,12,Math.PI*0.15,Math.PI*0.85);
+  ctx.stroke();
+
+  // belt
+  ctx.fillStyle='rgba(0,0,0,0.3)';
+  ctx.fillRect(hipX-15,hipY-2,30,4);
+  ctx.fillStyle=bandCol;
+  ctx.fillRect(hipX-14,hipY-1,28,2.5);
+  ctx.restore();
+
+  // ---- FRONT LEG (left/lead) ----
+  drawLimb(hipX+4,hipY,lKneeX,lKneeY,14,11,pantsCol,pantsHi);
+  drawJoint(lKneeX,lKneeY,5.5,pantsCol);
+  drawLimb(lKneeX,lKneeY,lFootX,lFootY,11,8,pantsCol,pantsHi);
+  // shoe
+  ctx.fillStyle=shoeCol;
+  ctx.beginPath();
+  ctx.ellipse(lFootX+4,lFootY+2,10,5,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.15)';
+  ctx.beginPath();ctx.ellipse(lFootX+6,lFootY,6,3,-0.2,0,Math.PI*2);ctx.fill();
+
+  // ---- HEAD ----
+  // Neck
+  drawLimb(shoulderX,shoulderY,headX,headY+12,8,7,skin,skinHi);
+
+  // Head shape (slightly oval)
+  ctx.fillStyle=skin;
+  ctx.beginPath();ctx.ellipse(headX,headY,11,13,0,0,Math.PI*2);ctx.fill();
+  // head highlight
+  ctx.fillStyle=skinHi;
+  ctx.beginPath();ctx.ellipse(headX+2,headY-4,6,7,0.2,0,Math.PI*2);ctx.fill();
+  // jaw shadow
+  ctx.fillStyle=skinSh;
+  ctx.beginPath();ctx.ellipse(headX+1,headY+7,8,4,0,0,Math.PI);ctx.fill();
+
+  // Headband
+  ctx.fillStyle=bandCol;
+  const bandY=headY-6;
+  ctx.beginPath();
+  ctx.ellipse(headX,bandY,12,4,0,0,Math.PI*2);ctx.fill();
+  // band tails
+  ctx.strokeStyle=bandCol;ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.moveTo(headX-11,bandY+1);
+  ctx.quadraticCurveTo(headX-18,bandY+4,headX-22,bandY+10+Math.sin(f.idleTimer*0.1)*3);
+  ctx.stroke();
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(headX-11,bandY+3);
+  ctx.quadraticCurveTo(headX-16,bandY+8,headX-19,bandY+15+Math.sin(f.idleTimer*0.12+1)*3);
+  ctx.stroke();
+
+  // Eyes
+  const eyeY=headY-2;
+  const blinkFrame=f.idleTimer%180<3;
+  if(hit){
+    // X eyes
+    ctx.strokeStyle='#cc0000';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(headX+4,eyeY-2);ctx.lineTo(headX+8,eyeY+2);ctx.moveTo(headX+8,eyeY-2);ctx.lineTo(headX+4,eyeY+2);ctx.stroke();
+  }else if(isSuper){
+    // glowing eyes
+    ctx.shadowColor='#fff';ctx.shadowBlur=8;
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.arc(headX+5,eyeY,2.5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(headX+12,eyeY,2.5,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+  }else if(blinkFrame){
+    ctx.strokeStyle='#222';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(headX+3,eyeY);ctx.lineTo(headX+8,eyeY);ctx.stroke();
+  }else{
+    // normal eyes
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.ellipse(headX+6,eyeY,4,3,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#222';
+    ctx.beginPath();ctx.arc(headX+7,eyeY,1.8,0,Math.PI*2);ctx.fill();
+    // eyebrow
+    ctx.strokeStyle='#222';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(headX+2,eyeY-5);ctx.lineTo(headX+10,eyeY-5.5);ctx.stroke();
+  }
+
+  // Mouth
+  if(hit){
+    ctx.strokeStyle='#aa0000';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(headX+6,headY+5,3,0.3,Math.PI-0.3);ctx.stroke();
+  }else if(f.attacking){
+    ctx.strokeStyle='#8a6040';ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(headX+6,headY+4,2.5,0.2,Math.PI-0.2);ctx.stroke();
+  }else{
+    ctx.strokeStyle='#8a6040';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(headX+4,headY+4);ctx.lineTo(headX+8,headY+4);ctx.stroke();
+  }
+
+  // Hair
+  ctx.fillStyle=hairCol;
+  ctx.beginPath();
+  ctx.moveTo(headX-10,headY-6);
+  ctx.quadraticCurveTo(headX-8,headY-20,headX,headY-22+Math.sin(f.idleTimer*0.08)*1.5);
+  ctx.quadraticCurveTo(headX+10,headY-20,headX+12,headY-6);
+  ctx.quadraticCurveTo(headX+2,headY-10,headX-10,headY-6);
+  ctx.fill();
+  // hair shine
+  ctx.fillStyle='rgba(255,255,255,0.1)';
+  ctx.beginPath();
+  ctx.ellipse(headX+2,headY-16,4,3,0.3,0,Math.PI*2);ctx.fill();
+
+  // ---- FRONT ARM (left/lead) ----
+  drawLimb(lShoulderX,lShoulderY,lElbowX,lElbowY,10,8,skin,skinHi);
+  // bicep highlight
+  const biMx=(lShoulderX+lElbowX)/2, biMy=(lShoulderY+lElbowY)/2;
+  ctx.fillStyle='rgba(255,255,255,0.1)';
+  ctx.beginPath();ctx.arc(biMx,biMy-2,4,0,Math.PI*2);ctx.fill();
+  drawJoint(lElbowX,lElbowY,4,skinSh);
+  drawLimb(lElbowX,lElbowY,lHandX,lHandY,7,9,skin,skinHi);
+  // fist/glove
+  ctx.fillStyle=bandCol;
+  ctx.beginPath();ctx.arc(lHandX,lHandY,fistSize,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.25)';
+  ctx.beginPath();ctx.arc(lHandX-1,lHandY-2,fistSize*0.45,0,Math.PI*2);ctx.fill();
+
+  // super fist energy
+  if(isSuper&&f.stateTimer>=ATTACKS.super.startup){
+    ctx.save();
+    ctx.globalAlpha=0.5+Math.sin(f.idleTimer*0.4)*0.3;
+    ctx.shadowColor=bandCol;ctx.shadowBlur=25;
+    ctx.fillStyle=bandCol;
+    ctx.beginPath();ctx.arc(lHandX+4,lHandY,12+Math.sin(f.idleTimer*0.5)*3,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.globalAlpha=1;
+    ctx.restore();
+  }
+
+  // ---- BLOCK SHIELD EFFECT ----
+  if(blocking){
+    ctx.save();
+    ctx.globalAlpha=0.2+Math.sin(f.idleTimer*0.15)*0.1;
+    ctx.strokeStyle='#88ccff';ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(shoulderX+8,(shoulderY+hipY)/2,32,0,Math.PI*2);ctx.stroke();
+    ctx.globalAlpha=0.08;
+    ctx.fillStyle='#88ccff';
+    ctx.beginPath();ctx.arc(shoulderX+8,(shoulderY+hipY)/2,30,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;
+    ctx.restore();
+  }
+
+  ctx.restore();
+
+  // ---- NAME TAG ----
+  ctx.fillStyle='rgba(0,0,0,0.5)';
+  const tagW=ctx.measureText(f.name).width||30;
+  ctx.beginPath();
+  ctx.roundRect(f.x-tagW/2-8,f.y+10,tagW+16,18,4);ctx.fill();
+  ctx.fillStyle='#fff';
+  ctx.font='bold 11px Arial';
+  ctx.textAlign='center';
+  ctx.fillText(f.name,f.x,f.y+23);
+}
+
+function drawHUD(){
+  const barW=350,barH=22,barY=20,gap=20;
+
+  // P1 health
+  ctx.fillStyle='rgba(0,0,0,0.6)';
+  ctx.fillRect(gap-2,barY-2,barW+4,barH+4);
+  const hp1pct=Math.max(0,p1.hp/MAX_HP);
+  const hp1grad=ctx.createLinearGradient(gap,0,gap+barW,0);
+  hp1grad.addColorStop(0,'#00cc44');hp1grad.addColorStop(0.6,'#88dd00');hp1grad.addColorStop(1,'#cccc00');
+  ctx.fillStyle=hp1pct<0.3?'#cc2200':hp1grad;
+  ctx.fillRect(gap,barY,barW*hp1pct,barH);
+  ctx.strokeStyle='#fff';ctx.lineWidth=1;
+  ctx.strokeRect(gap-1,barY-1,barW+2,barH+2);
+
+  // P2 health
+  ctx.fillStyle='rgba(0,0,0,0.6)';
+  ctx.fillRect(W-gap-barW-2,barY-2,barW+4,barH+4);
+  const hp2pct=Math.max(0,p2.hp/MAX_HP);
+  const hp2grad=ctx.createLinearGradient(W-gap-barW,0,W-gap,0);
+  hp2grad.addColorStop(0,'#cccc00');hp2grad.addColorStop(0.4,'#88dd00');hp2grad.addColorStop(1,'#00cc44');
+  ctx.fillStyle=hp2pct<0.3?'#cc2200':hp2grad;
+  ctx.fillRect(W-gap-barW*hp2pct,barY,barW*hp2pct,barH);
+  ctx.strokeStyle='#fff';ctx.lineWidth=1;
+  ctx.strokeRect(W-gap-barW-1,barY-1,barW+2,barH+2);
+
+  // names
+  ctx.fillStyle='#fff';ctx.font='bold 14px Arial';
+  ctx.textAlign='left';ctx.fillText('YOU',gap,barY-5);
+  ctx.textAlign='right';ctx.fillText('CPU',W-gap,barY-5);
+
+  // super meters
+  const sBarW=150,sBarH=8,sBarY=barY+barH+8;
+  ctx.fillStyle='rgba(0,0,0,0.4)';
+  ctx.fillRect(gap,sBarY,sBarW,sBarH);
+  ctx.fillStyle=p1.super>=MAX_SUPER?'#ffaa00':'#886600';
+  ctx.fillRect(gap,sBarY,sBarW*(p1.super/MAX_SUPER),sBarH);
+  if(p1.super>=MAX_SUPER){
+    ctx.strokeStyle=`rgba(255,170,0,${0.5+Math.sin(frameCount*0.15)*0.5})`;
+    ctx.lineWidth=2;ctx.strokeRect(gap-1,sBarY-1,sBarW+2,sBarH+2);
+  }
+  ctx.fillStyle='#aa8800';ctx.font='9px Arial';ctx.textAlign='left';
+  ctx.fillText(p1.super>=MAX_SUPER?'SUPER READY! [SPACE]':'SUPER',gap,sBarY-2);
+
+  ctx.fillStyle='rgba(0,0,0,0.4)';
+  ctx.fillRect(W-gap-sBarW,sBarY,sBarW,sBarH);
+  ctx.fillStyle=p2.super>=MAX_SUPER?'#ffaa00':'#886600';
+  ctx.fillRect(W-gap-sBarW*(p2.super/MAX_SUPER),sBarY,sBarW*(p2.super/MAX_SUPER),sBarH);
+  ctx.fillStyle='#aa8800';ctx.font='9px Arial';ctx.textAlign='right';
+  ctx.fillText('SUPER',W-gap,sBarY-2);
+
+  // round indicators
+  ctx.textAlign='center';
+  ctx.font='bold 16px Arial';
+  ctx.fillStyle='#666';
+  ctx.fillText(`ROUND ${currentRound}`,W/2,barY+10);
+
+  // round wins
+  for(let i=0;i<ROUNDS_TO_WIN;i++){
+    ctx.fillStyle=i<roundWins[0]?'#ff3300':'#333';
+    ctx.beginPath();ctx.arc(W/2-40+i*18,barY+28,6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=i<roundWins[1]?'#3366ff':'#333';
+    ctx.beginPath();ctx.arc(W/2+40-i*18,barY+28,6,0,Math.PI*2);ctx.fill();
+  }
+
+  // timer
+  ctx.fillStyle='#444';ctx.font='11px Arial';ctx.textAlign='center';
+  ctx.fillText('VS',W/2,barY+42);
+}
+
+function drawSparks(){
+  sparks.forEach(s=>{
+    ctx.globalAlpha=s.life/25;
+    ctx.fillStyle=s.color;
+    ctx.fillRect(s.x-s.size/2,s.y-s.size/2,s.size,s.size);
+  });
+  ctx.globalAlpha=1;
+}
+
+function drawAnnounce(){
+  if(announceTimer>0){
+    announceTimer--;
+    const el=document.getElementById('announce');
+    el.style.opacity=Math.min(1,announceTimer/10);
+    if(announceTimer<=0)el.style.display='none';
+  }
+  if(comboTimer>0){
+    comboTimer--;
+    const el=document.getElementById('combo-text');
+    el.style.opacity=Math.min(1,comboTimer/15);
+    if(comboTimer<=0)el.style.display='none';
+  }
+}
+
+function updateSparks(){
+  sparks.forEach(s=>{s.x+=s.vx;s.y+=s.vy;s.vy+=0.15;s.vx*=0.97;s.life--});
+  sparks=sparks.filter(s=>s.life>0);
+}
+
+function updateShake(){
+  if(shakeTimer>0){
+    shakeTimer--;
+    shakeX=(Math.random()-0.5)*shakeTimer*0.8;
+    shakeY=(Math.random()-0.5)*shakeTimer*0.8;
+  }else{shakeX=0;shakeY=0}
+}
+
+function loop(){
+  if(!gameRunning)return;
+  frameCount++;
+
+  if(slowMo>0){slowMo--;if(frameCount%3!==0){requestAnimationFrame(loop);return}}
+
+  if(!paused){
+    updatePlayer();
+    updateAI();
+    updateFighter(p1,p2);
+    updateFighter(p2,p1);
+    checkRoundEnd();
+  }
+  updateSparks();
+  updateShake();
+
+  ctx.save();
+  ctx.translate(shakeX,shakeY);
+  drawBackground();
+  drawFighter(p1);
+  drawFighter(p2);
+  drawSparks();
+  drawHUD();
+  ctx.restore();
+  drawAnnounce();
+
+  requestAnimationFrame(loop);
+}
+
+// initial
+drawBackground();
+</script>
+</body>
+</html>
