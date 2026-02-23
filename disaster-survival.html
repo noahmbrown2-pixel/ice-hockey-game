@@ -22,19 +22,22 @@ canvas.height = 700;
 const GRAVITY = 0.45, TERMINAL_VEL = 11, BLOCK_SIZE = 28;
 const PREP_TIME = 15, DISASTER_TIME = 50;
 const ISLAND = { x: 100, y: 520, w: 1000, h: 45 };
-const S_MENU=0, S_PREP=1, S_DISASTER=2, S_ROUND_WON=3, S_GAME_OVER=4, S_DYING=5;
+const S_MENU=0, S_PREP=1, S_DISASTER=2, S_ROUND_WON=3, S_GAME_OVER=4, S_DYING=5, S_PAUSED=6;
 const DNAMES = ['Sandstorm','Fire','Flash Flood','Acid Rain',
     'Tornado','Thunderstorm','Volcanic Eruption','Avalanche','Meteor Shower','Tsunami'];
 
 // ═══ STATE ═══
 let gs=S_MENU, round=1, timer=0, lastTime=0, shakeX=0, shakeY=0, flashA=0;
 let player={}, blocks=[], particles=[], clouds=[], dd={}, curD=-1, doors=[];
-let deathTimer=0, deathType='explode', lastD=-1, nextD=0;
+let deathTimer=0, deathType='explode', lastD=-1, nextD=0, pausedFrom=-1;
 
 // ═══ INPUT ═══
 const keys={};
 let keyEWas=false, key1Was=false, key2Was=false;
-window.addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown'].includes(e.code))e.preventDefault();});
+window.addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown'].includes(e.code))e.preventDefault();
+    if((e.code==='KeyP'||e.code==='Escape')&&(gs===S_PREP||gs===S_DISASTER||gs===S_PAUSED)){
+        if(gs===S_PAUSED){gs=pausedFrom;pausedFrom=-1;}
+        else{pausedFrom=gs;gs=S_PAUSED;}}});
 window.addEventListener('keyup',e=>{keys[e.code]=false;});
 
 // ═══ UTILS ═══
@@ -95,12 +98,14 @@ function genBuildings(){
         for(const d of t.b){
             blocks.push({x:bx+d.rx*BLOCK_SIZE,y:ISLAND.y-(d.ry+1)*BLOCK_SIZE,w:BLOCK_SIZE,h:BLOCK_SIZE,
                 vx:0,vy:0,color:d.ry===maxRy?t.a:t.c,origColor:d.ry===maxRy?t.a:t.c,
-                attached:true,ry:d.ry,onFire:false,sandy:false,frozen:false,acidDmg:0});
+                attached:true,ry:d.ry,onFire:false,sandy:false,frozen:false,acidDmg:0,hit:false});
         }
     }
 }
 
-function detach(b){if(!b.attached)return;b.attached=false;b.vx=rand(-1.5,1.5);b.vy=rand(-4,-1);spExp(b.x+b.w/2,b.y+b.h/2,4,b.color,3);}
+function detach(b){if(!b.attached)return;b.attached=false;b.vx=rand(-1.5,1.5);b.vy=rand(-4,-1);spExp(b.x+b.w/2,b.y+b.h/2,4,b.color,3);
+    for(const o of blocks){if(o===b||!o.attached)continue;
+        if(Math.abs(o.x-b.x)<=BLOCK_SIZE+2&&Math.abs(o.y-b.y)<=BLOCK_SIZE+2)o.hit=true;}}
 
 // ═══ PLAYER ═══
 function initPlayer(){
@@ -180,17 +185,19 @@ function updatePlayer(dt){
 
 // ═══ BLOCKS ═══
 function updateBlocks(){
-    // Structural check: attached blocks with no support below fall
+    // Structural check: only blocks flagged hit by a disaster detach
     let changed=true;
     while(changed){changed=false;
-        for(const b of blocks){if(!b.attached)continue;
-            // Ground-level blocks (ry=0) are supported by the island
+        for(const b of blocks){if(!b.attached||!b.hit)continue;
+            b.hit=false;
             if(b.y+b.h>=ISLAND.y-2)continue;
-            // Check for any attached block directly below
             let supported=false;
             for(const o of blocks){if(o===b||!o.attached)continue;
                 if(Math.abs(o.y-(b.y+b.h))<4&&b.x+b.w>o.x+2&&b.x<o.x+o.w-2){supported=true;break;}}
-            if(!supported){b.attached=false;b.vx=0;b.vy=0;changed=true;}}}
+            if(!supported){b.attached=false;b.vx=0;b.vy=0;changed=true;
+                for(const o of blocks){if(o===b||!o.attached)continue;
+                    if(Math.abs(o.x-b.x)<=BLOCK_SIZE+2&&Math.abs(o.y-b.y)<=BLOCK_SIZE+2)o.hit=true;}}
+        }}
     for(const b of blocks){
         if(b.attached)continue;
         if(b===player.grabBlock){b.vy+=GRAVITY;if(b.vy>TERMINAL_VEL)b.vy=TERMINAL_VEL;b.y+=b.vy;
@@ -560,7 +567,7 @@ function drawHUD(){
         }
     }
     ctx.font='13px Arial';ctx.textAlign='left';ctx.fillStyle='rgba(255,255,255,0.5)';
-    ctx.fillText('[E/Shift] Grab | [Arrows/WASD] Move | [1] Balloon | [2] Apple',20,685);
+    ctx.fillText('[E/Shift] Grab | [Arrows/WASD] Move | [1] Balloon | [2] Apple | [P] Pause',20,685);
 }
 
 function drawOverlay(t,sub,tc,lines){
@@ -586,6 +593,7 @@ function drawStateOverlay(){
             ['You survived '+(round-1)+' full round'+(round-1!==1?'s':'')+'!',
              'Killed by: '+DNAMES[curD]]);break;
         case S_DYING:break;// death animation plays in drawPlayer
+        case S_PAUSED:drawOverlay('PAUSED','Press P or ESC to Resume','#fff',[]);break;
     }
 }
 
@@ -607,6 +615,7 @@ function update(dt){
         case S_ROUND_WON:updateParticles();timer-=dt;if(timer<=0)nextRound();break;
         case S_DYING:updateParticles();deathTimer-=dt;if(deathTimer<=0)gs=S_GAME_OVER;break;
         case S_GAME_OVER:updateParticles();if(keys['Enter']||keys['NumpadEnter']){startGame();keys['Enter']=false;}break;
+        case S_PAUSED:break;
     }
 }
 
