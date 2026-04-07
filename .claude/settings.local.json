@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth login:*)",
+      "Bash(winget install:*)",
+      "Bash(\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" auth login)",
+      "Bash(git config:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Apocalypse Shooter Game\n\nAdd 3D tower defense shooter with Three.js featuring:\n- Black character with afro on military tower\n- AK47 with green laser projectiles \\(75 round magazine\\)\n- Wave-based zombie spawning system\n- Third-person 3D camera perspective\n- Health and scoring system\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(git branch:*)",
+      "Bash(powershell:*)",
+      "Bash(powershell.exe -Command \"& {Get-LocalUser | Where-Object Enabled -eq $true | Select-Object Name, PasswordRequired, PasswordLastSet | Format-Table -AutoSize}\")",
+      "Bash(python:*)",
+      "WebSearch",
+      "WebFetch(domain:create.roblox.com)",
+      "WebFetch(domain:devforum.roblox.com)",
+      "WebFetch(domain:customuse.com)",
+      "WebFetch(domain:www.idtech.com)",
+      "WebFetch(domain:codakid.com)",
+      "Bash(python3:*)",
+      "Bash(\"/c/Users/noahm/AppData/Local/Programs/Python/Python312/python.exe\" -m pip install Pillow --quiet)",
+      "Bash(\"/c/Users/noahm/AppData/Local/Programs/Python/Python312/python.exe\" generate_roblox_shirt.py)",
+      "WebFetch(domain:encrypted-tbn3.gstatic.com)",
+      "Bash(curl:*)",
+      "Bash(\"/c/Users/noahm/AppData/Local/Programs/Python/Python312/python.exe\" generate_5_versions.py)",
+      "Bash(\"/c/Users/noahm/AppData/Local/Programs/Python/Python312/python.exe\" generate_clean_front_versions.py)",
+      "Bash(pip install:*)",
+      "Bash(dir:*)"
+    ]
+  },
+  "outputStyle": "bold-questions"
+}
