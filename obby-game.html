@@ -23,7 +23,7 @@
   <canvas id="c" width="960" height="480"></canvas>
   <div id="overlay"><div id="message"></div></div>
 </div>
-<div id="controls">WASD / Arrow Keys to move &nbsp;|&nbsp; W / Up / Space to jump (double jump!) &nbsp;|&nbsp; R to restart &nbsp;|&nbsp; Win to get a brand new level!</div>
+<div id="controls">WASD / Arrow Keys to move &nbsp;|&nbsp; W / Up / Space to jump (double jump!) &nbsp;|&nbsp; Win to get a brand new level!</div>
 
 <script>
 const canvas = document.getElementById('c');
@@ -48,32 +48,52 @@ const cam = { x: 0, y: 0 };
 
 // ─── Player ──────────────────────────────────────────────────────────────────
 const P = {
-  x: 80, y: 334, w: 28, h: 36,
+  x: 80, y: 326, w: 32, h: 44,
   vx: 0, vy: 0, onGround: false, jumps: 0,
   spawnX: 80, spawnY: 334,
-  facing: 1, walkFrame: 0, walkTimer: 0
+  facing: 1, walkFrame: 0, walkTimer: 0,
+  ridingPlat: null, prevOnGround: false, landTimer: 0,
+  speedMult: 1, speedTimer: 0
 };
 
 // ─── Level state ─────────────────────────────────────────────────────────────
-let PLATFORMS = [], MOVING = [], SPIKES = [], CHECKPOINTS = [];
+let PLATFORMS = [], MOVING = [], SPIKES = [], CHECKPOINTS = [], WALLS = [], MOVING_SPIKES = [], ELEC_CEILINGS = [];
 let FINISH_X = 0, FINISH_Y = 0, TOTAL_LEN = 1, ZONE_BREAKS = [];
 let levelData = null, levelNum = 1;
-let deaths = 0, currentCP = 0, won = false;
+let deaths = 0, currentCP = 0, won = false, nextLevelTimer = 0, winMsg = '', fadeInTimer = 0;
 let announce = { text: '', timer: 0 };
+const storm = { active: true, nextBolt: 120, bolts: [], rain: [] };
+// Pre-populate rain for always-on small storm
+for (let i = 0; i < 30; i++) storm.rain.push({ x: Math.random() * 900, y: Math.random() * 500 });
+
+// ─── Background clouds & drizzle ─────────────────────────────────────────────
+let cloudScroll = 0;
+const bgClouds = Array.from({ length: 10 }, () => ({
+  x:     Math.random() * (W + 300),
+  y:     20  + Math.random() * 160,
+  w:     90  + Math.random() * 130,
+  puffs: 3   + Math.floor(Math.random() * 3),
+  speed: 0.08 + Math.random() * 0.14,
+  alpha: 0.45 + Math.random() * 0.3,
+}));
+const bgRain = Array.from({ length: 40 }, () => ({
+  x: Math.random() * W, y: Math.random() * H,
+  len: 8 + Math.random() * 10, spd: 2.5 + Math.random() * 2,
+}));
 
 // ─── Level Generator ─────────────────────────────────────────────────────────
 function generateLevel(lv) {
-  const plats = [], movs = [], spks = [], cps = [], zb = [];
+  const plats = [], movs = [], spks = [], cps = [], zb = [], walls = [], mspks = [], ecPlats = [];
   const diff = clamp((lv - 1) * 0.2, 0, 0.85);
 
   const startY = 370;
   plats.push({ x: 0, y: startY, w: 260, h: 18, color: '#3cb371' });
-  cps.push({ x: 80, y: startY - 36, label: 'Start' });
+  cps.push({ x: 80, y: startY - 44, label: 'Start' });
 
   let x = 260, y = startY;
 
   const zones = [
-    {
+    ...(lv <= 5 ? [{
       name: 'Zone 1: Basics',           color: '#3cb371',
       count: Math.round(rand(6, 8)),
       gap:   [35 + diff*10,  65 + diff*20],
@@ -81,7 +101,8 @@ function generateLevel(lv) {
       dy: 40 + diff*15,
       movChance:   diff * 0.12,
       spikeChance: 0.18 + diff * 0.2,
-    },
+      wallChance:  0, movSpikeChance: 0,
+    }] : []),
     {
       name: 'Zone 2: Moving Platforms', color: '#3498db',
       count: Math.round(rand(7, 10)),
@@ -90,6 +111,7 @@ function generateLevel(lv) {
       dy: 50 + diff*14,
       movChance:   0.28 + diff * 0.22,
       spikeChance: 0.28 + diff * 0.2,
+      wallChance:  0.01, movSpikeChance: 0.005,
     },
     {
       name: 'Zone 3: Narrow Zigzag',    color: '#e74c3c',
@@ -99,6 +121,7 @@ function generateLevel(lv) {
       dy: 54 + diff*10,
       movChance:   0.35 + diff * 0.2,
       spikeChance: 0.38 + diff * 0.15,
+      wallChance:  0.10, movSpikeChance: 0.005,
     },
     {
       name: 'Zone 4: Final Gauntlet',   color: '#9b59b6',
@@ -108,7 +131,18 @@ function generateLevel(lv) {
       dy: 60 + diff*5,
       movChance:   0.44 + diff * 0.2,
       spikeChance: 0.48 + diff * 0.12,
+      wallChance:  0.30, movSpikeChance: 0.15,
     },
+    ...(lv >= 6 ? [{
+      name: 'Zone 5: Nightmare',        color: '#ff0066',
+      count: Math.round(rand(10, 14)),
+      gap:   [52 + diff*18,  96 + diff*24],
+      wRange:[34,            50          ],
+      dy: 68 + diff*6,
+      movChance:   0.58 + diff * 0.18,
+      spikeChance: 0.60 + diff * 0.10,
+      wallChance:  0.50, movSpikeChance: 0.30,
+    }] : []),
   ];
 
   for (let z = 0; z < zones.length; z++) {
@@ -116,17 +150,41 @@ function generateLevel(lv) {
     zb.push({ x, name: zone.name });
 
     for (let p = 0; p < zone.count; p++) {
+      const prevX = x;  // right edge of previous platform — start of gap
+      const prevY = y;
       const gap = rand(zone.gap[0], zone.gap[1]);
       const dy  = (Math.random() - 0.45) * zone.dy;
       y = clamp(y + dy, 75, 400);
       x += gap;
 
+      // Electric ceiling platform in gap — punishes double jumps
+      // Chance scales with level; placed at height only double-jump can reach
+      const ecChance = lv >= 15 ? clamp((lv - 14) * 0.10, 0.12, 0.70) : 0;
+      if (gap > 45 && Math.random() < ecChance) {
+        const ceilY = prevY - rand(158, 208); // above single-jump, within double-jump
+        if (ceilY > 20) {
+          ecPlats.push({ x: prevX + gap * 0.12, y: ceilY, w: gap * 0.76, h: 14 });
+        }
+      }
+
       const w = clamp(rand(zone.wRange[0], zone.wRange[1]), 42, 130);
 
-      // Spike in gap
+      // Static spike in gap
       if (Math.random() < zone.spikeChance && gap > 44) {
         const sw = clamp(gap * 0.55, 18, 58);
         spks.push({ x: x - gap * 0.5 - sw / 2, y: y + 2, w: sw, h: 16 });
+      }
+
+      // Moving spike flying in the gap at jump height (level 10+)
+      if (lv >= 10 && zone.movSpikeChance > 0 && gap >= 55 && Math.random() < zone.movSpikeChance) {
+        const sw = 16;
+        const lo = prevX + 6, hi = x - sw - 6;
+        if (hi > lo + 20) {
+          const spikeY = y - rand(60, 110); // airborne at typical jump height
+          mspks.push({ x: lo, y: spikeY, w: sw, h: 14,
+            ax: 'x', lo, hi,
+            spd: rand(1.5, 2.8 + diff * 1.5), dir: Math.random() < 0.5 ? 1 : -1 });
+        }
       }
 
       if (Math.random() < zone.movChance) {
@@ -144,12 +202,15 @@ function generateLevel(lv) {
         }
       } else {
         plats.push({ x, y, w, h: 18, color: zone.color });
+        if (zone.wallChance > 0 && w >= 46 && Math.random() < zone.wallChance) {
+          walls.push({ x: x + w - 10, y: y - 162, w: 10, h: 162, type: 'over' });
+        }
         x += w;
       }
     }
 
-    // Checkpoint after zones 0–2
-    if (z < 3) {
+    // Checkpoint after every zone except the last
+    if (z < zones.length - 1) {
       x += 40;
       plats.push({ x, y, w: 180, h: 18, color: '#ffd700', glow: true });
       cps.push({ x: x + 90, y: y - 36, label: `CP ${z + 1}` });
@@ -164,7 +225,7 @@ function generateLevel(lv) {
   const finishY  = y - 58;
   const totalLen = x + 300;
 
-  return { plats, movs, spks, cps, finishX, finishY, totalLen, zb };
+  return { plats, movs, spks, mspks, ecPlats, cps, walls, finishX, finishY, totalLen, zb };
 }
 
 // ─── Apply / Restart level ────────────────────────────────────────────────────
@@ -173,6 +234,9 @@ function applyLevel(data) {
   MOVING      = data.movs.map(m => ({ ...m })); // fresh copy resets positions
   SPIKES      = data.spks;
   CHECKPOINTS = data.cps;
+  WALLS        = data.walls;
+  MOVING_SPIKES  = data.mspks.map(s => ({ ...s }));
+  ELEC_CEILINGS  = data.ecPlats;
   FINISH_X    = data.finishX;
   FINISH_Y    = data.finishY;
   TOTAL_LEN   = data.totalLen;
@@ -188,13 +252,14 @@ function startLevel(isNew) {
   }
   applyLevel(levelData);
   won = false; deaths = 0; currentCP = 0;
-  P.x = 80; P.y = 334; P.vx = 0; P.vy = 0; P.jumps = 0;
+  P.x = 80; P.y = 326; P.vx = 0; P.vy = 0; P.jumps = 0;
   P.spawnX = CHECKPOINTS[0].x;
   P.spawnY = CHECKPOINTS[0].y;
   document.getElementById('levelDisplay').textContent = `Level: ${levelNum}`;
   document.getElementById('cpDisplay').textContent    = 'Checkpoint: Start';
   document.getElementById('deathDisplay').textContent = 'Deaths: 0';
   document.getElementById('message').style.display   = 'none';
+  storm.bolts = [];
 }
 
 // Initial level
@@ -225,8 +290,9 @@ function resolveCollisions(allPlats) {
 function respawn() {
   deaths++;
   document.getElementById('deathDisplay').textContent = `Deaths: ${deaths}`;
-  P.x = P.spawnX; P.y = P.spawnY - 10; P.vx = 0; P.vy = 0;
+  P.x = P.spawnX; P.y = P.spawnY - 10; P.vx = 0; P.vy = 0; P.ridingPlat = null; P.landTimer = 0;
 }
+
 
 function setCP(i) {
   if (i <= currentCP) return;
@@ -236,11 +302,73 @@ function setCP(i) {
   document.getElementById('cpDisplay').textContent = `Checkpoint: ${CHECKPOINTS[i].label}`;
 }
 
+// ─── Storm ───────────────────────────────────────────────────────────────────
+function penalizeLevels() {
+  levelData = generateLevel(levelNum);
+  applyLevel(levelData);
+  won = false; currentCP = 0;
+  P.x = 80; P.y = 326; P.vx = 0; P.vy = 0; P.jumps = 0;
+  P.ridingPlat = null; P.landTimer = 0;
+  P.spawnX = CHECKPOINTS[0].x; P.spawnY = CHECKPOINTS[0].y;
+  document.getElementById('cpDisplay').textContent    = 'Checkpoint: Start';
+  document.getElementById('message').style.display    = 'none';
+  storm.bolts = [];
+  announce.text = 'STRUCK BY LIGHTNING!'; announce.timer = 180;
+}
+
+function isPlayerSafe() {
+  // Safe if within 160px of any reached checkpoint
+  return CHECKPOINTS.some((cp, i) => i <= currentCP && Math.abs(P.x - cp.x) < 160);
+}
+
+function updateStorm() {
+  // Drift rain in screen space
+  for (const r of storm.rain) {
+    r.x -= 2; r.y += 7;
+    if (r.y > H + 10) { r.y = -10; r.x = Math.random() * W; }
+    if (r.x < -10)    { r.x = W;   r.y = Math.random() * H; }
+  }
+
+  // Countdown to next bolt
+  storm.nextBolt--;
+  if (storm.nextBolt <= 0) {
+    const minI = Math.max(60, 300 - levelNum * 8);
+    const maxI = Math.max(100, 600 - levelNum * 12);
+    storm.nextBolt = Math.round(rand(minI, maxI));
+    const worldX = cam.x + rand(80, W - 80);
+    storm.bolts.push({ worldX, state: 'warning', timer: 90, maxTimer: 90 });
+  }
+
+  // Update bolts
+  for (const b of storm.bolts) {
+    b.timer--;
+    if (b.state === 'warning' && b.timer <= 0) {
+      b.state = 'strike'; b.timer = 40; b.maxTimer = 40;
+      // Check hit at moment of strike
+      if (!isPlayerSafe() && Math.abs(P.x + P.w / 2 - b.worldX) < 48) {
+        penalizeLevels();
+        storm.bolts = [];
+        return;
+      }
+    }
+  }
+  storm.bolts = storm.bolts.filter(b => !(b.state === 'strike' && b.timer <= 0));
+}
+
 // ─── Update ──────────────────────────────────────────────────────────────────
 function update() {
-  if (won) { for (const k in keyJustPressed) delete keyJustPressed[k]; return; }
+  if (won) {
+    for (const k in keyJustPressed) delete keyJustPressed[k];
+    if (nextLevelTimer > 0) {
+      nextLevelTimer--;
+      if (nextLevelTimer === 60) { startLevel(true); fadeInTimer = 60; }
+    }
+    return;
+  }
+  if (fadeInTimer > 0) fadeInTimer--;
 
-  const spd = 4.5, jumpF = -11.5, maxJumps = 2;
+  if (P.speedTimer > 0) { P.speedTimer--; } else { P.speedMult = 1; }
+  const spd = 4.5 * P.speedMult, jumpF = -11.5, maxJumps = 2;
 
   if      (keys['ArrowLeft']  || keys['KeyA']) { P.vx = -spd; P.facing = -1; }
   else if (keys['ArrowRight'] || keys['KeyD']) { P.vx =  spd; P.facing =  1; }
@@ -257,18 +385,48 @@ function update() {
   P.onGround = false;
 
   if (Math.abs(P.vx) > 0.5 && P.onGround) {
-    if (++P.walkTimer > 8) { P.walkFrame = (P.walkFrame + 1) % 4; P.walkTimer = 0; }
+    if (++P.walkTimer > 5) { P.walkFrame = (P.walkFrame + 1) % 4; P.walkTimer = 0; }
+  } else if (P.onGround) {
+    P.walkFrame = 0; P.walkTimer = 0;
   }
 
   for (const mp of MOVING) {
+    mp.prevX = mp.x; mp.prevY = mp.y;
     if (mp.ax === 'x') { mp.x += mp.spd * mp.dir; if (mp.x >= mp.hi || mp.x <= mp.lo) mp.dir *= -1; }
     else               { mp.y += mp.spd * mp.dir; if (mp.y >= mp.hi || mp.y <= mp.lo) mp.dir *= -1; }
   }
 
-  resolveCollisions([...PLATFORMS, ...MOVING]);
+  // Carry player with platform they're riding
+  if (P.ridingPlat) {
+    P.x += P.ridingPlat.x - P.ridingPlat.prevX;
+    P.y += P.ridingPlat.y - P.ridingPlat.prevY;
+  }
+
+  resolveCollisions([...PLATFORMS, ...MOVING, ...WALLS]);
+
+  if (P.onGround && !P.prevOnGround) P.landTimer = 8;
+  P.prevOnGround = P.onGround;
+  if (P.landTimer > 0) P.landTimer--;
+
+  // Detect which moving platform the player is standing on
+  P.ridingPlat = null;
+  if (P.onGround) {
+    for (const mp of MOVING) {
+      if (P.x + P.w > mp.x && P.x < mp.x + mp.w && Math.abs(P.y + P.h - mp.y) < 3) {
+        P.ridingPlat = mp; break;
+      }
+    }
+  }
+
+  for (const ms of MOVING_SPIKES) {
+    ms.x += ms.spd * ms.dir;
+    if (ms.x >= ms.hi || ms.x <= ms.lo) ms.dir *= -1;
+  }
 
   if (P.y > H + 80) respawn();
   for (const s of SPIKES) { if (overlap(P, s)) { respawn(); break; } }
+  for (const ms of MOVING_SPIKES) { if (overlap(P, ms)) { respawn(); break; } }
+  for (const ec of ELEC_CEILINGS) { if (overlap(P, ec)) { respawn(); break; } }
 
   CHECKPOINTS.forEach((cp, i) => {
     if (Math.abs(P.x - cp.x) < 60 && Math.abs(P.y - cp.y) < 80) setCP(i);
@@ -276,24 +434,57 @@ function update() {
 
   if (P.x + P.w > FINISH_X && P.y + P.h > FINISH_Y && P.y < FINISH_Y + 80) {
     won = true;
+    nextLevelTimer = 6 * 60;
+    winMsg = Math.random() < 0.5 ? 'YOU MADE IT!' : 'YOU PASSED!';
     const m = document.getElementById('message');
-    m.innerHTML = `🏆 YOU WIN! 🏆<br><span style="font-size:22px;color:#aef">Deaths: ${deaths}</span><br><span style="font-size:18px;color:#aaa">Press R for Level ${levelNum + 1}!</span>`;
+    m.innerHTML = `${winMsg}<br><span style="font-size:22px;color:#aef">Deaths: ${deaths}</span>`;
     m.style.display = 'block';
   }
 
   cam.x = Math.max(0, P.x - W * 0.4);
-  cam.y = Math.max(-250, Math.min(0, P.y - H * 0.6));
+  if (P.onGround) cam.y = Math.max(-250, Math.min(0, P.y - H * 0.6));
+  updateStorm();
 }
 
 // ─── Draw ─────────────────────────────────────────────────────────────────────
 function drawBG() {
+  // Sky gradient
   const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, '#080818'); g.addColorStop(1, '#1a0a2e');
+  g.addColorStop(0, '#0a0f2e'); g.addColorStop(0.5, '#1a2a50'); g.addColorStop(1, '#1a0a2e');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+
+  // Faint stars (behind clouds)
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
   [[80,25],[200,45],[380,15],[520,60],[670,30],[790,55],[100,80],[440,75],[610,20],[870,40],[140,50],[720,10]].forEach(([sx,sy]) => {
     ctx.beginPath(); ctx.arc(sx, sy, 1.2, 0, Math.PI * 2); ctx.fill();
   });
+
+  // Drifting clouds
+  cloudScroll += 0.18;
+  for (const c of bgClouds) {
+    let sx = (c.x - cloudScroll * c.speed * 10) % (W + c.w + 60);
+    if (sx < -(c.w + 30)) sx += W + c.w + 80;
+    ctx.fillStyle = `rgba(200,215,255,${c.alpha})`;
+    for (let p = 0; p < c.puffs; p++) {
+      const off   = (p - (c.puffs - 1) / 2) * c.w * 0.28;
+      const py    = c.y + Math.sin(p * 1.5) * 7;
+      const r     = c.w * (p === Math.floor(c.puffs / 2) ? 0.30 : 0.22);
+      ctx.beginPath(); ctx.arc(sx + off, py, r, 0, Math.PI * 2); ctx.fill();
+    }
+    // Soft shadow under cloud
+    ctx.fillStyle = `rgba(100,120,180,${c.alpha * 0.35})`;
+    ctx.beginPath(); ctx.ellipse(sx, c.y + c.w * 0.22, c.w * 0.45, c.w * 0.10, 0, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Always-on light drizzle (screen space)
+  ctx.strokeStyle = 'rgba(160,195,255,0.20)';
+  ctx.lineWidth = 1;
+  for (const r of bgRain) {
+    r.y += r.spd; r.x -= 0.7;
+    if (r.y > H + r.len) { r.y = -r.len; r.x = Math.random() * W; }
+    if (r.x < -4)         { r.x = W;     r.y = Math.random() * H; }
+    ctx.beginPath(); ctx.moveTo(r.x, r.y); ctx.lineTo(r.x - 2, r.y + r.len); ctx.stroke();
+  }
 }
 
 function drawPlatform(p) {
@@ -357,6 +548,63 @@ function drawFinishFlag() {
   ctx.fillText('FINISH', FINISH_X + 22, FINISH_Y - 68);
 }
 
+function drawMovingSpike(ms) {
+  const n = Math.max(1, Math.floor(ms.w / 14));
+  const sw = ms.w / n;
+  ctx.shadowColor = '#ff6600'; ctx.shadowBlur = 10;
+  ctx.fillStyle = '#ff4400';
+  for (let i = 0; i < n; i++) {
+    ctx.beginPath();
+    ctx.moveTo(ms.x + i * sw,         ms.y + ms.h);
+    ctx.lineTo(ms.x + i * sw + sw / 2, ms.y);
+    ctx.lineTo(ms.x + i * sw + sw,    ms.y + ms.h);
+    ctx.closePath(); ctx.fill();
+  }
+  // Orange glow trail hint
+  ctx.fillStyle = 'rgba(255,120,0,0.18)';
+  ctx.fillRect(ms.x - 4, ms.y, ms.w + 8, ms.h);
+  ctx.shadowBlur = 0;
+}
+
+function drawWall(w) {
+  ctx.shadowColor = '#ff4422'; ctx.shadowBlur = 8;
+  ctx.fillStyle = '#c0392b';
+  ctx.fillRect(w.x, w.y, w.w, w.h);
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.fillRect(w.x, w.y, w.w, 4);
+  ctx.shadowBlur = 0;
+}
+
+function drawElecCeiling(ec) {
+  const t = Date.now() / 180;
+  // Main body — dark panel with electric teal glow
+  ctx.shadowColor = '#00ffee'; ctx.shadowBlur = 14;
+  ctx.fillStyle = '#0a2a2a';
+  ctx.fillRect(ec.x, ec.y, ec.w, ec.h);
+  // Glowing top edge
+  ctx.fillStyle = `rgba(0,255,220,${0.7 + Math.sin(t) * 0.3})`;
+  ctx.fillRect(ec.x, ec.y, ec.w, 3);
+  // Glowing bottom edge (danger side)
+  ctx.fillStyle = `rgba(0,255,220,${0.9 + Math.sin(t + 1) * 0.1})`;
+  ctx.fillRect(ec.x, ec.y + ec.h - 3, ec.w, 3);
+  // Electric sparks along the bottom edge
+  ctx.strokeStyle = `rgba(180,255,255,${0.6 + Math.sin(t * 2.3) * 0.4})`;
+  ctx.lineWidth = 1.5;
+  const segments = Math.floor(ec.w / 18);
+  for (let i = 0; i < segments; i++) {
+    const sx = ec.x + i * (ec.w / segments);
+    const ex = ec.x + (i + 1) * (ec.w / segments);
+    const midX = (sx + ex) / 2 + Math.sin(t * 3.7 + i) * 4;
+    const droopY = ec.y + ec.h + 4 + Math.abs(Math.sin(t * 2.1 + i * 1.3)) * 8;
+    ctx.beginPath();
+    ctx.moveTo(sx, ec.y + ec.h);
+    ctx.lineTo(midX, droopY);
+    ctx.lineTo(ex, ec.y + ec.h);
+    ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+}
+
 function drawLava() {
   const t = Date.now() / 1000;
   ctx.fillStyle = `hsl(${20 + Math.sin(t * 2) * 5},100%,45%)`;
@@ -367,29 +615,198 @@ function drawLava() {
 
 function drawPlayer() {
   const px = P.x, py = P.y, pw = P.w, ph = P.h;
-  ctx.fillStyle = 'rgba(0,0,0,0.25)';
-  ctx.fillRect(px + 2, py + ph - 2, pw - 4, 5);
-  const bg = ctx.createLinearGradient(px, py, px + pw, py);
-  bg.addColorStop(0, '#00cfff'); bg.addColorStop(1, '#0080cc');
-  ctx.fillStyle = bg;
-  ctx.fillRect(px, py + 8, pw, ph - 8);
-  ctx.fillStyle = '#00d4ff';
-  ctx.fillRect(px + 2, py, pw - 4, 14);
-  const eo = P.facing === 1 ? 0 : 4;
-  ctx.fillStyle = 'white';
-  ctx.fillRect(px + 5 + eo, py + 3, 6, 6);
-  ctx.fillRect(px + 15 + eo, py + 3, 6, 6);
-  ctx.fillStyle = '#003377';
-  ctx.fillRect(px + 7 + eo, py + 5, 3, 3);
-  ctx.fillRect(px + 17 + eo, py + 5, 3, 3);
-  const lo = [0, 3, 0, -3][P.walkFrame];
-  ctx.fillStyle = '#0077aa';
-  ctx.fillRect(px + 3,      py + ph - 10 + lo, 10, 10);
-  ctx.fillRect(px + pw - 13, py + ph - 10 - lo, 10, 10);
+  const cx = px + pw / 2, cy = py + ph;
+
+  // Squish/stretch
+  let scaleX = 1, scaleY = 1;
+  if (P.landTimer > 0) {
+    const t = P.landTimer / 8;
+    scaleY = 0.72 + t * 0.28;
+    scaleX = 1.00 + (1 - t) * 0.28;
+  } else if (!P.onGround && P.vy < -3) {
+    scaleY = 1.12; scaleX = 0.88;
+  } else if (!P.onGround && P.vy > 3) {
+    scaleY = 1.06; scaleX = 0.94;
+  }
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.fillRect(cx - 12, cy - 2, 24, 5);
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scaleX, scaleY);
+  ctx.translate(-cx, -cy);
+
+  const f       = P.facing;
+  const air     = !P.onGround;
+  const running = P.onGround && Math.abs(P.vx) > 0.5;
+
+  // 4-frame run cycle data  [L-leg Y, R-leg Y, L-leg X, R-leg X, body bob, L-arm Y, R-arm Y]
+  // [lLY, lRY, lLX, lRX, bob, aLY, aRY, aLX, aRX]  (aLX/aRX multiplied by facing)
+  const RUN = [
+    [ 0,  0,  0,  0,  0,   0,   0,   0,   0],  // frame 0 – contact
+    [-6,  5, -2,  1, -2,  -7,   5,  -6,   6],  // frame 1 – left stride
+    [ 0,  0,  0,  0, -1,   0,   0,   0,   0],  // frame 2 – float
+    [ 5, -6,  1, -2, -2,   5,  -7,   6,  -6],  // frame 3 – right stride
+  ];
+  const wf  = P.walkFrame;
+
+  const SKIN  = '#ffbb88';
+  const HAIR  = '#241200';
+  const SHIRT = '#1a6ecc';
+  const PANTS = '#1a2a6e';
+  const SHOE  = '#1a0e00';
+
+  // Body bob offset (only when running)
+  const bob = running ? RUN[wf][4] : 0;
+
+  const SKIN_D = '#cc7744';
+  const SKIN_H = '#ffd8aa';
+  const TANK_D = '#0d4a99';
+  const PANTS_D= '#0e1844';
+  const SHOE_H = '#3a2200';
+
+  // ── HAIR ──
+  ctx.fillStyle = HAIR;
+  ctx.fillRect(px + 10, py + bob,     12, 5);
+  ctx.fillRect(px + 9,  py + bob + 3,  2, 6);
+  ctx.fillRect(px + 21, py + bob + 3,  2, 6);
+
+  // ── FACE ──
+  ctx.fillStyle = SKIN;
+  ctx.fillRect(px + 9, py + bob + 5, 14, 10);
+  // Heavy brow
+  ctx.fillStyle = HAIR;
+  ctx.fillRect(px + 10, py + bob + 5, 12, 3);
+  // Squinting eyes
+  ctx.fillStyle = SKIN_D;
+  if (f === 1) {
+    ctx.fillRect(px + 14, py + bob + 8, 4, 2);
+    ctx.fillRect(px + 19, py + bob + 8, 4, 2);
+  } else {
+    ctx.fillRect(px + 9,  py + bob + 8, 4, 2);
+    ctx.fillRect(px + 14, py + bob + 8, 4, 2);
+  }
+  // Jaw shadow
+  ctx.fillStyle = SKIN_D;
+  ctx.fillRect(px + 9, py + bob + 12, 14, 3);
+
+  // ── THICK NECK ──
+  ctx.fillStyle = SKIN;
+  ctx.fillRect(px + 11, py + bob + 15, 10, 5);
+  ctx.fillStyle = SKIN_D;
+  ctx.fillRect(px + 18, py + bob + 15,  3, 5);
+
+  // ── TRAPS / SHOULDER CAPS ──
+  ctx.fillStyle = SKIN;
+  ctx.fillRect(px + 0, py + bob + 18, 32, 4);
+  ctx.fillStyle = SKIN_H;
+  ctx.fillRect(px + 0, py + bob + 18, 32, 1);
+  ctx.fillStyle = SKIN_D;
+  ctx.fillRect(px + 0,  py + bob + 20, 7, 2);
+  ctx.fillRect(px + 25, py + bob + 20, 7, 2);
+
+  // ── CHEST — tank top ──
+  ctx.fillStyle = SHIRT;
+  ctx.fillRect(px + 8, py + bob + 20, 16, 13);
+  ctx.fillStyle = TANK_D;
+  ctx.fillRect(px + 8, py + bob + 24, 16, 2);   // pec line
+  ctx.fillRect(px + 8, py + bob + 29, 16, 4);   // bottom shading
+  // Straps
+  ctx.fillStyle = SHIRT;
+  ctx.fillRect(px + 9,  py + bob + 20, 4, 3);
+  ctx.fillRect(px + 19, py + bob + 20, 4, 3);
+
+  // ── ARMS — bare, muscular ──
+  let aLY = 0, aRY = 0, aLX = 0, aRX = 0;
+  if (running) {
+    aLY = RUN[wf][5]; aRY = RUN[wf][6];
+    aLX = RUN[wf][7] * f; aRX = RUN[wf][8] * f;
+  } else if (air && P.vy < 0) {
+    aLY = -9; aRY = -9;
+  } else if (air) {
+    aLY = 5;  aRY = 5;
+  }
+  // Left arm
+  ctx.fillStyle = SKIN;
+  ctx.fillRect(px + 0  + aLX, py + bob + 20 + aLY, 8, 17);
+  ctx.fillStyle = SKIN_H;
+  ctx.fillRect(px + 1  + aLX, py + bob + 21 + aLY, 3,  6);
+  ctx.fillStyle = SKIN_D;
+  ctx.fillRect(px + 5  + aLX, py + bob + 21 + aLY, 3,  7);
+  ctx.fillRect(px + 4  + aLX, py + bob + 30 + aLY, 2,  5);
+  ctx.fillStyle = SKIN;
+  ctx.fillRect(px + 0  + aLX, py + bob + 33 + aLY, 7,  4);
+  ctx.fillStyle = SKIN_D;
+  ctx.fillRect(px + 5  + aLX, py + bob + 33 + aLY, 2,  4);
+
+  // Right arm
+  ctx.fillStyle = SKIN;
+  ctx.fillRect(px + 24 + aRX, py + bob + 20 + aRY, 8, 17);
+  ctx.fillStyle = SKIN_H;
+  ctx.fillRect(px + 28 + aRX, py + bob + 21 + aRY, 3,  6);
+  ctx.fillStyle = SKIN_D;
+  ctx.fillRect(px + 24 + aRX, py + bob + 21 + aRY, 3,  7);
+  ctx.fillRect(px + 26 + aRX, py + bob + 30 + aRY, 2,  5);
+  ctx.fillStyle = SKIN;
+  ctx.fillRect(px + 25 + aRX, py + bob + 33 + aRY, 7,  4);
+  ctx.fillStyle = SKIN_D;
+  ctx.fillRect(px + 25 + aRX, py + bob + 33 + aRY, 2,  4);
+
+  // ── WAIST / BELT ──
+  ctx.fillStyle = PANTS;
+  ctx.fillRect(px + 8, py + bob + 33, 16, 4);
+  ctx.fillStyle = PANTS_D;
+  ctx.fillRect(px + 8, py + bob + 35, 16, 2);
+  ctx.fillStyle = '#ccaa22';
+  ctx.fillRect(px + 14, py + bob + 33, 4, 3);   // belt buckle
+
+  // ── LEGS — thick quads ──
+  let lLY = 0, lRY = 0, lLX = 0, lRX = 0;
+  if (running) {
+    lLY = RUN[wf][0]; lRY = RUN[wf][1];
+    lLX = RUN[wf][2] * f; lRX = RUN[wf][3] * f;
+  } else if (air && P.vy < 0) {
+    lLY = -4; lRY = -4;
+  } else if (air && P.vy > 0) {
+    lLY = 2; lRY = 2; lLX = -2; lRX = 2;
+  }
+  // Shorts (upper thigh only)
+  ctx.fillStyle = PANTS;
+  ctx.fillRect(px + 5  + lLX, py + bob + 37 + lLY, 10, 4);
+  ctx.fillRect(px + 17 + lRX, py + bob + 37 + lRY, 10, 4);
+  ctx.fillStyle = PANTS_D;
+  ctx.fillRect(px + 12 + lLX, py + bob + 37 + lLY,  3, 4);
+  ctx.fillRect(px + 17 + lRX, py + bob + 37 + lRY,  3, 4);
+  // Shorts hem
+  ctx.fillStyle = '#2244aa';
+  ctx.fillRect(px + 5  + lLX, py + bob + 40 + lLY, 10, 1);
+  ctx.fillRect(px + 17 + lRX, py + bob + 40 + lRY, 10, 1);
+
+  // Bare calves (skin)
+  ctx.fillStyle = SKIN;
+  ctx.fillRect(px + 6  + lLX, py + bob + 41 + lLY, 8, 3);
+  ctx.fillRect(px + 18 + lRX, py + bob + 41 + lRY, 8, 3);
+  ctx.fillStyle = SKIN_D;
+  ctx.fillRect(px + 11 + lLX, py + bob + 41 + lLY, 2, 3);  // calf shadow
+  ctx.fillRect(px + 23 + lRX, py + bob + 41 + lRY, 2, 3);
+
+  // ── SHOES ──
+  ctx.fillStyle = SHOE;
+  ctx.fillRect(px + 3  + lLX, py + bob + 40 + lLY, 13, 4);
+  ctx.fillRect(px + 16 + lRX, py + bob + 40 + lRY, 13, 4);
+  ctx.fillStyle = SHOE_H;
+  ctx.fillRect(px + 3  + lLX, py + bob + 40 + lLY, 13, 1);
+  ctx.fillRect(px + 16 + lRX, py + bob + 40 + lRY, 13, 1);
+
+  ctx.restore();
+
+  // Double-jump aura
   if (P.jumps === 2) {
     ctx.strokeStyle = 'rgba(0,200,255,0.5)';
     ctx.lineWidth = 2;
-    ctx.strokeRect(px - 3, py - 3, pw + 6, ph + 6);
+    ctx.strokeRect(px - 4, py - 4, pw + 8, ph + 8);
     ctx.lineWidth = 1;
   }
 }
@@ -405,6 +822,14 @@ function drawHUD() {
   ctx.fillRect(10, H - 18, (W - 20) * prog, 10);
   ctx.strokeStyle = 'rgba(255,255,255,0.35)';
   ctx.strokeRect(10, H - 18, W - 20, 10);
+
+  // Speed boost indicator
+  if (P.speedTimer > 0) {
+    const t = P.speedTimer / (8 * 60);
+    ctx.fillStyle = `rgba(255,220,0,${0.5 + Math.sin(Date.now()/120)*0.3})`;
+    ctx.font = 'bold 14px Arial'; ctx.textAlign = 'left';
+    ctx.fillText(`⚡ 2x SPEED  ${Math.ceil(P.speedTimer/60)}s`, 14, H - 28);
+  }
 
   // Zone label
   let zoneName = ZONE_BREAKS[0]?.name || '';
@@ -430,6 +855,72 @@ function drawHUD() {
   }
 }
 
+function drawStorm() {
+  // Subtle dark stormy sky overlay (small persistent storm)
+  ctx.fillStyle = 'rgba(5,5,30,0.18)';
+  ctx.fillRect(0, 0, W, H);
+
+  // Rain (screen space)
+  ctx.strokeStyle = 'rgba(160,190,255,0.55)';
+  ctx.lineWidth = 1;
+  for (const r of storm.rain) {
+    ctx.beginPath();
+    ctx.moveTo(r.x, r.y);
+    ctx.lineTo(r.x - 5, r.y + 14);
+    ctx.stroke();
+  }
+
+  // Safe-zone green glow around reached checkpoints (world space)
+  ctx.save();
+  ctx.translate(-cam.x, -cam.y);
+  CHECKPOINTS.forEach((cp, i) => {
+    if (i > currentCP) return;
+    const g = ctx.createRadialGradient(cp.x, cp.y - 20, 0, cp.x, cp.y - 20, 160);
+    g.addColorStop(0, 'rgba(80,255,120,0.18)');
+    g.addColorStop(1, 'rgba(80,255,120,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(cp.x, cp.y - 20, 160, 0, Math.PI * 2); ctx.fill();
+  });
+  ctx.restore();
+
+  // Lightning bolts
+  for (const b of storm.bolts) {
+    const sx = b.worldX - cam.x; // screen X
+    const t  = b.timer / b.maxTimer;
+    if (b.state === 'warning') {
+      // Pulsing target reticle — warns player
+      const pulse = 0.4 + Math.sin(Date.now() / 80) * 0.3;
+      ctx.strokeStyle = `rgba(255,220,0,${pulse})`;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, H); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = `rgba(255,220,0,${pulse * 0.25})`;
+      ctx.fillRect(sx - 24, 0, 48, H);
+    } else {
+      // Full flash
+      ctx.fillStyle = `rgba(255,255,220,${t * 0.35})`;
+      ctx.fillRect(0, 0, W, H);
+      // Jagged bolt
+      ctx.shadowColor = '#ffffaa'; ctx.shadowBlur = 18;
+      ctx.strokeStyle = `rgba(255,255,150,${t})`;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      let bx = sx, by = 0;
+      ctx.moveTo(bx, by);
+      while (by < H) { by += rand(25, 45); bx += rand(-18, 18); ctx.lineTo(bx, by); }
+      ctx.stroke();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = `rgba(255,255,255,${t})`;
+      bx = sx; by = 0; ctx.beginPath(); ctx.moveTo(bx, by);
+      while (by < H) { by += rand(25, 45); bx += rand(-10, 10); ctx.lineTo(bx, by); }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+}
+
 function draw() {
   ctx.clearRect(0, 0, W, H);
   drawBG();
@@ -439,17 +930,28 @@ function draw() {
   PLATFORMS.forEach(drawPlatform);
   MOVING.forEach(drawMovingPlatform);
   SPIKES.forEach(drawSpikes);
+  MOVING_SPIKES.forEach(drawMovingSpike);
+  WALLS.forEach(drawWall);
+  ELEC_CEILINGS.forEach(drawElecCeiling);
   CHECKPOINTS.forEach((cp, i) => { if (i > 0) drawCheckpointFlag(cp, currentCP >= i); });
   drawFinishFlag();
   drawPlayer();
   ctx.restore();
+  drawStorm();
   drawHUD();
+  // Fast fade to black at the start of the win timer (30 frames = 0.5s)
+  if (won) {
+    const elapsed = 6 * 60 - nextLevelTimer;
+    const alpha = Math.min(elapsed / 30, 1);
+    ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+  // Fade in from black when the new level loads (60 frames = 1s)
+  if (fadeInTimer > 0) {
+    ctx.fillStyle = `rgba(0,0,0,${fadeInTimer / 60})`;
+    ctx.fillRect(0, 0, W, H);
+  }
 }
-
-// ─── R key ───────────────────────────────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if (e.code === 'KeyR') startLevel(won); // new level only if won, else restart same
-});
 
 // ─── Loop ────────────────────────────────────────────────────────────────────
 function loop() { update(); draw(); requestAnimationFrame(loop); }
