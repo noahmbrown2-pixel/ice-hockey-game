@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Maze Escape</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;display:flex;justify-content:center;align-items:center;height:100vh;overflow:hidden}
+canvas{display:block;image-rendering:pixelated}
+</style>
+</head>
+<body>
+<canvas id="g"></canvas>
+<script>
+const C=document.getElementById('g'),X=C.getContext('2d');
+C.width=800;C.height=600;
+const W=800,H=600;
+
+// ═══ STATES ═══
+const ST={MENU:0,PLAY:1,WIN:2,LOSE:3,PAUSE:4};
+let gs=ST.MENU,lt=0,level=1;
+
+// ═══ INPUT ═══
+const K={};let kp={};
+window.addEventListener('keydown',e=>{K[e.code]=true;kp[e.code]=true;
+    if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
+    if((e.code==='KeyP'||e.code==='Escape')&&(gs===ST.PLAY||gs===ST.PAUSE)){
+        gs=gs===ST.PAUSE?ST.PLAY:ST.PAUSE;}});
+window.addEventListener('keyup',e=>{K[e.code]=false;});
+function pressed(c){const r=!!kp[c];kp[c]=false;return r;}
+
+// ═══ MAZE GENERATION ═══
+let COLS,ROWS,CELL,maze,player,exit,timer,maxTime,trail,fog;
+
+function initMaze(){
+    // Scale difficulty with level
+    const base=7+level*2;
+    COLS=Math.min(base,31);ROWS=Math.min(Math.floor(base*0.75),23);
+    if(COLS%2===0)COLS++;if(ROWS%2===0)ROWS++;
+    CELL=Math.min(Math.floor((W-40)/COLS),Math.floor((H-80)/ROWS));
+
+    // Init grid: 1=wall, 0=path
+    maze=[];
+    for(let r=0;r<ROWS;r++){maze[r]=[];for(let c=0;c<COLS;c++)maze[r][c]=1;}
+
+    // Recursive backtracker
+    const stack=[];
+    const sr=1,sc=1;
+    maze[sr][sc]=0;stack.push([sr,sc]);
+    const dirs=[[0,2],[0,-2],[2,0],[-2,0]];
+
+    while(stack.length>0){
+        const [cr,cc]=stack[stack.length-1];
+        const neighbors=[];
+        for(const[dr,dc]of dirs){
+            const nr=cr+dr,nc=cc+dc;
+            if(nr>0&&nr<ROWS-1&&nc>0&&nc<COLS-1&&maze[nr][nc]===1){
+                neighbors.push([nr,nc,cr+dr/2,cc+dc/2]);
+            }
+        }
+        if(neighbors.length>0){
+            const[nr,nc,wr,wc]=neighbors[Math.floor(Math.random()*neighbors.length)];
+            maze[wr][wc]=0;maze[nr][nc]=0;
+            stack.push([nr,nc]);
+        }else{
+            stack.pop();
+        }
+    }
+
+    // Player start
+    player={r:1,c:1,x:1*CELL,y:1*CELL,tx:1*CELL,ty:1*CELL,moving:false,moveT:0};
+
+    // Exit at far corner
+    exit={r:ROWS-2,c:COLS-2};
+    maze[exit.r][exit.c]=0;
+    // Ensure path to exit
+    if(maze[ROWS-2][COLS-3]===1&&maze[ROWS-3][COLS-2]===1){
+        maze[ROWS-2][COLS-3]=0;
+    }
+
+    timer=60;maxTime=60;
+    trail=[];
+
+    // Fog of war - visibility radius shrinks with level
+    fog=Math.max(2,6-Math.floor(level/3));
+
+    gs=ST.PLAY;
+}
+
+// ═══ MAZE OFFSET ═══
+function mazeOX(){return Math.floor((W-COLS*CELL)/2)}
+function mazeOY(){return Math.floor((H-ROWS*CELL)/2)+15}
+
+// ═══ PARTICLES ═══
+let parts=[];
+function spE(x,y,n,c,f){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=Math.random()*(f||3)+1;
+    parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,c,l:20+Math.random()*20,ml:40,s:2+Math.random()*3})}}
+function uParts(){for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.05;p.l--;if(p.l<=0)parts.splice(i,1)}}
+function dParts(){for(const p of parts){X.globalAlpha=p.l/p.ml;X.fillStyle=p.c;X.fillRect(p.x-p.s/2,p.y-p.s/2,p.s,p.s)}X.globalAlpha=1}
+
+// ═══ UPDATE ═══
+function update(dt){
+    if(gs===ST.PLAY){
+        timer-=dt;
+        if(timer<=0){timer=0;gs=ST.LOSE;}
+
+        // Player movement - grid based
+        if(!player.moving){
+            let dr=0,dc=0;
+            if(K['ArrowUp']||K['KeyW'])dr=-1;
+            else if(K['ArrowDown']||K['KeyS'])dr=1;
+            else if(K['ArrowLeft']||K['KeyA'])dc=-1;
+            else if(K['ArrowRight']||K['KeyD'])dc=1;
+
+            if(dr!==0||dc!==0){
+                const nr=Math.round(player.y/CELL)+dr;
+                const nc=Math.round(player.x/CELL)+dc;
+                if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&maze[nr][nc]===0){
+                    player.tx=nc*CELL;player.ty=nr*CELL;
+                    player.moving=true;player.moveT=0;
+                    // Add trail
+                    const pr=Math.round(player.y/CELL),pc=Math.round(player.x/CELL);
+                    if(!trail.some(t=>t.r===pr&&t.c===pc))trail.push({r:pr,c:pc});
+                }
+            }
+        }else{
+            const spd=Math.min(0.12,0.08+level*0.003);
+            player.moveT+=dt;
+            const t=Math.min(player.moveT/spd,1);
+            const ox=player.x,oy=player.y;
+            player.x+=(player.tx-player.x)*t*3;
+            player.y+=(player.ty-player.y)*t*3;
+            if(Math.abs(player.x-player.tx)<0.5&&Math.abs(player.y-player.ty)<0.5){
+                player.x=player.tx;player.y=player.ty;player.moving=false;
+            }
+        }
+
+        // Check win
+        const pr=Math.round(player.y/CELL),pc=Math.round(player.x/CELL);
+        if(pr===exit.r&&pc===exit.c){
+            gs=ST.WIN;
+            const ox=mazeOX(),oy=mazeOY();
+            spE(ox+exit.c*CELL+CELL/2,oy+exit.r*CELL+CELL/2,30,'#ffe600',6);
+            spE(ox+exit.c*CELL+CELL/2,oy+exit.r*CELL+CELL/2,20,'#ffb74d',5);
+            spE(ox+exit.c*CELL+CELL/2,oy+exit.r*CELL+CELL/2,15,'#00ff41',4);
+        }
+
+        uParts();
+    }
+}
+
+// ═══ PAC-MAN WALL HELPERS ═══
+// Wall color palette per level range
+function wallColor(){
+    if(level<=3)return{main:'#2121de',glow:'#4444ff',dark:'#1111aa'};
+    if(level<=6)return{main:'#de2121',glow:'#ff4444',dark:'#aa1111'};
+    if(level<=9)return{main:'#21de21',glow:'#44ff44',dark:'#11aa11'};
+    return{main:'#de21de',glow:'#ff44ff',dark:'#aa11aa'};
+}
+
+// Check if neighbor is a wall
+function isWall(r,c){return r<0||r>=ROWS||c<0||c>=COLS||maze[r][c]===1}
+
+// Draw rounded pac-man style wall segment with glow
+function drawWallCell(sx,sy,r,c,alpha){
+    const wc=wallColor();
+    const m=2; // margin for wall inset
+    X.globalAlpha=alpha;
+
+    // Adjacent walls
+    const up=isWall(r-1,c),dn=isWall(r+1,c),lt=isWall(r,c-1),rt=isWall(r,c+1);
+    const ul=isWall(r-1,c-1),ur=isWall(r-1,c+1),dl=isWall(r+1,c-1),dr=isWall(r+1,c+1);
+
+    // Outer glow
+    X.fillStyle=wc.glow;
+    X.globalAlpha=alpha*0.12;
+    X.fillRect(sx-1,sy-1,CELL+2,CELL+2);
+    X.globalAlpha=alpha;
+
+    // Draw wall border lines (pac-man style: only draw edges adjacent to paths)
+    X.strokeStyle=wc.main;
+    X.lineWidth=Math.max(2,CELL*0.12);
+    X.lineCap='round';X.lineJoin='round';
+
+    const cx=sx+CELL/2,cy=sy+CELL/2;
+    const h=CELL/2-m;
+
+    // Fill dark interior
+    X.fillStyle='#000';
+    X.fillRect(sx,sy,CELL,CELL);
+
+    // Draw border edges only where path is adjacent (pac-man look)
+    // Top edge
+    if(!up){
+        X.beginPath();X.moveTo(sx+m,sy+m);X.lineTo(sx+CELL-m,sy+m);X.stroke();
+    }
+    // Bottom edge
+    if(!dn){
+        X.beginPath();X.moveTo(sx+m,sy+CELL-m);X.lineTo(sx+CELL-m,sy+CELL-m);X.stroke();
+    }
+    // Left edge
+    if(!lt){
+        X.beginPath();X.moveTo(sx+m,sy+m);X.lineTo(sx+m,sy+CELL-m);X.stroke();
+    }
+    // Right edge
+    if(!rt){
+        X.beginPath();X.moveTo(sx+CELL-m,sy+m);X.lineTo(sx+CELL-m,sy+CELL-m);X.stroke();
+    }
+
+    // Rounded corners where two path-facing edges meet
+    const rad=m+1;
+    X.beginPath();
+    if(!up&&!lt&&ul){X.arc(sx+m,sy+m,rad,Math.PI,Math.PI*1.5);X.stroke();}
+    X.beginPath();
+    if(!up&&!rt&&ur){X.arc(sx+CELL-m,sy+m,rad,Math.PI*1.5,Math.PI*2);X.stroke();}
+    X.beginPath();
+    if(!dn&&!lt&&dl){X.arc(sx+m,sy+CELL-m,rad,Math.PI*0.5,Math.PI);X.stroke();}
+    X.beginPath();
+    if(!dn&&!rt&&dr){X.arc(sx+CELL-m,sy+CELL-m,rad,0,Math.PI*0.5);X.stroke();}
+}
+
+// ═══ DRAW ═══
+function drawMaze(){
+    const ox=mazeOX(),oy=mazeOY();
+    const pr=Math.round(player.y/CELL),pc=Math.round(player.x/CELL);
+
+    // Black background for entire maze area
+    X.fillStyle='#000';
+    X.fillRect(ox-2,oy-2,COLS*CELL+4,ROWS*CELL+4);
+
+    // Draw cells
+    for(let r=0;r<ROWS;r++){
+        for(let c=0;c<COLS;c++){
+            const dx=c-pc,dy=r-pr;
+            const d=Math.sqrt(dx*dx+dy*dy);
+
+            // Fog of war
+            if(d>fog+1)continue;
+            let alpha=1;
+            if(d>fog)alpha=Math.max(0,1-(d-fog));
+
+            const sx=ox+c*CELL,sy=oy+r*CELL;
+
+            if(maze[r][c]===1){
+                // Pac-Man style wall
+                drawWallCell(sx,sy,r,c,alpha);
+            }else{
+                // Black floor (pac-man corridors are black)
+                X.globalAlpha=alpha;
+                X.fillStyle='#000';X.fillRect(sx,sy,CELL,CELL);
+            }
+        }
+    }
+    X.globalAlpha=1;
+
+    // Pac-Man dots - small dots on unvisited path cells, big dots at dead ends
+    for(let r=0;r<ROWS;r++){
+        for(let c=0;c<COLS;c++){
+            if(maze[r][c]!==0)continue;
+            if(r===Math.round(player.y/CELL)&&c===Math.round(player.x/CELL))continue;
+            if(r===exit.r&&c===exit.c)continue;
+
+            const dx=c-pc,dy=r-pr;
+            const d=Math.sqrt(dx*dx+dy*dy);
+            if(d>fog+1)continue;
+            let alpha=d>fog?Math.max(0,1-(d-fog)):1;
+
+            const visited=trail.some(t=>t.r===r&&t.c===c);
+            if(visited)continue; // eaten!
+
+            X.globalAlpha=alpha;
+            const cx=ox+c*CELL+CELL/2,cy=oy+r*CELL+CELL/2;
+
+            // Count open neighbors - dead ends get power pellets
+            let openN=0;
+            if(r>0&&maze[r-1][c]===0)openN++;
+            if(r<ROWS-1&&maze[r+1][c]===0)openN++;
+            if(c>0&&maze[r][c-1]===0)openN++;
+            if(c<COLS-1&&maze[r][c+1]===0)openN++;
+
+            if(openN<=1){
+                // Power pellet (big dot) at dead ends
+                const pulse=0.7+Math.sin(Date.now()*0.004+r*c)*0.3;
+                X.fillStyle=`rgba(255,183,77,${pulse})`;
+                X.beginPath();X.arc(cx,cy,CELL*0.22,0,Math.PI*2);X.fill();
+            }else{
+                // Small dot
+                X.fillStyle='#ffb74d';
+                X.beginPath();X.arc(cx,cy,CELL*0.08+1,0,Math.PI*2);X.fill();
+            }
+        }
+    }
+    X.globalAlpha=1;
+
+    // Exit - flashing pac-man fruit style
+    {const dx=exit.c-pc,dy=exit.r-pr;
+    const d=Math.sqrt(dx*dx+dy*dy);
+    if(d<=fog+1){
+        let alpha=d>fog?Math.max(0,1-(d-fog)):1;
+        X.globalAlpha=alpha;
+        const pulse=0.7+Math.sin(Date.now()*0.006)*0.3;
+        const cx=ox+exit.c*CELL+CELL/2,cy=oy+exit.r*CELL+CELL/2;
+        // Cherry/fruit glow
+        X.fillStyle=`rgba(76,255,100,${pulse*0.3})`;
+        X.beginPath();X.arc(cx,cy,CELL*0.7,0,Math.PI*2);X.fill();
+        // Green exit marker
+        X.fillStyle=`rgba(76,255,100,${pulse})`;
+        X.beginPath();X.arc(cx,cy,CELL*0.38,0,Math.PI*2);X.fill();
+        X.fillStyle='#fff';X.font=`bold ${Math.floor(CELL*0.4)}px monospace`;X.textAlign='center';
+        X.fillText('EXIT',cx,cy+CELL*0.15);
+        X.globalAlpha=1;
+    }}
+
+    // Player - PAC-MAN style!
+    {
+        const cx=ox+player.x+CELL/2,cy=oy+player.y+CELL/2;
+        const rad=CELL*0.4;
+
+        // Determine facing direction for mouth
+        let mouthAngle=0; // right
+        const dx=player.tx-player.x,dy=player.ty-player.y;
+        if(Math.abs(dx)>0.5||Math.abs(dy)>0.5){
+            mouthAngle=Math.atan2(dy,dx);
+        }else{
+            // Use last movement or default right
+            if(K['ArrowLeft']||K['KeyA'])mouthAngle=Math.PI;
+            else if(K['ArrowUp']||K['KeyW'])mouthAngle=-Math.PI/2;
+            else if(K['ArrowDown']||K['KeyS'])mouthAngle=Math.PI/2;
+        }
+
+        // Mouth animation
+        const mouthOpen=Math.abs(Math.sin(Date.now()*0.012))*0.35+0.05;
+
+        // Glow
+        X.fillStyle='rgba(255,255,0,0.1)';
+        X.beginPath();X.arc(cx,cy,CELL*0.9,0,Math.PI*2);X.fill();
+
+        // Pac-Man body with mouth
+        X.fillStyle='#ffe600';
+        X.beginPath();
+        X.arc(cx,cy,rad,mouthAngle+mouthOpen,mouthAngle+Math.PI*2-mouthOpen);
+        X.lineTo(cx,cy);
+        X.closePath();X.fill();
+
+        // Eye
+        const eyeDist=rad*0.35;
+        const eyeAngle=mouthAngle-Math.PI*0.35;
+        const ex=cx+Math.cos(eyeAngle)*eyeDist;
+        const ey=cy+Math.sin(eyeAngle)*eyeDist;
+        X.fillStyle='#000';
+        X.beginPath();X.arc(ex,ey,rad*0.15,0,Math.PI*2);X.fill();
+    }
+
+    // Fog overlay - pure black
+    X.fillStyle='#000';
+    for(let r=0;r<ROWS;r++){
+        for(let c=0;c<COLS;c++){
+            const dx=c-pc,dy=r-pr;
+            const d=Math.sqrt(dx*dx+dy*dy);
+            if(d>fog+1){
+                X.fillRect(ox+c*CELL,oy+r*CELL,CELL,CELL);
+            }else if(d>fog){
+                X.globalAlpha=Math.min(1,(d-fog));
+                X.fillRect(ox+c*CELL,oy+r*CELL,CELL,CELL);
+                X.globalAlpha=1;
+            }
+        }
+    }
+
+    // Pac-Man style border - double line
+    const wc=wallColor();
+    X.strokeStyle=wc.main;X.lineWidth=3;
+    X.strokeRect(ox-3,oy-3,COLS*CELL+6,ROWS*CELL+6);
+    X.strokeStyle=wc.dark;X.lineWidth=1;
+    X.strokeRect(ox-6,oy-6,COLS*CELL+12,ROWS*CELL+12);
+}
+
+function drawHUD(){
+    // Timer bar - pac-man style
+    const sec=Math.ceil(timer);
+    const pct=timer/maxTime;
+    X.fillStyle='#000';X.fillRect(W/2-152,6,304,24);
+    X.strokeStyle=wallColor().main;X.lineWidth=2;
+    X.strokeRect(W/2-152,6,304,24);
+    X.fillStyle=pct>0.5?'#00ff41':pct>0.25?'#ffe600':'#ff1744';
+    X.fillRect(W/2-150,8,300*pct,20);
+    X.fillStyle='#fff';X.font='bold 13px monospace';X.textAlign='center';
+    X.fillText(`TIME ${sec}`,W/2,24);
+
+    // Level - arcade style
+    X.textAlign='left';X.fillStyle='#ffe600';X.font='bold 14px monospace';
+    X.fillText(`LVL ${level}`,10,24);
+
+    // Score-like dots remaining
+    X.textAlign='right';X.fillStyle='#ffb74d';X.font='11px monospace';
+    X.fillText(`VISION ${fog}`,W-10,24);
+
+    // Bottom text
+    X.textAlign='center';X.fillStyle='rgba(255,255,255,0.4)';X.font='10px monospace';
+    X.fillText('WASD/ARROWS  MOVE  |  P  PAUSE  |  FIND THE EXIT',W/2,H-8);
+}
+
+function drawMenu(){
+    X.fillStyle='#000';X.fillRect(0,0,W,H);
+
+    // Pac-Man style decorative border
+    X.strokeStyle='#2121de';X.lineWidth=3;
+    X.strokeRect(30,30,W-60,H-60);
+    X.strokeStyle='#1111aa';X.lineWidth=1;
+    X.strokeRect(26,26,W-52,H-52);
+
+    // Decorative dots
+    for(let i=0;i<20;i++){
+        for(let j=0;j<15;j++){
+            if((i+j)%4===0){
+                X.fillStyle='#ffb74d';
+                X.beginPath();X.arc(i*42+20,j*42+20,2,0,Math.PI*2);X.fill();
+            }
+        }
+    }
+
+    // Pac-Man chomping animation on title
+    const t=Date.now()*0.003;
+    const pacX=W/2-220+((t*30)%440);
+    const mouth=Math.abs(Math.sin(t*4))*0.35+0.05;
+    X.fillStyle='#ffe600';
+    X.beginPath();X.arc(pacX,150,18,mouth,-mouth+Math.PI*2);X.lineTo(pacX,150);X.closePath();X.fill();
+    // Dots being eaten
+    for(let i=0;i<10;i++){
+        const dx=W/2-200+i*44;
+        if(dx>pacX+10){X.fillStyle='#ffb74d';X.beginPath();X.arc(dx,150,3,0,Math.PI*2);X.fill();}
+    }
+
+    X.fillStyle='#ffe600';X.font='bold 52px monospace';X.textAlign='center';
+    X.fillText('MAZE ESCAPE',W/2,210);
+    X.fillStyle='#fff';X.font='bold 18px monospace';
+    X.fillText('FIND THE EXIT BEFORE TIME RUNS OUT!',W/2,260);
+
+    // Blinking insert coin text
+    if(Math.floor(Date.now()/500)%2===0){
+        X.fillStyle='#00ff41';X.font='bold 16px monospace';
+        X.fillText('PRESS ENTER TO START',W/2,330);
+    }
+
+    X.fillStyle='#2121de';X.font='12px monospace';
+    X.fillText('WASD / ARROWS = MOVE  |  P = PAUSE',W/2,400);
+    X.fillStyle='#aaa';X.font='11px monospace';
+    X.fillText('60 SECONDS PER MAZE  -  EAT DOTS  -  FIND THE EXIT',W/2,430);
+    X.fillText('FOG CLOSES IN AS YOU PROGRESS',W/2,450);
+}
+
+function drawWin(){
+    X.fillStyle='rgba(0,0,0,0.8)';X.fillRect(0,0,W,H);
+    dParts();
+    X.fillStyle='#ffe600';X.font='bold 44px monospace';X.textAlign='center';
+    X.fillText('ESCAPED!',W/2,200);
+    X.fillStyle='#00ff41';X.font='bold 20px monospace';
+    X.fillText(`LEVEL ${level} COMPLETE`,W/2,250);
+    X.fillStyle='#fff';X.font='16px monospace';
+    X.fillText(`TIME REMAINING: ${Math.ceil(timer)}s`,W/2,290);
+    if(Math.floor(Date.now()/500)%2===0){
+        X.fillStyle='#ffb74d';X.font='14px monospace';
+        X.fillText('PRESS ENTER FOR NEXT LEVEL',W/2,345);
+    }
+}
+
+function drawLose(){
+    X.fillStyle='rgba(0,0,0,0.9)';X.fillRect(0,0,W,H);
+    X.fillStyle='#ff1744';X.font='bold 44px monospace';X.textAlign='center';
+    X.fillText('GAME OVER',W/2,200);
+    X.fillStyle='#fff';X.font='16px monospace';
+    X.fillText(`YOU REACHED LEVEL ${level}`,W/2,250);
+    if(Math.floor(Date.now()/500)%2===0){
+        X.fillStyle='#ffb74d';X.font='14px monospace';
+        X.fillText('PRESS ENTER TO CONTINUE',W/2,320);
+    }
+}
+
+function drawPause(){
+    drawMaze();drawHUD();
+    X.fillStyle='rgba(0,0,0,0.7)';X.fillRect(0,0,W,H);
+    X.fillStyle='#ffe600';X.font='bold 40px monospace';X.textAlign='center';
+    X.fillText('PAUSED',W/2,H/2-10);
+    if(Math.floor(Date.now()/500)%2===0){
+        X.fillStyle='#fff';X.font='14px monospace';X.fillText('PRESS P TO RESUME',W/2,H/2+30);
+    }
+}
+
+// ═══ MAIN LOOP ═══
+function render(){
+    X.clearRect(0,0,W,H);
+    X.fillStyle='#000';X.fillRect(0,0,W,H);
+
+    switch(gs){
+        case ST.MENU:drawMenu();break;
+        case ST.PLAY:drawMaze();drawHUD();break;
+        case ST.WIN:drawMaze();drawHUD();uParts();dParts();drawWin();break;
+        case ST.LOSE:drawMaze();drawHUD();drawLose();break;
+        case ST.PAUSE:drawPause();break;
+    }
+}
+
+function gameLoop(ts){
+    if(!lt)lt=ts;const dt=Math.min((ts-lt)/1000,0.05);lt=ts;
+
+    if(gs===ST.MENU&&(pressed('Enter')||pressed('NumpadEnter'))){level=1;initMaze();}
+    if(gs===ST.WIN&&(pressed('Enter')||pressed('NumpadEnter'))){level++;initMaze();}
+    if(gs===ST.LOSE&&(pressed('Enter')||pressed('NumpadEnter'))){level=1;initMaze();}
+
+    update(dt);render();kp={};requestAnimationFrame(gameLoop);
+}
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

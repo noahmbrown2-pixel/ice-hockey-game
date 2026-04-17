@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Harvest Valley - Farming Simulator</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0d0a06; display: flex; align-items: center; justify-content: center;
+         min-height: 100vh; font-family: 'Courier New', monospace; overflow: hidden; }
+  canvas { display: block; cursor: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const W = 980, H = 660;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+cv.width = W; cv.height = H;
+
+// Grid layout
+const TILE = 48;
+const COLS = 12, ROWS = 9;
+const GX = 18, GY = 80;   // grid top-left
+const GRID_W = COLS * TILE; // 576
+const GRID_H = ROWS * TILE; // 432
+const PANEL_X = GX + GRID_W + 14; // right panel start = 608
+const PANEL_W = W - PANEL_X - 10; // ~362
+
+// Crop data
+const CROPS = [
+  { id:'carrot',     name:'Carrot',     icon:'🥕', days:2, seed:10,  sell:28,  color:'#ff7f00' },
+  { id:'wheat',      name:'Wheat',      icon:'🌾', days:3, seed:5,   sell:18,  color:'#f0d060' },
+  { id:'potato',     name:'Potato',     icon:'🥔', days:3, seed:8,   sell:25,  color:'#c8a96e' },
+  { id:'tomato',     name:'Tomato',     icon:'🍅', days:4, seed:15,  sell:52,  color:'#ff4500' },
+  { id:'corn',       name:'Corn',       icon:'🌽', days:4, seed:12,  sell:44,  color:'#ffd700' },
+  { id:'strawberry', name:'Strawberry', icon:'🍓', days:5, seed:20,  sell:88,  color:'#ff1493' },
+  { id:'pumpkin',    name:'Pumpkin',    icon:'🎃', days:6, seed:25,  sell:115, color:'#ff6600' },
+  { id:'blueberry',  name:'Blueberry',  icon:'🫐', days:7, seed:35,  sell:175, color:'#4169e1' },
+];
+
+// Tools
+const TOOLS = [
+  { id:'hoe',     name:'Hoe',     key:'1', icon:'⛏' },
+  { id:'water',   name:'Water',   key:'2', icon:'💧' },
+  { id:'seed',    name:'Seeds',   key:'3', icon:'🌱' },
+  { id:'harvest', name:'Harvest', key:'4', icon:'⭐' },
+  { id:'remove',  name:'Remove',  key:'5', icon:'✂' },
+];
+
+// Game state
+const G = {
+  day: 1, time: 7,
+  money: 200, energy: 20, maxEnergy: 20,
+  tool: 'hoe', seedIdx: 0,
+  showShop: false, showHelp: true,
+  weather: 'sunny',
+  totalHarvests: 0, totalEarned: 0,
+  grid: [], notifications: [], particles: [],
+  rain: [], stars: [], clouds: [],
+  lastHovR: -1, lastHovC: -1,
+};
+
+// Init grid
+for (let r = 0; r < ROWS; r++) {
+  G.grid[r] = [];
+  for (let c = 0; c < COLS; c++)
+    G.grid[r][c] = { tilled:false, watered:false, crop:null, daysGrown:0 };
+}
+// Init rain
+for (let i = 0; i < 160; i++)
+  G.rain.push({ x: Math.random()*W, y: Math.random()*H, spd: 8+Math.random()*5 });
+// Init stars
+for (let i = 0; i < 90; i++)
+  G.stars.push({ x: Math.random()*W, y: Math.random()*(H*0.35), tw: Math.random()*Math.PI*2 });
+// Init clouds
+for (let i = 0; i < 6; i++)
+  G.clouds.push({ x: Math.random()*W, y: 15+Math.random()*45, spd: 0.15+Math.random()*0.25, sz: 55+Math.random()*75 });
+
+// ── Helpers ──────────────────────────────────────────────
+const cData = id => CROPS.find(c => c.id === id);
+const isNight = () => G.time >= 20 || G.time < 5;
+const isDusk  = () => G.time >= 18 && G.time < 20;
+const isDawn  = () => G.time >= 5  && G.time < 7;
+
+let frame = 0;
+const mouse = { x:0, y:0 };
+let hovR = -1, hovC = -1, mouseDown = false;
+
+function notify(msg, color='#fff') {
+  G.notifications.unshift({ msg, color, life:200, oy: H/2 - 60 });
+}
+
+function burst(x, y, color, emoji=null) {
+  for (let i = 0; i < 9; i++)
+    G.particles.push({
+      x, y, vx:(Math.random()-.5)*5, vy:-Math.random()*5-1,
+      life:60+Math.random()*30, maxLife:90, color, emoji,
+      sz: 3+Math.random()*3,
+    });
+}
+
+// ── Day advance ───────────────────────────────────────────
+function advanceDay() {
+  G.day++; G.energy = G.maxEnergy; G.time = 7;
+  const w = Math.random();
+  G.weather = w < 0.2 ? 'rainy' : w < 0.38 ? 'cloudy' : 'sunny';
+
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const t = G.grid[r][c];
+    if (!t.tilled || !t.crop) continue;
+    if (G.weather === 'rainy') t.watered = true;
+    if (t.watered) t.daysGrown++;
+    t.watered = false;
+  }
+  notify(`☀ Day ${G.day}${G.weather === 'rainy' ? ' — 🌧 Rain auto-watered crops!' : ''}`, '#ffd700');
+}
+
+// ── Tool use ──────────────────────────────────────────────
+function useTool(r, c) {
+  if (G.energy <= 0) { notify('⚡ No energy — sleep to rest!', '#ff6666'); return; }
+  const t = G.grid[r][c];
+  const px = GX + c*TILE + TILE/2;
+  const py = GY + r*TILE + TILE/2;
+
+  if (G.tool === 'hoe') {
+    if (!t.tilled && !t.crop) { t.tilled=true; G.energy--; burst(px,py,'#8B6914'); }
+  } else if (G.tool === 'water') {
+    if (t.tilled && !t.watered) { t.watered=true; G.energy--; burst(px,py,'#4aa3df'); }
+  } else if (G.tool === 'seed') {
+    if (t.tilled && !t.crop) {
+      const crop = CROPS[G.seedIdx];
+      if (G.money >= crop.seed) {
+        t.crop = crop.id; t.daysGrown = 0;
+        G.money -= crop.seed; G.energy--;
+        burst(px,py,'#90ee90');
+      } else notify('💸 Not enough money!', '#ff4444');
+    }
+  } else if (G.tool === 'harvest') {
+    if (t.crop) {
+      const cd = cData(t.crop);
+      if (t.daysGrown >= cd.days) {
+        G.money += cd.sell; G.totalEarned += cd.sell; G.totalHarvests++;
+        notify(`+$${cd.sell}  ${cd.icon} ${cd.name} harvested!`, '#4caf50');
+        burst(px,py,'#ffd700', cd.icon);
+        t.crop=null; t.daysGrown=0; t.watered=false; G.energy--;
+      } else {
+        const left = cd.days - t.daysGrown;
+        notify(`Not ready — ${left} day${left>1?'s':''} left.`, '#ffaa00');
+      }
+    }
+  } else if (G.tool === 'remove') {
+    if (t.tilled || t.crop) {
+      Object.assign(t,{tilled:false,watered:false,crop:null,daysGrown:0}); G.energy--;
+      burst(px,py,'#777');
+    }
+  }
+}
+
+// ── Draw: Sky / Weather ───────────────────────────────────
+function drawSky() {
+  let top, bot;
+  if (isNight())       { top='#07091a'; bot='#0d1b2a'; }
+  else if (isDusk())   { top='#e8552a'; bot='#8b1010'; }
+  else if (isDawn())   { top='#ff8c69'; bot='#ffb347'; }
+  else                 { top='#5bb8e8'; bot='#a0d8ef'; }
+
+  const grad = ctx.createLinearGradient(0,0,0,GY+GRID_H);
+  grad.addColorStop(0,top); grad.addColorStop(1,bot);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,W,GY+GRID_H);
+
+  // Stars
+  if (isNight()) G.stars.forEach(s=>{
+    const a = .5+.5*Math.sin(s.tw+frame*.03);
+    ctx.fillStyle=`rgba(255,255,255,${a})`;
+    ctx.beginPath(); ctx.arc(s.x,s.y,1.5,0,Math.PI*2); ctx.fill();
+  });
+
+  // Moon
+  if (isNight()) {
+    ctx.fillStyle='#fffacd'; ctx.beginPath(); ctx.arc(W-90,38,22,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#a0b4c8'; ctx.beginPath(); ctx.arc(W-100,32,16,0,Math.PI*2); ctx.fill();
+  }
+
+  // Sun
+  if (!isNight()) {
+    const p = Math.max(0,Math.min(1,(G.time-5)/15));
+    const sx = 70+p*(W-140), sy = 55-Math.sin(p*Math.PI)*48;
+    const gl = ctx.createRadialGradient(sx,sy,4,sx,sy,38);
+    gl.addColorStop(0,'rgba(255,220,50,.5)'); gl.addColorStop(1,'rgba(255,140,0,0)');
+    ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(sx,sy,38,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=(isDusk()||isDawn())? '#ff8c00':'#ffd700';
+    ctx.beginPath(); ctx.arc(sx,sy,16,0,Math.PI*2); ctx.fill();
+  }
+
+  // Clouds
+  G.clouds.forEach(cl=>{
+    ctx.fillStyle = G.weather==='rainy' ? 'rgba(100,110,130,.7)' : 'rgba(255,255,255,.65)';
+    cloud(cl.x,cl.y,cl.sz);
+  });
+}
+
+function cloud(x,y,sz) {
+  ctx.beginPath();
+  ctx.arc(x,      y,       sz*.50, 0, Math.PI*2);
+  ctx.arc(x+sz*.4,y-sz*.12,sz*.34, 0, Math.PI*2);
+  ctx.arc(x+sz*.7,y,       sz*.40, 0, Math.PI*2);
+  ctx.fill();
+}
+
+function drawRain() {
+  if (G.weather!=='rainy') return;
+  ctx.strokeStyle='rgba(140,195,255,.5)'; ctx.lineWidth=1;
+  G.rain.forEach(r=>{
+    ctx.beginPath(); ctx.moveTo(r.x,r.y); ctx.lineTo(r.x-2,r.y+12); ctx.stroke();
+  });
+}
+
+function drawGround() {
+  const gy = GY+GRID_H;
+  ctx.fillStyle='#2a5519'; ctx.fillRect(0,gy,W,H-gy);
+  ctx.fillStyle='#357020';
+  for (let i=0;i<W;i+=7) { ctx.fillRect(i,gy,3,2+Math.sin(i*.6)*2); }
+  // Dirt border under farm
+  ctx.fillStyle='#5a3c10'; ctx.fillRect(GX-2,gy,GRID_W+4,4);
+}
+
+// ── Draw: Grid / Tiles ────────────────────────────────────
+function drawGrid() {
+  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) drawTile(r,c);
+}
+
+function drawTile(r,c) {
+  const t = G.grid[r][c];
+  const x = GX+c*TILE, y = GY+r*TILE;
+  const w = TILE-1, h = TILE-1;
+
+  // Base
+  if (!t.tilled) {
+    ctx.fillStyle='#4a7c59'; ctx.fillRect(x,y,w,h);
+    // Grass texture
+    ctx.fillStyle='#3f7050';
+    for (let i=0;i<3;i++) { const gx=x+8+i*18, gy=y+h-6; ctx.fillRect(gx,gy,3,6); }
+  } else {
+    ctx.fillStyle = t.watered ? '#5c3817' : '#8B6914';
+    ctx.fillRect(x,y,w,h);
+    // Furrow lines
+    ctx.fillStyle='rgba(0,0,0,.12)';
+    for (let i=6;i<w;i+=8) ctx.fillRect(x+i,y+2,2,h-4);
+    // Water shimmer
+    if (t.watered) {
+      ctx.fillStyle='rgba(80,160,255,.13)'; ctx.fillRect(x,y,w,h);
+      if (frame%30<15) {
+        ctx.fillStyle='rgba(160,220,255,.45)';
+        ctx.fillRect(x+6,y+6,3,3); ctx.fillRect(x+w-10,y+h-10,3,3);
+      }
+    }
+  }
+
+  // Crop
+  if (t.crop) {
+    const cd = cData(t.crop);
+    const stage = Math.min(1, t.daysGrown / cd.days);
+    const ready = stage >= 1;
+    const cx = x+w/2, cy = y+h;
+    const stemH = 6 + stage*(h-18);
+
+    // Wilt alpha
+    if (!t.watered && t.daysGrown>0 && !ready) ctx.globalAlpha=0.55;
+
+    // Stem
+    ctx.strokeStyle='#3a8a3a'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(cx,cy-4); ctx.lineTo(cx,cy-stemH); ctx.stroke();
+
+    // Leaves
+    if (stage>.2) { ctx.fillStyle='#4caf50'; ctx.beginPath(); ctx.ellipse(cx-7,cy-stemH*.45,7,3,-.5,0,Math.PI*2); ctx.fill(); }
+    if (stage>.5) { ctx.fillStyle='#5cb85c'; ctx.beginPath(); ctx.ellipse(cx+7,cy-stemH*.7,7,3,.5,0,Math.PI*2); ctx.fill(); }
+
+    // Crop icon
+    const fs = ready ? 24 : 10+stage*14;
+    ctx.font=`${Math.floor(fs)}px Arial`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(cd.icon, cx, cy-stemH-fs*.55);
+    ctx.globalAlpha=1;
+
+    // Ready glow
+    if (ready) {
+      const pulse = .4+.4*Math.sin(frame*.12);
+      ctx.fillStyle=`rgba(255,220,0,${pulse*.3})`; ctx.fillRect(x,y,w,h);
+      ctx.fillStyle='#ffd700'; ctx.font='10px Arial';
+      ctx.textAlign='right'; ctx.textBaseline='top';
+      ctx.fillText('✓',x+w-2,y+2);
+    }
+  }
+
+  // Hover
+  if (r===hovR && c===hovC && !G.showShop && !G.showHelp) {
+    ctx.fillStyle='rgba(255,255,255,.15)'; ctx.fillRect(x,y,w,h);
+    ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=1.5; ctx.strokeRect(x,y,w,h);
+  }
+
+  // Cell border
+  ctx.strokeStyle='rgba(0,0,0,.18)'; ctx.lineWidth=1; ctx.strokeRect(x,y,w,h);
+}
+
+// ── Draw: HUD bar ─────────────────────────────────────────
+function drawHUD() {
+  ctx.fillStyle='rgba(15,10,5,.88)'; ctx.fillRect(0,0,W,76);
+  ctx.strokeStyle='#6a4c18'; ctx.lineWidth=2; ctx.strokeRect(0,0,W,76);
+
+  // Title
+  ctx.fillStyle='#d4a017'; ctx.font='bold 19px Courier New';
+  ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillText('🌾 HARVEST VALLEY', 12, 10);
+  ctx.fillStyle='#90b890'; ctx.font='12px Courier New';
+  ctx.fillText(`Day ${G.day}  ·  ${timeStr()}  ·  ${G.weather==='sunny'?'☀ Sunny':G.weather==='rainy'?'🌧 Rainy':'☁ Cloudy'}`, 12, 36);
+  ctx.fillStyle='#777'; ctx.font='11px Courier New';
+  ctx.fillText(`Harvests: ${G.totalHarvests}  |  Earned: $${G.totalEarned}`, 12, 56);
+
+  // Money
+  ctx.fillStyle='#2ecc71'; ctx.font='bold 26px Courier New';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(`$${G.money}`, W/2, 32);
+  ctx.fillStyle='#aaa'; ctx.font='12px Courier New'; ctx.textBaseline='top';
+  ctx.fillText('MONEY', W/2-24, 52);
+
+  // Energy
+  const eX = W-215;
+  ctx.fillStyle='#ddd'; ctx.font='13px Courier New'; ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillText(`⚡ Energy: ${G.energy}/${G.maxEnergy}`, eX, 10);
+  ctx.fillStyle='#222'; ctx.fillRect(eX,32,168,16);
+  const ep = G.energy/G.maxEnergy;
+  ctx.fillStyle = ep>.6?'#2ecc71':ep>.3?'#f39c12':'#e74c3c';
+  ctx.fillRect(eX,32,168*ep,16);
+  ctx.strokeStyle='#555'; ctx.lineWidth=1; ctx.strokeRect(eX,32,168,16);
+
+  ctx.fillStyle='#888'; ctx.font='11px Courier New'; ctx.textBaseline='top';
+  ctx.fillText('Press N to sleep & next day', eX, 55);
+}
+
+function timeStr() {
+  const h=Math.floor(G.time), m=Math.floor((G.time%1)*60);
+  const ap=h>=12?'PM':'AM', dh=h>12?h-12:h===0?12:h;
+  return `${dh}:${m.toString().padStart(2,'0')} ${ap}`;
+}
+
+// ── Draw: Right Panel ─────────────────────────────────────
+function drawPanel() {
+  // Background
+  ctx.fillStyle='rgba(15,10,5,.82)'; ctx.fillRect(PANEL_X,GY,PANEL_W,GRID_H);
+  ctx.strokeStyle='#6a4c18'; ctx.lineWidth=1; ctx.strokeRect(PANEL_X,GY,PANEL_W,GRID_H);
+
+  let py = GY+14;
+  const px = PANEL_X+12;
+
+  // Current tool
+  ctx.fillStyle='#d4a017'; ctx.font='bold 14px Courier New';
+  ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillText('TOOLS', px, py); py+=20;
+
+  TOOLS.forEach((tool,i)=>{
+    const selected = G.tool===tool.id;
+    ctx.fillStyle = selected?'#5a3c00':'#1a1208';
+    ctx.fillRect(px,py,PANEL_W-24,32);
+    ctx.strokeStyle = selected?'#ffd700':'#3a2a10';
+    ctx.lineWidth=selected?2:1; ctx.strokeRect(px,py,PANEL_W-24,32);
+    ctx.font='16px Arial'; ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText(tool.icon, px+8, py+16);
+    ctx.fillStyle=selected?'#ffd700':'#ccc'; ctx.font='12px Courier New';
+    ctx.fillText(tool.name, px+28, py+11);
+    ctx.fillStyle='#666'; ctx.font='10px Courier New';
+    ctx.fillText(`[${tool.key}]`, px+28, py+24);
+    py+=36;
+  });
+
+  py+=8;
+  ctx.fillStyle='#6a4c18'; ctx.fillRect(px,py,PANEL_W-24,1); py+=10;
+
+  // Seed section
+  ctx.fillStyle='#d4a017'; ctx.font='bold 14px Courier New'; ctx.textBaseline='top';
+  ctx.fillText('SEEDS  [Q/E cycle]', px, py); py+=18;
+
+  CROPS.forEach((crop,i)=>{
+    const sel = G.seedIdx===i;
+    const can = G.money>=crop.seed;
+    ctx.fillStyle = sel?'#2a1f00':can?'#130e07':'#0a0705';
+    ctx.fillRect(px,py,PANEL_W-24,28);
+    ctx.strokeStyle = sel?'#ffd700':can?'#4a3010':'#222';
+    ctx.lineWidth=sel?2:1; ctx.strokeRect(px,py,PANEL_W-24,28);
+    ctx.font='14px Arial'; ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText(crop.icon, px+5, py+14);
+    ctx.fillStyle=can?(sel?'#ffd700':'#ccc'):'#555'; ctx.font='11px Courier New';
+    ctx.fillText(crop.name, px+26, py+9);
+    ctx.fillStyle=can?'#888':'#444'; ctx.font='9px Courier New';
+    ctx.fillText(`$${crop.seed}→$${crop.sell}  ${crop.days}d`, px+26, py+21);
+    // Click region stored
+    crop._pr = { x:px, y:py, w:PANEL_W-24, h:28 };
+    py+=31;
+  });
+
+  py+=8;
+  ctx.fillStyle='#6a4c18'; ctx.fillRect(px,py,PANEL_W-24,1); py+=10;
+
+  // Hovered tile info
+  if (hovR>=0&&hovC>=0) {
+    const t=G.grid[hovR][hovC];
+    ctx.fillStyle='#aaa'; ctx.font='12px Courier New'; ctx.textBaseline='top';
+    ctx.fillText(`Tile [${hovC},${hovR}]`, px, py); py+=16;
+    if (t.tilled) {
+      ctx.fillStyle='#ccc';
+      ctx.fillText(t.watered?'💧 Watered':'Dry (needs water)', px, py); py+=15;
+      if (t.crop) {
+        const cd=cData(t.crop);
+        const left=cd.days-t.daysGrown;
+        const pct=Math.min(100,Math.floor(t.daysGrown/cd.days*100));
+        ctx.fillStyle='#4caf50'; ctx.font='bold 13px Courier New';
+        ctx.fillText(t.daysGrown>=cd.days?'✓ READY TO HARVEST!':'Growing…', px, py); py+=16;
+        ctx.fillStyle='#aaa'; ctx.font='11px Courier New';
+        ctx.fillText(`${cd.name}  ${pct}%`, px, py); py+=13;
+        if (left>0) ctx.fillText(`${left} day${left>1?'s':''} remaining`, px, py);
+      } else {
+        ctx.fillStyle='#aaa'; ctx.font='11px Courier New';
+        ctx.fillText('Empty — plant a seed!', px, py);
+      }
+    } else {
+      ctx.fillStyle='#aaa'; ctx.font='11px Courier New'; ctx.textBaseline='top';
+      ctx.fillText('Untilled grass', px, py); py+=13;
+      ctx.fillText('Use Hoe to till', px, py);
+    }
+  }
+
+  // Next Day + Shop buttons at bottom of panel
+  const btnY = GY+GRID_H-90;
+  // Next Day
+  ctx.fillStyle='#0f2010'; ctx.fillRect(px,btnY,PANEL_W-24,38);
+  ctx.strokeStyle='#2ecc71'; ctx.lineWidth=2; ctx.strokeRect(px,btnY,PANEL_W-24,38);
+  ctx.fillStyle='#2ecc71'; ctx.font='bold 14px Courier New';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('Sleep / Next Day  [N]', px+(PANEL_W-24)/2, btnY+19);
+
+  // Shop
+  ctx.fillStyle=G.showShop?'#2a1800':'#100f1a'; ctx.fillRect(px,btnY+42,PANEL_W-24,38);
+  ctx.strokeStyle='#e67e22'; ctx.lineWidth=2; ctx.strokeRect(px,btnY+42,PANEL_W-24,38);
+  ctx.fillStyle='#e67e22'; ctx.font='bold 14px Courier New';
+  ctx.fillText('🏪 Shop  [S]', px+(PANEL_W-24)/2, btnY+61);
+  // Help
+  ctx.fillStyle='#0a0a20'; ctx.fillRect(px,btnY+84,PANEL_W-24,28);
+  ctx.strokeStyle='#888'; ctx.lineWidth=1; ctx.strokeRect(px,btnY+84,PANEL_W-24,28);
+  ctx.fillStyle='#aaa'; ctx.font='12px Courier New';
+  ctx.fillText('? Help  [H]', px+(PANEL_W-24)/2, btnY+98);
+}
+
+// ── Draw: Shop Overlay ────────────────────────────────────
+function drawShop() {
+  if (!G.showShop) return;
+  ctx.fillStyle='rgba(0,0,0,.78)'; ctx.fillRect(0,0,W,H);
+  const sw=580, sh=500, sx=(W-sw)/2, sy=(H-sh)/2;
+  ctx.fillStyle='#130f07'; ctx.fillRect(sx,sy,sw,sh);
+  ctx.strokeStyle='#e67e22'; ctx.lineWidth=3; ctx.strokeRect(sx,sy,sw,sh);
+  ctx.fillStyle='#e67e22'; ctx.font='bold 22px Courier New';
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('🏪  SEED SHOP', sx+sw/2, sy+18);
+  ctx.fillStyle='#2ecc71'; ctx.font='bold 18px Courier New';
+  ctx.fillText(`💰 $${G.money}`, sx+sw/2, sy+50);
+
+  CROPS.forEach((crop,i)=>{
+    const col=i%2, row=Math.floor(i/2);
+    const ix=sx+18+col*283, iy=sy+88+row*98, iw=275, ih=90;
+    const can=G.money>=crop.seed, sel=G.seedIdx===i;
+    ctx.fillStyle=sel?'#2a1f00':can?'#1a1307':'#100b05';
+    ctx.fillRect(ix,iy,iw,ih);
+    ctx.strokeStyle=sel?'#ffd700':can?'#5a3a10':'#2a2010';
+    ctx.lineWidth=sel?2:1; ctx.strokeRect(ix,iy,iw,ih);
+
+    ctx.font='34px Arial'; ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText(crop.icon, ix+10, iy+ih/2);
+
+    ctx.fillStyle=can?(sel?'#ffd700':'#e0c060'):'#666';
+    ctx.font='bold 14px Courier New'; ctx.textBaseline='top';
+    ctx.fillText(crop.name, ix+60, iy+12);
+    ctx.fillStyle=can?'#aaa':'#555'; ctx.font='11px Courier New';
+    ctx.fillText(`Seed: $${crop.seed}   Sell: $${crop.sell}`, ix+60, iy+34);
+    ctx.fillText(`Grows in ${crop.days} days`, ix+60, iy+50);
+    ctx.fillStyle=can?'#4caf50':'#666';
+    ctx.fillText(`Profit/crop: $${crop.sell-crop.seed}`, ix+60, iy+66);
+    if (sel) { ctx.fillStyle='#ffd700'; ctx.textAlign='right'; ctx.textBaseline='top'; ctx.fillText('SELECTED', ix+iw-8,iy+8); }
+    crop._shopRect = {x:ix,y:iy,w:iw,h:ih};
+  });
+
+  ctx.fillStyle='#777'; ctx.font='13px Courier New';
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText('Click a crop to select · Press S or Esc to close', sx+sw/2, sy+sh-10);
+}
+
+// ── Draw: Help overlay ────────────────────────────────────
+function drawHelp() {
+  if (!G.showHelp) return;
+  ctx.fillStyle='rgba(0,0,0,.8)'; ctx.fillRect(0,0,W,H);
+  const sw=520, sh=480, sx=(W-sw)/2, sy=(H-sh)/2;
+  ctx.fillStyle='#0d0a06'; ctx.fillRect(sx,sy,sw,sh);
+  ctx.strokeStyle='#ffd700'; ctx.lineWidth=3; ctx.strokeRect(sx,sy,sw,sh);
+
+  ctx.fillStyle='#ffd700'; ctx.font='bold 22px Courier New';
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('🌾 HOW TO PLAY', sx+sw/2, sy+20);
+
+  const lines = [
+    ['#d4a017','── Controls ──'],
+    ['#ccc','1 · Hoe     — till soil to prepare for planting'],
+    ['#ccc','2 · Water   — water tilled soil each day'],
+    ['#ccc','3 · Seeds   — plant seeds on tilled soil'],
+    ['#ccc','4 · Harvest — collect fully grown crops'],
+    ['#ccc','5 · Remove  — clear tile back to grass'],
+    ['#ccc','Q / E       — cycle through seed types'],
+    ['#ccc','N           — sleep and advance to next day'],
+    ['#ccc','S           — open/close the shop'],
+    ['',''],
+    ['#d4a017','── Farming Tips ──'],
+    ['#aaa','• Till soil first, then water it, then plant seeds'],
+    ['#aaa','• Water your crops EVERY day or they won\'t grow'],
+    ['#aaa','• 🌧 Rain auto-waters all crops — lucky!'],
+    ['#aaa','• Gold ✓ means a crop is ready to harvest'],
+    ['#aaa','• You must have enough energy to use tools'],
+    ['#aaa','• Click & drag to till/water multiple tiles fast'],
+    ['',''],
+    ['#2ecc71','You start with $200 — buy seeds from the Shop!'],
+  ];
+
+  let ly = sy+58;
+  lines.forEach(([col,text])=>{
+    ctx.fillStyle=col||'transparent'; ctx.font='13px Courier New';
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillText(text, sx+28, ly); ly+=21;
+  });
+
+  ctx.fillStyle='#ffd700'; ctx.font='bold 15px Courier New';
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText('Press H or click to start farming!', sx+sw/2, sy+sh-14);
+}
+
+// ── Draw: Particles ───────────────────────────────────────
+function drawParticles() {
+  G.particles.forEach(p=>{
+    ctx.globalAlpha=Math.max(0,p.life/p.maxLife);
+    if (p.emoji) {
+      ctx.font='16px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(p.emoji,p.x,p.y);
+    } else {
+      ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,p.sz,0,Math.PI*2); ctx.fill();
+    }
+  });
+  ctx.globalAlpha=1;
+}
+
+// ── Draw: Notifications ───────────────────────────────────
+function drawNotifications() {
+  G.notifications.slice(0,4).forEach((n,i)=>{
+    ctx.globalAlpha=Math.min(1,n.life/40);
+    ctx.font='bold 15px Courier New'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    const tw=ctx.measureText(n.msg).width;
+    ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(W/2-tw/2-12,n.oy-i*28-12,tw+24,26);
+    ctx.fillStyle=n.color; ctx.fillText(n.msg,W/2,n.oy-i*28);
+  });
+  ctx.globalAlpha=1;
+}
+
+// ── Draw: Cursor ──────────────────────────────────────────
+function drawCursor() {
+  if (G.showShop||G.showHelp) return;
+  const icons={hoe:'⛏',water:'💧',seed:'🌱',harvest:'⭐',remove:'✂'};
+  ctx.font='20px Arial'; ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillText(icons[G.tool]||'', mouse.x+6, mouse.y-2);
+}
+
+// ── Input ─────────────────────────────────────────────────
+cv.addEventListener('mousemove', e=>{
+  const r=cv.getBoundingClientRect();
+  mouse.x=e.clientX-r.left; mouse.y=e.clientY-r.top;
+  const nc=Math.floor((mouse.x-GX)/TILE);
+  const nr=Math.floor((mouse.y-GY)/TILE);
+  hovC = (nc>=0&&nc<COLS)?nc:-1;
+  hovR = (nr>=0&&nr<ROWS)?nr:-1;
+  // Drag
+  if (mouseDown && !G.showShop && !G.showHelp && hovR>=0&&hovC>=0) {
+    if (hovR!==G.lastHovR||hovC!==G.lastHovC) {
+      G.lastHovR=hovR; G.lastHovC=hovC;
+      useTool(hovR,hovC);
+    }
+  }
+});
+
+cv.addEventListener('mousedown', e=>{
+  mouseDown=true;
+  const r=cv.getBoundingClientRect();
+  const mx=e.clientX-r.left, my=e.clientY-r.top;
+  click(mx,my);
+});
+cv.addEventListener('mouseup',()=>{ mouseDown=false; G.lastHovR=-1; G.lastHovC=-1; });
+
+function click(mx,my) {
+  // Help overlay
+  if (G.showHelp) { G.showHelp=false; return; }
+
+  // Shop overlay
+  if (G.showShop) {
+    for (let i=0;i<CROPS.length;i++) {
+      const rc=CROPS[i]._shopRect;
+      if (rc&&mx>=rc.x&&mx<=rc.x+rc.w&&my>=rc.y&&my<=rc.y+rc.h) { G.seedIdx=i; G.tool='seed'; return; }
+    }
+    const sw=580,sh=500,sx=(W-sw)/2,sy=(H-sh)/2;
+    if (mx<sx||mx>sx+sw||my<sy||my>sy+sh) G.showShop=false;
+    return;
+  }
+
+  // Right panel buttons
+  const btnY=GY+GRID_H-90;
+  const px=PANEL_X+12, pw=PANEL_W-24;
+  // Next Day button
+  if (mx>=px&&mx<=px+pw&&my>=btnY&&my<=btnY+38) { advanceDay(); return; }
+  // Shop button
+  if (mx>=px&&mx<=px+pw&&my>=btnY+42&&my<=btnY+80) { G.showShop=true; return; }
+  // Help button
+  if (mx>=px&&mx<=px+pw&&my>=btnY+84&&my<=btnY+112) { G.showHelp=true; return; }
+
+  // Panel seed clicks
+  for (let i=0;i<CROPS.length;i++) {
+    const pr=CROPS[i]._pr;
+    if (pr&&mx>=pr.x&&mx<=pr.x+pr.w&&my>=pr.y&&my<=pr.y+pr.h) {
+      G.seedIdx=i; G.tool='seed'; return;
+    }
+  }
+
+  // Panel tool clicks
+  const tlX=PANEL_X+12, tlW=PANEL_W-24;
+  const tlStartY=GY+14+20;
+  for (let i=0;i<TOOLS.length;i++) {
+    if (mx>=tlX&&mx<=tlX+tlW&&my>=tlStartY+i*36&&my<=tlStartY+i*36+32) {
+      G.tool=TOOLS[i].id; return;
+    }
+  }
+
+  // Grid click
+  if (hovR>=0&&hovC>=0) {
+    G.lastHovR=hovR; G.lastHovC=hovC;
+    useTool(hovR,hovC);
+  }
+}
+
+document.addEventListener('keydown', e=>{
+  if (['1','2','3','4','5'].includes(e.key)) G.tool=TOOLS[+e.key-1].id;
+  if (e.key.toLowerCase()==='n') advanceDay();
+  if (e.key.toLowerCase()==='s') G.showShop=!G.showShop;
+  if (e.key.toLowerCase()==='h') G.showHelp=!G.showHelp;
+  if (e.key.toLowerCase()==='q') G.seedIdx=(G.seedIdx-1+CROPS.length)%CROPS.length;
+  if (e.key.toLowerCase()==='e') G.seedIdx=(G.seedIdx+1)%CROPS.length;
+  if (e.key==='Escape') { G.showShop=false; G.showHelp=false; }
+});
+
+// ── Main Loop ─────────────────────────────────────────────
+let lastT=0;
+function loop(ts) {
+  const dt=Math.min((ts-lastT)/1000,.05); lastT=ts; frame++;
+
+  // Time passes (10 game-min per real second → full day ~9 real min)
+  G.time += dt*(10/60);
+  if (G.time>=22) advanceDay();
+
+  // Clouds
+  G.clouds.forEach(cl=>{ cl.x+=cl.spd; if(cl.x>W+120)cl.x=-160; });
+
+  // Rain
+  if (G.weather==='rainy') G.rain.forEach(r=>{
+    r.y+=r.spd; r.x-=1.5;
+    if (r.y>H) { r.y=-10; r.x=Math.random()*W; }
+  });
+
+  // Particles
+  G.particles=G.particles.filter(p=>p.life>0);
+  G.particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=.15; p.life--; });
+
+  // Notifications
+  G.notifications=G.notifications.filter(n=>n.life>0);
+  G.notifications.forEach(n=>{ n.life--; n.oy-=.25; });
+
+  // ─ Render ─
+  ctx.clearRect(0,0,W,H);
+  drawSky();
+  drawGround();
+  drawGrid();
+  drawRain();
+  drawHUD();
+  drawPanel();
+  drawParticles();
+  drawNotifications();
+  drawShop();
+  drawHelp();
+  drawCursor();
+
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

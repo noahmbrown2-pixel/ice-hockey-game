@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dodgeball RPG</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a1a; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+canvas { display: block; border: 2px solid #333; }
+#ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+// ─── CANVAS SETUP ─────────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = 900, H = 600;
+canvas.width = W; canvas.height = H;
+
+// ─── WEB AUDIO ────────────────────────────────────────────────────────────────
+const AC = new (window.AudioContext || window.webkitAudioContext)();
+function beep(freq, type, dur, vol=0.3, delay=0) {
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, AC.currentTime + delay);
+  g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + delay + dur);
+  o.start(AC.currentTime + delay);
+  o.stop(AC.currentTime + delay + dur + 0.05);
+}
+function playThrow(cls) {
+  if (cls === 'warrior') { beep(120,'sawtooth',0.15,0.4); beep(80,'sawtooth',0.2,0.3,0.1); }
+  else if (cls === 'rogue') { beep(800,'square',0.05,0.2); beep(1200,'square',0.05,0.15,0.06); }
+  else if (cls === 'mage') { beep(440,'sine',0.3,0.3); beep(660,'sine',0.3,0.2,0.05); beep(880,'sine',0.2,0.15,0.1); }
+  else { beep(300,'sine',0.2,0.2); beep(500,'sine',0.2,0.15,0.1); }
+}
+function playAbility(cls) {
+  if (cls === 'warrior') { beep(100,'sawtooth',0.4,0.5); beep(150,'sawtooth',0.3,0.4,0.15); }
+  else if (cls === 'rogue') { beep(1000,'square',0.08,0.3); beep(1400,'square',0.08,0.25,0.08); beep(1800,'square',0.08,0.2,0.16); }
+  else if (cls === 'mage') { for(let i=0;i<5;i++) beep(300+i*150,'sine',0.4,0.3,i*0.05); }
+  else { beep(400,'sine',0.5,0.4); beep(600,'sine',0.4,0.3,0.1); beep(800,'sine',0.3,0.2,0.2); }
+}
+function playHit() { beep(200,'sawtooth',0.1,0.5); beep(100,'sawtooth',0.15,0.4,0.05); }
+function playCatch() { beep(600,'sine',0.1,0.4); beep(900,'sine',0.1,0.3,0.08); beep(1200,'sine',0.08,0.2,0.16); }
+function playElim() {
+  beep(400,'sawtooth',0.3,0.5); beep(300,'sawtooth',0.3,0.4,0.1);
+  beep(200,'sawtooth',0.3,0.5,0.2); beep(100,'sawtooth',0.4,0.6,0.3);
+  // crowd cheer
+  for(let i=0;i<20;i++) beep(200+Math.random()*800,'sine',0.8,0.05,Math.random()*0.5);
+}
+function playLevelUp() { beep(523,'sine',0.1,0.4); beep(659,'sine',0.1,0.4,0.1); beep(784,'sine',0.1,0.4,0.2); beep(1047,'sine',0.3,0.5,0.3); }
+function playRevive() { for(let i=0;i<6;i++) beep(300+i*100,'sine',0.3,0.3,i*0.06); }
+function playWin() { [523,659,784,1047,784,1047,1319].forEach((f,i)=>beep(f,'sine',0.25,0.4,i*0.12)); }
+function playLose() { [400,350,300,250,200].forEach((f,i)=>beep(f,'sawtooth',0.3,0.4,i*0.15)); }
+
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const COURT_TOP = 80, COURT_BOT = 540, COURT_LEFT = 40, COURT_RIGHT = 860;
+const CENTER_X = 450;
+const COURT_W = COURT_RIGHT - COURT_LEFT;
+const COURT_H = COURT_BOT - COURT_TOP;
+
+const CLASSES = {
+  warrior: { name:'Warrior', color:'#e8a020', shape:'square', speed:2.2, hp:5, throwPow:22, size:18, abilityName:'Shield Block', abilityCd:8, desc:'Tanky fighter with powerful throws.\nPress F to raise shield and block balls!', stats:{speed:2,power:5,defense:5,ability:3} },
+  rogue:   { name:'Rogue',   color:'#20e860', shape:'triangle', speed:4.2, hp:2, throwPow:14, size:14, abilityName:'Shadow Dash', abilityCd:5, desc:'Lightning-fast with small hitbox.\nPress F to dash through balls!', stats:{speed:5,power:3,defense:1,ability:5} },
+  mage:    { name:'Mage',    color:'#a020e8', shape:'mage', speed:3.0, hp:3, throwPow:16, size:16, abilityName:'Curve Ball', abilityCd:6, desc:'Controls the battlefield with magic.\nHold F after throw to curve the ball!', stats:{speed:3,power:4,defense:2,ability:5} },
+  healer:  { name:'Healer',  color:'#20c8e8', shape:'healer', speed:3.2, hp:3, throwPow:13, size:15, abilityName:'Revive', abilityCd:12, desc:'Support specialist.\nThrows heal allies! Press F near downed ally to revive!', stats:{speed:3,power:2,defense:3,ability:4} }
+};
+
+const UPGRADE_POOL = [
+  { id:'power',    name:'Power Up',      desc:'Throw speed +20%',    icon:'💪', apply: p => { p.upgrades.power = (p.upgrades.power||0)+0.2; } },
+  { id:'speed',    name:'Swift Feet',    desc:'Move speed +15%',     icon:'👟', apply: p => { p.upgrades.speed = (p.upgrades.speed||0)+0.15; } },
+  { id:'cd',       name:'Quick Cooldown',desc:'Ability CD -25%',     icon:'⚡', apply: p => { p.upgrades.cd = (p.upgrades.cd||0)+0.25; } },
+  { id:'hp',       name:'Iron Will',     desc:'Extra HP +1',         icon:'❤️', apply: p => { p.upgrades.hp = (p.upgrades.hp||0)+1; p.maxHp++; p.hp = Math.min(p.hp+1, p.maxHp); } },
+  { id:'catch',    name:'Sure Hands',    desc:'Catch window +30%',   icon:'🤲', apply: p => { p.upgrades.catch = (p.upgrades.catch||0)+0.3; } },
+  { id:'size',     name:'Small Target',  desc:'Hitbox size -20%',    icon:'🎯', apply: p => { p.upgrades.size = (p.upgrades.size||0)+0.2; } },
+];
+
+// ─── GAME STATE ───────────────────────────────────────────────────────────────
+let state = 'title'; // title, classSelect, game, upgrade, roundEnd, gameOver
+let selectedClass = null;
+let hoverClass = null;
+let hoverUpgrade = null;
+let round = 0, playerWins = 0, enemyWins = 0;
+let playerStats = { hits:0, catches:0, eliminations:0, roundsWon:0 };
+let upgradeChoices = [];
+let particles = [];
+let balls = [];
+let players = [];
+let mouse = { x: W/2, y: H/2 };
+let keys = {};
+let lastTime = 0;
+let roundTimer = 0;
+let levelUpFlash = 0;
+let classAnimFrame = 0;
+
+// ─── INPUT ────────────────────────────────────────────────────────────────────
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect();
+  mouse.x = (e.clientX - r.left) * (W / r.width);
+  mouse.y = (e.clientY - r.top) * (H / r.height);
+});
+canvas.addEventListener('click', e => {
+  const r = canvas.getBoundingClientRect();
+  const mx = (e.clientX - r.left) * (W / r.width);
+  const my = (e.clientY - r.top) * (H / r.height);
+  handleClick(mx, my);
+});
+window.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (e.code === 'KeyF' && state === 'game') handleAbility();
+  if (e.code === 'Space' && state === 'game') { e.preventDefault(); handleThrow(); }
+  if (e.code === 'Escape' && state === 'game') { state = 'title'; }
+});
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+// ─── PLAYER FACTORY ───────────────────────────────────────────────────────────
+function makePlayer(cls, team, x, y, isPlayer) {
+  const cd = CLASSES[cls];
+  return {
+    cls, team, x, y, isPlayer,
+    vx:0, vy:0,
+    hp: cd.hp, maxHp: cd.hp,
+    alive: true, out: false,
+    ghostX: 0, ghostY: 0, ghostBob: Math.random()*Math.PI*2,
+    size: cd.size,
+    speed: cd.speed,
+    throwPow: cd.throwPow,
+    holdingBall: null,
+    abilityTimer: 0,
+    abilityCd: cd.abilityCd,
+    abilityActive: false,
+    abilityDuration: 0,
+    xp: 0, level: 1, xpThreshold: 50,
+    upgrades: {},
+    stats: { hits:0, catches:0 },
+    // AI state
+    aiState: 'move', aiTimer: Math.random()*2, aiTarget: null, aiTargetPos: {x:0,y:0},
+    color: cd.color,
+    hitFlash: 0,
+    catchFlash: 0,
+    // mage curve
+    curveActive: false, curveAngle: 0,
+  };
+}
+
+function playerSpeed(p) { return p.speed * (1 + (p.upgrades.speed||0)); }
+function playerPow(p)   { return p.throwPow * (1 + (p.upgrades.power||0)); }
+function playerCd(p)    { return p.abilityCd * (1 - (p.upgrades.cd||0)); }
+function playerSize(p)  { return p.size * (1 - (p.upgrades.size||0)*0.5); }
+function catchRadius(p) { return playerSize(p) * 1.5 * (1 + (p.upgrades.catch||0)); }
+
+// ─── BALL FACTORY ─────────────────────────────────────────────────────────────
+function makeBall(x, y, vx, vy, owner) {
+  return {
+    x, y, vx, vy,
+    owner, // player ref
+    team: owner.team,
+    cls: owner.cls,
+    alive: true,
+    age: 0,
+    trail: [],
+    // mage curve
+    curveOwner: null,
+    // healer aura
+    heal: owner.cls === 'healer',
+    size: 7 + (owner.cls==='warrior'?4:0) - (owner.cls==='rogue'?2:0),
+    glow: owner.cls==='mage',
+  };
+}
+
+// ─── PARTICLE ─────────────────────────────────────────────────────────────────
+function spawnParticles(x, y, color, count, speed=3) {
+  for(let i=0;i<count;i++) {
+    const a = Math.random()*Math.PI*2;
+    const s = speed * (0.5+Math.random());
+    particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,color,size:3+Math.random()*4});
+  }
+}
+function spawnLevelUpParticles(p) {
+  for(let i=0;i<30;i++) {
+    const a = (i/30)*Math.PI*2;
+    particles.push({x:p.x,y:p.y,vx:Math.cos(a)*5,vy:Math.sin(a)*5,life:1,color:'#ffe060',size:4});
+  }
+}
+
+// ─── GAME INIT ────────────────────────────────────────────────────────────────
+function initGame() {
+  balls = []; particles = [];
+  players = [];
+
+  // Player team (left half)
+  const playerCls = selectedClass;
+  const teamColors = ['#e8a020','#20e860','#a020e8','#20c8e8'];
+  const teamClasses = ['warrior','rogue','mage','healer'];
+  const enemyClasses = ['warrior','rogue','mage','healer'];
+
+  // Player
+  const p = makePlayer(playerCls, 0, CENTER_X-120, (COURT_TOP+COURT_BOT)/2, true);
+  players.push(p);
+
+  // Allies (other classes not chosen by player, 3 of them)
+  const allyClasses = teamClasses.filter(c=>c!==playerCls);
+  const startYs = [COURT_TOP+50, COURT_TOP+COURT_H*0.4, COURT_TOP+COURT_H*0.7, COURT_BOT-50];
+  for(let i=0;i<3;i++) {
+    const ally = makePlayer(allyClasses[i], 0, CENTER_X-140-Math.random()*80, startYs[i+1], false);
+    players.push(ally);
+  }
+
+  // Enemies (right side)
+  for(let i=0;i<4;i++) {
+    const en = makePlayer(enemyClasses[i], 1, CENTER_X+100+Math.random()*80, startYs[i], false);
+    players.push(en);
+  }
+
+  // Assign ghost positions
+  players.forEach(p => {
+    if(p.team===0) { p.ghostX=COURT_LEFT-30; p.ghostY=COURT_TOP+50+Math.random()*(COURT_H-100); }
+    else { p.ghostX=COURT_RIGHT+30; p.ghostY=COURT_TOP+50+Math.random()*(COURT_H-100); }
+  });
+
+  // Spawn some balls in center
+  spawnBallsAtCenter(3);
+  roundTimer = 120;
+  levelUpFlash = 0;
+}
+
+function spawnBallsAtCenter(n) {
+  for(let i=0;i<n;i++) {
+    balls.push({
+      x: CENTER_X + (Math.random()-0.5)*60,
+      y: COURT_TOP + 80 + Math.random()*(COURT_H-160),
+      vx: 0, vy: 0,
+      owner: null, team: -1, cls: null,
+      alive: true, age:0, trail:[],
+      curveOwner:null, heal:false, size:7, glow:false
+    });
+  }
+}
+
+// ─── HIT DETECTION ────────────────────────────────────────────────────────────
+function circleRect(bx,by,br, rx,ry,rw,rh) {
+  const cx = Math.max(rx, Math.min(bx, rx+rw));
+  const cy = Math.max(ry, Math.min(by, ry+rh));
+  return dist(bx,by,cx,cy) < br;
+}
+function dist(ax,ay,bx,by) { return Math.hypot(ax-bx, ay-by); }
+
+// ─── AI ───────────────────────────────────────────────────────────────────────
+function updateAI(p, dt) {
+  if(!p.alive || p.isPlayer) return;
+  p.aiTimer -= dt;
+
+  const myHalf = p.team===0 ? [COURT_LEFT, CENTER_X-10] : [CENTER_X+10, COURT_RIGHT];
+  const enemies = players.filter(e=>e.team!==p.team&&e.alive&&!e.out);
+  const allies  = players.filter(e=>e.team===p.team&&e.alive&&!e.out&&e!==p);
+  const downedAllies = players.filter(e=>e.team===p.team&&e.out);
+  const looseBalls = balls.filter(b=>b.alive&&b.team!==-2&&(b.owner===null||(b.owner&&b.owner.team===p.team)));
+
+  // Healer: try to revive
+  if(p.cls==='healer' && p.abilityTimer<=0 && downedAllies.length>0) {
+    const near = downedAllies.find(a=>dist(p.x,p.y,a.ghostX,a.ghostY)<100);
+    if(near) { activateAbility(p); return; }
+  }
+
+  // Warrior: try shield when balls incoming
+  if(p.cls==='warrior' && p.abilityTimer<=0) {
+    const incoming = balls.filter(b=>b.alive&&b.team!==p.team&&b.owner==null&&
+      dist(b.x,b.y,p.x,p.y)<120&&b.vx*(p.x-b.x)>0);
+    if(incoming.length>0) activateAbility(p);
+  }
+
+  // Rogue: dash if ball heading at them
+  if(p.cls==='rogue' && p.abilityTimer<=0) {
+    const danger = balls.filter(b=>b.alive&&b.team!==p.team&&b.owner==null&&
+      dist(b.x,b.y,p.x,p.y)<80);
+    if(danger.length>0) activateAbility(p);
+  }
+
+  if(p.aiTimer<=0) {
+    p.aiTimer = 0.4 + Math.random()*0.8;
+    if(p.holdingBall && enemies.length>0) {
+      // Throw at random enemy
+      const target = enemies[Math.floor(Math.random()*enemies.length)];
+      const dx = target.x-p.x, dy = target.y-p.y;
+      const d = Math.hypot(dx,dy)||1;
+      const spd = playerPow(p);
+      const b = makeBall(p.x, p.y, dx/d*spd, dy/d*spd, p);
+      balls.push(b);
+      if(p.cls==='mage') b.curveOwner = p;
+      playThrow(p.cls);
+      p.holdingBall = null;
+      p.aiState = 'move';
+    } else {
+      // Find nearest loose ball
+      if(looseBalls.length>0 && p.aiState !== 'chase') {
+        const nb = looseBalls.reduce((a,b)=>dist(p.x,p.y,a.x,a.y)<dist(p.x,p.y,b.x,b.y)?a:b);
+        p.aiState = 'chase';
+        p.aiTarget = nb;
+      } else if(p.aiState==='chase' && p.holdingBall) {
+        p.aiState = 'attack';
+      } else {
+        // Roam own half
+        p.aiState = 'roam';
+        p.aiTargetPos = {
+          x: myHalf[0]+30 + Math.random()*(myHalf[1]-myHalf[0]-60),
+          y: COURT_TOP+30 + Math.random()*(COURT_H-60)
+        };
+      }
+    }
+  }
+
+  // Movement
+  let tx = p.x, ty = p.y;
+  if(p.aiState==='chase' && p.aiTarget && p.aiTarget.alive) {
+    tx = p.aiTarget.x; ty = p.aiTarget.y;
+  } else if(p.aiState==='roam') {
+    tx = p.aiTargetPos.x; ty = p.aiTargetPos.y;
+  } else if(p.aiState==='flee') {
+    // Run away from balls
+    const danger = balls.filter(b=>b.alive&&b.team!==p.team&&b.vx!==0&&dist(b.x,b.y,p.x,p.y)<200);
+    if(danger.length>0) {
+      const b = danger[0];
+      tx = p.x+(p.x-b.x); ty = p.y+(p.y-b.y);
+    }
+  }
+
+  const dx=tx-p.x, dy=ty-p.y, d=Math.hypot(dx,dy)||1;
+  const spd = playerSpeed(p) * (p.abilityActive&&p.cls==='rogue'?2:1);
+  if(d>5) {
+    p.vx = dx/d*spd; p.vy = dy/d*spd;
+  } else {
+    p.vx *= 0.8; p.vy *= 0.8;
+  }
+}
+
+// ─── ABILITY ─────────────────────────────────────────────────────────────────
+function handleAbility() {
+  const p = players.find(pl=>pl.isPlayer&&pl.alive&&!pl.out);
+  if(!p) return;
+  if(p.abilityTimer>0) return;
+  activateAbility(p);
+}
+function activateAbility(p) {
+  if(p.abilityTimer>0) return;
+  const cd = playerCd(p);
+  if(AC.state==='suspended') AC.resume();
+  playAbility(p.cls);
+
+  if(p.cls==='warrior') {
+    p.abilityActive = true; p.abilityDuration = 1.5;
+    p.abilityTimer = cd;
+    spawnParticles(p.x,p.y,'#e8a020',15,2);
+  } else if(p.cls==='rogue') {
+    // Dash in movement direction
+    const dx = (keys['KeyA']||keys['ArrowLeft'])?-1:(keys['KeyD']||keys['ArrowRight'])?1:0;
+    const dy = (keys['KeyW']||keys['ArrowUp'])?-1:(keys['KeyS']||keys['ArrowDown'])?1:0;
+    const d = Math.hypot(dx,dy)||1;
+    const dashDist = 80;
+    p.x += dx/d*dashDist; p.y += dy/d*dashDist;
+    p.abilityActive = true; p.abilityDuration = 0.4;
+    p.abilityTimer = cd;
+    spawnParticles(p.x,p.y,'#20e860',20,5);
+    // If no direction, dash toward nearest ball
+    if(dx===0&&dy===0&&!p.isPlayer) {
+      const danger = balls.filter(b=>b.alive&&b.team!==p.team);
+      if(danger.length>0) {
+        const b = danger[0];
+        const nx=(b.x-p.x)/Math.hypot(b.x-p.x,b.y-p.y+0.001);
+        const ny=(b.y-p.y)/Math.hypot(b.x-p.x,b.y-p.y+0.001);
+        p.x+=nx*dashDist; p.y+=ny*dashDist;
+      }
+    }
+  } else if(p.cls==='mage') {
+    if(p.holdingBall) {
+      p.curveActive = true;
+      p.abilityActive = true; p.abilityDuration = 2.0;
+      p.abilityTimer = cd;
+    }
+  } else if(p.cls==='healer') {
+    // Find nearest downed ally
+    const downed = players.filter(a=>a.team===p.team&&a.out&&a!==p);
+    if(downed.length>0) {
+      const nearest = downed.reduce((a,b)=>dist(p.x,p.y,a.ghostX,a.ghostY)<dist(p.x,p.y,b.ghostX,b.ghostY)?a:b);
+      if(dist(p.x,p.y,nearest.ghostX,nearest.ghostY)<150) {
+        nearest.out = false; nearest.alive = true;
+        nearest.hp = 1;
+        nearest.x = p.x + (p.team===0?-30:30);
+        nearest.y = p.y;
+        playRevive();
+        spawnParticles(nearest.x,nearest.y,'#20c8e8',30,4);
+        p.abilityTimer = cd;
+        p.abilityActive = true; p.abilityDuration = 0.5;
+      } else {
+        // Move toward nearest downed
+        if(!p.isPlayer) { p.aiTargetPos={x:nearest.ghostX,y:nearest.ghostY}; p.aiState='roam'; }
+      }
+    }
+  }
+}
+
+// ─── THROW ───────────────────────────────────────────────────────────────────
+function handleThrow() {
+  const p = players.find(pl=>pl.isPlayer&&pl.alive&&!pl.out);
+  if(!p) return;
+  if(AC.state==='suspended') AC.resume();
+  if(p.holdingBall) {
+    // Throw toward mouse
+    const dx=mouse.x-p.x, dy=mouse.y-p.y;
+    const d=Math.hypot(dx,dy)||1;
+    const spd=playerPow(p);
+    const b = makeBall(p.x,p.y,dx/d*spd,dy/d*spd,p);
+    balls.push(b);
+    if(p.cls==='mage') { b.curveOwner = p; p.curveActive=true; p.abilityActive=true; p.abilityDuration=2; }
+    playThrow(p.cls);
+    p.holdingBall = null;
+  } else {
+    // Try to pick up nearby ball
+    const nearby = balls.find(b=>b.alive&&b.owner===null&&b.team===-1&&!b.vx&&!b.vy&&dist(b.x,b.y,p.x,p.y)<60);
+    if(nearby) { nearby.alive=false; p.holdingBall=true; }
+    else {
+      // Catch? Done on collision
+    }
+  }
+}
+
+// ─── UPDATE ───────────────────────────────────────────────────────────────────
+function update(dt) {
+  classAnimFrame += dt * 2;
+  particles.forEach(pt=>{ pt.x+=pt.vx; pt.y+=pt.vy; pt.vy+=0.1; pt.life-=dt*1.5; pt.vx*=0.95; });
+  particles = particles.filter(p=>p.life>0);
+
+  if(state!=='game') return;
+
+  roundTimer += dt;
+
+  // Player input
+  const player = players.find(p=>p.isPlayer&&p.alive&&!p.out);
+  if(player) {
+    let dx=0,dy=0;
+    if(keys['KeyA']||keys['ArrowLeft']) dx-=1;
+    if(keys['KeyD']||keys['ArrowRight']) dx+=1;
+    if(keys['KeyW']||keys['ArrowUp']) dy-=1;
+    if(keys['KeyS']||keys['ArrowDown']) dy+=1;
+    const d=Math.hypot(dx,dy)||1;
+    const spd=playerSpeed(player);
+    if(dx||dy) { player.vx=dx/d*spd; player.vy=dy/d*spd; }
+    else { player.vx*=0.8; player.vy*=0.8; }
+
+    // Mage curve: adjust ball trajectory with mouse
+    if(player.cls==='mage'&&player.curveActive) {
+      const curveBall = balls.find(b=>b.curveOwner===player&&b.alive);
+      if(curveBall) {
+        const dx2=mouse.x-curveBall.x, dy2=mouse.y-curveBall.y;
+        const d2=Math.hypot(dx2,dy2)||1;
+        curveBall.vx += dx2/d2*0.6;
+        curveBall.vy += dy2/d2*0.6;
+        const spd2=Math.hypot(curveBall.vx,curveBall.vy);
+        if(spd2>playerPow(player)*1.2) { curveBall.vx=curveBall.vx/spd2*playerPow(player)*1.2; curveBall.vy=curveBall.vy/spd2*playerPow(player)*1.2; }
+      } else { player.curveActive=false; }
+    }
+  }
+
+  // Update players
+  players.forEach(p => {
+    if(p.out) {
+      p.ghostBob += dt*3;
+      return;
+    }
+    if(!p.alive) return;
+
+    updateAI(p, dt);
+    p.hitFlash = Math.max(0, p.hitFlash-dt*3);
+    p.catchFlash = Math.max(0, p.catchFlash-dt*3);
+
+    p.x += p.vx; p.y += p.vy;
+
+    // Constrain to half
+    const halfLeft = p.team===0 ? COURT_LEFT+playerSize(p) : CENTER_X+playerSize(p);
+    const halfRight= p.team===0 ? CENTER_X-playerSize(p) : COURT_RIGHT-playerSize(p);
+    p.x = Math.max(halfLeft, Math.min(halfRight, p.x));
+    p.y = Math.max(COURT_TOP+playerSize(p), Math.min(COURT_BOT-playerSize(p), p.y));
+
+    // Ability timers
+    if(p.abilityTimer>0) p.abilityTimer-=dt;
+    if(p.abilityActive) {
+      p.abilityDuration-=dt;
+      if(p.abilityDuration<=0) { p.abilityActive=false; if(p.cls==='mage') p.curveActive=false; }
+    }
+
+    // AI: pick up loose balls
+    if(!p.isPlayer && !p.holdingBall) {
+      const myHalfBalls = balls.filter(b=>b.alive&&b.owner===null&&
+        ((p.team===0&&b.x<CENTER_X)||(p.team===1&&b.x>CENTER_X)));
+      const near = myHalfBalls.find(b=>dist(b.x,b.y,p.x,p.y)<playerSize(p)+b.size+5);
+      if(near) { near.alive=false; p.holdingBall=true; }
+    }
+
+    // Healer: thrown balls near allies heal them
+    if(p.cls==='healer'&&p.holdingBall) {
+      const alliesToHeal = players.filter(a=>a.team===p.team&&a.alive&&!a.out&&a!==p&&
+        dist(a.x,a.y,p.x,p.y)<60&&a.hp<a.maxHp);
+      // Handled by pass-through balls
+    }
+  });
+
+  // Update balls
+  balls.forEach(b => {
+    if(!b.alive) return;
+    b.age+=dt;
+    b.trail.push({x:b.x,y:b.y,age:0});
+    if(b.trail.length>12) b.trail.shift();
+    b.trail.forEach(t=>t.age+=dt);
+
+    b.x+=b.vx; b.y+=b.vy;
+
+    // Bounce off walls
+    if(b.x<COURT_LEFT+b.size) { b.x=COURT_LEFT+b.size; b.vx=Math.abs(b.vx)*0.7; }
+    if(b.x>COURT_RIGHT-b.size) { b.x=COURT_RIGHT-b.size; b.vx=-Math.abs(b.vx)*0.7; }
+    if(b.y<COURT_TOP+b.size) { b.y=COURT_TOP+b.size; b.vy=Math.abs(b.vy)*0.7; }
+    if(b.y>COURT_BOT-b.size) { b.y=COURT_BOT-b.size; b.vy=-Math.abs(b.vy)*0.7; }
+
+    // Friction for stopped balls
+    if(Math.hypot(b.vx,b.vy)<0.3) { b.vx=0; b.vy=0; b.owner=null; b.team=-1; b.curveOwner=null; }
+    else { b.vx*=0.99; b.vy*=0.99; }
+
+    // Ball vs players
+    players.forEach(p => {
+      if(!p.alive||p.out) return;
+      const sz = playerSize(p);
+      if(dist(b.x,b.y,p.x,p.y) > sz+b.size) return;
+
+      // Same team: healer balls heal on pass-near
+      if(b.heal && b.team===p.team && b.owner!==p) {
+        p.hp=Math.min(p.maxHp,p.hp+1);
+        spawnParticles(p.x,p.y,'#20c8e8',8,2);
+        b.heal=false; // only heal once
+        return;
+      }
+
+      // Can't hit thrower
+      if(b.owner===p) return;
+      // Can't hit same team
+      if(b.team===p.team) return;
+      // Must be moving
+      if(Math.hypot(b.vx,b.vy)<1) return;
+
+      // Warrior shield blocks
+      if(p.abilityActive && p.cls==='warrior') {
+        spawnParticles(b.x,b.y,'#e8a020',15,3);
+        b.vx=-b.vx*0.8; b.vy=-b.vy*0.8;
+        b.team=p.team; b.owner=p;
+        playAbility('warrior');
+        return;
+      }
+
+      // Rogue dash through: if dashing, invincible
+      if(p.abilityActive && p.cls==='rogue') {
+        spawnParticles(p.x,p.y,'#20e860',10,4);
+        return; // invincible during dash
+      }
+
+      // Try catch (player only, or lucky AI)
+      const canCatch = (p.isPlayer || Math.random()<0.2) && Math.hypot(b.vx,b.vy)>3;
+      if(canCatch && dist(b.x,b.y,p.x,p.y)<catchRadius(p)) {
+        // Catch!
+        b.alive=false; p.holdingBall=true;
+        p.catchFlash=1;
+        playCatch();
+        spawnParticles(p.x,p.y,p.color,15,3);
+        addXP(p, 20);
+        if(p.isPlayer) playerStats.catches++;
+        // Revive if they were about to be out
+        return;
+      }
+
+      // Hit!
+      p.hp--;
+      playHit();
+      p.hitFlash=1;
+      spawnParticles(p.x,p.y,'#ff4040',20,4);
+      addXP(b.owner||players[0], 30);
+      if(b.owner&&b.owner.isPlayer) playerStats.hits++;
+      if(b.owner&&b.owner.team===0&&p.team===1) playerStats.hits++;
+
+      if(p.hp<=0) {
+        p.out=true; p.alive=false;
+        p.hp=0;
+        playElim();
+        spawnParticles(p.x,p.y,'#ff8080',40,6);
+        if(p.team===1||(p.team===0&&!p.isPlayer)) {
+          if(b.owner&&b.owner.isPlayer) playerStats.eliminations++;
+        }
+      }
+      b.vx*=0.4; b.vy*=0.4;
+      b.owner=null; b.team=-1;
+      b.curveOwner=null;
+    });
+  });
+  // Keep balls that are either still active OR stopped on court (loose)
+  balls = balls.filter(b=>b.alive);
+
+  // Respawn loose balls if too few
+  const looseBalls = balls.filter(b=>Math.hypot(b.vx,b.vy)<0.5&&b.owner===null);
+  const activeBalls = balls.filter(b=>Math.hypot(b.vx,b.vy)>0.5);
+  const heldBalls = players.filter(p=>p.alive&&!p.out&&p.holdingBall).length;
+  if(looseBalls.length+activeBalls.length+heldBalls < 2) spawnBallsAtCenter(2);
+
+  // Check win condition
+  const teamAlive = t => players.some(p=>p.team===t&&!p.out);
+  if(!teamAlive(1)) { endRound(0); }
+  else if(!teamAlive(0)) { endRound(1); }
+}
+
+function addXP(p, amount) {
+  if(!p||!p.alive) return;
+  p.xp+=amount;
+  if(p.xp>=p.xpThreshold) {
+    p.xp-=p.xpThreshold; p.xpThreshold=Math.floor(p.xpThreshold*1.4);
+    p.level++;
+    // Temp boost
+    p.upgrades.tempSpeed=(p.upgrades.tempSpeed||0)+0.1;
+    p.upgrades.tempPow=(p.upgrades.tempPow||0)+0.05;
+    setTimeout(()=>{p.upgrades.tempSpeed=Math.max(0,(p.upgrades.tempSpeed||0)-0.1);},10000);
+    setTimeout(()=>{p.upgrades.tempPow=Math.max(0,(p.upgrades.tempPow||0)-0.05);},10000);
+    if(p.isPlayer) { playLevelUp(); levelUpFlash=2; spawnLevelUpParticles(p); }
+    else spawnLevelUpParticles(p);
+  }
+}
+
+function endRound(winner) {
+  if(winner===0) playerWins++; else enemyWins++;
+  round++;
+  if(round>=3||playerWins>=2||enemyWins>=2) { state='gameOver'; return; }
+  // Upgrade screen for player
+  upgradeChoices = shuffleArr([...UPGRADE_POOL]).slice(0,3);
+  state='upgrade';
+}
+function shuffleArr(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function applyUpgrade(upg) {
+  const p = players.find(pl=>pl.isPlayer);
+  if(p) upg.apply(p);
+  // Start next round (round counter already incremented in endRound)
+  initGame();
+  state='game';
+}
+
+// ─── CLICK HANDLER ────────────────────────────────────────────────────────────
+function handleClick(mx, my) {
+  if(AC.state==='suspended') AC.resume();
+  if(state==='title') { state='classSelect'; return; }
+  if(state==='classSelect') {
+    const cls = getClassAtPos(mx,my);
+    if(cls) { selectedClass=cls; state='game'; round=0; playerWins=0; enemyWins=0; playerStats={hits:0,catches:0,eliminations:0,roundsWon:0}; gameOverSoundPlayed=false; initGame(); }
+    return;
+  }
+  if(state==='upgrade') {
+    const idx = getUpgradeAtPos(mx,my);
+    if(idx>=0) applyUpgrade(upgradeChoices[idx]);
+    return;
+  }
+  if(state==='gameOver') { state='title'; gameOverSoundPlayed=false; return; }
+  if(state==='game') {
+    // Pick up/throw ball (also Space)
+    handleThrow();
+  }
+}
+
+function getClassAtPos(mx,my) {
+  const keys = Object.keys(CLASSES);
+  for(let i=0;i<keys.length;i++) {
+    const cx=160+i*155, cy=H/2;
+    if(dist(mx,my,cx,cy)<70) return keys[i];
+  }
+  return null;
+}
+
+function getUpgradeAtPos(mx,my) {
+  for(let i=0;i<upgradeChoices.length;i++) {
+    const cx=200+i*250, cy=H/2;
+    if(mx>cx-100&&mx<cx+100&&my>cy-120&&my<cy+120) return i;
+  }
+  return -1;
+}
+
+// ─── DRAW HELPERS ─────────────────────────────────────────────────────────────
+function drawShape(cx,cy,sz,shape,color,alpha=1,glow=false) {
+  ctx.save();
+  ctx.globalAlpha=alpha;
+  if(glow) { ctx.shadowColor=color; ctx.shadowBlur=20; }
+  ctx.fillStyle=color;
+  ctx.strokeStyle='#fff';
+  ctx.lineWidth=2;
+  if(shape==='square') {
+    ctx.fillRect(cx-sz,cy-sz,sz*2,sz*2);
+    ctx.strokeRect(cx-sz,cy-sz,sz*2,sz*2);
+  } else if(shape==='triangle') {
+    ctx.beginPath();
+    ctx.moveTo(cx,cy-sz);
+    ctx.lineTo(cx+sz*0.9,cy+sz*0.7);
+    ctx.lineTo(cx-sz*0.9,cy+sz*0.7);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  } else if(shape==='mage') {
+    // Circle with star
+    ctx.beginPath(); ctx.arc(cx,cy,sz,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#fff';
+    drawStar(cx,cy,4,sz*0.6,sz*0.25);
+  } else if(shape==='healer') {
+    ctx.beginPath(); ctx.arc(cx,cy,sz,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#fff';
+    ctx.fillRect(cx-sz*0.5,cy-2,sz,4);
+    ctx.fillRect(cx-2,cy-sz*0.5,4,sz);
+  } else {
+    // circle
+    ctx.beginPath(); ctx.arc(cx,cy,sz,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawStar(cx,cy,points,outerR,innerR) {
+  ctx.beginPath();
+  for(let i=0;i<points*2;i++) {
+    const r=i%2===0?outerR:innerR;
+    const a=Math.PI/points*i - Math.PI/2;
+    if(i===0) ctx.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);
+    else ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);
+  }
+  ctx.closePath(); ctx.fill();
+}
+
+function drawStatBar(x,y,w,h,val,max,color) {
+  ctx.fillStyle='#333'; ctx.fillRect(x,y,w,h);
+  ctx.fillStyle=color; ctx.fillRect(x,y,w*val/max,h);
+  ctx.strokeStyle='#555'; ctx.lineWidth=1; ctx.strokeRect(x,y,w,h);
+}
+
+// ─── DRAW SCREENS ─────────────────────────────────────────────────────────────
+function drawTitle() {
+  // Background
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#0a0a2a'); grad.addColorStop(1,'#1a0a3a');
+  ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
+
+  // Animated balls
+  const t=performance.now()/1000;
+  for(let i=0;i<6;i++) {
+    const bx=100+i*130+Math.sin(t*0.7+i)*40;
+    const by=200+Math.cos(t*0.5+i*1.2)*80;
+    ctx.save(); ctx.shadowColor='#ff6060'; ctx.shadowBlur=15;
+    ctx.fillStyle='#ff4040';
+    ctx.beginPath(); ctx.arc(bx,by,12,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.shadowColor='#8040ff'; ctx.shadowBlur=30;
+  ctx.fillStyle='#fff';
+  ctx.font='bold 64px Segoe UI';
+  ctx.textAlign='center';
+  ctx.fillText('DODGEBALL', W/2, H/2-60);
+  ctx.shadowColor='#ff8040'; ctx.shadowBlur=20;
+  ctx.fillStyle='#ffa040';
+  ctx.font='bold 40px Segoe UI';
+  ctx.fillText('RPG', W/2, H/2+10);
+  ctx.restore();
+
+  ctx.fillStyle='rgba(255,255,255,0.7)';
+  ctx.font='20px Segoe UI';
+  ctx.textAlign='center';
+  ctx.fillText('Click to Start', W/2, H/2+80);
+
+  ctx.font='14px Segoe UI';
+  ctx.fillStyle='rgba(255,255,255,0.4)';
+  ctx.fillText('WASD/Arrows to move  •  Space to pick up/throw  •  F for ability', W/2, H-30);
+}
+
+function drawClassSelect() {
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#0a0a2a'); grad.addColorStop(1,'#1a1040');
+  ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
+
+  ctx.fillStyle='#fff'; ctx.font='bold 36px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('Choose Your Class', W/2, 50);
+  ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='15px Segoe UI';
+  ctx.fillText('Click to select', W/2, 78);
+
+  const clsKeys=Object.keys(CLASSES);
+  const t=performance.now()/1000;
+
+  clsKeys.forEach((key,i) => {
+    const cls=CLASSES[key];
+    const cx=160+i*155, cy=H/2-20;
+    const isHover=(hoverClass===key);
+    const isSelected=(selectedClass===key);
+
+    // Card bg
+    ctx.save();
+    ctx.globalAlpha=isHover?1:0.8;
+    const cardGrad=ctx.createLinearGradient(cx-80,cy-120,cx+80,cy+120);
+    cardGrad.addColorStop(0, hexAlpha(cls.color,0.3));
+    cardGrad.addColorStop(1, hexAlpha(cls.color,0.1));
+    ctx.fillStyle=cardGrad;
+    ctx.strokeStyle=isHover?cls.color:'#444';
+    ctx.lineWidth=isHover?3:1;
+    ctx.shadowColor=isHover?cls.color:'transparent';
+    ctx.shadowBlur=isHover?20:0;
+    roundRect(ctx,cx-80,cy-130,160,280,12);
+    ctx.restore();
+
+    // Animated character preview
+    const bounce=Math.sin(t*2+i)*5;
+    drawShape(cx,cy-50+bounce,24,cls.shape,cls.color,1,isHover);
+
+    // Ability aura animation
+    if(isHover) {
+      ctx.save();
+      ctx.globalAlpha=0.3+Math.sin(t*3)*0.1;
+      ctx.strokeStyle=cls.color;
+      ctx.lineWidth=3;
+      ctx.beginPath(); ctx.arc(cx,cy-50+bounce,36,0,Math.PI*2); ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.fillStyle='#fff'; ctx.font='bold 16px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(cls.name, cx, cy+10);
+
+    // Ability name
+    ctx.fillStyle=cls.color; ctx.font='12px Segoe UI';
+    ctx.fillText(`[F] ${cls.abilityName}`, cx, cy+30);
+
+    // Stat bars
+    const stats=[['SPD',cls.stats.speed,'#20e860'],['PWR',cls.stats.power,'#ff6060'],['DEF',cls.stats.defense,'#6080ff'],['ABL',cls.stats.ability,'#ff80ff']];
+    stats.forEach(([name,val,color],si) => {
+      const sy=cy+50+si*22;
+      ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='11px Segoe UI'; ctx.textAlign='left';
+      ctx.fillText(name, cx-70, sy+10);
+      drawStatBar(cx-40, sy, 95, 10, val, 5, color);
+    });
+
+    // Description on hover
+    if(isHover) {
+      ctx.save();
+      ctx.fillStyle='rgba(0,0,0,0.85)';
+      roundRect(ctx, cx-90, cy+140, 180, 60, 8, true);
+      ctx.fillStyle='#fff'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+      const lines=cls.desc.split('\n');
+      lines.forEach((l,li)=>ctx.fillText(l,cx,cy+162+li*18));
+      ctx.restore();
+    }
+  });
+
+  // Hover detection
+  const newHover = getClassAtPos(mouse.x, mouse.y);
+  hoverClass=newHover;
+}
+
+function drawGame() {
+  // Court background
+  const grad=ctx.createLinearGradient(0,COURT_TOP,0,COURT_BOT);
+  grad.addColorStop(0,'#1a2060'); grad.addColorStop(1,'#101840');
+  ctx.fillStyle='#0a0a18'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=grad; ctx.fillRect(COURT_LEFT,COURT_TOP,COURT_W,COURT_H);
+
+  // Court lines
+  ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=2;
+  ctx.strokeRect(COURT_LEFT,COURT_TOP,COURT_W,COURT_H);
+  // Center line
+  ctx.setLineDash([8,6]);
+  ctx.beginPath(); ctx.moveTo(CENTER_X,COURT_TOP); ctx.lineTo(CENTER_X,COURT_BOT); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Team zones
+  ctx.fillStyle='rgba(40,80,255,0.05)'; ctx.fillRect(COURT_LEFT,COURT_TOP,COURT_W/2,COURT_H);
+  ctx.fillStyle='rgba(255,40,40,0.05)'; ctx.fillRect(CENTER_X,COURT_TOP,COURT_W/2,COURT_H);
+
+  // Team labels
+  ctx.fillStyle='rgba(80,120,255,0.4)'; ctx.font='bold 14px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('YOUR TEAM', CENTER_X-COURT_W/4, COURT_TOP+20);
+  ctx.fillStyle='rgba(255,80,80,0.4)';
+  ctx.fillText('ENEMIES', CENTER_X+COURT_W/4, COURT_TOP+20);
+
+  // Ghost players (sideline)
+  players.filter(p=>p.out).forEach(p=>{
+    const bob=Math.sin(p.ghostBob)*6;
+    const cls=CLASSES[p.cls];
+    drawShape(p.ghostX, p.ghostY+bob, cls.size*0.8, cls.shape, p.color, 0.35);
+    // Cheering arms
+    ctx.save(); ctx.globalAlpha=0.4; ctx.strokeStyle=p.color; ctx.lineWidth=2;
+    const armY=p.ghostY+bob+4;
+    ctx.beginPath(); ctx.moveTo(p.ghostX-8,armY); ctx.lineTo(p.ghostX-16,armY-10+Math.sin(p.ghostBob*2)*5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(p.ghostX+8,armY); ctx.lineTo(p.ghostX+16,armY-10+Math.sin(p.ghostBob*2+1)*5); ctx.stroke();
+    ctx.restore();
+  });
+
+  // Balls
+  balls.forEach(b=>{
+    if(!b.alive) return;
+    const speed=Math.hypot(b.vx,b.vy);
+
+    // Trail
+    if(speed>2) {
+      b.trail.forEach((t,i)=>{
+        const a=(i/b.trail.length)*0.5;
+        const c=b.cls==='mage'?'#c080ff':b.cls==='warrior'?'#ffa040':b.cls==='rogue'?'#40ff80':'#80ffff';
+        ctx.save(); ctx.globalAlpha=a;
+        ctx.fillStyle=c; ctx.beginPath(); ctx.arc(t.x,t.y,b.size*(0.3+0.7*i/b.trail.length),0,Math.PI*2); ctx.fill();
+        ctx.restore();
+      });
+    }
+
+    // Ball
+    ctx.save();
+    const ballColor=b.cls==='mage'?'#c060ff':b.cls==='warrior'?'#ff8020':b.cls==='rogue'?'#20ff60':b.cls==='healer'?'#20c8e8':'#ff4040';
+    if(speed>2) { ctx.shadowColor=ballColor; ctx.shadowBlur=15; }
+    if(b.glow) { ctx.shadowColor='#c060ff'; ctx.shadowBlur=25; }
+    ctx.fillStyle=ballColor;
+    ctx.beginPath(); ctx.arc(b.x,b.y,b.size,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.restore();
+
+    // Healer heal aura
+    if(b.heal&&speed>2) {
+      ctx.save(); ctx.globalAlpha=0.3; ctx.strokeStyle='#20c8e8'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(b.x,b.y,b.size+8,0,Math.PI*2); ctx.stroke();
+      ctx.restore();
+    }
+  });
+
+  // Players
+  players.forEach(p=>{
+    if(!p.alive||p.out) return;
+    const cls=CLASSES[p.cls];
+    const sz=playerSize(p);
+
+    // Ability aura
+    if(p.abilityActive) {
+      ctx.save();
+      ctx.globalAlpha=0.4+Math.sin(performance.now()/100)*0.1;
+      ctx.strokeStyle=p.color; ctx.lineWidth=4;
+      ctx.shadowColor=p.color; ctx.shadowBlur=20;
+      ctx.beginPath(); ctx.arc(p.x,p.y,sz+10,0,Math.PI*2); ctx.stroke();
+      ctx.restore();
+    }
+
+    // Hit flash
+    const flashColor = p.hitFlash>0?'#ff4040':p.catchFlash>0?'#40ff80':p.color;
+    const alpha = p.hitFlash>0?Math.min(1,0.5+p.hitFlash*0.5):1;
+    drawShape(p.x, p.y, sz, cls.shape, flashColor, alpha, p.abilityActive);
+
+    // Held ball indicator
+    if(p.holdingBall) {
+      ctx.save();
+      const bc=p.cls==='mage'?'#c060ff':p.cls==='warrior'?'#ff8020':p.cls==='rogue'?'#20ff60':p.cls==='healer'?'#20c8e8':'#ff4040';
+      ctx.fillStyle=bc; ctx.shadowColor=bc; ctx.shadowBlur=12;
+      ctx.beginPath(); ctx.arc(p.x+sz+6,p.y-sz-4,6,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+
+    // Player indicator arrow
+    if(p.isPlayer) {
+      ctx.save(); ctx.fillStyle='#ffe060'; ctx.shadowColor='#ffe060'; ctx.shadowBlur=10;
+      ctx.beginPath();
+      ctx.moveTo(p.x,p.y-sz-18);
+      ctx.lineTo(p.x-6,p.y-sz-8);
+      ctx.lineTo(p.x+6,p.y-sz-8);
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+
+    // HP bar
+    if(p.maxHp>1) {
+      drawStatBar(p.x-sz,p.y-sz-12,sz*2,5,p.hp,p.maxHp,'#40ff60');
+    }
+
+    // Level badge
+    if(p.level>1) {
+      ctx.fillStyle='#ffe060'; ctx.font='bold 10px Segoe UI'; ctx.textAlign='center';
+      ctx.fillText(`Lv${p.level}`,p.x,p.y+sz+12);
+    }
+  });
+
+  // Mage curve preview
+  const magePlayer = players.find(p=>p.isPlayer&&p.cls==='mage'&&p.curveActive);
+  if(magePlayer) {
+    const curveBall = balls.find(b=>b.curveOwner===magePlayer&&b.alive);
+    if(curveBall) {
+      ctx.save(); ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(180,80,255,0.5)'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(curveBall.x,curveBall.y); ctx.lineTo(mouse.x,mouse.y); ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // Particles
+  particles.forEach(pt=>{
+    ctx.save(); ctx.globalAlpha=pt.life*0.8;
+    ctx.fillStyle=pt.color;
+    ctx.beginPath(); ctx.arc(pt.x,pt.y,pt.size*pt.life,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+
+  // HUD
+  drawHUD();
+}
+
+function drawHUD() {
+  // Top bar background
+  ctx.fillStyle='rgba(0,0,0,0.7)';
+  ctx.fillRect(0,0,W,COURT_TOP-1);
+
+  // Round info
+  ctx.fillStyle='#fff'; ctx.font='bold 18px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText(`Round ${round+1} / 3`, W/2, 25);
+
+  // Score
+  ctx.fillStyle='#8080ff'; ctx.font='bold 20px Segoe UI';
+  ctx.fillText(`${playerWins}`, W/2-30, 50);
+  ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='16px Segoe UI';
+  ctx.fillText('-', W/2, 50);
+  ctx.fillStyle='#ff8080'; ctx.font='bold 20px Segoe UI';
+  ctx.fillText(`${enemyWins}`, W/2+30, 50);
+
+  // Player ability
+  const player=players.find(p=>p.isPlayer&&p.alive&&!p.out);
+  if(player) {
+    const cls=CLASSES[player.cls];
+    // Ability icon area
+    ctx.fillStyle='rgba(40,40,80,0.8)';
+    roundRect(ctx,10,5,140,50,8,true);
+    ctx.fillStyle=player.color; ctx.font='bold 13px Segoe UI'; ctx.textAlign='left';
+    ctx.fillText(`[F] ${cls.abilityName}`,15,22);
+
+    if(player.abilityTimer>0) {
+      ctx.fillStyle='rgba(0,0,0,0.6)';
+      ctx.fillRect(15,28,120,14);
+      ctx.fillStyle=player.color;
+      ctx.fillRect(15,28,120*(1-player.abilityTimer/playerCd(player)),14);
+      ctx.fillStyle='#fff'; ctx.font='11px Segoe UI'; ctx.textAlign='center';
+      ctx.fillText(`${player.abilityTimer.toFixed(1)}s`,75,40);
+    } else {
+      ctx.fillStyle='#40ff40'; ctx.font='bold 11px Segoe UI'; ctx.textAlign='left';
+      ctx.fillText('READY!',15,40);
+    }
+
+    // XP bar
+    const xpFill=player.xp/player.xpThreshold;
+    ctx.fillStyle='rgba(40,40,80,0.8)';
+    roundRect(ctx,10,58,140,14,4,true);
+    ctx.fillStyle='#ffe060';
+    ctx.fillRect(12,60,136*xpFill,10);
+    ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.font='10px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(`Lv${player.level}  XP ${player.xp}/${player.xpThreshold}`,80,70);
+
+    // Ball indicator
+    if(player.holdingBall) {
+      ctx.fillStyle='#ffe060'; ctx.font='bold 13px Segoe UI'; ctx.textAlign='left';
+      ctx.fillText('[Space] THROW!',10,90);
+    } else {
+      ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='12px Segoe UI';
+      ctx.fillText('[Space] pick up ball',10,90);
+    }
+  }
+
+  // Teammate HP icons (bottom)
+  const myTeam=players.filter(p=>p.team===0);
+  ctx.fillStyle='rgba(0,0,0,0.6)';
+  ctx.fillRect(0,COURT_BOT+1,W,H-COURT_BOT-1);
+  ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('TEAM:', 10, COURT_BOT+18);
+
+  myTeam.forEach((p,i)=>{
+    const cls=CLASSES[p.cls];
+    const tx=60+i*120, ty=COURT_BOT+8;
+    ctx.fillStyle=p.out?'rgba(100,100,100,0.5)':cls.color;
+    ctx.font='bold 11px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(p.isPlayer?'YOU':cls.name, tx+40, ty+12);
+    drawShape(tx+14,ty+26,10,cls.shape,p.out?'#555':cls.color,p.out?0.4:1);
+    // HP
+    for(let h=0;h<p.maxHp;h++) {
+      ctx.fillStyle=h<p.hp?'#40ff60':'#333';
+      ctx.fillRect(tx+4+h*10,ty+38,8,6);
+    }
+    if(p.out) { ctx.fillStyle='#ff4040'; ctx.font='10px Segoe UI'; ctx.textAlign='center'; ctx.fillText('OUT',tx+40,ty+50); }
+    else if(p.abilityActive) { ctx.fillStyle=cls.color; ctx.font='10px Segoe UI'; ctx.textAlign='center'; ctx.fillText('ACTIVE',tx+40,ty+50); }
+  });
+
+  // Enemy team status
+  const enemyTeam=players.filter(p=>p.team===1);
+  ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='12px Segoe UI'; ctx.textAlign='right';
+  ctx.fillText('ENEMIES:', W-10, COURT_BOT+18);
+  enemyTeam.forEach((p,i)=>{
+    const cls=CLASSES[p.cls];
+    const tx=W-180+i*44, ty=COURT_BOT+8;
+    drawShape(tx,ty+24,10,cls.shape,p.out?'#555':cls.color,p.out?0.3:1);
+    if(p.out) {
+      ctx.save(); ctx.strokeStyle='#ff4040'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(tx-10,ty+14); ctx.lineTo(tx+10,ty+34); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(tx+10,ty+14); ctx.lineTo(tx-10,ty+34); ctx.stroke();
+      ctx.restore();
+    }
+  });
+
+  // Level up flash
+  if(levelUpFlash>0) {
+    ctx.save();
+    ctx.globalAlpha=levelUpFlash*0.4;
+    ctx.fillStyle='#ffe060';
+    ctx.fillRect(0,0,W,H);
+    ctx.restore();
+    ctx.save();
+    ctx.globalAlpha=Math.min(1,levelUpFlash);
+    ctx.fillStyle='#ffe060'; ctx.shadowColor='#ffa000'; ctx.shadowBlur=20;
+    ctx.font='bold 36px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText('LEVEL UP!', W/2, H/2);
+    ctx.restore();
+    levelUpFlash=Math.max(0,levelUpFlash-0.04);
+  }
+}
+
+function drawUpgrade() {
+  ctx.fillStyle='rgba(0,0,20,0.95)'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#fff'; ctx.font='bold 32px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('ROUND OVER — Choose an Upgrade!', W/2, 60);
+
+  const winner=(playerWins>enemyWins)?'Your team won!':'Enemy team won...';
+  ctx.fillStyle=(playerWins>enemyWins)?'#40ff80':'#ff6060';
+  ctx.font='20px Segoe UI';
+  ctx.fillText(winner, W/2, 95);
+  ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='14px Segoe UI';
+  ctx.fillText(`Score: ${playerWins} - ${enemyWins}`, W/2, 118);
+
+  upgradeChoices.forEach((upg,i)=>{
+    const cx=200+i*250, cy=H/2;
+    const isHover=(mouse.x>cx-100&&mouse.x<cx+100&&mouse.y>cy-120&&mouse.y<cy+120);
+    hoverUpgrade=isHover?i:hoverUpgrade;
+
+    ctx.save();
+    ctx.shadowColor=isHover?'#ffe060':'transparent';
+    ctx.shadowBlur=isHover?20:0;
+    ctx.fillStyle=isHover?'rgba(80,60,20,0.9)':'rgba(30,30,60,0.9)';
+    ctx.strokeStyle=isHover?'#ffe060':'#555';
+    ctx.lineWidth=isHover?3:1;
+    roundRect(ctx,cx-100,cy-120,200,240,14);
+    ctx.restore();
+
+    ctx.font='48px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(upg.icon, cx, cy-50);
+    ctx.fillStyle='#fff'; ctx.font='bold 20px Segoe UI';
+    ctx.fillText(upg.name, cx, cy);
+    ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.font='15px Segoe UI';
+    ctx.fillText(upg.desc, cx, cy+35);
+    ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='13px Segoe UI';
+    ctx.fillText('Click to choose', cx, cy+80);
+  });
+}
+
+function drawGameOver() {
+  ctx.fillStyle='rgba(0,0,20,0.97)'; ctx.fillRect(0,0,W,H);
+  const won=playerWins>=2;
+
+  ctx.save();
+  ctx.shadowColor=won?'#40ff80':'#ff4040'; ctx.shadowBlur=30;
+  ctx.fillStyle=won?'#40ff80':'#ff6060';
+  ctx.font='bold 56px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText(won?'VICTORY!':'DEFEAT', W/2, 120);
+  ctx.restore();
+
+  ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='22px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText(`Final Score: ${playerWins} - ${enemyWins}`, W/2, 170);
+
+  // Stats
+  ctx.fillStyle='rgba(30,30,60,0.9)';
+  roundRect(ctx, W/2-200, 200, 400, 200, 12, true);
+
+  const statLines=[
+    ['Class', CLASSES[selectedClass].name],
+    ['Balls Hit', playerStats.hits],
+    ['Balls Caught', playerStats.catches],
+    ['Eliminations', playerStats.eliminations],
+    ['Rounds Won', playerWins],
+  ];
+  ctx.font='18px Segoe UI'; ctx.textAlign='left';
+  statLines.forEach(([label,val],i)=>{
+    ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.fillText(label+':', W/2-170, 232+i*35);
+    ctx.fillStyle='#fff'; ctx.font='bold 18px Segoe UI'; ctx.textAlign='right';
+    ctx.fillText(val, W/2+170, 232+i*35);
+    ctx.font='18px Segoe UI'; ctx.textAlign='left';
+  });
+
+  ctx.fillStyle='rgba(255,255,255,0.8)'; ctx.font='bold 20px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('Click anywhere to return to menu', W/2, 435);
+
+  // Particles
+  particles.forEach(pt=>{
+    ctx.save(); ctx.globalAlpha=pt.life*0.8;
+    ctx.fillStyle=pt.color;
+    ctx.beginPath(); ctx.arc(pt.x,pt.y,pt.size*pt.life,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+}
+
+// ─── UTILITY ─────────────────────────────────────────────────────────────────
+function hexAlpha(hex,a) {
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function roundRect(ctx,x,y,w,h,r,fill=false) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+  if(fill) ctx.fill(); else { ctx.fill(); ctx.stroke(); }
+}
+
+// ─── MAIN LOOP ───────────────────────────────────────────────────────────────
+let gameOverSoundPlayed = false;
+function loop(ts) {
+  const dt=Math.min((ts-lastTime)/1000, 0.05);
+  lastTime=ts;
+
+  update(dt);
+
+  ctx.clearRect(0,0,W,H);
+
+  if(state==='title') drawTitle();
+  else if(state==='classSelect') drawClassSelect();
+  else if(state==='game') drawGame();
+  else if(state==='upgrade') { drawGame(); drawUpgrade(); }
+  else if(state==='gameOver') {
+    if(!gameOverSoundPlayed) {
+      gameOverSoundPlayed=true;
+      if(playerWins>=2) playWin(); else playLose();
+      if(playerWins>=2) for(let i=0;i<40;i++) spawnParticles(Math.random()*W,Math.random()*H,['#ffe060','#40ff80','#80ffff'][Math.floor(Math.random()*3)],2,8);
+    }
+    drawGameOver();
+  }
+
+  requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(ts=>{lastTime=ts; requestAnimationFrame(loop);});
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+
+# Google Cloud service account keys and credentials
+*-??????.json
+thebaby-*.json
+service-account-key.json
+credentials.json
+*credentials*.json
+
+# Claude Code personal settings (contains personal permissions/hooks)
+**/.claude/settings.local.json
+.claude/settings.local.json
+
+# Claude Code session/cache data
+.claude/data/
+tmpclaude-*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated images (optional - uncomment if you don't want to track generated images)
+# otter_*.png
+# *_generated.png

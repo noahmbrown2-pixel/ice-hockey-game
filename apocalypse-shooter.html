@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apocalypse Tower Defense 3D</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Arial', sans-serif;
+        }
+
+        #gameCanvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ff00;
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+            font-weight: bold;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        #ui div {
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 15px;
+            border: 2px solid #00ff00;
+        }
+
+        #reloading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffff00;
+            font-size: 48px;
+            text-shadow: 0 0 20px rgba(255, 255, 0, 0.8);
+            font-weight: bold;
+            display: none;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0000;
+            font-size: 48px;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+            display: none;
+            text-align: center;
+            z-index: 100;
+        }
+
+        #restartBtn {
+            margin-top: 20px;
+            padding: 15px 40px;
+            font-size: 24px;
+            background: #00ff00;
+            border: none;
+            color: #000;
+            cursor: pointer;
+            font-weight: bold;
+            pointer-events: all;
+        }
+
+        #restartBtn:hover {
+            background: #00cc00;
+        }
+
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid #00ff00;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 50;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+        }
+
+        #crosshair::before,
+        #crosshair::after {
+            content: '';
+            position: absolute;
+            background: #00ff00;
+        }
+
+        #crosshair::before {
+            width: 2px;
+            height: 10px;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #crosshair::after {
+            width: 10px;
+            height: 2px;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <div>AMMO: <span id="ammo">75/75</span></div>
+        <div>SCORE: <span id="score">0</span></div>
+        <div>WAVE: <span id="wave">1</span></div>
+        <div>ZOMBIES: <span id="zombies">0</span></div>
+        <div>HEALTH: <span id="health">100</span></div>
+    </div>
+
+    <div id="reloading">RELOADING...</div>
+
+    <div id="gameOver">
+        <div>GAME OVER</div>
+        <div style="font-size: 24px; margin-top: 10px;">Final Score: <span id="finalScore">0</span></div>
+        <button id="restartBtn">RESTART</button>
+    </div>
+
+    <div id="crosshair"></div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+        }
+    }
+    </script>
+    <script type="module" src="game.js"></script>
+</body>
+</html>

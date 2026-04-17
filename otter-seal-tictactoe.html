@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Otter vs Seal - Tic Tac Toe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .player {
+            text-align: center;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .player.active {
+            background: #667eea;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .player-icon {
+            font-size: 3em;
+            margin-bottom: 5px;
+        }
+
+        .player-label {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+            aspect-ratio: 1;
+        }
+
+        .cell {
+            background: #f8f9fa;
+            border: 3px solid #e9ecef;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cell:hover:not(.taken) {
+            background: #e9ecef;
+            transform: scale(1.05);
+            border-color: #667eea;
+        }
+
+        .cell.taken {
+            cursor: not-allowed;
+        }
+
+        .cell.winner {
+            background: #ffd700;
+            animation: winner-pulse 0.6s ease-in-out infinite;
+        }
+
+        @keyframes winner-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .cell-content {
+            animation: pop-in 0.3s ease-out;
+        }
+
+        @keyframes pop-in {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .status {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            min-height: 40px;
+        }
+
+        .status.winner-announcement {
+            color: #28a745;
+            animation: celebration 0.5s ease-in-out;
+        }
+
+        @keyframes celebration {
+            0%, 100% { transform: translateY(0); }
+            25% { transform: translateY(-10px); }
+            75% { transform: translateY(-5px); }
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .reset-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .reset-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌊 Tic Tac Toe 🌊</h1>
+        <div class="subtitle">Otters vs Seals</div>
+
+        <div class="player-info">
+            <div class="player" id="player-otter">
+                <div class="player-icon">🦦</div>
+                <div class="player-label">Otter</div>
+            </div>
+            <div class="player" id="player-seal">
+                <div class="player-icon">🦭</div>
+                <div class="player-label">Seal</div>
+            </div>
+        </div>
+
+        <div class="status" id="status">Otter's turn!</div>
+
+        <div class="board" id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+
+        <div class="controls">
+            <button class="reset-btn" id="reset-btn">New Game</button>
+        </div>
+
+        <div class="score-board">
+            <div class="score-item">
+                <div class="score-label">🦦 Otter Wins</div>
+                <div class="score-value" id="otter-score">0</div>
+            </div>
+            <div class="score-item">
+                <div class="score-label">🦭 Seal Wins</div>
+                <div class="score-value" id="seal-score">0</div>
+            </div>
+            <div class="score-item">
+                <div class="score-label">🤝 Draws</div>
+                <div class="score-value" id="draw-score">0</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let currentPlayer = 'otter'; // 'otter' for X, 'seal' for O
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
+        let scores = {
+            otter: 0,
+            seal: 0,
+            draws: 0
+        };
+
+        // DOM elements
+        const cells = document.querySelectorAll('.cell');
+        const status = document.getElementById('status');
+        const resetBtn = document.getElementById('reset-btn');
+        const playerOtter = document.getElementById('player-otter');
+        const playerSeal = document.getElementById('player-seal');
+        const otterScore = document.getElementById('otter-score');
+        const sealScore = document.getElementById('seal-score');
+        const drawScore = document.getElementById('draw-score');
+
+        // Winning combinations
+        const winningCombinations = [
+            [0, 1, 2], // Top row
+            [3, 4, 5], // Middle row
+            [6, 7, 8], // Bottom row
+            [0, 3, 6], // Left column
+            [1, 4, 7], // Middle column
+            [2, 5, 8], // Right column
+            [0, 4, 8], // Diagonal top-left to bottom-right
+            [2, 4, 6]  // Diagonal top-right to bottom-left
+        ];
+
+        // Initialize game
+        function init() {
+            cells.forEach(cell => {
+                cell.addEventListener('click', handleCellClick);
+            });
+            resetBtn.addEventListener('click', resetGame);
+            updatePlayerIndicator();
+            loadScores();
+        }
+
+        // Handle cell click
+        function handleCellClick(e) {
+            const cell = e.target;
+            const index = parseInt(cell.getAttribute('data-index'));
+
+            if (board[index] !== '' || !gameActive) {
+                return;
+            }
+
+            // Update board state
+            board[index] = currentPlayer;
+
+            // Display icon
+            const icon = currentPlayer === 'otter' ? '🦦' : '🦭';
+            cell.innerHTML = `<span class="cell-content">${icon}</span>`;
+            cell.classList.add('taken');
+
+            // Check for winner
+            if (checkWinner()) {
+                gameActive = false;
+                highlightWinner();
+                const winnerName = currentPlayer === 'otter' ? 'Otter' : 'Seal';
+                status.textContent = `${winnerName} wins! 🎉`;
+                status.classList.add('winner-announcement');
+                scores[currentPlayer]++;
+                updateScoreDisplay();
+                saveScores();
+                return;
+            }
+
+            // Check for draw
+            if (board.every(cell => cell !== '')) {
+                gameActive = false;
+                status.textContent = "It's a draw! 🤝";
+                scores.draws++;
+                updateScoreDisplay();
+                saveScores();
+                return;
+            }
+
+            // Switch player
+            currentPlayer = currentPlayer === 'otter' ? 'seal' : 'otter';
+            updateStatus();
+            updatePlayerIndicator();
+        }
+
+        // Check for winner
+        function checkWinner() {
+            return winningCombinations.some(combination => {
+                return combination.every(index => {
+                    return board[index] === currentPlayer;
+                });
+            });
+        }
+
+        // Highlight winning cells
+        function highlightWinner() {
+            winningCombinations.forEach(combination => {
+                if (combination.every(index => board[index] === currentPlayer)) {
+                    combination.forEach(index => {
+                        cells[index].classList.add('winner');
+                    });
+                }
+            });
+        }
+
+        // Update status message
+        function updateStatus() {
+            const playerName = currentPlayer === 'otter' ? 'Otter' : 'Seal';
+            status.textContent = `${playerName}'s turn!`;
+            status.classList.remove('winner-announcement');
+        }
+
+        // Update player indicator
+        function updatePlayerIndicator() {
+            if (currentPlayer === 'otter') {
+                playerOtter.classList.add('active');
+                playerSeal.classList.remove('active');
+            } else {
+                playerSeal.classList.add('active');
+                playerOtter.classList.remove('active');
+            }
+        }
+
+        // Update score display
+        function updateScoreDisplay() {
+            otterScore.textContent = scores.otter;
+            sealScore.textContent = scores.seal;
+            drawScore.textContent = scores.draws;
+        }
+
+        // Save scores to localStorage
+        function saveScores() {
+            localStorage.setItem('otterSealTicTacToe', JSON.stringify(scores));
+        }
+
+        // Load scores from localStorage
+        function loadScores() {
+            const savedScores = localStorage.getItem('otterSealTicTacToe');
+            if (savedScores) {
+                scores = JSON.parse(savedScores);
+                updateScoreDisplay();
+            }
+        }
+
+        // Reset game
+        function resetGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            gameActive = true;
+            currentPlayer = 'otter';
+
+            cells.forEach(cell => {
+                cell.innerHTML = '';
+                cell.classList.remove('taken', 'winner');
+            });
+
+            updateStatus();
+            updatePlayerIndicator();
+        }
+
+        // Initialize the game
+        init();
+    </script>
+</body>
+</html>

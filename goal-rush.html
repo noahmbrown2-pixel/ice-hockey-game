@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goal Rush</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            letter-spacing: 4px;
+        }
+
+        #gameCanvas {
+            border: 4px solid #ffd700;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3),
+                        inset 0 0 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .info {
+            color: #888;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .controls {
+            color: #aaa;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+
+        .controls span {
+            background: #333;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin: 0 2px;
+        }
+    </style>
+</head>
+<body>
+    <h1>⚽ GOAL RUSH</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <p class="info">Dodge the cones, collect the goals!</p>
+    <p class="controls">
+        <span>↑</span> <span>↓</span> <span>←</span> <span>→</span> or
+        <span>W</span> <span>A</span> <span>S</span> <span>D</span> to move |
+        <span>SPACE</span> to start/restart |
+        <span>P</span> to pause
+    </p>
+
+    <script>
+        // ============================================
+        // GOAL RUSH - Canvas Game
+        // ============================================
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game constants
+        const CANVAS_WIDTH = 800;
+        const CANVAS_HEIGHT = 600;
+        const FIELD_COLOR = '#2d5a27';
+        const LINE_COLOR = 'rgba(255, 255, 255, 0.3)';
+
+        // Game states
+        const GameState = {
+            START: 'start',
+            PLAYING: 'playing',
+            PAUSED: 'paused',
+            GAMEOVER: 'gameover'
+        };
+
+        // Game variables
+        let gameState = GameState.START;
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('goalRushHighScore')) || 0;
+        let lastTime = 0;
+        let defenderSpawnTimer = 0;
+        let goalSpawnTimer = 0;
+        let particles = [];
+        let screenShake = { x: 0, y: 0, intensity: 0 };
+
+        // Input tracking
+        const keys = {
+            up: false,
+            down: false,
+            left: false,
+            right: false
+        };
+
+        // Player (Soccer Ball)
+        const player = {
+            x: CANVAS_WIDTH / 2,
+            y: CANVAS_HEIGHT - 80,
+            radius: 20,
+            speed: 6,
+            rotation: 0,
+            vx: 0,
+            vy: 0
+        };
+
+        // Game objects arrays
+        let defenders = [];
+        let goals = [];
+
+        // Difficulty settings
+        function getDifficulty() {
+            const level = Math.floor(score / 100);
+            return {
+                defenderSpeed: 2 + (level * 0.4),
+                maxDefenders: Math.min(8, 3 + Math.floor(level / 2)),
+                defenderSpawnRate: Math.max(800, 2000 - (level * 150)),
+                goalSpawnRate: Math.max(1500, 3000 - (level * 100))
+            };
+        }
+
+        // ============================================
+        // INPUT HANDLING
+        // ============================================
+
+        document.addEventListener('keydown', (e) => {
+            switch(e.code) {
+                case 'ArrowUp':
+                case 'KeyW':
+                    keys.up = true;
+                    break;
+                case 'ArrowDown':
+                case 'KeyS':
+                    keys.down = true;
+                    break;
+                case 'ArrowLeft':
+                case 'KeyA':
+                    keys.left = true;
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    keys.right = true;
+                    break;
+                case 'Space':
+                    e.preventDefault();
+                    if (gameState === GameState.START || gameState === GameState.GAMEOVER) {
+                        startGame();
+                    }
+                    break;
+                case 'KeyP':
+                    if (gameState === GameState.PLAYING) {
+                        gameState = GameState.PAUSED;
+                    } else if (gameState === GameState.PAUSED) {
+                        gameState = GameState.PLAYING;
+                    }
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            switch(e.code) {
+                case 'ArrowUp':
+                case 'KeyW':
+                    keys.up = false;
+                    break;
+                case 'ArrowDown':
+                case 'KeyS':
+                    keys.down = false;
+                    break;
+                case 'ArrowLeft':
+                case 'KeyA':
+                    keys.left = false;
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    keys.right = false;
+                    break;
+            }
+        });
+
+        // ============================================
+        // GAME FUNCTIONS
+        // ============================================
+
+        function startGame() {
+            gameState = GameState.PLAYING;
+            score = 0;
+            defenders = [];
+            goals = [];
+            particles = [];
+            player.x = CANVAS_WIDTH / 2;
+            player.y = CANVAS_HEIGHT - 80;
+            player.vx = 0;
+            player.vy = 0;
+            player.rotation = 0;
+            defenderSpawnTimer = 0;
+            goalSpawnTimer = 0;
+            screenShake = { x: 0, y: 0, intensity: 0 };
+
+            // Spawn initial goal
+            spawnGoal();
+        }
+
+        function gameOver() {
+            gameState = GameState.GAMEOVER;
+            screenShake.intensity = 15;
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('goalRushHighScore', highScore);
+            }
+        }
+
+        function spawnDefender() {
+            const difficulty = getDifficulty();
+            const fromLeft = Math.random() > 0.5;
+
+            defenders.push({
+                x: fromLeft ? -40 : CANVAS_WIDTH + 40,
+                y: 50 + Math.random() * (CANVAS_HEIGHT - 200),
+                width: 30,
+                height: 45,
+                speed: difficulty.defenderSpeed + Math.random() * 1.5,
+                direction: fromLeft ? 1 : -1
+            });
+        }
+
+        function spawnGoal() {
+            const padding = 60;
+            let x, y, validPosition;
+            let attempts = 0;
+
+            // Find a position not too close to player or defenders
+            do {
+                x = padding + Math.random() * (CANVAS_WIDTH - padding * 2);
+                y = padding + Math.random() * (CANVAS_HEIGHT - padding * 2 - 100);
+                validPosition = true;
+
+                // Check distance from player
+                const dx = x - player.x;
+                const dy = y - player.y;
+                if (Math.sqrt(dx * dx + dy * dy) < 100) {
+                    validPosition = false;
+                }
+
+                attempts++;
+            } while (!validPosition && attempts < 20);
+
+            goals.push({
+                x: x,
+                y: y,
+                radius: 25,
+                pulse: 0,
+                glowIntensity: 0
+            });
+        }
+
+        function createParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 / count) * i + Math.random() * 0.5;
+                const speed = 2 + Math.random() * 4;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    radius: 3 + Math.random() * 4,
+                    color: color,
+                    life: 1,
+                    decay: 0.02 + Math.random() * 0.02
+                });
+            }
+        }
+
+        // ============================================
+        // COLLISION DETECTION
+        // ============================================
+
+        function circleCollision(c1, c2) {
+            const dx = c1.x - c2.x;
+            const dy = c1.y - c2.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            return distance < c1.radius + c2.radius;
+        }
+
+        function circleRectCollision(circle, rect) {
+            const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+            const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
+            const dx = circle.x - closestX;
+            const dy = circle.y - closestY;
+            return (dx * dx + dy * dy) < (circle.radius * circle.radius);
+        }
+
+        // ============================================
+        // UPDATE FUNCTIONS
+        // ============================================
+
+        function update(deltaTime) {
+            if (gameState !== GameState.PLAYING) return;
+
+            const difficulty = getDifficulty();
+
+            // Update player movement with smooth acceleration
+            const acceleration = 0.8;
+            const friction = 0.85;
+
+            if (keys.up) player.vy -= acceleration;
+            if (keys.down) player.vy += acceleration;
+            if (keys.left) player.vx -= acceleration;
+            if (keys.right) player.vx += acceleration;
+
+            // Apply friction
+            player.vx *= friction;
+            player.vy *= friction;
+
+            // Limit speed
+            const maxSpeed = player.speed;
+            const currentSpeed = Math.sqrt(player.vx * player.vx + player.vy * player.vy);
+            if (currentSpeed > maxSpeed) {
+                player.vx = (player.vx / currentSpeed) * maxSpeed;
+                player.vy = (player.vy / currentSpeed) * maxSpeed;
+            }
+
+            // Update position
+            player.x += player.vx;
+            player.y += player.vy;
+
+            // Update rotation based on movement
+            player.rotation += (player.vx * 0.05);
+
+            // Boundary collision
+            player.x = Math.max(player.radius, Math.min(CANVAS_WIDTH - player.radius, player.x));
+            player.y = Math.max(player.radius, Math.min(CANVAS_HEIGHT - player.radius, player.y));
+
+            // Spawn defenders
+            defenderSpawnTimer += deltaTime;
+            if (defenderSpawnTimer > difficulty.defenderSpawnRate && defenders.length < difficulty.maxDefenders) {
+                spawnDefender();
+                defenderSpawnTimer = 0;
+            }
+
+            // Spawn goals
+            goalSpawnTimer += deltaTime;
+            if (goalSpawnTimer > difficulty.goalSpawnRate && goals.length < 3) {
+                spawnGoal();
+                goalSpawnTimer = 0;
+            }
+
+            // Update defenders
+            for (let i = defenders.length - 1; i >= 0; i--) {
+                const defender = defenders[i];
+                defender.x += defender.speed * defender.direction;
+
+                // Remove if off screen
+                if ((defender.direction > 0 && defender.x > CANVAS_WIDTH + 50) ||
+                    (defender.direction < 0 && defender.x < -50)) {
+                    defenders.splice(i, 1);
+                    continue;
+                }
+
+                // Check collision with player
+                if (circleRectCollision(player, defender)) {
+                    createParticles(player.x, player.y, '#ff4444', 20);
+                    gameOver();
+                    return;
+                }
+            }
+
+            // Update goals
+            for (let i = goals.length - 1; i >= 0; i--) {
+                const goal = goals[i];
+                goal.pulse += 0.1;
+                goal.glowIntensity = Math.sin(goal.pulse) * 0.3 + 0.7;
+
+                // Check collision with player
+                if (circleCollision(player, goal)) {
+                    score += 10;
+                    createParticles(goal.x, goal.y, '#ffd700', 15);
+                    createParticles(goal.x, goal.y, '#ffffff', 10);
+                    goals.splice(i, 1);
+
+                    // Ensure at least one goal exists
+                    if (goals.length === 0) {
+                        spawnGoal();
+                    }
+                }
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.1; // Gravity
+                p.life -= p.decay;
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            // Update screen shake
+            if (screenShake.intensity > 0) {
+                screenShake.x = (Math.random() - 0.5) * screenShake.intensity;
+                screenShake.y = (Math.random() - 0.5) * screenShake.intensity;
+                screenShake.intensity *= 0.9;
+                if (screenShake.intensity < 0.5) {
+                    screenShake.intensity = 0;
+                    screenShake.x = 0;
+                    screenShake.y = 0;
+                }
+            }
+        }
+
+        // ============================================
+        // RENDER FUNCTIONS
+        // ============================================
+
+        function drawField() {
+            // Green background
+            ctx.fillStyle = FIELD_COLOR;
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Field lines
+            ctx.strokeStyle = LINE_COLOR;
+            ctx.lineWidth = 2;
+
+            // Center line
+            ctx.beginPath();
+            ctx.moveTo(0, CANVAS_HEIGHT / 2);
+            ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT / 2);
+            ctx.stroke();
+
+            // Center circle
+            ctx.beginPath();
+            ctx.arc(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 80, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Goal areas
+            ctx.strokeRect(CANVAS_WIDTH / 2 - 100, 0, 200, 60);
+            ctx.strokeRect(CANVAS_WIDTH / 2 - 100, CANVAS_HEIGHT - 60, 200, 60);
+
+            // Corner arcs
+            const corners = [
+                [0, 0],
+                [CANVAS_WIDTH, 0],
+                [0, CANVAS_HEIGHT],
+                [CANVAS_WIDTH, CANVAS_HEIGHT]
+            ];
+            corners.forEach(([x, y]) => {
+                ctx.beginPath();
+                ctx.arc(x, y, 30, 0, Math.PI * 2);
+                ctx.stroke();
+            });
+        }
+
+        function drawSoccerBall(x, y, radius, rotation) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rotation);
+
+            // Ball shadow
+            ctx.beginPath();
+            ctx.arc(3, 3, radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fill();
+
+            // White base
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Pentagon pattern
+            ctx.fillStyle = '#1a1a1a';
+            const pentagonRadius = radius * 0.45;
+
+            // Center pentagon
+            drawPentagon(0, 0, pentagonRadius);
+
+            // Surrounding pentagons (simplified)
+            for (let i = 0; i < 5; i++) {
+                const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+                const px = Math.cos(angle) * radius * 0.6;
+                const py = Math.sin(angle) * radius * 0.6;
+                drawPentagon(px, py, pentagonRadius * 0.6);
+            }
+
+            ctx.restore();
+        }
+
+        function drawPentagon(cx, cy, r) {
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+                const x = cx + Math.cos(angle) * r;
+                const y = cy + Math.sin(angle) * r;
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawCone(x, y, width, height) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Shadow
+            ctx.beginPath();
+            ctx.ellipse(width / 2 + 3, height + 3, width / 2, 8, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fill();
+
+            // Cone body (gradient)
+            const gradient = ctx.createLinearGradient(0, 0, width, 0);
+            gradient.addColorStop(0, '#ff4500');
+            gradient.addColorStop(0.5, '#ff6b35');
+            gradient.addColorStop(1, '#ff4500');
+
+            ctx.beginPath();
+            ctx.moveTo(width / 2, 0);
+            ctx.lineTo(width, height);
+            ctx.lineTo(0, height);
+            ctx.closePath();
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.strokeStyle = '#cc3300';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // White stripes
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            const stripeHeight = height / 5;
+
+            ctx.beginPath();
+            ctx.moveTo(width * 0.35, stripeHeight);
+            ctx.lineTo(width * 0.65, stripeHeight);
+            ctx.lineTo(width * 0.75, stripeHeight * 2);
+            ctx.lineTo(width * 0.25, stripeHeight * 2);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(width * 0.2, stripeHeight * 3);
+            ctx.lineTo(width * 0.8, stripeHeight * 3);
+            ctx.lineTo(width * 0.9, stripeHeight * 4);
+            ctx.lineTo(width * 0.1, stripeHeight * 4);
+            ctx.closePath();
+            ctx.fill();
+
+            // Base
+            ctx.beginPath();
+            ctx.ellipse(width / 2, height, width / 2, 8, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#222';
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawGoal(goal) {
+            ctx.save();
+            ctx.translate(goal.x, goal.y);
+
+            // Outer glow
+            const glowRadius = goal.radius + 15 * goal.glowIntensity;
+            const glowGradient = ctx.createRadialGradient(0, 0, goal.radius, 0, 0, glowRadius);
+            glowGradient.addColorStop(0, 'rgba(255, 215, 0, 0.6)');
+            glowGradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+
+            ctx.beginPath();
+            ctx.arc(0, 0, glowRadius, 0, Math.PI * 2);
+            ctx.fillStyle = glowGradient;
+            ctx.fill();
+
+            // Goal net pattern (simplified)
+            ctx.beginPath();
+            ctx.arc(0, 0, goal.radius, 0, Math.PI * 2);
+
+            const gradient = ctx.createRadialGradient(
+                -goal.radius * 0.3, -goal.radius * 0.3, 0,
+                0, 0, goal.radius
+            );
+            gradient.addColorStop(0, '#fff7cc');
+            gradient.addColorStop(0.5, '#ffd700');
+            gradient.addColorStop(1, '#ffaa00');
+
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.strokeStyle = '#cc8800';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Net lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 4; i++) {
+                ctx.beginPath();
+                ctx.moveTo(-goal.radius + 10 + i * 10, -goal.radius + 5);
+                ctx.lineTo(-goal.radius + 5 + i * 10, goal.radius - 5);
+                ctx.stroke();
+            }
+
+            // Star sparkle
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            const starSize = 6 + Math.sin(goal.pulse * 2) * 2;
+            for (let i = 0; i < 4; i++) {
+                const angle = (Math.PI / 2) * i;
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Math.cos(angle) * starSize, Math.sin(angle) * starSize);
+            }
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawParticles() {
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius * p.life, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            });
+        }
+
+        function drawUI() {
+            // Score
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 28px "Segoe UI", sans-serif';
+            ctx.textAlign = 'left';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.fillText(`Score: ${score}`, 20, 40);
+
+            // High score
+            ctx.font = '18px "Segoe UI", sans-serif';
+            ctx.fillStyle = '#ffd700';
+            ctx.fillText(`Best: ${highScore}`, 20, 65);
+
+            // Level indicator
+            const level = Math.floor(score / 100) + 1;
+            ctx.fillStyle = '#88ff88';
+            ctx.textAlign = 'right';
+            ctx.fillText(`Level ${level}`, CANVAS_WIDTH - 20, 40);
+
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+        }
+
+        function drawStartScreen() {
+            // Semi-transparent overlay
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Title
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 64px "Segoe UI", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(255, 215, 0, 0.5)';
+            ctx.shadowBlur = 20;
+            ctx.fillText('⚽ GOAL RUSH', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 80);
+
+            // Instructions
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '24px "Segoe UI", sans-serif';
+            ctx.fillText('Dodge the cones, collect the goals!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 20);
+
+            // Start prompt
+            ctx.fillStyle = '#88ff88';
+            ctx.font = 'bold 28px "Segoe UI", sans-serif';
+            const pulse = Math.sin(Date.now() / 300) * 0.3 + 0.7;
+            ctx.globalAlpha = pulse;
+            ctx.fillText('Press SPACE to Start', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 60);
+            ctx.globalAlpha = 1;
+
+            // High score
+            if (highScore > 0) {
+                ctx.fillStyle = '#ffd700';
+                ctx.font = '20px "Segoe UI", sans-serif';
+                ctx.fillText(`High Score: ${highScore}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 120);
+            }
+        }
+
+        function drawPausedScreen() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 48px "Segoe UI", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('PAUSED', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+
+            ctx.font = '24px "Segoe UI", sans-serif';
+            ctx.fillText('Press P to Resume', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 50);
+        }
+
+        function drawGameOverScreen() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Game Over text
+            ctx.fillStyle = '#ff4444';
+            ctx.font = 'bold 56px "Segoe UI", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(255, 0, 0, 0.5)';
+            ctx.shadowBlur = 15;
+            ctx.fillText('GAME OVER', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 60);
+
+            ctx.shadowBlur = 0;
+
+            // Score
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '32px "Segoe UI", sans-serif';
+            ctx.fillText(`Score: ${score}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 10);
+
+            // High score
+            if (score >= highScore && score > 0) {
+                ctx.fillStyle = '#ffd700';
+                ctx.font = 'bold 28px "Segoe UI", sans-serif';
+                ctx.fillText('🏆 NEW HIGH SCORE! 🏆', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 60);
+            } else {
+                ctx.fillStyle = '#aaaaaa';
+                ctx.font = '24px "Segoe UI", sans-serif';
+                ctx.fillText(`High Score: ${highScore}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 60);
+            }
+
+            // Restart prompt
+            ctx.fillStyle = '#88ff88';
+            ctx.font = 'bold 24px "Segoe UI", sans-serif';
+            const pulse = Math.sin(Date.now() / 300) * 0.3 + 0.7;
+            ctx.globalAlpha = pulse;
+            ctx.fillText('Press SPACE to Play Again', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 120);
+            ctx.globalAlpha = 1;
+        }
+
+        function render() {
+            ctx.save();
+
+            // Apply screen shake
+            ctx.translate(screenShake.x, screenShake.y);
+
+            // Draw field
+            drawField();
+
+            // Draw game objects
+            if (gameState !== GameState.START) {
+                // Draw goals
+                goals.forEach(goal => drawGoal(goal));
+
+                // Draw defenders
+                defenders.forEach(defender => {
+                    drawCone(defender.x, defender.y, defender.width, defender.height);
+                });
+
+                // Draw player
+                drawSoccerBall(player.x, player.y, player.radius, player.rotation);
+
+                // Draw particles
+                drawParticles();
+
+                // Draw UI
+                drawUI();
+            }
+
+            ctx.restore();
+
+            // Draw overlays (not affected by screen shake)
+            if (gameState === GameState.START) {
+                drawStartScreen();
+            } else if (gameState === GameState.PAUSED) {
+                drawPausedScreen();
+            } else if (gameState === GameState.GAMEOVER) {
+                drawGameOverScreen();
+            }
+        }
+
+        // ============================================
+        // GAME LOOP
+        // ============================================
+
+        function gameLoop(timestamp) {
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+
+            update(deltaTime);
+            render();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start the game loop
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Soccer Shirt Template Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #2c2c2c;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #00b0ff;
+        }
+        #canvas {
+            border: 3px solid #00b0ff;
+            margin: 20px 0;
+            background: #808080;
+        }
+        button {
+            background: #00b0ff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px;
+        }
+        button:hover {
+            background: #0086c3;
+        }
+        .info {
+            background: #404040;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <h1>⚽ Roblox Soccer Shirt Template Generator</h1>
+
+    <div class="info">
+        <strong>Template Specifications:</strong>
+        <ul>
+            <li>Dimensions: 585x559 pixels (Roblox classic shirt standard)</li>
+            <li>Style: Modern soccer jersey with Manchester United icon</li>
+            <li>Colors: White base with light lavender/purple patterns</li>
+            <li>Sleeves: Short sleeves only</li>
+            <li>Badge: Black MUFC devil icon on upper right chest</li>
+        </ul>
+    </div>
+
+    <canvas id="canvas" width="585" height="559"></canvas>
+
+    <button onclick="downloadImage()">📥 Download Shirt Template</button>
+    <button onclick="generateShirt()">🔄 Regenerate</button>
+
+    <div class="info">
+        <strong>How to use:</strong>
+        <ol>
+            <li>Click "Download Shirt Template" to save the PNG file</li>
+            <li>Go to Roblox Studio or roblox.com</li>
+            <li>Upload the template as a classic shirt</li>
+            <li>Wear and enjoy your custom soccer jersey!</li>
+        </ol>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function generateShirt() {
+            // Fill background with neutral gray
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(0, 0, 585, 559);
+
+            // Define template sections (standard Roblox layout)
+            const sections = {
+                front: { x: 128, y: 130, w: 128, h: 130 },
+                back: { x: 256, y: 130, w: 128, h: 130 },
+                leftSleeve: { x: 0, y: 130, w: 128, h: 130 },
+                rightSleeve: { x: 384, y: 130, w: 128, h: 130 },
+                up: { x: 128, y: 0, w: 128, h: 130 },
+                down: { x: 128, y: 260, w: 128, h: 130 }
+            };
+
+            const white = '#FFFFFF';
+            const lavender = '#C8B5E0';
+
+            // Fill all sections with white base
+            Object.values(sections).forEach(section => {
+                ctx.fillStyle = white;
+                ctx.fillRect(section.x, section.y, section.w, section.h);
+            });
+
+            // Function to draw angular geometric patterns
+            function drawAngularPattern(x, y, w, h) {
+                ctx.fillStyle = lavender;
+
+                // Diagonal stripes
+                const stripeWidth = 15;
+                for (let i = -h; i < w + h; i += stripeWidth * 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(x + i, y);
+                    ctx.lineTo(x + i + stripeWidth, y);
+                    ctx.lineTo(x + i + stripeWidth - h, y + h);
+                    ctx.lineTo(x + i - h, y + h);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                // Angular accents (triangles)
+                ctx.beginPath();
+                ctx.moveTo(x + w/4, y);
+                ctx.lineTo(x + w/2, y + 30);
+                ctx.lineTo(x + w/4 - 20, y);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(x + 3*w/4, y);
+                ctx.lineTo(x + w/2, y + 30);
+                ctx.lineTo(x + 3*w/4 + 20, y);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Apply patterns to main sections
+            drawAngularPattern(sections.front.x, sections.front.y, sections.front.w, sections.front.h);
+            drawAngularPattern(sections.back.x, sections.back.y, sections.back.w, sections.back.h);
+            drawAngularPattern(sections.up.x, sections.up.y, sections.up.w, sections.up.h);
+            drawAngularPattern(sections.down.x, sections.down.y, sections.down.w, sections.down.h);
+
+            // Short sleeves only - top half of sleeve sections
+            const sleeveShortHeight = sections.leftSleeve.h / 2;
+
+            // Left sleeve
+            ctx.fillStyle = white;
+            ctx.fillRect(sections.leftSleeve.x, sections.leftSleeve.y,
+                        sections.leftSleeve.w, sleeveShortHeight);
+            drawAngularPattern(sections.leftSleeve.x, sections.leftSleeve.y,
+                             sections.leftSleeve.w, sleeveShortHeight);
+
+            // Right sleeve
+            ctx.fillStyle = white;
+            ctx.fillRect(sections.rightSleeve.x, sections.rightSleeve.y,
+                        sections.rightSleeve.w, sleeveShortHeight);
+            drawAngularPattern(sections.rightSleeve.x, sections.rightSleeve.y,
+                             sections.rightSleeve.w, sleeveShortHeight);
+
+            // Draw Manchester United icon on upper right of chest
+            function drawManUtdIcon(x, y, size) {
+                ctx.fillStyle = '#000000';
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 1.5;
+
+                // Draw simplified devil/red devil icon
+                // Devil head (circle)
+                ctx.beginPath();
+                ctx.arc(x, y, size * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Devil horns
+                ctx.beginPath();
+                ctx.moveTo(x - size * 0.35, y - size * 0.25);
+                ctx.lineTo(x - size * 0.5, y - size * 0.6);
+                ctx.lineTo(x - size * 0.25, y - size * 0.35);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(x + size * 0.35, y - size * 0.25);
+                ctx.lineTo(x + size * 0.5, y - size * 0.6);
+                ctx.lineTo(x + size * 0.25, y - size * 0.35);
+                ctx.closePath();
+                ctx.fill();
+
+                // Trident/pitchfork below
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                // Center prong
+                ctx.moveTo(x, y + size * 0.4);
+                ctx.lineTo(x, y + size * 0.9);
+                ctx.stroke();
+
+                // Left prong
+                ctx.beginPath();
+                ctx.moveTo(x - size * 0.25, y + size * 0.4);
+                ctx.lineTo(x - size * 0.25, y + size * 0.75);
+                ctx.stroke();
+
+                // Right prong
+                ctx.beginPath();
+                ctx.moveTo(x + size * 0.25, y + size * 0.4);
+                ctx.lineTo(x + size * 0.25, y + size * 0.75);
+                ctx.stroke();
+
+                // Crossbar
+                ctx.beginPath();
+                ctx.moveTo(x - size * 0.3, y + size * 0.4);
+                ctx.lineTo(x + size * 0.3, y + size * 0.4);
+                ctx.stroke();
+
+                // Add "MUFC" text below
+                ctx.font = 'bold 8px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('MUFC', x, y + size * 1.1);
+            }
+
+            // Position icon on upper right of front chest
+            const iconX = sections.front.x + sections.front.w - 20;
+            const iconY = sections.front.y + 25;
+            drawManUtdIcon(iconX, iconY, 15);
+
+            // Add labels to sections
+            ctx.font = 'bold 16px Arial';
+            const labels = [
+                { text: 'FRONT', x: sections.front.x + sections.front.w/2, y: sections.front.y + sections.front.h/2 },
+                { text: 'BACK', x: sections.back.x + sections.back.w/2, y: sections.back.y + sections.back.h/2 },
+                { text: 'LEFT', x: sections.leftSleeve.x + sections.leftSleeve.w/2, y: sections.leftSleeve.y + 30 },
+                { text: 'RIGHT', x: sections.rightSleeve.x + sections.rightSleeve.w/2, y: sections.rightSleeve.y + 30 },
+                { text: 'UP', x: sections.up.x + sections.up.w/2, y: sections.up.y + sections.up.h/2 },
+                { text: 'DOWN', x: sections.down.x + sections.down.w/2, y: sections.down.y + sections.down.h/2 }
+            ];
+
+            labels.forEach(label => {
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // Black outline for visibility
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 3;
+                ctx.strokeText(label.text, label.x, label.y);
+
+                // White fill
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillText(label.text, label.x, label.y);
+            });
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'roblox_soccer_shirt_template.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Generate shirt on page load
+        generateShirt();
+    </script>
+</body>
+</html>

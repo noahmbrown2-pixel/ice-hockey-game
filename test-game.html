@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Test</title>
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            color: #0f0;
+            font-family: monospace;
+            padding: 20px;
+        }
+        #status {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="status">Loading...</div>
+    <div id="info"></div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+        }
+    }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+
+        const status = document.getElementById('status');
+        const info = document.getElementById('info');
+
+        try {
+            status.textContent = 'Three.js loaded successfully!';
+            info.innerHTML = `
+                <p>Three.js version: ${THREE.REVISION}</p>
+                <p>Browser supports WebGL: ${!!window.WebGLRenderingContext}</p>
+                <p>Creating test scene...</p>
+            `;
+
+            // Test scene creation
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer();
+            renderer.setSize(400, 300);
+            document.body.appendChild(renderer.domElement);
+
+            // Test cube
+            const geometry = new THREE.BoxGeometry();
+            const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            const cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+
+            camera.position.z = 5;
+
+            function animate() {
+                requestAnimationFrame(animate);
+                cube.rotation.x += 0.01;
+                cube.rotation.y += 0.01;
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            info.innerHTML += '<p style="color: lime;">✓ All tests passed! Game should work.</p>';
+            info.innerHTML += '<p>You should see a spinning green cube above.</p>';
+
+        } catch (error) {
+            status.textContent = 'ERROR!';
+            status.style.color = 'red';
+            info.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            console.error(error);
+        }
+    </script>
+</body>
+</html>

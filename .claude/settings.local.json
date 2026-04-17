@@ -26,7 +26,46 @@
       "Bash(\"/c/Users/noahm/AppData/Local/Programs/Python/Python312/python.exe\" generate_5_versions.py)",
       "Bash(\"/c/Users/noahm/AppData/Local/Programs/Python/Python312/python.exe\" generate_clean_front_versions.py)",
       "Bash(pip install:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(mkdir -p \"C:/Users/noahm/Project/.claude/skills\")",
+      "Bash(mkdir -p \"C:/Users/noahm/Project/.claude/agents\")",
+      "Bash(mkdir -p \"C:/Users/noahm/Project/.claude/commands\")",
+      "Bash(mkdir -p \"C:/Users/noahm/Project/.claude/output-styles\")",
+      "Bash(mkdir -p \"C:/Users/noahm/Project/.claude/status_lines\")"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/damage-control/bash-tool-damage-control.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/damage-control/edit-tool-damage-control.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/damage-control/write-tool-damage-control.py",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   },
   "outputStyle": "bold-questions"

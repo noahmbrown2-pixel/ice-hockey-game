@@ -93,7 +93,7 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 .tab-content.active{display:block}
 
 /* Right Panel - Actions */
-#right-panel{width:220px;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;flex-shrink:0}
+#right-panel{width:240px;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;flex-shrink:0}
 .actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px}
 .act-btn{padding:10px 6px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-sm);
   cursor:pointer;transition:all var(--t);font-size:11px;font-weight:600;text-align:center;
@@ -221,6 +221,33 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
   #game-body{overflow:auto}
   .tab-btn{font-size:10px;padding:8px 3px}
 }
+
+/* ── BLOOMBERG NEWS PANEL ── */
+#news-panel{flex-shrink:0;border-top:1px solid var(--border);padding:0;overflow:hidden}
+#news-header{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--bg2);border-bottom:1px solid var(--border)}
+#news-header .news-logo{font-size:10px;font-weight:800;color:#ff6600;letter-spacing:1px;text-transform:uppercase}
+.live-badge{background:#ff3d3d;color:#fff;font-size:8px;font-weight:800;padding:1px 5px;border-radius:3px;letter-spacing:.5px;animation:livePulse 1.2s ease-in-out infinite}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.5}}
+#news-feed-viewport{height:112px;overflow:hidden;position:relative}
+#news-feed{display:flex;flex-direction:column;gap:0;animation:scrollUp 20s linear infinite}
+#news-feed:hover{animation-play-state:paused}
+@keyframes scrollUp{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
+.news-item{display:flex;align-items:flex-start;gap:6px;padding:5px 10px;border-bottom:1px solid rgba(255,255,255,.04);font-size:10px;line-height:1.35;min-height:28px}
+.news-item .ni-icon{font-size:13px;flex-shrink:0;margin-top:1px}
+.news-item .ni-text{color:var(--white);flex:1}
+.news-item .ni-chg{font-size:9px;font-weight:700;flex-shrink:0;margin-top:2px}
+.ni-chg.up{color:var(--green)}.ni-chg.dn{color:var(--red)}.ni-chg.flat{color:var(--muted)}
+.news-item.stock{border-left:2px solid var(--blue)}
+.news-item.crypto{border-left:2px solid var(--purple)}
+.news-item.macro{border-left:2px solid var(--gold)}
+.news-item.realty{border-left:2px solid var(--orange)}
+#news-ticker-wrap{background:#111;border-top:1px solid var(--border);overflow:hidden;height:18px;display:flex;align-items:center}
+#news-ticker{white-space:nowrap;font-size:9px;font-weight:600;animation:tickerScroll 30s linear infinite}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tk-item{display:inline-block;padding:0 14px;color:var(--muted)}
+.tk-item .tk-sym{color:var(--white);font-weight:700}
+.tk-item .tk-val{margin:0 2px}
+.tk-item .tk-up{color:var(--green)}.tk-item .tk-dn{color:var(--red)}
 </style>
 </head>
 <body>
@@ -410,6 +437,20 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
         <button class="act-btn hustle" id="btn-hustle"><span class="aico">⚡</span>Side Hustle</button>
         <button class="act-btn edu"    id="btn-edu"><span class="aico">🎓</span>Education</button>
       </div>
+      <!-- Bloomberg News Channel -->
+      <div id="news-panel">
+        <div id="news-header">
+          <span class="news-logo">&#x1F4C8; FinNews</span>
+          <span class="live-badge">LIVE</span>
+        </div>
+        <div id="news-feed-viewport">
+          <div id="news-feed"></div>
+        </div>
+        <div id="news-ticker-wrap">
+          <div id="news-ticker"></div>
+        </div>
+      </div>
+
       <div id="chart-area">
         <div id="chart-label">Net Worth History</div>
         <canvas id="nw-chart"></canvas>
@@ -1394,6 +1435,7 @@ function updateUI(fin, prevNW, nw){
   renderProperties(inv); renderBusinesses(inv);
 
   drawNetWorthChart();
+  updateNewsChannel();
 }
 
 function renderStocksTable(inv){
@@ -1783,12 +1825,155 @@ $('btn-start').onclick=()=>{
   GS.nwHistory.push(nw);
   showScreen('game');
   updateUI({gross:GS.char.salary,taxes:0,livingCost:28000,debtPay:0,annSavings:0},0,nw);
+  initNewsChannel();
   const scLabels={broke:'💸 You started Broke — student debt and minimum wage.',middle:'🏡 You started Middle Class — college grad with some savings.',rich:'💰 You started Wealthy — trust fund and a head start!'};
   showToast(scLabels[GS.scenario]||'Welcome!');
 };
 
 // Load save on page open (optional — commented out to always start fresh)
 // if(loadGame()){ showScreen('game'); updateUI(null, 0, calcNetWorth(GS.char, GS.inv)); }
+
+// ════════════════════════════════════════════════════════════════
+//  BLOOMBERG-STYLE NEWS CHANNEL
+// ════════════════════════════════════════════════════════════════
+
+const ECONOMIC_FLAVOR_POOL = [
+  {icon:'🏦',text:'Fed holds rates steady amid mixed inflation data'},
+  {icon:'📊',text:'Consumer confidence index rises for 3rd straight month'},
+  {icon:'💵',text:'Dollar strengthens as Treasury yields climb'},
+  {icon:'🛢️',text:'Oil prices volatile on supply chain uncertainty'},
+  {icon:'🏭',text:'Manufacturing PMI beats estimates, jobs data mixed'},
+  {icon:'📉',text:'Recession fears resurface as yield curve inverts'},
+  {icon:'💹',text:'Wall Street opens higher on strong earnings reports'},
+  {icon:'🌐',text:'Global markets rally on trade deal optimism'},
+  {icon:'🏠',text:'Housing starts fall as mortgage rates stay elevated'},
+  {icon:'💳',text:'Consumer debt reaches record levels, defaults rising'},
+  {icon:'📈',text:'S&P 500 hits new all-time high on tech rally'},
+  {icon:'⚠️',text:'Inflation ticks up 0.3% — core CPI above expectations'},
+  {icon:'🏢',text:'Corporate layoffs accelerate in finance sector'},
+  {icon:'🌱',text:'Green energy stocks surge on new policy incentives'},
+  {icon:'🤖',text:'AI sector drives tech valuations to historic highs'},
+  {icon:'🛒',text:'Retail sales disappoint — holiday spending soft'},
+  {icon:'📦',text:'Supply chain disruptions ease, freight costs down'},
+  {icon:'💰',text:'Billionaire wealth up 15% YTD, middle class stagnates'},
+  {icon:'🏛️',text:'Congress debates debt ceiling — markets uneasy'},
+  {icon:'📱',text:'Big Tech reports beat — ad revenue rebounds strongly'},
+  {icon:'✈️',text:'Travel sector surges as bookings hit 5-year highs'},
+  {icon:'🏥',text:'Healthcare costs rise 8% — sector stocks outperform'},
+  {icon:'🚗',text:'Auto sales dip; EV transition costs squeeze margins'},
+  {icon:'🌍',text:'Emerging markets selloff as dollar index rises'},
+  {icon:'🔋',text:'Battery metals boom drives mining stocks higher'},
+  {icon:'📡',text:'Telecom consolidation wave sweeps sector'},
+  {icon:'🎮',text:'Gaming revenue hits $200B milestone globally'},
+  {icon:'🍔',text:'Restaurant chains report margin pressure from wages'},
+];
+
+const REAL_ESTATE_POOL = [
+  {icon:'🏘️',text:'Home prices up 4.2% YoY in top 20 metro areas'},
+  {icon:'🔑',text:'Rental vacancy rates hit 15-year low nationwide'},
+  {icon:'🏗️',text:'New construction permits fall 12% — inventory tight'},
+  {icon:'🏡',text:'Suburban demand cools as remote work policies shift'},
+  {icon:'🏙️',text:'Commercial real estate faces $500B debt maturity wall'},
+  {icon:'📐',text:'Multifamily REITs outperform as rents climb 6% YoY'},
+];
+
+const CLIMATE_HEADLINES = {
+  clear: {icon:'☀️', text:'Markets steady as weather outlook remains favorable'},
+  cloudy: {icon:'⛅', text:'Agricultural commodities mixed amid uncertain forecasts'},
+  storm: {icon:'⛈️', text:'Severe weather disrupts energy grid — utilities spike'},
+};
+
+function stockHeadline(stock){
+  const h = stock.history;
+  if(!h || h.length < 2) return null;
+  const prev = h[h.length-2], cur = h[h.length-1];
+  const chgPct = prev > 0 ? ((cur-prev)/prev*100) : 0;
+  const dir = chgPct > 0 ? '▲' : chgPct < 0 ? '▼' : '—';
+  const cls = chgPct > 0 ? 'up' : chgPct < 0 ? 'dn' : 'flat';
+  return {icon:'📊', text:`${stock.name} ${dir} ${Math.abs(chgPct).toFixed(1)}% — ${chgPct>2?'beats estimates':chgPct<-2?'misses guidance':'in line with forecasts'}`, chg:chgPct, cls, type:'stock'};
+}
+
+function cryptoHeadline(coin){
+  const h = coin.history;
+  if(!h || h.length < 2) return null;
+  const prev = h[h.length-2], cur = h[h.length-1];
+  const chgPct = prev > 0 ? ((cur-prev)/prev*100) : 0;
+  const dir = chgPct > 0 ? '▲' : chgPct < 0 ? '▼' : '—';
+  return {icon:'₿', text:`${coin.name} ${dir} ${Math.abs(chgPct).toFixed(1)}% — ${chgPct>5?'bulls return':chgPct<-5?'selloff accelerates':'range-bound trading'}`, chg:chgPct, cls:chgPct>0?'up':'dn', type:'crypto'};
+}
+
+function generateNewsHeadlines(inv){
+  const headlines = [];
+  if(inv && inv.stocks){
+    for(const s of inv.stocks){
+      const h = stockHeadline(s);
+      if(h) headlines.push(h);
+    }
+  }
+  if(inv && inv.cryptos){
+    for(const c of inv.cryptos){
+      const h = cryptoHeadline(c);
+      if(h) headlines.push(h);
+    }
+  }
+  const macroItem = pick(ECONOMIC_FLAVOR_POOL);
+  headlines.push({icon:macroItem.icon, text:macroItem.text, chg:null, cls:'flat', type:'macro'});
+  const reItem = pick(REAL_ESTATE_POOL);
+  headlines.push({icon:reItem.icon, text:reItem.text, chg:null, cls:'flat', type:'realty'});
+  while(headlines.length < 8){
+    const m = pick(ECONOMIC_FLAVOR_POOL);
+    headlines.push({icon:m.icon, text:m.text, chg:null, cls:'flat', type:'macro'});
+  }
+  return headlines;
+}
+
+function renderNewsFeed(headlines){
+  const feed = document.getElementById('news-feed');
+  if(!feed) return;
+  const items = [...headlines, ...headlines];
+  feed.innerHTML = items.map(h=>`<div class="news-item ${h.type||'macro'}"><span class="ni-icon">${h.icon}</span><span class="ni-text">${h.text}</span>${h.chg!==null?`<span class="ni-chg ${h.cls||'flat'}">${h.chg>=0?'+':''}${h.chg.toFixed(1)}%</span>`:''}</div>`).join('');
+  feed.style.animation='none';
+  void feed.offsetWidth;
+  feed.style.animation='scrollUp 20s linear infinite';
+}
+
+function renderNewsTicker(inv){
+  const ticker = document.getElementById('news-ticker');
+  if(!ticker || !inv) return;
+  let items = [];
+  for(const s of (inv.stocks||[])){
+    const h = s.history;
+    const prev = h&&h.length>1?h[h.length-2]:s.price;
+    const chg = prev>0?(s.price-prev)/prev*100:0;
+    const cls = chg>0?'tk-up':chg<0?'tk-dn':'';
+    items.push(`<span class="tk-item"><span class="tk-sym">${s.id}</span> <span class="tk-val">$${s.price.toFixed(0)}</span> <span class="${cls}">${chg>=0?'+':''}${chg.toFixed(1)}%</span></span>`);
+  }
+  for(const c of (inv.cryptos||[])){
+    const h = c.history;
+    const prev = h&&h.length>1?h[h.length-2]:c.price;
+    const chg = prev>0?(c.price-prev)/prev*100:0;
+    const cls = chg>0?'tk-up':chg<0?'tk-dn':'';
+    const fmtP = c.price>=1000?'$'+(c.price/1000).toFixed(1)+'k':c.price>=1?'$'+c.price.toFixed(0):'$'+c.price.toFixed(4);
+    items.push(`<span class="tk-item"><span class="tk-sym">${c.id}</span> <span class="tk-val">${fmtP}</span> <span class="${cls}">${chg>=0?'+':''}${chg.toFixed(1)}%</span></span>`);
+  }
+  if(!items.length) items.push(`<span class="tk-item"><span class="tk-sym">FINNEWS</span> <span class="tk-val">Markets are open</span></span>`);
+  ticker.innerHTML = [...items,...items].join(' · ');
+  ticker.style.animation='none';
+  void ticker.offsetWidth;
+  ticker.style.animation='tickerScroll 30s linear infinite';
+}
+
+function updateNewsChannel(){
+  const inv = GS.inv;
+  if(!inv) return;
+  const headlines = generateNewsHeadlines(inv);
+  renderNewsFeed(headlines);
+  renderNewsTicker(inv);
+}
+
+function initNewsChannel(){
+  updateNewsChannel();
+}
 
 window.addEventListener('resize', drawNetWorthChart);
 </script>

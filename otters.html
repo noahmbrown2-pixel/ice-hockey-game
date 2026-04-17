@@ -1,0 +1,3036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>The World of Otters — All 13 Species</title>
+<style>
+  :root {
+    --bg: #0a1628;
+    --card: #112240;
+    --card2: #1a3050;
+    --accent: #64ffda;
+    --accent2: #38bdf8;
+    --text: #ccd6f6;
+    --muted: #8892b0;
+    --gold: #fbbf24;
+    --red: #f87171;
+    --green: #4ade80;
+    --orange: #fb923c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    text-align: center;
+    padding: 80px 20px 60px;
+    background: linear-gradient(135deg, #0a1628 0%, #0d2137 40%, #0a2a1f 100%);
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(100,255,218,.08) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 80%, rgba(56,189,248,.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-emoji { font-size: 72px; display: block; margin-bottom: 16px; animation: bob 3s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.8rem);
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    max-width: 600px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat .num {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .hero-stat .lbl { font-size: .85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ── WAVES ── */
+  .wave { width: 100%; overflow: hidden; line-height: 0; }
+  .wave svg { display: block; }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 32px 20px 16px;
+  }
+  .filter-btn {
+    padding: 8px 20px;
+    border-radius: 999px;
+    border: 1.5px solid var(--card2);
+    background: var(--card);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: .9rem;
+    transition: all .2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(100,255,218,.07);
+  }
+
+  /* ── GRID ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 28px;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 20px 24px 60px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card);
+    border-radius: 20px;
+    border: 1px solid rgba(100,255,218,.08);
+    overflow: hidden;
+    transition: transform .25s, box-shadow .25s;
+    display: flex;
+    flex-direction: column;
+  }
+  .card { cursor: pointer; }
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(100,255,218,.15);
+  }
+  .card-banner {
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+    background: #0a1628;
+  }
+  .card-banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .4s ease;
+  }
+  .card:hover .card-banner img { transform: scale(1.06); }
+  .card-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 45%, var(--card) 100%);
+    pointer-events: none;
+  }
+
+  .card-body { padding: 20px 22px 22px; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+
+  .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .card-name { font-size: 1.25rem; font-weight: 700; color: #e2e8f0; line-height: 1.2; }
+  .card-latin { font-size: .78rem; color: var(--muted); font-style: italic; margin-top: 2px; }
+
+  /* status badge */
+  .status {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 700;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    flex-shrink: 0;
+  }
+  .status-lc  { background: rgba(74,222,128,.15); color: var(--green);  border: 1px solid rgba(74,222,128,.3); }
+  .status-nt  { background: rgba(56,189,248,.15);  color: var(--accent2); border: 1px solid rgba(56,189,248,.3); }
+  .status-vu  { background: rgba(251,191,36,.15);  color: var(--gold);   border: 1px solid rgba(251,191,36,.3); }
+  .status-en  { background: rgba(251,146,60,.15);  color: var(--orange); border: 1px solid rgba(251,146,60,.3); }
+  .status-cr  { background: rgba(248,113,113,.15); color: var(--red);    border: 1px solid rgba(248,113,113,.3); }
+
+  .card-desc { font-size: .9rem; color: var(--muted); line-height: 1.65; }
+
+  /* pill row */
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: .75rem;
+    background: var(--card2);
+    color: var(--muted);
+    border: 1px solid rgba(255,255,255,.06);
+  }
+  .pill span { color: var(--text); font-weight: 600; }
+
+  /* stat rows */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-box {
+    background: var(--card2);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .stat-box .s-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 3px; }
+  .stat-box .s-val   { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+  /* fun fact */
+  .fun-fact {
+    background: rgba(100,255,218,.05);
+    border: 1px solid rgba(100,255,218,.15);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: .85rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: auto;
+  }
+  .fun-fact strong { color: var(--accent); display: block; margin-bottom: 4px; font-size: .78rem; text-transform: uppercase; letter-spacing: .5px; }
+
+  /* section heading */
+  .section-title {
+    text-align: center;
+    padding: 40px 20px 8px;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 800;
+    color: var(--text);
+  }
+  .section-sub { text-align: center; color: var(--muted); font-size: .95rem; padding-bottom: 8px; }
+
+  /* comparison table */
+  .table-wrap { max-width: 1100px; margin: 0 auto; padding: 20px 24px 60px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  th {
+    background: var(--card2);
+    color: var(--accent);
+    padding: 12px 14px;
+    text-align: left;
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    white-space: nowrap;
+  }
+  td { padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,.04); color: var(--muted); vertical-align: top; }
+  tr:hover td { background: rgba(100,255,218,.03); }
+  td:first-child { color: var(--text); font-weight: 600; }
+
+  /* footer */
+  footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: .85rem;
+    border-top: 1px solid rgba(255,255,255,.06);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* hide utility */
+  .hidden { display: none !important; }
+
+  @media(max-width:500px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .hero-stats { gap: 24px; }
+  }
+
+  /* ── FLASHCARD MODE ── */
+  .fc-launch-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 28px;
+    padding: 12px 28px;
+    border-radius: 999px;
+    border: 2px solid var(--accent);
+    background: rgba(100,255,218,.08);
+    color: var(--accent);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    letter-spacing: .3px;
+  }
+  .fc-launch-btn:hover { background: rgba(100,255,218,.18); transform: scale(1.04); }
+
+  #fc-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(5,12,28,.97);
+    z-index: 1000;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    padding: 20px 16px 40px;
+  }
+  #fc-overlay.open { display: flex; }
+
+  .fc-topbar {
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .fc-title { font-size: 1.1rem; font-weight: 800; color: var(--accent); }
+  .fc-close {
+    background: none;
+    border: 1.5px solid rgba(255,255,255,.15);
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: .85rem;
+    transition: all .2s;
+  }
+  .fc-close:hover { border-color: var(--red); color: var(--red); }
+
+  .fc-mode-bar {
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .fc-mode-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--card2);
+    background: var(--card);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: .8rem;
+    font-weight: 600;
+    transition: all .2s;
+    text-align: center;
+  }
+  .fc-mode-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(100,255,218,.07); }
+
+  /* progress */
+  .fc-progress-wrap { width: 100%; max-width: 700px; margin-bottom: 6px; }
+  .fc-progress-bar-bg {
+    height: 6px;
+    background: var(--card2);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .fc-progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 999px;
+    transition: width .4s ease;
+  }
+  .fc-progress-text { font-size: .78rem; color: var(--muted); display: flex; justify-content: space-between; }
+  .fc-score-knew { color: var(--green); font-weight: 700; }
+  .fc-score-learn { color: var(--orange); font-weight: 700; }
+
+  /* 3D card flip */
+  .fc-scene {
+    width: 100%;
+    max-width: 620px;
+    perspective: 1200px;
+    margin: 10px 0 20px;
+    cursor: pointer;
+  }
+  .fc-inner {
+    position: relative;
+    width: 100%;
+    transition: transform .55s cubic-bezier(.4,0,.2,1);
+    transform-style: preserve-3d;
+    min-height: 380px;
+  }
+  .fc-inner.flipped { transform: rotateY(180deg); }
+  .fc-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 22px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .fc-back { transform: rotateY(180deg); }
+
+  /* front */
+  .fc-front-banner {
+    height: 180px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #0a1628;
+    position: relative;
+  }
+  .fc-front-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .fc-front-body {
+    background: var(--card);
+    flex: 1;
+    padding: 22px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .fc-question {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+  }
+  .fc-clues { display: flex; flex-direction: column; gap: 9px; }
+  .fc-clue {
+    background: var(--card2);
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-size: .85rem;
+    color: var(--muted);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .fc-clue-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .5px; color: var(--accent); min-width: 58px; font-weight: 700; }
+  .fc-tap-hint {
+    text-align: center;
+    font-size: .78rem;
+    color: var(--muted);
+    opacity: .6;
+    margin-top: auto;
+  }
+
+  /* back */
+  .fc-back-inner {
+    background: var(--card);
+    flex: 1;
+    border-radius: 22px;
+    padding: 26px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border: 1px solid rgba(100,255,218,.15);
+  }
+  .fc-back-name { font-size: 1.5rem; font-weight: 800; color: var(--text); text-align: center; }
+  .fc-back-latin { font-size: .9rem; color: var(--muted); font-style: italic; text-align: center; margin-top: -8px; }
+  .fc-back-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .fc-back-stat { background: var(--card2); border-radius: 10px; padding: 9px 12px; }
+  .fc-back-stat .s-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 2px; }
+  .fc-back-stat .s-val { font-size: .95rem; font-weight: 700; color: var(--text); }
+  .fc-back-fact {
+    background: rgba(100,255,218,.05);
+    border: 1px solid rgba(100,255,218,.15);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: .82rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .fc-back-fact strong { color: var(--accent); display: block; margin-bottom: 3px; font-size: .72rem; text-transform: uppercase; letter-spacing: .5px; }
+
+  /* action buttons */
+  .fc-actions {
+    width: 100%;
+    max-width: 620px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .fc-btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: none;
+    font-size: .9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .fc-btn-flip { background: var(--card2); color: var(--text); border: 1.5px solid rgba(255,255,255,.1); }
+  .fc-btn-flip:hover { background: var(--card); }
+  .fc-btn-knew { background: rgba(74,222,128,.15); color: var(--green); border: 1.5px solid rgba(74,222,128,.3); }
+  .fc-btn-knew:hover { background: rgba(74,222,128,.28); }
+  .fc-btn-learn { background: rgba(251,146,60,.15); color: var(--orange); border: 1.5px solid rgba(251,146,60,.3); }
+  .fc-btn-learn:hover { background: rgba(251,146,60,.28); }
+  .fc-btn-shuffle { background: rgba(56,189,248,.1); color: var(--accent2); border: 1.5px solid rgba(56,189,248,.2); }
+  .fc-btn-shuffle:hover { background: rgba(56,189,248,.2); }
+  .fc-post-flip { display: none; }
+  .fc-post-flip.visible { display: flex; }
+
+  /* complete screen */
+  .fc-complete {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 40px 20px;
+    text-align: center;
+    max-width: 500px;
+  }
+  .fc-complete.visible { display: flex; }
+  .fc-complete-emoji { font-size: 60px; }
+  .fc-complete h2 { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
+  .fc-complete p { color: var(--muted); font-size: .95rem; line-height: 1.6; }
+  .fc-complete-scores { display: flex; gap: 24px; margin: 8px 0; }
+  .fc-complete-score { text-align: center; }
+  .fc-complete-score .num { font-size: 2rem; font-weight: 800; }
+  .fc-complete-score .lbl { font-size: .8rem; color: var(--muted); }
+  .fc-restart-btn {
+    padding: 12px 32px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    color: #0a1628;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: opacity .2s;
+  }
+  .fc-restart-btn:hover { opacity: .85; }
+
+  /* ── SPECIES ARTICLE MODAL ── */
+  #article-overlay {
+    display: none; position: fixed; inset: 0; z-index: 2000;
+    background: rgba(5,10,22,.98); overflow-y: auto;
+    animation: slideUp .3s ease;
+  }
+  #article-overlay.open { display: block; }
+  @keyframes slideUp { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+  .art-sticky {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(5,10,22,.95); backdrop-filter: blur(12px);
+    padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,.08); gap: 12px;
+  }
+  .art-sticky-name { font-size: 1rem; font-weight: 800; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .art-sticky-latin { font-size: .75rem; color: var(--muted); font-style: italic; }
+  .art-close { background: none; border: 1.5px solid rgba(255,255,255,.15); color: var(--muted); border-radius: 8px; padding: 7px 16px; cursor: pointer; font-size: .9rem; transition: all .2s; flex-shrink: 0; }
+  .art-close:hover { border-color: var(--red); color: var(--red); }
+
+  .art-hero { width: 100%; height: 320px; object-fit: cover; display: block; }
+  @media(max-width:600px){ .art-hero { height: 220px; } }
+
+  .art-body { max-width: 820px; margin: 0 auto; padding: 36px 24px 80px; }
+
+  .art-title { font-size: clamp(1.6rem,4vw,2.4rem); font-weight: 900; color: var(--text); margin-bottom: 4px; }
+  .art-latin { font-size: 1rem; color: var(--muted); font-style: italic; margin-bottom: 14px; }
+  .art-status-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+  .art-status-label { font-size: .75rem; color: var(--muted); }
+
+  .art-stats-row {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr));
+    gap: 10px; margin-bottom: 32px;
+  }
+  .art-stat { background: var(--card); border-radius: 12px; padding: 12px 14px; border: 1px solid rgba(255,255,255,.06); }
+  .art-stat-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 4px; }
+  .art-stat-val { font-size: .95rem; font-weight: 700; color: var(--text); }
+
+  .art-section { margin-bottom: 36px; }
+  .art-section-title {
+    font-size: 1.05rem; font-weight: 800; margin-bottom: 14px;
+    padding-bottom: 8px; border-bottom: 2px solid;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .art-section-title.prey     { color: #fb923c; border-color: rgba(251,146,60,.3); }
+  .art-section-title.pred     { color: #f87171; border-color: rgba(248,113,113,.3); }
+  .art-section-title.nbr      { color: #60a5fa; border-color: rgba(96,165,250,.3); }
+  .art-section-title.eco      { color: #4ade80; border-color: rgba(74,222,128,.3); }
+  .art-section-title.why      { color: #fb923c; border-color: rgba(251,146,60,.3); }
+  .art-section-title.help     { color: #64ffda; border-color: rgba(100,255,218,.3); }
+  .art-section-title.facts    { color: #c084fc; border-color: rgba(192,132,252,.3); }
+
+  .art-para { font-size: .95rem; color: var(--muted); line-height: 1.75; }
+
+  .art-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .art-chip { padding: 5px 13px; border-radius: 999px; font-size: .82rem; font-weight: 600; border: 1px solid; }
+  .art-chip-prey { background: rgba(251,146,60,.1); color: #fb923c; border-color: rgba(251,146,60,.25); }
+  .art-chip-pred { background: rgba(248,113,113,.1); color: #f87171; border-color: rgba(248,113,113,.25); }
+  .art-chip-nbr  { background: rgba(96,165,250,.1);  color: #60a5fa; border-color: rgba(96,165,250,.25); }
+  .art-chip-note { font-size: .72rem; font-weight: 400; color: var(--muted); margin-left: 2px; }
+
+  .art-reason-list { display: flex; flex-direction: column; gap: 14px; }
+  .art-reason { background: rgba(251,146,60,.05); border: 1px solid rgba(251,146,60,.15); border-radius: 14px; padding: 14px 18px; }
+  .art-reason-title { font-size: .88rem; font-weight: 800; color: #fb923c; margin-bottom: 5px; }
+  .art-reason-desc  { font-size: .85rem; color: var(--muted); line-height: 1.65; }
+
+  .art-help-list { display: flex; flex-direction: column; gap: 10px; }
+  .art-help-item { display: flex; gap: 12px; align-items: flex-start; background: rgba(100,255,218,.04); border: 1px solid rgba(100,255,218,.12); border-radius: 12px; padding: 12px 16px; }
+  .art-help-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+  .art-help-text { font-size: .87rem; color: var(--muted); line-height: 1.6; }
+
+  .art-facts-list { display: flex; flex-direction: column; gap: 10px; }
+  .art-fact-item { display: flex; gap: 10px; align-items: flex-start; }
+  .art-fact-bullet { color: #c084fc; font-weight: 900; flex-shrink: 0; margin-top: 2px; }
+  .art-fact-text { font-size: .9rem; color: var(--muted); line-height: 1.65; }
+
+  /* ── MINI GAMES HUB ── */
+  #mini-hub {
+    display: none; position: fixed; inset: 0;
+    background: rgba(5,12,28,.98); z-index: 1002;
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px; text-align: center;
+  }
+  #mini-hub.open { display: flex; }
+  .hub-title { font-size: clamp(1.4rem,4vw,2rem); font-weight: 800; color: var(--text); margin-bottom: 6px; }
+  .hub-sub { color: var(--muted); font-size: .95rem; margin-bottom: 32px; }
+  .hub-cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 18px; max-width: 780px; width: 100%; }
+  .hub-card {
+    background: var(--card); border-radius: 20px; border: 1px solid rgba(255,255,255,.08);
+    padding: 28px 20px; cursor: pointer; transition: all .22s; text-align: center;
+  }
+  .hub-card:hover { transform: translateY(-6px); box-shadow: 0 20px 50px rgba(0,0,0,.5); }
+  .hub-card:nth-child(1):hover { border-color: #818cf8; }
+  .hub-card:nth-child(2):hover { border-color: var(--green); }
+  .hub-card:nth-child(3):hover { border-color: var(--gold); }
+  .hub-icon { font-size: 2.8rem; display: block; margin-bottom: 12px; }
+  .hub-name { font-size: 1.05rem; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+  .hub-desc { font-size: .8rem; color: var(--muted); line-height: 1.55; }
+  .hub-close { position: absolute; top: 20px; right: 24px; background: none; border: 1.5px solid rgba(255,255,255,.15); color: var(--muted); border-radius: 8px; padding: 6px 14px; cursor: pointer; font-size: .85rem; transition: all .2s; }
+  .hub-close:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── SHARED MINI-GAME SHELL ── */
+  .mini-ov {
+    display: none; position: fixed; inset: 0; background: rgba(5,12,28,.98);
+    z-index: 1003; flex-direction: column; overflow: hidden;
+  }
+  .mini-ov.open { display: flex; }
+  .mini-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,.07); flex-shrink: 0; gap: 12px;
+  }
+  .mini-bar-title { font-size: 1rem; font-weight: 800; }
+  .mini-back { background: none; border: 1.5px solid rgba(255,255,255,.15); color: var(--muted); border-radius: 8px; padding: 6px 14px; cursor: pointer; font-size: .85rem; transition: all .2s; }
+  .mini-back:hover { border-color: var(--accent); color: var(--accent); }
+  .mini-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 16px; position: relative; }
+  .prog-track { width: 100%; max-width: 580px; height: 5px; background: var(--card2); border-radius: 999px; overflow: hidden; margin-bottom: 6px; }
+  .prog-fill { height: 100%; border-radius: 999px; transition: width .1s linear, background .3s; }
+
+  /* ── QUIZ ── */
+  .quiz-meta { display: flex; gap: 20px; font-size: .82rem; color: var(--muted); margin-bottom: 14px; }
+  .quiz-meta strong { color: var(--text); }
+  .quiz-qnum { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; text-align: center; }
+  .quiz-q { font-size: clamp(.95rem,2.5vw,1.2rem); font-weight: 700; color: var(--text); text-align: center; line-height: 1.55; max-width: 540px; margin-bottom: 26px; }
+  .quiz-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 540px; }
+  .qopt { padding: 13px 16px; border-radius: 13px; border: 1.5px solid rgba(255,255,255,.1); background: var(--card); color: var(--text); cursor: pointer; font-size: .88rem; font-weight: 600; transition: all .15s; text-align: left; }
+  .qopt:hover:not(:disabled) { border-color: #818cf8; background: rgba(129,140,248,.08); }
+  .qopt.correct { border-color: var(--green); background: rgba(74,222,128,.15); color: var(--green); }
+  .qopt.wrong { border-color: var(--red); background: rgba(248,113,113,.15); color: var(--red); }
+  .qopt:disabled { cursor: default; }
+  .quiz-fact-box { margin-top: 14px; padding: 12px 16px; border-radius: 12px; max-width: 540px; background: rgba(100,255,218,.05); border: 1px solid rgba(100,255,218,.15); font-size: .83rem; color: var(--muted); text-align: center; line-height: 1.6; display: none; }
+  .quiz-nxt { margin-top: 14px; padding: 10px 26px; border-radius: 999px; border: none; background: var(--accent); color: #0a1628; font-weight: 800; cursor: pointer; display: none; }
+  .quiz-nxt:hover { opacity: .85; }
+
+  /* ── TRUE / FALSE ── */
+  .tf-wrap { width: 100%; max-width: 560px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .tf-ring { position: relative; width: 76px; height: 76px; flex-shrink: 0; }
+  .tf-ring svg { transform: rotate(-90deg); }
+  .tf-ring-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 900; font-family: 'Courier New', monospace; color: var(--accent); }
+  .tf-stmt { font-size: clamp(.95rem,2.5vw,1.2rem); font-weight: 700; color: var(--text); text-align: center; line-height: 1.55; min-height: 72px; display: flex; align-items: center; }
+  .tf-score-row { font-size: .82rem; color: var(--muted); }
+  .tf-score-row strong { color: var(--accent); font-size: 1.2rem; }
+  .tf-streak { font-size: .8rem; color: var(--gold); font-weight: 700; min-height: 1.2em; }
+  .tf-btns { display: flex; gap: 14px; width: 100%; }
+  .tf-btn { flex: 1; padding: 16px; border-radius: 14px; border: 2px solid; font-size: 1rem; font-weight: 800; cursor: pointer; transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .tf-btn span { font-size: .65rem; font-weight: 400; color: var(--muted); }
+  .tf-t { background: rgba(74,222,128,.1); border-color: rgba(74,222,128,.4); color: var(--green); }
+  .tf-t:hover { background: rgba(74,222,128,.22); }
+  .tf-f { background: rgba(248,113,113,.1); border-color: rgba(248,113,113,.4); color: var(--red); }
+  .tf-f:hover { background: rgba(248,113,113,.22); }
+  .tf-feedback { font-size: .82rem; color: var(--muted); min-height: 2.5em; text-align: center; line-height: 1.55; max-width: 460px; }
+
+  /* ── SIZE SHOWDOWN ── */
+  .ss-instr { font-size: .85rem; color: var(--muted); text-align: center; margin-bottom: 16px; max-width: 500px; }
+  .ss-pool { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 600px; min-height: 60px; margin-bottom: 20px; }
+  .ss-card { background: var(--card); border: 1.5px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 16px; cursor: pointer; transition: all .18s; text-align: center; min-width: 110px; }
+  .ss-card:hover { border-color: var(--gold); background: rgba(251,191,36,.07); transform: translateY(-3px); }
+  .ss-card.used { opacity: 0; pointer-events: none; width: 0; padding: 0; margin: 0; overflow: hidden; border: none; min-width: 0; }
+  .ss-cname { font-size: .82rem; font-weight: 700; color: var(--text); }
+  .ss-cemoji { font-size: 1.2rem; margin-bottom: 4px; }
+  .ss-slots { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 620px; margin-bottom: 18px; }
+  .ss-slot { background: var(--card2); border: 1.5px dashed rgba(255,255,255,.12); border-radius: 12px; padding: 10px 12px; min-width: 108px; min-height: 68px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: all .2s; }
+  .ss-slot-lbl { font-size: .62rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .ss-slot-name { font-size: .8rem; font-weight: 700; color: var(--text); }
+  .ss-slot-wt { font-size: .7rem; color: var(--muted); margin-top: 2px; }
+  .ss-slot.correct { border-color: var(--green); background: rgba(74,222,128,.1); border-style: solid; }
+  .ss-slot.wrong { border-color: var(--red); background: rgba(248,113,113,.1); border-style: solid; }
+  .ss-submit { padding: 10px 28px; border-radius: 999px; border: none; background: var(--gold); color: #0a1628; font-weight: 800; cursor: pointer; margin-top: 4px; display: none; }
+  .ss-submit:hover { opacity: .85; }
+
+  /* ── SHARED GAME-OVER ── */
+  .mini-go {
+    display: none; flex-direction: column; align-items: center; gap: 12px; text-align: center;
+    position: absolute; inset: 0; background: rgba(5,12,28,.96); justify-content: center; padding: 24px;
+  }
+  .mini-go.show { display: flex; }
+  .go-emoji { font-size: 3.5rem; }
+  .go-title { font-size: 1.6rem; font-weight: 800; color: var(--text); }
+  .go-score { font-size: 3.5rem; font-weight: 900; color: var(--accent); font-family: 'Courier New', monospace; }
+  .go-msg { color: var(--muted); font-size: .92rem; max-width: 380px; line-height: 1.6; }
+  .go-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+  .go-btn { padding: 11px 28px; border-radius: 999px; border: none; font-weight: 800; font-size: .95rem; cursor: pointer; transition: opacity .2s; }
+  .go-btn:hover { opacity: .85; }
+  .go-primary { background: linear-gradient(90deg,var(--accent),var(--accent2)); color: #0a1628; }
+  .go-secondary { background: var(--card2); color: var(--text); }
+
+  @media(max-width:500px) {
+    .quiz-opts { grid-template-columns: 1fr; }
+    .hub-cards { grid-template-columns: 1fr; }
+    .tf-btn { padding: 14px; font-size: .9rem; }
+    .ss-card, .ss-slot { min-width: 90px; }
+  }
+
+  /* ── MATCHING GAME ── */
+  #mg-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(5,12,28,.98);
+    z-index: 1001;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #mg-overlay.open { display: flex; }
+
+  .mg-header {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    flex-wrap: wrap;
+  }
+  .mg-title { font-size: 1.1rem; font-weight: 800; color: var(--gold); }
+
+  .mg-timer-wrap { text-align: center; }
+  .mg-timer {
+    font-size: 2.2rem;
+    font-weight: 900;
+    font-family: 'Courier New', monospace;
+    color: var(--text);
+    transition: color .3s;
+    letter-spacing: 1px;
+  }
+  .mg-timer.running { color: var(--accent); }
+  .mg-timer-label { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+  .mg-best-time { font-size: .75rem; color: var(--gold); margin-top: 2px; min-height: 1em; }
+
+  .mg-header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .mg-score { color: var(--muted); font-size: .85rem; }
+  .mg-score strong { color: var(--green); font-size: 1.2rem; }
+  .mg-close {
+    background: none; border: 1.5px solid rgba(255,255,255,.15);
+    color: var(--muted); border-radius: 8px; padding: 6px 14px;
+    cursor: pointer; font-size: .85rem; transition: all .2s;
+  }
+  .mg-close:hover { border-color: var(--red); color: var(--red); }
+
+  .mg-panels {
+    display: flex;
+    gap: 14px;
+    flex: 1;
+    overflow: hidden;
+    padding: 12px 16px 14px;
+    min-height: 0;
+  }
+  .mg-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .mg-panel-title { font-size: .7rem; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 8px; text-align: center; flex-shrink: 0; }
+  .mg-panel-scroll { flex: 1; overflow-y: auto; }
+
+  .mg-pics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .mg-pic-card {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 2.5px solid rgba(255,255,255,.08);
+    transition: all .2s;
+    overflow: hidden;
+    position: relative;
+  }
+  .mg-pic-card img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .mg-pic-card:hover:not(.matched) { border-color: rgba(251,191,36,.4); transform: scale(1.05); }
+  .mg-pic-card.selected { border-color: var(--gold); box-shadow: 0 0 18px rgba(251,191,36,.4); transform: scale(1.05); }
+  .mg-pic-card.matched { opacity: .45; cursor: default; border-color: var(--green); }
+  .mg-pic-card.matched::after {
+    content: '✓';
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; color: var(--green);
+    background: rgba(0,0,0,.45); border-radius: 10px;
+  }
+  .mg-pic-card.wrong { animation: mg-shake .4s ease; border-color: var(--red); }
+
+  .mg-names-grid { display: flex; flex-direction: column; gap: 7px; }
+  .mg-name-card {
+    padding: 11px 16px;
+    border-radius: 12px;
+    background: var(--card);
+    border: 1.5px solid rgba(255,255,255,.06);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .mg-name-card:hover:not(.matched) { border-color: rgba(251,191,36,.3); background: var(--card2); }
+  .mg-name-card.selected { border-color: var(--gold); background: rgba(251,191,36,.07); }
+  .mg-name-card.matched { opacity: .4; cursor: default; border-color: var(--green); }
+  .mg-name-card.wrong { animation: mg-shake .4s ease; border-color: var(--red) !important; }
+  .mn-name { font-size: .9rem; font-weight: 700; color: var(--text); }
+  .mn-latin { font-size: .7rem; color: var(--muted); font-style: italic; margin-top: 1px; }
+  .mg-name-card.matched .mn-name::after { content: ' ✓'; color: var(--green); }
+
+  @keyframes mg-shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-7px)}
+    40%{transform:translateX(7px)}
+    60%{transform:translateX(-4px)}
+    80%{transform:translateX(4px)}
+  }
+
+  .mg-complete {
+    display: none;
+    position: absolute; inset: 0;
+    background: rgba(5,12,28,.97);
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 14px; text-align: center; padding: 24px;
+  }
+  .mg-complete.visible { display: flex; }
+  .mg-complete-trophy { font-size: 4rem; animation: bob 2s ease-in-out infinite; }
+  .mg-complete h2 { font-size: 1.8rem; font-weight: 800; color: var(--text); }
+  .mg-final-time {
+    font-size: 4rem; font-weight: 900;
+    font-family: 'Courier New', monospace;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+  .mg-new-best { color: var(--gold); font-weight: 700; font-size: 1rem; }
+  .mg-encourage { color: var(--muted); font-size: .95rem; }
+  .mg-btn {
+    padding: 12px 32px; border-radius: 999px; border: none;
+    font-weight: 800; font-size: 1rem; cursor: pointer; transition: opacity .2s;
+  }
+  .mg-btn-primary { background: linear-gradient(90deg,var(--gold),#f97316); color: #0a1628; }
+  .mg-btn-secondary { background: var(--card2); color: var(--text); }
+  .mg-btn:hover { opacity: .85; }
+  .mg-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+
+  @media(max-width:600px) {
+    .mg-pics-grid { grid-template-columns: repeat(2, 1fr); }
+    .mg-panels { flex-direction: column; }
+    .mg-panel { max-height: 44vh; }
+    .mg-final-time { font-size: 2.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <span class="hero-emoji">🦦</span>
+  <h1>The Complete World of Otters</h1>
+  <p>A deep dive into all 13 living species of otters — their habitats, diets, sizes, behaviors, and conservation status.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">13</div><div class="lbl">Living Species</div></div>
+    <div class="hero-stat"><div class="num">7</div><div class="lbl">Threatened</div></div>
+    <div class="hero-stat"><div class="num">~1.8m</div><div class="lbl">Max Length (Giant Otter)</div></div>
+    <div class="hero-stat"><div class="num">~1kg</div><div class="lbl">Smallest (Asian Small-clawed)</div></div>
+  </div>
+  <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
+    <button class="fc-launch-btn" onclick="openFlashcards()">🃏 Study with Flashcards</button>
+    <button class="fc-launch-btn" style="border-color:var(--gold);color:var(--gold);background:rgba(251,191,36,.08)" onclick="openMatchingGame()">🔮 Matching Game</button>
+    <button class="fc-launch-btn" style="border-color:#c084fc;color:#c084fc;background:rgba(192,132,252,.08)" onclick="openMiniHub()">🎮 Mini Games</button>
+  </div>
+</section>
+
+<div class="wave">
+  <svg viewBox="0 0 1440 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 40 C360 0 1080 0 1440 40 L1440 40 L0 40Z" fill="#0a1628"/>
+  </svg>
+</div>
+
+<!-- FILTER -->
+<div class="filter-bar">
+  <button class="filter-btn active" data-filter="all">All Species</button>
+  <button class="filter-btn" data-filter="river">River Otters</button>
+  <button class="filter-btn" data-filter="sea">Sea Otters</button>
+  <button class="filter-btn" data-filter="africa">African</button>
+  <button class="filter-btn" data-filter="asia">Asian</button>
+  <button class="filter-btn" data-filter="americas">Americas</button>
+  <button class="filter-btn" data-filter="threatened">Threatened</button>
+</div>
+
+<!-- SPECIES CARDS -->
+<div class="grid" id="grid">
+
+  <!-- 1. Sea Otter -->
+  <div class="card" data-tags="sea americas" onclick="openArticle('Sea Otter')">
+    <div class="card-banner"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Sea_Otter_%28Enhydra_lutris%29_%2825169790524%29_crop.jpg/400px-Sea_Otter_%28Enhydra_lutris%29_%2825169790524%29_crop.jpg" alt="Sea Otter" loading="lazy"></div>
+    <div class="card-body">
+      <div class="card-header">
+        <div><div class="card-name">Sea Otter</div><div class="card-latin">Enhydra lutris</div></div>
+        <span class="status status-en">Endangered</span>
+      </div>
+      <p class="card-desc">The only truly marine otter, the sea otter spends almost its entire life in the ocean along the North Pacific coast. It is the heaviest member of the weasel family and one of the only mammals known to use tools — wrapping shellfish in kelp and cracking them open on a stone balanced on its chest.</p>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="s-label">Weight</div><div class="s-val">14 – 45 kg</div></div>
+        <div class="stat-box"><div class="s-label">Length</div><div class="s-val">1.0 – 1.5 m</div></div>
+        <div class="stat-box"><div class="s-label">Lifespan</div><div class="s-val">10 – 23 yrs</div></div>
+        <div class="stat-box"><div class="s-label">Population</div><div class="s-val">~3,000</div></div>
+      </div>
+      <div class="pills">
+        <div class="pill">🌍 <span>North Pacific</span></div>
+        <div class="pill">🐚 <span>Seafloor invertebrates</span></div>
+        <div class="pill">🌿 <span>Kelp forests</span></div>
+      </div>
+      <div class="fun-fact">
+        <strong>Amazing Fact</strong>
+        Sea otters have the densest fur of any animal — up to 1 million hairs per square inch. They have no insulating blubber, so their fur traps air to keep them warm. They must groom constantly to maintain this waterproof insulation.
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. North American River Otter -->
+  <div class="card" data-tags="river americas" onclick="openArticle('North American River Otter')">
+    <div class="card-banner"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Northern_River_Otter_on_Seedskadee_NWR_%2822802102984%29.jpg/400px-Northern_River_Otter_on_Seedskadee_NWR_%2822802102984%29.jpg" alt="North American River Otter" loading="lazy"></div>
+    <div class="card-body">
+      <div class="card-header">
+        <div><div class="card-name">North American River Otter</div><div class="card-latin">Lontra canadensis</div></div>
+        <span class="status status-lc">Least Concern</span>
+      </div>
+      <p class="card-desc">The most widespread otter in North America, found from Alaska to Florida. A highly social and playful species that slides down muddy or snowy riverbanks purely for fun. Excellent swimmers capable of holding their breath for up to 8 minutes and reaching 11 km/h underwater.</p>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="s-label">Weight</div><div class="s-val">5 – 14 kg</div></div>
+        <div class="stat-box"><div class="s-label">Length</div><div class="s-val">0.9 – 1.3 m</div></div>
+        <div class="stat-box"><div class="s-label">Lifespan</div><div class="s-val">8 – 25 yrs</div></div>
+        <div class="stat-box"><div class="s-label">Pups/litter</div><div class="s-val">1 – 6</div></div>
+      </div>
+      <div class="pills">
+        <div class="pill">🌍 <span>North America</span></div>
+        <div class="pill">🐟 <span>Fish, crayfish, frogs</span></div>
+        <div class="pill">🏞️ <span>Rivers & lakes</span></div>
+      </div>
+      <div class="fun-fact">
+        <strong>Amazing Fact</strong>
+        River otters can close their nostrils and ears when underwater. They communicate with over 12 different vocalizations including chirps, growls, screams, and a distinctive "chitter" contact call.
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Giant Otter -->
+  <div class="card" data-tags="river americas threatened" onclick="openArticle('Giant Otter')">
+    <div class="card-banner"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Giant_otters_%28Pteronura_brasiliensis%29.jpg/400px-Giant_otters_%28Pteronura_brasiliensis%29.jpg" alt="Giant Otter" loading="lazy"></div>
+    <div class="card-body">
+      <div class="card-header">
+        <div><div class="card-name">Giant Otter</div><div class="card-latin">Pteronura brasiliensis</div></div>
+        <span class="status status-en">Endangered</span>
+      </div>
+      <p class="card-desc">The world's longest otter, found in South American rivers. Giant otters are apex predators with no natural enemies — they are so fierce that jaguars and caimans avoid them. They live in tight family groups called "holts" with up to 20 members and vocalize loudly to defend territory.</p>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="s-label">Weight</div><div class="s-val">22 – 32 kg</div></div>
+        <div class="stat-box"><div class="s-label">Length</div><div class="s-val">up to 1.8 m</div></div>
+        <div class="stat-box"><div class="s-label">Lifespan</div><div class="s-val">10 – 20 yrs</div></div>
+        <div class="stat-box"><div class="s-label">Population</div><div class="s-val">~5,000</div></div>
+      </div>
+      <div class="pills">
+        <div class="pill">🌍 <span>South America</span></div>
+        <div class="pill">🐟 <span>Large fish, caiman</span></div>
+        <div class="pill">🌊 <span>Amazon & Pantanal</span></div>
+      </div>
+      <div class="fun-fact">
+        <strong>Amazing Fact</strong>
+        Each giant otter has a unique throat patch pattern — like a fingerprint — which researchers use to identify individuals in the wild. They eat up to 4 kg of fish per day and have been recorded killing and eating young caimans.
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Eurasian Otter -->
+  <div class="card" data-tags="river" onclick="openArticle('Eurasian Otter')">
+    <div class="card-banner"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Fischotter%2C_Lutra_Lutra.JPG/400px-Fischotter%2C_Lutra_Lutra.JPG" alt="Eurasian Otter" loading="lazy"></div>
+    <div class="card-body">
+      <div class="card-header">
+        <div><div class="card-name">Eurasian Otter</div><div class="card-latin">Lutra lutra</div></div>
+        <span class="status status-nt">Near Threatened</span>
+      </div>
+      <p class="card-desc">The most widely distributed otter in the world, ranging across Europe, Asia, and parts of North Africa. Primarily nocturnal and solitary, it was nearly wiped out by hunting and pesticides in the 20th century. Conservation efforts have allowed populations to recover significantly across Europe.</p>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="s-label">Weight</div><div class="s-val">7 – 12 kg</div></div>
+        <div class="stat-box"><div class="s-label">Length</div><div class="s-val">0.9 – 1.3 m</div></div>
+        <div class="stat-box"><div class="s-label">Lifespan</div><div class="s-val">8 – 15 yrs</div></div>
+        <div class="stat-box"><div class="s-label">Territory</div><div class="s-val">Up to 40 km</div></div>
+      </div>
+      <div class="pills">
+        <div class="pill">🌍 <span>Europe, Asia, N. Africa</span></div>
+        <div class="pill">🐟 <span>Fish, crustaceans</span></div>
+        <div class="pill">🏞️ <span>Rivers, coasts, lakes</span></div>
+      </div>
+      <div class="fun-fact">
+        <strong>Amazing Fact</strong>
+        Male Eurasian otters can have a territory stretching 40 km along a riverbank. They communicate by leaving spraints (droppings) infused with scent gland secretions at prominent landmarks — a complex chemical language.
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Asian Small-clawed Otter -->
+  <div class="card" data-tags="asia river threatened" onclick="openArticle('Asian Small-clawed Otter')">
+    <div class="card-banner"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Otter_-_melbourne_zoo.jpg/400px-Otter_-_melbourne_zoo.jpg" alt="Asian Small-clawed Otter" loading="lazy"></div>
+    <div class="card-body">
+      <div class="card-header">
+        <div><div class="card-name">Asian Small-clawed Otter</div><div class="card-latin">Aonyx cinereus</div></div>
+        <span class="status status-vu">Vulnerable</span>
+      </div>
+      <p class="card-desc">The world's smallest otter species, native to South and Southeast Asia. Its most distinctive feature is its partially webbed paws with tiny vestigial claws, giving it extraordinary dexterity to feel for prey in muddy water. Lives in large family groups of up to 15 individuals, all helping raise pups.</p>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="s-label">Weight</div><div class="s-val">1 – 5 kg</div></div>
+        <div class="stat-box"><div class="s-label">Length</div><div class="s-val">0.45 – 0.61 m</div></div>
+        <div class="stat-box"><div class="s-label">Lifespan</div><div class="s-val">11 – 16 yrs</div></div>
+        <div class="stat-box"><div class="s-label">Group size</div><div class="s-val">Up to 15</div></div>
+      </div>
+      <div class="pills">
+        <div class="pill">🌍 <span>South & SE Asia</span></div>
+        <div class="pill">🦀 <span>Crabs, mollusks, snails</span></div>
+        <div class="pill">🌾 <span>Rice paddies, mangroves</span></div>
+      </div>
+      <div class="fun-fact">
+        <strong>Amazing Fact</strong>
+        Unlike other otters that catch fish with their mouths, Asian small-clawed otters use their sensitive, nimble paws to hunt — feeling under rocks and in crevices for crabs and shellfish. They have 12 distinct vocalizations.
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Smooth-coated Otter -->
+  <div class="card" data-tags="asia river threatened" onclick="openArticle('Smooth-coated Otter')">
+    <div class="card-banner"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Smooth-coated_otter_%28Lutrogale_perspicillata%29_Kota_Kinabatangan.jpg/400px-Smooth-coated_otter_%28Lutrogale_perspicillata%29_Kota_Kinabatangan.jpg" alt="Smooth-coated Otter" loading="lazy"></div>
+    <div class="card-body">
+      <div class="card-header">
+        <div><div class="card-name">Smooth-coated Otter</div><div class="card-latin">Lutrogale perspicillata</div></div>
+        <span class="status status-vu">Vulnerable</span>
+      </div>
+      <p class="card-desc">The largest otter in Asia, named for its unusually short and sleek fur compared to other species. Found across South and Southeast Asia in wetlands, rivers, and estuaries. Forms large family groups and is a cooperative hunter — packs will herd fish into shallow water before attacking together.</p>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="s-label">Weight</div><div class="s-val">7 – 11 kg</div></div>
+        <div class="stat-box"><div class="s-label">Length</div><div class="s-val">0.95 – 1.28 m</div></div>
+        <div class="stat-box"><div class="s-label">Lifespan</div><div class="s-val">~11 yrs</div></div>
+        <div class="stat-box"><div class="s-label">Pups/litter</div><div class="s-val">1 – 5</div></div>
+      </div>
+      <div class="pills">
+        <div class="pill">🌍 <span>India to Borneo</span></div>
+        <div class="pill">🐟 <span>Fish, frogs, snakes</span></div>
+        <div class="pill">🌊 <span>Wetlands, rice paddies</span></div>
+      </div>
+      <div class="fun-fact">
+        <strong>Amazing Fact</strong>
+        Smooth-coated otters are the only otter species known to cooperatively herd and hunt fish. A family group will form a line and splash to drive fish into shallows, then strike simultaneously — a strategy usually seen only in dolphins and orcas.
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Hairy-nosed Otter -->
+  <div class="card" data-tags="asia river threatened" onclick="openArticle('Hairy-nosed Otter')">
+    <div class="card-banner"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Otter_from_Cambodia.jpg/400px-Otter_from_Cambodia.jpg" alt="Hairy-nosed Otter" loading="lazy"></div>
+    <div class="card-body">
+      <div class="card-header">
+        <div><div class="card-name">Hairy-nosed Otter</div><div class="card-latin">Lutra sumatrana</div></div>
+        <span class="status status-en">Endangered</span>
+      </div>
+      <p class="card-desc">One of the rarest and least-studied otters in the world, found in Southeast Asian lowland forests and coastal areas. Named for the distinctive hair covering the upper surface of its nose — a feature unique among otters. It was believed extinct for decades until rediscovery in the 1990s in Sumatra.</p>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="s-label">Weight</div><div class="s-val">~5 – 8 kg</div></div>
+        <div class="stat-box"><div class="s-label">Length</div><div class="s-val">~0.8 – 1.1 m</div></div>
+        <div class="stat-box"><div class="s-label">Range</div><div class="s-val">Very fragmented</div></div>
+        <div class="stat-box"><div class="s-label">Population</div><div class="s-val">Unknown</div></div>
+      </div>
+      <div class="pills">
+        <div class="pill">🌍 <span>SE Asia (Sumatra, Borneo)</span></div>
+        <div class="pill">🐟 <span>Fish, crustaceans</span></div>
+        <div class="pill">🌿 <span>Peat swamp forests</span></div>
+      </div>
+      <div class="fun-fact">
+        <strong>Amazing Fact</strong>
+        The hairy-nosed otter was thought to be extinct by the early 20th century. It was rediscovered in the 1990s in Vietnam and Thailand. So little is known about this species that even basic facts like its average lifespan remain undocumented.
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Spotted-necked Otter -->
+  <div class="card" data-tags="africa river threatened" onclick="openArticle('Spotted-necked Otter')">
+    <div class="card-banner"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Spotted-necked_otter_1.jpg/400px-Spotted-necked_otter_1.jpg" alt="Spotted-necked Otter" loading="lazy"></div>
+    <div class="card-body">
+      <div class="card-header">
+        <div><div class="card-name">Spotted-necked Otter</div><div class="card-latin">Hydrictis maculicollis</div></div>
+        <span class="status status-nt">Near Threatened</span>
+      </div>
+      <p class="card-desc">A medium-sized African otter named for the distinctive cream-and-brown mottled spots on its throat and chest — each individual's pattern is unique, like a fingerprint. Found across sub-Saharan Africa in clear, clean lakes and rivers. Highly dependent on water quality and suffers when pollution increases.</p>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="s-label">Weight</div><div class="s-val">3 – 5.7 kg</div></div>
+        <div class="stat-box"><div class="s-label">Length</div><div class="s-val">0.6 – 0.9 m</div></div>
+        <div class="stat-box"><div class="s-label">Lifespan</div><div class="s-val">~15 yrs</div></div>
+        <div class="stat-box"><div class="s-label">Pups/litter</div><div class="s-val">2 – 3</div></div>
+      </div>
+      <div class="pills">
+        <div class="pill">🌍 <span>Sub-Saharan Africa</span></div>
+        <div class="pill">🐟 <span>Fish (primary)</span></div>
+        <div class="pill">🏞️ <span>Clear lakes & rivers</span></div>
+      </div>
+      <div class="fun-fact">
+        <strong>Amazing Fact</strong>
+        Lake Victoria in East Africa once held thriving populations of spotted-necked otters. The introduction of the Nile perch — which wiped out hundreds of native cichlid fish species — devastated local otter populations by collapsing their food source.
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. African Clawless Otter -->
+  <div class="card" data-tags="africa river" onclick="openArticle('African Clawless Otter')">
+    <div class="card-banner"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Aonyx_capensis%2C_male%2C_Shamvura.jpg/400px-Aonyx_capensis%2C_male%2C_Shamvura.jpg" alt="African Clawless Otter" loading="lazy"></div>
+    <div class="card-body">
+      <div class="card-header">
+        <div><div class="card-name">African Clawless Otter</div><div class="card-latin">Aonyx capensis</div></div>
+        <span class="status status-lc">Least Concern</span>
+      </div>
+      <p class="card-desc">The second-largest freshwater otter species and the largest in Africa. Named for its nearly claw-free, unwebbed front paws — which give it remarkable manual dexterity for catching and holding slippery prey. Also called the "Cape clawless otter." Highly adaptable and can tolerate saltwater coastlines.</p>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="s-label">Weight</div><div class="s-val">10 – 21 kg</div></div>
+        <div class="stat-box"><div class="s-label">Length</div><div class="s-val">1.1 – 1.6 m</div></div>
+        <div class="stat-box"><div class="s-label">Lifespan</div><div class="s-val">~15 yrs</div></div>
+        <div class="stat-box"><div class="s-label">Pups/litter</div><div class="s-val">1 – 3</div></div>
+      </div>
+      <div class="pills">
+        <div class="pill">🌍 <span>Sub-Saharan Africa</span></div>
+        <div class="pill">🦀 <span>Crabs, frogs, fish</span></div>
+        <div class="pill">🏖️ <span>Rivers, estuaries, coast</span></div>
+      </div>
+      <div class="fun-fact">
+        <strong>Amazing Fact</strong>
+        African clawless otters catch crabs entirely with their hands — they dig through mud and crevices with nimble, unwebbed fingers, then crush the crab with their powerful molar teeth. They are sometimes seen "wrestling" with large crabs for several minutes.
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. Congo Clawless Otter -->
+  <div class="card" data-tags="africa river" onclick="openArticle('Congo Clawless Otter')">
+    <div class="card-banner"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Mazu_from_Congo.jpg/400px-Mazu_from_Congo.jpg" alt="Congo Clawless Otter" loading="lazy"></div>
+    <div class="card-body">
+      <div class="card-header">
+        <div><div class="card-name">Congo Clawless Otter</div><div class="card-latin">Aonyx congicus</div></div>
+        <span class="status status-nt">Near Threatened</span>
+      </div>
+      <p class="card-desc">The most mysterious and least-known African otter, restricted to the dense rainforests of central Africa, particularly the Congo Basin. Sometimes considered a subspecies of the African clawless otter but recognized as a distinct species by most authorities. So elusive that most knowledge comes from museum specimens.</p>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="s-label">Weight</div><div class="s-val">~14 – 20 kg</div></div>
+        <div class="stat-box"><div class="s-label">Length</div><div class="s-val">~1.1 – 1.5 m</div></div>
+        <div class="stat-box"><div class="s-label">Range</div><div class="s-val">Congo Basin</div></div>
+        <div class="stat-box"><div class="s-label">Sightings</div><div class="s-val">Extremely rare</div></div>
+      </div>
+      <div class="pills">
+        <div class="pill">🌍 <span>Central Africa</span></div>
+        <div class="pill">🐸 <span>Frogs, crustaceans</span></div>
+        <div class="pill">🌿 <span>Rainforest streams</span></div>
+      </div>
+      <div class="fun-fact">
+        <strong>Amazing Fact</strong>
+        The Congo clawless otter has smaller, paler teeth and slightly smaller claws than its African cousin — suggesting adaptation to different prey. Because it lives in some of Africa's most impenetrable jungle, scientists still debate how many exist or exactly what it eats.
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. Neotropical Otter -->
+  <div class="card" data-tags="river americas threatened" onclick="openArticle('Neotropical Otter')">
+    <div class="card-banner"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Lontra_longicaudis_4.jpeg/400px-Lontra_longicaudis_4.jpeg" alt="Neotropical Otter" loading="lazy"></div>
+    <div class="card-body">
+      <div class="card-header">
+        <div><div class="card-name">Neotropical Otter</div><div class="card-latin">Lontra longicaudis</div></div>
+        <span class="status status-nt">Near Threatened</span>
+      </div>
+      <p class="card-desc">A medium-sized otter ranging from Mexico to Argentina — the most widespread Latin American otter. Despite its large geographic range, populations are fragmented and declining due to hunting for its pelt and habitat loss. More solitary than the giant otter and primarily nocturnal and crepuscular.</p>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="s-label">Weight</div><div class="s-val">5 – 15 kg</div></div>
+        <div class="stat-box"><div class="s-label">Length</div><div class="s-val">0.86 – 1.5 m</div></div>
+        <div class="stat-box"><div class="s-label">Lifespan</div><div class="s-val">~15 yrs</div></div>
+        <div class="stat-box"><div class="s-label">Pups/litter</div><div class="s-val">1 – 5</div></div>
+      </div>
+      <div class="pills">
+        <div class="pill">🌍 <span>Mexico to Argentina</span></div>
+        <div class="pill">🐟 <span>Fish, crustaceans, snails</span></div>
+        <div class="pill">🏞️ <span>Tropical rivers & streams</span></div>
+      </div>
+      <div class="fun-fact">
+        <strong>Amazing Fact</strong>
+        Neotropical otters are exceptionally adaptable — they've been documented hunting in flooded forests, mangroves, beaches, and mountain streams up to 3,000 m elevation. They also eat a surprising variety of prey including insects, birds, and small reptiles.
+      </div>
+    </div>
+  </div>
+
+  <!-- 12. Southern River Otter -->
+  <div class="card" data-tags="river americas threatened" onclick="openArticle('Southern River Otter')">
+    <div class="card-banner"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Southern_River_Otter.jpg/400px-Southern_River_Otter.jpg" alt="Southern River Otter" loading="lazy"></div>
+    <div class="card-body">
+      <div class="card-header">
+        <div><div class="card-name">Southern River Otter</div><div class="card-latin">Lontra provocax</div></div>
+        <span class="status status-en">Endangered</span>
+      </div>
+      <p class="card-desc">One of South America's most critically threatened mammals, the southern river otter is restricted to parts of Chile and Argentina. It can inhabit both freshwater rivers and marine coastal areas — one of the few freshwater otters to regularly use saltwater habitats. Hunted almost to extinction by fur traders in the 20th century.</p>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="s-label">Weight</div><div class="s-val">~5 – 10 kg</div></div>
+        <div class="stat-box"><div class="s-label">Length</div><div class="s-val">0.9 – 1.1 m</div></div>
+        <div class="stat-box"><div class="s-label">Population</div><div class="s-val">&lt; 1,000</div></div>
+        <div class="stat-box"><div class="s-label">Pups/litter</div><div class="s-val">1 – 2</div></div>
+      </div>
+      <div class="pills">
+        <div class="pill">🌍 <span>Chile & Argentina</span></div>
+        <div class="pill">🐟 <span>Fish, crustaceans</span></div>
+        <div class="pill">🌊 <span>Rivers & sea coasts</span></div>
+      </div>
+      <div class="fun-fact">
+        <strong>Amazing Fact</strong>
+        In Patagonia, southern river otters sometimes hunt in the ocean alongside kelp beds — a behavior more like sea otters than river otters. Their population is so small and fragmented that inbreeding is now a serious conservation concern.
+      </div>
+    </div>
+  </div>
+
+  <!-- 13. Marine Otter -->
+  <div class="card" data-tags="sea americas threatened" onclick="openArticle('Marine Otter')">
+    <div class="card-banner"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Marine_otter_%28Lontra_felina%29_Chiloe.jpg/400px-Marine_otter_%28Lontra_felina%29_Chiloe.jpg" alt="Marine Otter" loading="lazy"></div>
+    <div class="card-body">
+      <div class="card-header">
+        <div><div class="card-name">Marine Otter</div><div class="card-latin">Lontra felina</div></div>
+        <span class="status status-en">Endangered</span>
+      </div>
+      <p class="card-desc">Also called the "sea cat" (gato marino) in Spanish, the marine otter is the only otter classified in the genus Lontra (river otters) to live primarily in the ocean. It hugs rocky Pacific coastlines of Peru and Chile, foraging in turbulent surf zones. It is the rarest otter in the Americas and possibly on Earth.</p>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="s-label">Weight</div><div class="s-val">3 – 6 kg</div></div>
+        <div class="stat-box"><div class="s-label">Length</div><div class="s-val">0.57 – 0.79 m</div></div>
+        <div class="stat-box"><div class="s-label">Population</div><div class="s-val">&lt; 1,000</div></div>
+        <div class="stat-box"><div class="s-label">Pups/litter</div><div class="s-val">1 – 4</div></div>
+      </div>
+      <div class="pills">
+        <div class="pill">🌍 <span>Peru & Chile coast</span></div>
+        <div class="pill">🦞 <span>Crustaceans, mollusks, fish</span></div>
+        <div class="pill">🌊 <span>Rocky Pacific coastline</span></div>
+      </div>
+      <div class="fun-fact">
+        <strong>Amazing Fact</strong>
+        The marine otter is unique — it is the only river otter lineage that evolved to live in the open ocean. Unlike sea otters, it sleeps on rocky shores rather than floating at sea. It's so small that it hunts in the crashing surf, clinging to rocks with its claws to avoid being swept away.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- COMPARISON TABLE -->
+<h2 class="section-title">Quick Comparison</h2>
+<p class="section-sub">All 13 species at a glance</p>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Species</th>
+        <th>Scientific Name</th>
+        <th>Region</th>
+        <th>Weight</th>
+        <th>Length</th>
+        <th>Status (IUCN)</th>
+        <th>Habitat Type</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Sea Otter</td><td><em>Enhydra lutris</em></td><td>North Pacific</td><td>14–45 kg</td><td>1.0–1.5 m</td><td style="color:var(--orange)">Endangered</td><td>Ocean / kelp forest</td></tr>
+      <tr><td>North American River Otter</td><td><em>Lontra canadensis</em></td><td>North America</td><td>5–14 kg</td><td>0.9–1.3 m</td><td style="color:var(--green)">Least Concern</td><td>Rivers, lakes, coast</td></tr>
+      <tr><td>Giant Otter</td><td><em>Pteronura brasiliensis</em></td><td>South America</td><td>22–32 kg</td><td>up to 1.8 m</td><td style="color:var(--orange)">Endangered</td><td>Amazon rivers</td></tr>
+      <tr><td>Eurasian Otter</td><td><em>Lutra lutra</em></td><td>Europe / Asia / N. Africa</td><td>7–12 kg</td><td>0.9–1.3 m</td><td style="color:var(--accent2)">Near Threatened</td><td>Rivers, coasts</td></tr>
+      <tr><td>Asian Small-clawed Otter</td><td><em>Aonyx cinereus</em></td><td>South & SE Asia</td><td>1–5 kg</td><td>0.45–0.61 m</td><td style="color:var(--gold)">Vulnerable</td><td>Mangroves, rice paddies</td></tr>
+      <tr><td>Smooth-coated Otter</td><td><em>Lutrogale perspicillata</em></td><td>South / SE Asia</td><td>7–11 kg</td><td>0.95–1.28 m</td><td style="color:var(--gold)">Vulnerable</td><td>Wetlands, rivers</td></tr>
+      <tr><td>Hairy-nosed Otter</td><td><em>Lutra sumatrana</em></td><td>SE Asia</td><td>5–8 kg (est.)</td><td>0.8–1.1 m (est.)</td><td style="color:var(--orange)">Endangered</td><td>Peat swamp forests</td></tr>
+      <tr><td>Spotted-necked Otter</td><td><em>Hydrictis maculicollis</em></td><td>Sub-Saharan Africa</td><td>3–5.7 kg</td><td>0.6–0.9 m</td><td style="color:var(--accent2)">Near Threatened</td><td>Clear lakes & rivers</td></tr>
+      <tr><td>African Clawless Otter</td><td><em>Aonyx capensis</em></td><td>Sub-Saharan Africa</td><td>10–21 kg</td><td>1.1–1.6 m</td><td style="color:var(--green)">Least Concern</td><td>Rivers, estuaries</td></tr>
+      <tr><td>Congo Clawless Otter</td><td><em>Aonyx congicus</em></td><td>Central Africa</td><td>14–20 kg (est.)</td><td>1.1–1.5 m (est.)</td><td style="color:var(--accent2)">Near Threatened</td><td>Rainforest streams</td></tr>
+      <tr><td>Neotropical Otter</td><td><em>Lontra longicaudis</em></td><td>Mexico to Argentina</td><td>5–15 kg</td><td>0.86–1.5 m</td><td style="color:var(--accent2)">Near Threatened</td><td>Tropical rivers</td></tr>
+      <tr><td>Southern River Otter</td><td><em>Lontra provocax</em></td><td>Chile & Argentina</td><td>5–10 kg</td><td>0.9–1.1 m</td><td style="color:var(--orange)">Endangered</td><td>Rivers & sea coasts</td></tr>
+      <tr><td>Marine Otter</td><td><em>Lontra felina</em></td><td>Peru & Chile</td><td>3–6 kg</td><td>0.57–0.79 m</td><td style="color:var(--orange)">Endangered</td><td>Rocky Pacific coast</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CONSERVATION STATUS KEY -->
+<h2 class="section-title">Conservation Status</h2>
+<p class="section-sub">IUCN Red List categories for all 13 otter species</p>
+<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:14px;padding:20px 24px 60px;max-width:800px;margin:0 auto">
+  <div style="background:var(--card);border-radius:14px;padding:18px 24px;flex:1;min-width:160px;text-align:center">
+    <div style="font-size:2rem;font-weight:800;color:var(--green)">2</div>
+    <div style="color:var(--green);font-weight:700;margin-bottom:6px">Least Concern</div>
+    <div style="color:var(--muted);font-size:.85rem">North American River Otter, African Clawless Otter</div>
+  </div>
+  <div style="background:var(--card);border-radius:14px;padding:18px 24px;flex:1;min-width:160px;text-align:center">
+    <div style="font-size:2rem;font-weight:800;color:var(--accent2)">4</div>
+    <div style="color:var(--accent2);font-weight:700;margin-bottom:6px">Near Threatened</div>
+    <div style="color:var(--muted);font-size:.85rem">Eurasian, Spotted-necked, Congo Clawless, Neotropical</div>
+  </div>
+  <div style="background:var(--card);border-radius:14px;padding:18px 24px;flex:1;min-width:160px;text-align:center">
+    <div style="font-size:2rem;font-weight:800;color:var(--gold)">2</div>
+    <div style="color:var(--gold);font-weight:700;margin-bottom:6px">Vulnerable</div>
+    <div style="color:var(--muted);font-size:.85rem">Asian Small-clawed, Smooth-coated</div>
+  </div>
+  <div style="background:var(--card);border-radius:14px;padding:18px 24px;flex:1;min-width:160px;text-align:center">
+    <div style="font-size:2rem;font-weight:800;color:var(--orange)">5</div>
+    <div style="color:var(--orange);font-weight:700;margin-bottom:6px">Endangered</div>
+    <div style="color:var(--muted);font-size:.85rem">Sea, Giant, Hairy-nosed, Southern River, Marine</div>
+  </div>
+</div>
+
+<footer>
+  <p>🦦 Built with love for otters everywhere &nbsp;·&nbsp; Data sourced from IUCN Red List &amp; peer-reviewed literature</p>
+  <p style="margin-top:8px;font-size:.8rem">All 13 recognized living otter species belong to the subfamily <em>Lutrinae</em>, family Mustelidae (the weasel family)</p>
+</footer>
+
+<!-- FLASHCARD OVERLAY -->
+<div id="fc-overlay">
+  <div class="fc-topbar">
+    <span class="fc-title">🃏 Otter Flashcard Study</span>
+    <button class="fc-close" onclick="closeFlashcards()">✕ Exit</button>
+  </div>
+
+  <div class="fc-mode-bar">
+    <button class="fc-mode-btn active" data-mode="identify" onclick="setMode(this,'identify')">🔍 Identify Species</button>
+    <button class="fc-mode-btn" data-mode="latin" onclick="setMode(this,'latin')">🧬 Latin Name</button>
+    <button class="fc-mode-btn" data-mode="fact" onclick="setMode(this,'fact')">✨ Mystery Fact</button>
+  </div>
+
+  <div class="fc-progress-wrap">
+    <div class="fc-progress-bar-bg"><div class="fc-progress-bar-fill" id="fc-progress-fill" style="width:0%"></div></div>
+    <div class="fc-progress-text">
+      <span id="fc-counter">Card 1 of 13</span>
+      <span><span class="fc-score-knew" id="fc-knew-count">0</span> knew it &nbsp;·&nbsp; <span class="fc-score-learn" id="fc-learn-count">0</span> still learning</span>
+    </div>
+  </div>
+
+  <!-- THE CARD -->
+  <div class="fc-scene" id="fc-scene" onclick="flipCard()">
+    <div class="fc-inner" id="fc-inner">
+      <!-- FRONT -->
+      <div class="fc-face fc-front">
+        <div class="fc-front-banner" id="fc-banner"></div>
+        <div class="fc-front-body">
+          <div class="fc-question" id="fc-question"></div>
+          <div class="fc-clues" id="fc-clues"></div>
+          <div class="fc-tap-hint">Tap card or press Space to flip</div>
+        </div>
+      </div>
+      <!-- BACK -->
+      <div class="fc-face fc-back">
+        <div class="fc-back-inner">
+          <div class="fc-back-name" id="fc-back-name"></div>
+          <div class="fc-back-latin" id="fc-back-latin"></div>
+          <div style="display:flex;justify-content:center;margin:-4px 0 4px"><span class="status" id="fc-back-status"></span></div>
+          <div class="fc-back-stats" id="fc-back-stats"></div>
+          <div class="fc-back-fact" id="fc-back-fact"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTION BUTTONS -->
+  <div class="fc-actions">
+    <button class="fc-btn fc-btn-flip" id="fc-flip-btn" onclick="flipCard()">↩ Flip</button>
+    <button class="fc-btn fc-btn-knew fc-post-flip" id="fc-knew-btn" onclick="markCard(true)">✓ Knew it!</button>
+    <button class="fc-btn fc-btn-learn fc-post-flip" id="fc-learn-btn" onclick="markCard(false)">↩ Still learning</button>
+    <button class="fc-btn fc-btn-shuffle" onclick="shuffleDeck()">🔀 Shuffle</button>
+  </div>
+
+  <!-- COMPLETE SCREEN -->
+  <div class="fc-complete" id="fc-complete">
+    <div class="fc-complete-emoji">🎉</div>
+    <h2>Round Complete!</h2>
+    <p>You went through all 13 otter species.</p>
+    <div class="fc-complete-scores">
+      <div class="fc-complete-score"><div class="num fc-score-knew" id="fc-final-knew">0</div><div class="lbl">Knew it</div></div>
+      <div class="fc-complete-score"><div class="num fc-score-learn" id="fc-final-learn">0</div><div class="lbl">Still learning</div></div>
+    </div>
+    <p id="fc-result-msg"></p>
+    <button class="fc-restart-btn" onclick="restartDeck()">🔁 Go Again</button>
+  </div>
+</div>
+
+<script>
+  // ── Filter buttons ──
+  const btns = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('.card');
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      cards.forEach(card => {
+        if (filter === 'all') {
+          card.classList.remove('hidden');
+        } else {
+          const tags = card.dataset.tags || '';
+          card.classList.toggle('hidden', !tags.includes(filter));
+        }
+      });
+    });
+  });
+
+  // ── Flashcard Data ──
+  const OTTERS = [
+    {
+      emoji:'🌊🦦', bg:'linear-gradient(135deg,#0c3547,#1a6080)',
+      name:'Sea Otter', latin:'Enhydra lutris',
+      status:'Endangered', statusClass:'status-en',
+      weight:'14–45 kg', length:'1.0–1.5 m', lifespan:'10–23 yrs', pop:'~3,000',
+      region:'North Pacific', diet:'Seafloor invertebrates', habitat:'Ocean / Kelp forests',
+      desc:'The only truly marine otter, spending almost its entire life in the ocean along the North Pacific coast.',
+      fact:'Sea otters have the densest fur of any animal — up to 1 million hairs per square inch. They have no insulating blubber; their fur traps air to stay warm.'
+    },
+    {
+      emoji:'🌲🦦', bg:'linear-gradient(135deg,#1a3a1a,#2d6a2d)',
+      name:'North American River Otter', latin:'Lontra canadensis',
+      status:'Least Concern', statusClass:'status-lc',
+      weight:'5–14 kg', length:'0.9–1.3 m', lifespan:'8–25 yrs', pop:'Widespread',
+      region:'North America', diet:'Fish, crayfish, frogs', habitat:'Rivers & lakes',
+      desc:'The most widespread otter in North America, known for its playful sliding behavior and ability to hold its breath for up to 8 minutes.',
+      fact:'River otters can close their nostrils and ears underwater. They communicate with over 12 vocalizations including chirps, growls, and a distinctive "chitter."'
+    },
+    {
+      emoji:'🌿🦦', bg:'linear-gradient(135deg,#2a1a0a,#6b3a10)',
+      name:'Giant Otter', latin:'Pteronura brasiliensis',
+      status:'Endangered', statusClass:'status-en',
+      weight:'22–32 kg', length:'up to 1.8 m', lifespan:'10–20 yrs', pop:'~5,000',
+      region:'South America', diet:'Large fish, caiman', habitat:'Amazon & Pantanal rivers',
+      desc:'The world\'s longest otter and an apex predator so fierce that jaguars and caimans avoid it. Lives in tight family groups up to 20 members.',
+      fact:'Each giant otter has a unique throat patch pattern — like a fingerprint — used by researchers to identify individuals. They eat up to 4 kg of fish per day.'
+    },
+    {
+      emoji:'🏔️🦦', bg:'linear-gradient(135deg,#1a2a3a,#2a5070)',
+      name:'Eurasian Otter', latin:'Lutra lutra',
+      status:'Near Threatened', statusClass:'status-nt',
+      weight:'7–12 kg', length:'0.9–1.3 m', lifespan:'8–15 yrs', pop:'Recovering',
+      region:'Europe / Asia / N. Africa', diet:'Fish, crustaceans', habitat:'Rivers, coasts, lakes',
+      desc:'The most widely distributed otter in the world. Primarily nocturnal and solitary. Nearly wiped out by hunting and pesticides in the 20th century.',
+      fact:'Male Eurasian otters can hold a 40 km river territory. They leave "spraints" (scented droppings) at landmarks to communicate — a complex chemical language.'
+    },
+    {
+      emoji:'🌸🦦', bg:'linear-gradient(135deg,#1a2a10,#3a5a20)',
+      name:'Asian Small-clawed Otter', latin:'Aonyx cinereus',
+      status:'Vulnerable', statusClass:'status-vu',
+      weight:'1–5 kg', length:'0.45–0.61 m', lifespan:'11–16 yrs', pop:'Declining',
+      region:'South & SE Asia', diet:'Crabs, mollusks, snails', habitat:'Mangroves, rice paddies',
+      desc:'The world\'s smallest otter, with partially webbed paws and tiny vestigial claws giving it extraordinary dexterity. Lives in family groups up to 15.',
+      fact:'Unlike other otters that catch fish with their mouths, Asian small-clawed otters use their nimble paws to hunt — feeling under rocks for crabs and shellfish.'
+    },
+    {
+      emoji:'🌺🦦', bg:'linear-gradient(135deg,#2a1020,#5a2040)',
+      name:'Smooth-coated Otter', latin:'Lutrogale perspicillata',
+      status:'Vulnerable', statusClass:'status-vu',
+      weight:'7–11 kg', length:'0.95–1.28 m', lifespan:'~11 yrs', pop:'Declining',
+      region:'India to Borneo', diet:'Fish, frogs, snakes', habitat:'Wetlands, rice paddies',
+      desc:'The largest otter in Asia, named for its unusually short, sleek fur. A cooperative hunter — packs herd fish into shallows before attacking together.',
+      fact:'Smooth-coated otters are the only otter species known to cooperatively herd and hunt fish — a strategy usually seen only in dolphins and orcas.'
+    },
+    {
+      emoji:'🌙🦦', bg:'linear-gradient(135deg,#1a1a2a,#2a2a5a)',
+      name:'Hairy-nosed Otter', latin:'Lutra sumatrana',
+      status:'Endangered', statusClass:'status-en',
+      weight:'~5–8 kg', length:'~0.8–1.1 m', lifespan:'Unknown', pop:'Unknown',
+      region:'SE Asia (Sumatra, Borneo)', diet:'Fish, crustaceans', habitat:'Peat swamp forests',
+      desc:'One of the rarest and least-studied otters, named for distinctive hair covering the top of its nose. Believed extinct for decades until rediscovery in the 1990s.',
+      fact:'The hairy-nosed otter was thought extinct by the early 20th century and rediscovered in the 1990s. Basic facts like its average lifespan remain undocumented.'
+    },
+    {
+      emoji:'🌅🦦', bg:'linear-gradient(135deg,#2a1a00,#704a00)',
+      name:'Spotted-necked Otter', latin:'Hydrictis maculicollis',
+      status:'Near Threatened', statusClass:'status-nt',
+      weight:'3–5.7 kg', length:'0.6–0.9 m', lifespan:'~15 yrs', pop:'Declining',
+      region:'Sub-Saharan Africa', diet:'Fish (primary)', habitat:'Clear lakes & rivers',
+      desc:'A medium-sized African otter with distinctive cream-and-brown mottled spots on its throat — each individual\'s pattern is unique, like a fingerprint.',
+      fact:'The introduction of the Nile perch into Lake Victoria — which wiped out hundreds of native cichlid species — devastated local spotted-necked otter populations.'
+    },
+    {
+      emoji:'🌍🦦', bg:'linear-gradient(135deg,#1a2a10,#4a6a20)',
+      name:'African Clawless Otter', latin:'Aonyx capensis',
+      status:'Least Concern', statusClass:'status-lc',
+      weight:'10–21 kg', length:'1.1–1.6 m', lifespan:'~15 yrs', pop:'Stable',
+      region:'Sub-Saharan Africa', diet:'Crabs, frogs, fish', habitat:'Rivers, estuaries, coast',
+      desc:'The second-largest freshwater otter, with nearly claw-free unwebbed front paws giving remarkable manual dexterity. Also called the Cape clawless otter.',
+      fact:'African clawless otters catch crabs entirely with their hands — digging with unwebbed fingers, then crushing the crab with powerful molar teeth.'
+    },
+    {
+      emoji:'🌿🌍🦦', bg:'linear-gradient(135deg,#0a1a0a,#1a3a1a)',
+      name:'Congo Clawless Otter', latin:'Aonyx congicus',
+      status:'Near Threatened', statusClass:'status-nt',
+      weight:'~14–20 kg', length:'~1.1–1.5 m', lifespan:'Unknown', pop:'Unknown',
+      region:'Central Africa (Congo Basin)', diet:'Frogs, crustaceans', habitat:'Rainforest streams',
+      desc:'The most mysterious African otter, restricted to the dense Congo rainforest. So elusive that most knowledge comes from museum specimens.',
+      fact:'The Congo clawless otter is so rarely seen that scientists still debate how many exist. It lives in some of Africa\'s most impenetrable jungle.'
+    },
+    {
+      emoji:'🌴🦦', bg:'linear-gradient(135deg,#1a0a2a,#3a1a5a)',
+      name:'Neotropical Otter', latin:'Lontra longicaudis',
+      status:'Near Threatened', statusClass:'status-nt',
+      weight:'5–15 kg', length:'0.86–1.5 m', lifespan:'~15 yrs', pop:'Fragmented',
+      region:'Mexico to Argentina', diet:'Fish, crustaceans, snails', habitat:'Tropical rivers & streams',
+      desc:'The most widespread Latin American otter, ranging from Mexico to Argentina. Primarily nocturnal and solitary. Populations fragmented by hunting and habitat loss.',
+      fact:'Neotropical otters have been documented hunting in flooded forests, mangroves, beaches, and mountain streams up to 3,000 m elevation. They also eat insects and small reptiles.'
+    },
+    {
+      emoji:'🏔️🌊🦦', bg:'linear-gradient(135deg,#0a1a2a,#1a3a5a)',
+      name:'Southern River Otter', latin:'Lontra provocax',
+      status:'Endangered', statusClass:'status-en',
+      weight:'~5–10 kg', length:'0.9–1.1 m', lifespan:'Unknown', pop:'< 1,000',
+      region:'Chile & Argentina', diet:'Fish, crustaceans', habitat:'Rivers & sea coasts',
+      desc:'One of South America\'s most critically threatened mammals. Can inhabit both freshwater rivers and marine coastal areas. Nearly extinct from fur hunting.',
+      fact:'In Patagonia, southern river otters sometimes hunt in the ocean alongside kelp beds — a behavior more like sea otters than river otters. Inbreeding is now a serious concern.'
+    },
+    {
+      emoji:'🐋🦦', bg:'linear-gradient(135deg,#0a0a2a,#102040)',
+      name:'Marine Otter', latin:'Lontra felina',
+      status:'Endangered', statusClass:'status-en',
+      weight:'3–6 kg', length:'0.57–0.79 m', lifespan:'Unknown', pop:'< 1,000',
+      region:'Peru & Chile coast', diet:'Crustaceans, mollusks, fish', habitat:'Rocky Pacific coastline',
+      desc:'Also called the "sea cat" (gato marino), it\'s the only river-otter genus species to live in the ocean. Hugs rocky Pacific coastlines in turbulent surf zones.',
+      fact:'The marine otter is unique — a river otter lineage that evolved to live in the open ocean. It\'s so small it hunts in crashing surf, clinging to rocks with its claws.'
+    }
+  ];
+
+  // ── Flashcard State ──
+  let deck = [...OTTERS];
+  let idx = 0;
+  let isFlipped = false;
+  let knewCount = 0;
+  let learnCount = 0;
+  let currentMode = 'identify';
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function openFlashcards() {
+    document.getElementById('fc-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    restartDeck();
+  }
+
+  function closeFlashcards() {
+    document.getElementById('fc-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function setMode(el, mode) {
+    document.querySelectorAll('.fc-mode-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    currentMode = mode;
+    restartDeck();
+  }
+
+  function shuffleDeck() {
+    shuffle(deck);
+    idx = 0;
+    knewCount = 0;
+    learnCount = 0;
+    showCard();
+  }
+
+  function restartDeck() {
+    deck = shuffle([...OTTERS]);
+    idx = 0;
+    knewCount = 0;
+    learnCount = 0;
+    document.getElementById('fc-complete').classList.remove('visible');
+    document.getElementById('fc-scene').style.display = '';
+    document.querySelector('.fc-actions').style.display = '';
+    showCard();
+  }
+
+  function showCard() {
+    const o = deck[idx];
+    isFlipped = false;
+    document.getElementById('fc-inner').classList.remove('flipped');
+
+    // reset buttons
+    document.getElementById('fc-flip-btn').style.display = '';
+    document.querySelectorAll('.fc-post-flip').forEach(b => b.classList.remove('visible'));
+
+    // progress
+    const pct = (idx / deck.length) * 100;
+    document.getElementById('fc-progress-fill').style.width = pct + '%';
+    document.getElementById('fc-counter').textContent = `Card ${idx + 1} of ${deck.length}`;
+    document.getElementById('fc-knew-count').textContent = knewCount;
+    document.getElementById('fc-learn-count').textContent = learnCount;
+
+    // front
+    const banner = document.getElementById('fc-banner');
+    banner.style.background = '#0a1628';
+    banner.innerHTML = `<img src="${o.photo}" alt="${o.name}" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy">`;
+
+    const question = document.getElementById('fc-question');
+    const clues = document.getElementById('fc-clues');
+
+    if (currentMode === 'identify') {
+      question.textContent = '🔍 What otter species is this?';
+      clues.innerHTML = `
+        <div class="fc-clue"><span class="fc-clue-label">Region</span>${o.region}</div>
+        <div class="fc-clue"><span class="fc-clue-label">Diet</span>${o.diet}</div>
+        <div class="fc-clue"><span class="fc-clue-label">Status</span>${o.status}</div>
+        <div class="fc-clue"><span class="fc-clue-label">Habitat</span>${o.habitat}</div>
+      `;
+    } else if (currentMode === 'latin') {
+      question.textContent = `🧬 What is the Latin name for the ${o.name}?`;
+      clues.innerHTML = `
+        <div class="fc-clue"><span class="fc-clue-label">Common</span>${o.name}</div>
+        <div class="fc-clue"><span class="fc-clue-label">Region</span>${o.region}</div>
+        <div class="fc-clue"><span class="fc-clue-label">Status</span>${o.status}</div>
+      `;
+    } else {
+      // mystery fact
+      question.textContent = '✨ Which otter species does this describe?';
+      clues.innerHTML = `<div class="fc-clue" style="line-height:1.6">${o.fact}</div>`;
+    }
+
+    // back
+    document.getElementById('fc-back-name').textContent = o.name;
+    document.getElementById('fc-back-latin').textContent = o.latin;
+    const statusEl = document.getElementById('fc-back-status');
+    statusEl.textContent = o.status;
+    statusEl.className = 'status ' + o.statusClass;
+    document.getElementById('fc-back-stats').innerHTML = `
+      <div class="fc-back-stat"><div class="s-label">Weight</div><div class="s-val">${o.weight}</div></div>
+      <div class="fc-back-stat"><div class="s-label">Length</div><div class="s-val">${o.length}</div></div>
+      <div class="fc-back-stat"><div class="s-label">Lifespan</div><div class="s-val">${o.lifespan}</div></div>
+      <div class="fc-back-stat"><div class="s-label">Population</div><div class="s-val">${o.pop}</div></div>
+    `;
+    document.getElementById('fc-back-fact').innerHTML = `<strong>Amazing Fact</strong>${o.fact}`;
+  }
+
+  function flipCard() {
+    isFlipped = !isFlipped;
+    document.getElementById('fc-inner').classList.toggle('flipped', isFlipped);
+    if (isFlipped) {
+      document.getElementById('fc-flip-btn').style.display = 'none';
+      document.querySelectorAll('.fc-post-flip').forEach(b => b.classList.add('visible'));
+    } else {
+      document.getElementById('fc-flip-btn').style.display = '';
+      document.querySelectorAll('.fc-post-flip').forEach(b => b.classList.remove('visible'));
+    }
+  }
+
+  function markCard(knew) {
+    if (knew) knewCount++; else learnCount++;
+    idx++;
+    if (idx >= deck.length) {
+      showComplete();
+    } else {
+      showCard();
+    }
+  }
+
+  function showComplete() {
+    document.getElementById('fc-scene').style.display = 'none';
+    document.querySelector('.fc-actions').style.display = 'none';
+    document.getElementById('fc-progress-fill').style.width = '100%';
+    document.getElementById('fc-counter').textContent = `All ${deck.length} cards done!`;
+    document.getElementById('fc-knew-count').textContent = knewCount;
+    document.getElementById('fc-learn-count').textContent = learnCount;
+
+    const comp = document.getElementById('fc-complete');
+    comp.classList.add('visible');
+    document.getElementById('fc-final-knew').textContent = knewCount;
+    document.getElementById('fc-final-learn').textContent = learnCount;
+
+    const pct = Math.round((knewCount / deck.length) * 100);
+    let msg = '';
+    if (pct === 100) msg = 'Perfect score! You\'re an otter expert! 🦦🏆';
+    else if (pct >= 80) msg = 'Great work! Almost mastered all the species!';
+    else if (pct >= 50) msg = 'Good progress! Keep studying those tricky ones!';
+    else msg = 'Keep going — review the ones you missed and try again!';
+    document.getElementById('fc-result-msg').textContent = msg;
+  }
+
+  // Space bar to flip
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('fc-overlay').classList.contains('open')) return;
+    if (e.code === 'Space') { e.preventDefault(); flipCard(); }
+    if (e.code === 'ArrowRight' && isFlipped) markCard(true);
+    if (e.code === 'ArrowLeft' && isFlipped) markCard(false);
+    if (e.code === 'Escape') closeFlashcards();
+  });
+
+  // ─────────────────────────────────────────────
+  // MATCHING GAME
+  // ─────────────────────────────────────────────
+
+  // Real otter photos from Wikimedia Commons
+  const OTTER_PHOTOS = {
+    'Sea Otter':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Sea_Otter_%28Enhydra_lutris%29_%2825169790524%29_crop.jpg/400px-Sea_Otter_%28Enhydra_lutris%29_%2825169790524%29_crop.jpg',
+    'North American River Otter':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Northern_River_Otter_on_Seedskadee_NWR_%2822802102984%29.jpg/400px-Northern_River_Otter_on_Seedskadee_NWR_%2822802102984%29.jpg',
+    'Giant Otter':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Giant_otters_%28Pteronura_brasiliensis%29.jpg/400px-Giant_otters_%28Pteronura_brasiliensis%29.jpg',
+    'Eurasian Otter':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Fischotter%2C_Lutra_Lutra.JPG/400px-Fischotter%2C_Lutra_Lutra.JPG',
+    'Asian Small-clawed Otter':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Otter_-_melbourne_zoo.jpg/400px-Otter_-_melbourne_zoo.jpg',
+    'Smooth-coated Otter':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Smooth-coated_otter_%28Lutrogale_perspicillata%29_Kota_Kinabatangan.jpg/400px-Smooth-coated_otter_%28Lutrogale_perspicillata%29_Kota_Kinabatangan.jpg',
+    'Hairy-nosed Otter':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Otter_from_Cambodia.jpg/400px-Otter_from_Cambodia.jpg',
+    'Spotted-necked Otter':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Spotted-necked_otter_1.jpg/400px-Spotted-necked_otter_1.jpg',
+    'African Clawless Otter':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Aonyx_capensis%2C_male%2C_Shamvura.jpg/400px-Aonyx_capensis%2C_male%2C_Shamvura.jpg',
+    'Congo Clawless Otter':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Mazu_from_Congo.jpg/400px-Mazu_from_Congo.jpg',
+    'Neotropical Otter':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Lontra_longicaudis_4.jpeg/400px-Lontra_longicaudis_4.jpeg',
+    'Southern River Otter':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Southern_River_Otter.jpg/400px-Southern_River_Otter.jpg',
+    'Marine Otter':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Marine_otter_%28Lontra_felina%29_Chiloe.jpg/400px-Marine_otter_%28Lontra_felina%29_Chiloe.jpg'
+  };
+
+  // Assign photos to the OTTERS array
+  OTTERS.forEach(o => { o.photo = OTTER_PHOTOS[o.name] || ''; });
+
+  // ── Matching Game State ──
+  let mgTimer = null;
+  let mgStartTime = 0;
+  let mgElapsed = 0;
+  let mgRunning = false;
+  let mgSelectedPic = null;
+  let mgSelectedName = null;
+  let mgMatched = new Set();
+  let mgPicOrder = [];
+  let mgNameOrder = [];
+  const MG_BEST_KEY = 'otter_match_best';
+
+  function openMatchingGame() {
+    document.getElementById('mg-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    mgRestart();
+  }
+
+  function closeMatchingGame() {
+    document.getElementById('mg-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+    if (mgTimer) { clearInterval(mgTimer); mgTimer = null; }
+  }
+
+  function mgRestart() {
+    if (mgTimer) { clearInterval(mgTimer); mgTimer = null; }
+    mgSelectedPic = null; mgSelectedName = null;
+    mgMatched = new Set();
+    mgRunning = false; mgElapsed = 0;
+    mgPicOrder = shuffle([...Array(OTTERS.length).keys()]);
+    mgNameOrder = shuffle([...Array(OTTERS.length).keys()]);
+    document.getElementById('mg-complete').classList.remove('visible');
+    document.getElementById('mg-panels').style.display = '';
+    document.getElementById('mg-timer').textContent = '0:00.0';
+    document.getElementById('mg-timer').classList.remove('running');
+    document.getElementById('mg-score').textContent = '0';
+    const best = localStorage.getItem(MG_BEST_KEY);
+    document.getElementById('mg-best-time').textContent = best ? `🏅 Best: ${mgFmt(+best)}` : '';
+    mgRender();
+  }
+
+  function mgStartTimer() {
+    if (mgRunning) return;
+    mgRunning = true;
+    mgStartTime = Date.now() - mgElapsed;
+    document.getElementById('mg-timer').classList.add('running');
+    mgTimer = setInterval(() => {
+      mgElapsed = Date.now() - mgStartTime;
+      document.getElementById('mg-timer').textContent = mgFmt(mgElapsed);
+    }, 100);
+  }
+
+  function mgFmt(ms) {
+    const t = Math.floor(ms / 100) / 10;
+    const m = Math.floor(t / 60);
+    const s = (t % 60).toFixed(1).padStart(4, '0');
+    return `${m}:${s}`;
+  }
+
+  function mgRender() {
+    document.getElementById('mg-pics').innerHTML = mgPicOrder.map((oi, pi) => {
+      const o = OTTERS[oi];
+      return `<div class="mg-pic-card" id="mgp-${pi}" data-oi="${oi}" onclick="mgClickPic(${pi})"><img src="${o.photo}" alt="${o.name}" loading="lazy" onerror="this.style.background='#1a2a3a';this.alt='Photo unavailable'"/></div>`;
+    }).join('');
+    document.getElementById('mg-names').innerHTML = mgNameOrder.map((oi, ni) => {
+      const o = OTTERS[oi];
+      return `<div class="mg-name-card" id="mgn-${ni}" data-oi="${oi}" onclick="mgClickName(${ni})"><div class="mn-name">${o.name}</div><div class="mn-latin">${o.latin}</div></div>`;
+    }).join('');
+  }
+
+  function mgClickPic(pi) {
+    if (mgMatched.has(mgPicOrder[pi])) return;
+    mgStartTimer();
+    if (mgSelectedPic !== null) document.getElementById(`mgp-${mgSelectedPic}`)?.classList.remove('selected');
+    if (mgSelectedPic === pi) { mgSelectedPic = null; return; }
+    mgSelectedPic = pi;
+    document.getElementById(`mgp-${pi}`).classList.add('selected');
+    if (mgSelectedName !== null) mgTry();
+  }
+
+  function mgClickName(ni) {
+    if (mgMatched.has(mgNameOrder[ni])) return;
+    mgStartTimer();
+    if (mgSelectedName !== null) document.getElementById(`mgn-${mgSelectedName}`)?.classList.remove('selected');
+    if (mgSelectedName === ni) { mgSelectedName = null; return; }
+    mgSelectedName = ni;
+    document.getElementById(`mgn-${ni}`).classList.add('selected');
+    if (mgSelectedPic !== null) mgTry();
+  }
+
+  function mgTry() {
+    const picOi = mgPicOrder[mgSelectedPic];
+    const nameOi = mgNameOrder[mgSelectedName];
+    const pe = document.getElementById(`mgp-${mgSelectedPic}`);
+    const ne = document.getElementById(`mgn-${mgSelectedName}`);
+    if (picOi === nameOi) {
+      pe.classList.remove('selected'); ne.classList.remove('selected');
+      pe.classList.add('matched'); ne.classList.add('matched');
+      mgMatched.add(picOi);
+      mgSelectedPic = null; mgSelectedName = null;
+      document.getElementById('mg-score').textContent = mgMatched.size;
+      if (mgMatched.size === OTTERS.length) setTimeout(mgDone, 400);
+    } else {
+      pe.classList.add('wrong'); ne.classList.add('wrong');
+      setTimeout(() => {
+        pe.classList.remove('wrong','selected');
+        ne.classList.remove('wrong','selected');
+        mgSelectedPic = null; mgSelectedName = null;
+      }, 500);
+    }
+  }
+
+  function mgDone() {
+    if (mgTimer) { clearInterval(mgTimer); mgTimer = null; }
+    mgRunning = false;
+    document.getElementById('mg-panels').style.display = 'none';
+    document.getElementById('mg-final-time').textContent = mgFmt(mgElapsed);
+    const prev = localStorage.getItem(MG_BEST_KEY);
+    let bestMsg = '';
+    if (!prev || mgElapsed < +prev) {
+      localStorage.setItem(MG_BEST_KEY, mgElapsed);
+      bestMsg = prev ? '🎉 New Best Time!' : '🏅 First Completion!';
+    } else {
+      bestMsg = `Best: ${mgFmt(+prev)}`;
+    }
+    document.getElementById('mg-best-result').textContent = bestMsg;
+    const s = mgElapsed / 1000;
+    document.getElementById('mg-encourage').textContent =
+      s < 30 ? '🔥 Lightning fast! Otter genius!' :
+      s < 60 ? '⚡ Blazing! You really know your otters!' :
+      s < 120 ? '👏 Great work — keep studying!' :
+      s < 180 ? '😊 Nice! Try beating your time!' :
+      '💪 You finished! Practice makes perfect!';
+    document.getElementById('mg-complete').classList.add('visible');
+  }
+
+  // Escape key closes matching game too
+  document.addEventListener('keydown', e => {
+    if (document.getElementById('mg-overlay').classList.contains('open') && e.code === 'Escape') closeMatchingGame();
+  });
+
+  // ═══════════════════════════════════════════
+  // MINI GAMES HUB
+  // ═══════════════════════════════════════════
+  function openMiniHub() {
+    document.getElementById('mini-hub').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMiniHub() {
+    document.getElementById('mini-hub').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // ─── QUIZ DATA ───────────────────────────────
+  const QUIZ_QS = [
+    { q:"Which otter has the densest fur of any animal — up to 1 million hairs per square inch?",
+      opts:["Eurasian Otter","Giant Otter","Sea Otter","Smooth-coated Otter"], a:2,
+      fact:"Sea otters have NO blubber — their incredible fur traps air bubbles to keep them warm!" },
+    { q:"Which otter species grows the longest, reaching up to 1.8 meters?",
+      opts:["Sea Otter","Giant Otter","African Clawless Otter","North American River Otter"], a:1,
+      fact:"Giant otters can be longer than most humans are tall!" },
+    { q:"Which is the world's SMALLEST otter species?",
+      opts:["Marine Otter","Hairy-nosed Otter","Spotted-necked Otter","Asian Small-clawed Otter"], a:3,
+      fact:"Asian small-clawed otters weigh just 1–5 kg — lighter than a house cat!" },
+    { q:"Which otter was believed EXTINCT for decades until its rediscovery in the 1990s?",
+      opts:["Congo Clawless Otter","Marine Otter","Hairy-nosed Otter","Southern River Otter"], a:2,
+      fact:"The hairy-nosed otter was rediscovered in Vietnam and Sumatra after no sightings for ~50 years!" },
+    { q:"Which otter cooperatively herds fish — a hunting strategy also seen in dolphins and orcas?",
+      opts:["Giant Otter","Asian Small-clawed Otter","Smooth-coated Otter","African Clawless Otter"], a:2,
+      fact:"Smooth-coated otters fan out in a line to drive fish into shallow water, then strike!" },
+    { q:"What do sea otters place on their chests to crack open shellfish?",
+      opts:["A coral fragment","Another shellfish","A wooden stick","A rock"], a:3,
+      fact:"Sea otters are one of the very few non-primate animals to use tools!" },
+    { q:"How long can a North American River Otter hold its breath underwater?",
+      opts:["2 minutes","8 minutes","20 minutes","30 seconds"], a:1,
+      fact:"They can also swim at speeds up to 11 km/h — faster than most humans can run!" },
+    { q:"Which otter is nicknamed the 'gato marino' (sea cat) in South America?",
+      opts:["Sea Otter","Neotropical Otter","Southern River Otter","Marine Otter"], a:3,
+      fact:"The marine otter is the only river-otter genus species to live entirely in the ocean!" },
+    { q:"Each Giant Otter has a unique pattern used to tell individuals apart. Where is it?",
+      opts:["Tail tip","Ear shape","Throat patch","Paw size"], a:2,
+      fact:"Researchers photograph throat patches like fingerprints to track individuals in the wild!" },
+    { q:"Which fish, introduced to Lake Victoria, devastated Spotted-necked Otter populations?",
+      opts:["Tilapia","Carp","Catfish","Nile Perch"], a:3,
+      fact:"Nile perch wiped out hundreds of native cichlid species, collapsing the otters' food supply!" },
+    { q:"How much fish can a Giant Otter eat in a single day?",
+      opts:["1 kg","2 kg","4 kg","10 kg"], a:2,
+      fact:"Giant otter groups have even been recorded killing and eating young caimans!" },
+    { q:"Which continent has ZERO native otter species?",
+      opts:["Antarctica","Australia","Europe","North America"], a:0,
+      fact:"Otters live on every continent except Antarctica — all 13 species are in the Americas, Europe, Asia, or Africa!" },
+    { q:"The Eurasian Otter marks its territory with scented droppings. What are they called?",
+      opts:["Musk spots","Spraints","Scentpiles","Dribbles"], a:1,
+      fact:"Spraints contain complex chemical info and can be left at prominent rocks, logs, and bridges!" },
+    { q:"How many of the 13 otter species are classified as Endangered?",
+      opts:["2","3","5","7"], a:2,
+      fact:"Sea, Giant, Hairy-nosed, Southern River, and Marine otters are all Endangered!" },
+    { q:"Which otter can have a river territory stretching up to 40 km long?",
+      opts:["Giant Otter","Neotropical Otter","Eurasian Otter","North American River Otter"], a:2,
+      fact:"Male Eurasian otters patrol up to 40 km of riverbank and defend it fiercely!" },
+  ];
+
+  // ─── TRUE / FALSE DATA ───────────────────────
+  const TF_DATA = [
+    { s:"Sea otters have NO blubber — their dense fur keeps them warm instead", a:true,  f:"Correct! Their fur traps air bubbles and must be groomed constantly to stay waterproof." },
+    { s:"Giant otters are so fierce that jaguars and caimans avoid them",       a:true,  f:"Correct! Giant otter packs are apex predators feared by almost everything in the Amazon." },
+    { s:"Asian small-clawed otters catch fish primarily with their mouths",     a:false, f:"Nope! They use their nimble, sensitive paws to feel under rocks for crabs and shellfish." },
+    { s:"The sea otter is the heaviest member of the weasel family",            a:true,  f:"Correct! Sea otters can weigh up to 45 kg — heavier than any other mustelid." },
+    { s:"All 13 otter species live in freshwater rivers and lakes",             a:false, f:"Nope! Sea otters and marine otters live in saltwater ocean habitats." },
+    { s:"River otters can close their nostrils AND ears underwater",            a:true,  f:"Correct! Their bodies are incredibly well-adapted for aquatic life." },
+    { s:"Marine otters sleep floating at sea, just like sea otters",            a:false, f:"Nope! Marine otters sleep on rocky shores, not floating in the water." },
+    { s:"The hairy-nosed otter has hair covering the TOP of its nose",          a:true,  f:"Correct! This unique feature is found in NO other otter species." },
+    { s:"African clawless otters use their claws to dig up crabs",             a:false, f:"Nope! They have almost no claws — they use unwebbed fingers like hands!" },
+    { s:"Giant otters can eat up to 4 kg of fish in a single day",             a:true,  f:"Correct! They need huge amounts of food to fuel their active, social lifestyle." },
+    { s:"Sea otters wrap themselves in kelp while sleeping so they don't drift",a:true,  f:"Correct! They anchor themselves to kelp beds and sometimes hold paws with other otters!" },
+    { s:"Smooth-coated otters are the only otters known to hunt fish as a team",a:true,  f:"Correct! They coordinate like dolphins, herding fish into shallow water before striking." },
+    { s:"The Congo clawless otter is one of the most well-photographed species",a:false, f:"Nope! It's one of the least known — most data comes from museum specimens, not field research." },
+    { s:"Each Giant Otter has a unique throat patch pattern like a fingerprint", a:true,  f:"Correct! Researchers use throat patches to identify individuals in the wild." },
+    { s:"North American river otters slide down muddy banks just for fun",      a:true,  f:"Correct! Play behavior like this is well-documented — they're famously playful animals." },
+    { s:"Sea otters are classified as Vulnerable on the IUCN Red List",         a:false, f:"Nope! Sea otters are actually Endangered — their population is only around 3,000." },
+    { s:"Asian small-clawed otters live in groups of up to 15 individuals",     a:true,  f:"Correct! They're highly social and all family members help raise the pups." },
+    { s:"Otters belong to the cat family (Felidae)",                            a:false, f:"Nope! Otters are mustelids — they're in the weasel family, alongside badgers and minks." },
+    { s:"The marine otter is the rarest otter in the Americas",                 a:true,  f:"Correct! Fewer than 1,000 are believed to survive on the rocky Pacific coast." },
+    { s:"Eurasian otters can hold a river territory up to 40 km long",          a:true,  f:"Correct! Males patrol and scent-mark their entire territory with spraints." },
+  ];
+
+  // ─── SIZE SHOWDOWN DATA ─────────────────────
+  // avg weight in kg for ranking (heaviest first)
+  const SS_OTTERS = [
+    { name:'Sea Otter',               emoji:'🌊🦦', avg:30, range:'14–45 kg' },
+    { name:'Giant Otter',             emoji:'🌿🦦', avg:27, range:'22–32 kg' },
+    { name:'African Clawless Otter',  emoji:'🌍🦦', avg:15, range:'10–21 kg' },
+    { name:'North American River Otter',emoji:'🌲🦦',avg:9, range:'5–14 kg'  },
+    { name:'Smooth-coated Otter',     emoji:'🌺🦦', avg:9,  range:'7–11 kg'  },
+    { name:'Eurasian Otter',          emoji:'🏔️🦦', avg:9,  range:'7–12 kg'  },
+    { name:'Neotropical Otter',       emoji:'🌴🦦', avg:10, range:'5–15 kg'  },
+    { name:'Southern River Otter',    emoji:'🏔️🌊🦦',avg:7.5,range:'5–10 kg'},
+    { name:'Hairy-nosed Otter',       emoji:'🌙🦦', avg:6.5,range:'5–8 kg'  },
+    { name:'Spotted-necked Otter',    emoji:'🌅🦦', avg:4.5,range:'3–5.7 kg' },
+    { name:'Marine Otter',            emoji:'🐋🦦', avg:4.5,range:'3–6 kg'  },
+    { name:'Asian Small-clawed Otter',emoji:'🌸🦦', avg:3,  range:'1–5 kg'  },
+  ];
+
+  // ═══════════════════════════════════════════
+  // QUIZ GAME
+  // ═══════════════════════════════════════════
+  let qSet=[], qIdx=0, qCorrect=0, qTimer=null, qAnswered=false;
+  const Q_TOTAL=10, Q_SECS=15;
+
+  function openQuiz() {
+    closeMiniHub();
+    qSet = shuffle([...QUIZ_QS]).slice(0, Q_TOTAL);
+    qIdx = 0; qCorrect = 0;
+    document.getElementById('quiz-go').classList.remove('show');
+    document.getElementById('quiz-ov').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    qShow();
+  }
+  function closeQuiz() {
+    if (qTimer) { clearInterval(qTimer); qTimer=null; }
+    document.getElementById('quiz-ov').classList.remove('open');
+    openMiniHub();
+  }
+
+  function qShow() {
+    qAnswered = false;
+    const q = qSet[qIdx];
+    document.getElementById('q-num').textContent = `Question ${qIdx+1} of ${Q_TOTAL}`;
+    document.getElementById('q-text').textContent = q.q;
+    document.getElementById('q-fact').style.display = 'none';
+    document.getElementById('q-nxt').style.display = 'none';
+    document.getElementById('q-correct').textContent = qCorrect;
+    document.getElementById('q-total').textContent = Q_TOTAL;
+    const optsEl = document.getElementById('q-opts');
+    optsEl.innerHTML = q.opts.map((o,i)=>`<button class="qopt" onclick="qAnswer(${i})" id="qo${i}">${o}</button>`).join('');
+    // timer bar
+    let t = Q_SECS * 10;
+    const fill = document.getElementById('q-prog');
+    fill.style.width = '100%';
+    fill.style.background = 'var(--accent)';
+    if (qTimer) clearInterval(qTimer);
+    qTimer = setInterval(()=>{
+      t--;
+      const pct = (t/(Q_SECS*10))*100;
+      fill.style.width = pct+'%';
+      fill.style.background = pct<30 ? 'var(--red)' : pct<60 ? 'var(--gold)' : 'var(--accent)';
+      if (t<=0) { clearInterval(qTimer); qTimeUp(); }
+    },100);
+  }
+
+  function qAnswer(i) {
+    if (qAnswered) return;
+    qAnswered = true;
+    clearInterval(qTimer);
+    const q = qSet[qIdx];
+    if (i===q.a) qCorrect++;
+    document.getElementById(`qo${i}`).classList.add(i===q.a?'correct':'wrong');
+    if (i!==q.a) document.getElementById(`qo${q.a}`).classList.add('correct');
+    document.querySelectorAll('.qopt').forEach(b=>b.disabled=true);
+    const fb = document.getElementById('q-fact');
+    fb.textContent = q.fact;
+    fb.style.display = 'block';
+    document.getElementById('q-nxt').style.display = 'block';
+    document.getElementById('q-correct').textContent = qCorrect;
+  }
+
+  function qTimeUp() {
+    if (qAnswered) return;
+    qAnswered = true;
+    const q = qSet[qIdx];
+    document.getElementById(`qo${q.a}`).classList.add('correct');
+    document.querySelectorAll('.qopt').forEach(b=>b.disabled=true);
+    const fb = document.getElementById('q-fact');
+    fb.textContent = '⏱ Time\'s up! '+q.fact;
+    fb.style.display = 'block';
+    document.getElementById('q-nxt').style.display = 'block';
+  }
+
+  function qNext() {
+    qIdx++;
+    if (qIdx>=Q_TOTAL) qDone();
+    else qShow();
+  }
+
+  function qDone() {
+    document.getElementById('q-go-score').textContent = `${qCorrect}/${Q_TOTAL}`;
+    const p = qCorrect/Q_TOTAL;
+    document.getElementById('q-go-msg').textContent =
+      p===1   ? '🏆 Perfect score! Certified otter genius!' :
+      p>=.8   ? '🌟 Amazing! You really know your otters!' :
+      p>=.6   ? '👏 Great work! A few more study sessions and you\'ll nail it!' :
+      p>=.4   ? '📖 Not bad! Check the species cards and try again!' :
+                '🦦 Keep studying — the facts are wild and worth learning!';
+    document.getElementById('quiz-go').classList.add('show');
+  }
+
+  // ═══════════════════════════════════════════
+  // TRUE / FALSE BLITZ
+  // ═══════════════════════════════════════════
+  let tfSet=[], tfIdx=0, tfScore=0, tfStreak=0, tfBest=0, tfInterval=null, tfSecsLeft=30, tfLocked=false;
+
+  function openTF() {
+    closeMiniHub();
+    tfSet = shuffle([...TF_DATA]);
+    tfIdx=0; tfScore=0; tfStreak=0; tfSecsLeft=30; tfLocked=false;
+    document.getElementById('tf-go').classList.remove('show');
+    document.getElementById('tf-ov').classList.add('open');
+    document.body.style.overflow='hidden';
+    tfRender();
+    tfStartTimer();
+  }
+  function closeTF() {
+    if (tfInterval) { clearInterval(tfInterval); tfInterval=null; }
+    document.getElementById('tf-ov').classList.remove('open');
+    openMiniHub();
+  }
+
+  function tfRender() {
+    const d = tfSet[tfIdx % tfSet.length];
+    document.getElementById('tf-stmt').textContent = d.s;
+    document.getElementById('tf-feedback').textContent = '';
+    document.getElementById('tf-score-val').textContent = tfScore;
+    document.getElementById('tf-score-val2').textContent = tfScore;
+    document.getElementById('tf-streak-txt').textContent = tfStreak>=3 ? `🔥 ${tfStreak} streak!` : '';
+    tfLocked = false;
+  }
+
+  function tfStartTimer() {
+    const circumference = 2*Math.PI*30;
+    const circle = document.getElementById('tf-circle');
+    circle.style.strokeDasharray = circumference;
+    if (tfInterval) clearInterval(tfInterval);
+    tfInterval = setInterval(()=>{
+      tfSecsLeft -= 0.1;
+      const pct = Math.max(0, tfSecsLeft/30);
+      circle.style.strokeDashoffset = circumference*(1-pct);
+      circle.style.stroke = tfSecsLeft<8 ? 'var(--red)' : tfSecsLeft<15 ? 'var(--gold)' : 'var(--accent)';
+      document.getElementById('tf-ring-num').textContent = Math.ceil(tfSecsLeft);
+      if (tfSecsLeft<=0) { clearInterval(tfInterval); tfEnd(); }
+    },100);
+  }
+
+  function tfAnswer(ans) {
+    if (tfLocked) return;
+    tfLocked = true;
+    const d = tfSet[tfIdx % tfSet.length];
+    const correct = ans===d.a;
+    if (correct) { tfScore++; tfStreak++; }
+    else { tfStreak=0; }
+    const fb = document.getElementById('tf-feedback');
+    fb.style.color = correct ? 'var(--green)' : 'var(--red)';
+    fb.textContent = (correct?'✓ Correct! ':'✗ Wrong! ')+d.f;
+    tfIdx++;
+    document.getElementById('tf-score-val').textContent = tfScore;
+    document.getElementById('tf-score-val2').textContent = tfScore;
+    document.getElementById('tf-streak-txt').textContent = tfStreak>=3 ? `🔥 ${tfStreak} streak!` : '';
+    setTimeout(()=>{ if (tfSecsLeft>0) tfRender(); }, 900);
+  }
+
+  function tfEnd() {
+    tfBest = Math.max(tfBest, tfScore);
+    document.getElementById('tf-go-score').textContent = tfScore;
+    const p = tfScore/20;
+    document.getElementById('tf-go-msg').textContent =
+      tfScore>=18 ? '🔥 Blazing fast AND accurate! Otter master!' :
+      tfScore>=14 ? '⚡ Excellent reflexes and knowledge!' :
+      tfScore>=10 ? '👏 Solid! Keep studying and try to beat your score!' :
+      tfScore>=6  ? '😊 Getting there! The more you learn, the faster you\'ll go!' :
+                    '📚 Review the facts and try again!';
+    document.getElementById('tf-go').classList.add('show');
+  }
+
+  // keyboard support for T/F
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('tf-ov').classList.contains('open')) return;
+    if (e.code==='KeyT' || e.code==='ArrowRight') tfAnswer(true);
+    if (e.code==='KeyF' || e.code==='ArrowLeft')  tfAnswer(false);
+  });
+
+  // ═══════════════════════════════════════════
+  // SIZE SHOWDOWN
+  // ═══════════════════════════════════════════
+  let ssRound=[], ssRanked=[], ssSubmitted=false;
+
+  function openSS() {
+    closeMiniHub();
+    ssSubmitted=false;
+    // Pick 5 otters with clearly different weights
+    const pool = [...SS_OTTERS];
+    shuffle(pool);
+    // Always include heaviest (Sea Otter) and lightest (Asian Small-clawed) for clear spread
+    const fixed = [SS_OTTERS[0], SS_OTTERS[SS_OTTERS.length-1]];
+    const mid = pool.filter(o=>o!==SS_OTTERS[0]&&o!==SS_OTTERS[SS_OTTERS.length-1]).slice(0,3);
+    ssRound = shuffle([...fixed,...mid]);
+    ssRanked = [];
+    document.getElementById('ss-go').classList.remove('show');
+    document.getElementById('ss-ov').classList.add('open');
+    document.body.style.overflow='hidden';
+    ssRender();
+  }
+  function closeSS() {
+    document.getElementById('ss-ov').classList.remove('open');
+    openMiniHub();
+  }
+
+  function ssRender() {
+    // Pool of cards to click
+    document.getElementById('ss-pool').innerHTML = ssRound.map((o,i)=>
+      `<div class="ss-card" id="ssc-${i}" onclick="ssPick(${i})">
+        <div class="ss-cemoji">${o.emoji}</div>
+        <div class="ss-cname">${o.name}</div>
+      </div>`).join('');
+    // Rank slots
+    document.getElementById('ss-slots').innerHTML = [1,2,3,4,5].map(n=>
+      `<div class="ss-slot" id="sss-${n-1}">
+        <div class="ss-slot-lbl">#${n} Heaviest</div>
+        <div class="ss-slot-name" id="ssn-${n-1}">—</div>
+      </div>`).join('');
+    document.getElementById('ss-submit').style.display='none';
+    document.getElementById('ss-instr').textContent='Click the otters from HEAVIEST to LIGHTEST';
+  }
+
+  function ssPick(i) {
+    if (ssSubmitted) return;
+    const card = document.getElementById(`ssc-${i}`);
+    if (card.classList.contains('used')) return;
+    card.classList.add('used');
+    ssRanked.push(ssRound[i]);
+    const slot = document.getElementById(`sss-${ssRanked.length-1}`);
+    document.getElementById(`ssn-${ssRanked.length-1}`).textContent = ssRound[i].name;
+    if (ssRanked.length===5) {
+      document.getElementById('ss-submit').style.display='block';
+      document.getElementById('ss-instr').textContent='All placed! Check your ranking ↓';
+    }
+  }
+
+  function ssCheck() {
+    ssSubmitted=true;
+    document.getElementById('ss-submit').style.display='none';
+    // Sort correct answer heaviest→lightest
+    const correct = [...ssRound].sort((a,b)=>b.avg-a.avg);
+    let score=0;
+    ssRanked.forEach((o,i)=>{
+      const slot = document.getElementById(`sss-${i}`);
+      const right = o.name===correct[i].name;
+      if (right) score++;
+      slot.classList.add(right?'correct':'wrong');
+      // Reveal weight
+      const wEl = document.createElement('div');
+      wEl.className='ss-slot-wt';
+      wEl.textContent=o.range+(right?' ✓':' ✗ ('+correct[i].name+')');
+      wEl.style.color=right?'var(--green)':'var(--red)';
+      slot.appendChild(wEl);
+    });
+    setTimeout(()=>{
+      document.getElementById('ss-go-score').textContent=`${score}/5`;
+      document.getElementById('ss-go-msg').textContent =
+        score===5 ? '🏆 Perfect! You know exactly how big each otter gets!' :
+        score>=3  ? '👏 Nice! A couple were tricky — try again!' :
+                    '📏 Size is hard to remember! Check the species cards for weights.';
+      document.getElementById('ss-go').classList.add('show');
+    }, 1200);
+  }
+
+  // ═══════════════════════════════════════════
+  // SPECIES ARTICLE DATA
+  // ═══════════════════════════════════════════
+  const ARTICLE = {
+
+  'Sea Otter': {
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Sea_Otter_%28Enhydra_lutris%29_%2825169790524%29_crop.jpg/800px-Sea_Otter_%28Enhydra_lutris%29_%2825169790524%29_crop.jpg',
+    stats: { Weight:'14–45 kg', Length:'1.0–1.5 m', Lifespan:'10–23 yrs', Population:'~3,000', Range:'North Pacific', Habitat:'Ocean / Kelp forests' },
+    summary: `The sea otter (<em>Enhydra lutris</em>) is the heaviest member of the weasel family and the only truly marine otter. Unlike all other marine mammals, it has no blubber — it relies entirely on the densest fur of any animal on Earth to stay warm in frigid Pacific waters. Sea otters spend nearly their entire lives floating on their backs, eating, sleeping, and even giving birth in the ocean. They are one of the few non-primate animals known to use tools, balancing a rock on their chest to crack open shellfish.`,
+    ecosystemRole: `Sea otters are one of the best-known examples of a <strong>keystone species</strong> — an animal whose impact on its ecosystem is far greater than its numbers suggest. By preying on sea urchins, they prevent urchin populations from exploding and overgrazing kelp forests into lifeless "urchin barrens." Healthy kelp forests shelter hundreds of species of fish, invertebrates, and seabirds, and absorb significant amounts of CO₂ from the atmosphere.`,
+    prey: [
+      {n:'Sea Urchins', note:'Primary prey — up to 30% of diet'},
+      {n:'Crabs', note:'Dungeness, rock, and other species'},
+      {n:'Clams & Mussels', note:'Cracked open with a chest rock'},
+      {n:'Abalone', note:'Now rare due to overfishing'},
+      {n:'Snails & Worms', note:''},
+      {n:'Squid & Octopus', note:''},
+      {n:'Small Fish', note:'Secondary prey'},
+    ],
+    predators: [
+      {n:'Great White Shark', note:'Primary natural predator in California'},
+      {n:'Orca (Killer Whale)', note:'Major predator in Alaska'},
+      {n:'Bald Eagle', note:'Occasionally snatches pups from the surface'},
+      {n:'Humans (historical)', note:'Fur trade reduced population by ~98%'},
+    ],
+    neighbors: ['Harbor Seals','California Sea Lions','Steller Sea Lions','Great Blue Heron','Pelagic Cormorant','Pigeon Guillemot','Kelp Bass','Rockfish','Dungeness Crab','Giant Kelp','Sea Stars','Purple Sea Urchins'],
+    threatened: true,
+    reasons: [
+      {t:'The Fur Trade (1741–1911)', d:'Hunters nearly wiped out sea otters for their extraordinarily dense fur. Populations plummeted from an estimated 300,000 animals to fewer than 2,000 by the early 1900s. The 1911 International Fur Seal Treaty ended commercial hunting and allowed slow recovery.'},
+      {t:'Oil Spills', d:'Oil destroys the insulating air pockets in sea otter fur, causing rapid hypothermia. The 1989 Exxon Valdez spill alone killed an estimated 2,800–5,000 otters. Coastal shipping lanes remain a permanent, serious threat.'},
+      {t:'Entanglement in Fishing Gear', d:'Sea otters drown when accidentally caught in crab pots, gill nets, and trawl gear. This is one of the leading causes of human-caused otter mortality in California today.'},
+      {t:'Shark Attacks', d:'Great white sharks are the primary natural cause of death. Most bites are believed to be cases of mistaken identity — sharks may confuse otters for seals. Bite rates have increased as white shark populations recover.'},
+      {t:'Disease & Toxins', d:'Toxoplasma gondii (a parasite shed by outdoor cats that washes into the ocean), harmful algal bloom toxins (domoic acid), and acanthocephalan parasites cause significant mortality every year.'},
+      {t:'Climate Change', d:'Warming oceans disrupt prey distribution, intensify harmful algal blooms that poison otter food sources, and increase storm severity along sensitive coastlines.'},
+    ],
+    help: [
+      {i:'🦦', a:'Donate to the <strong>Monterey Bay Aquarium Sea Otter Research & Conservation (SORAC)</strong> program, which rescues, rehabilitates, and releases stranded otters.'},
+      {i:'🐈', a:'Keep pet cats indoors or in enclosed catios. Outdoor cat feces washes Toxoplasma gondii into streams and oceans, where it kills sea otters.'},
+      {i:'🐟', a:'Choose <strong>sustainably certified seafood</strong> (MSC label) to reduce bycatch — accidental capture of non-target animals in fishing gear.'},
+      {i:'🌊', a:'Never litter near beaches or waterways. Support local coastal cleanup efforts through organizations like Ocean Conservancy.'},
+      {i:'⚡', a:'Support clean energy policies to reduce oil shipping and the risk of future spills.'},
+      {i:'📢', a:'Advocate for expanded <strong>Marine Protected Areas</strong> along the Pacific coast where otters can feed and breed safely.'},
+    ],
+    facts: [
+      'Sea otters hold hands while sleeping to avoid drifting apart — a group is called a "raft" and can number in the hundreds.',
+      'A sea otter must eat 25–30% of its own body weight every single day just to generate enough body heat to survive.',
+      'Mothers wrap their pups in kelp like a blanket while they dive for food, so the pup stays on the surface and doesn\'t float away.',
+    ],
+  },
+
+  'North American River Otter': {
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Northern_River_Otter_on_Seedskadee_NWR_%2822802102984%29.jpg/800px-Northern_River_Otter_on_Seedskadee_NWR_%2822802102984%29.jpg',
+    stats: { Weight:'5–14 kg', Length:'0.9–1.3 m', Lifespan:'8–25 yrs', Population:'Stable', Range:'North America', Habitat:'Rivers, lakes, coastlines' },
+    summary: `The North American river otter (<em>Lontra canadensis</em>) is the most widespread otter on the continent, found from Alaska and Canada all the way to the Gulf Coast of Florida. Powerfully built and supremely adapted to aquatic life, it can swim at 11 km/h, hold its breath for 8 minutes, and dive to depths of 18 meters. It is among the most playful mammals in North America — frequently observed sliding down muddy or snowy riverbanks purely for fun, a behavior that persists into adulthood.`,
+    ecosystemRole: `River otters are <strong>apex predators</strong> in freshwater ecosystems. By controlling populations of fish, crayfish, and frogs, they maintain balance in aquatic food webs. Their presence is also used as an indicator of <strong>ecosystem health</strong> — because they sit at the top of the food chain and consume large quantities of fish, they quickly accumulate environmental toxins; declining otter populations often signal serious water quality problems.`,
+    prey: [
+      {n:'Fish', note:'Primary prey — trout, bass, perch, pickerel, catfish'},
+      {n:'Crayfish', note:'Important secondary prey'},
+      {n:'Frogs & Salamanders', note:''},
+      {n:'Turtles', note:'Small species and hatchlings'},
+      {n:'Water Birds', note:'Ducks and other waterfowl (occasionally)'},
+      {n:'Small Mammals', note:'Muskrats, occasionally'},
+      {n:'Snakes', note:'Aquatic species'},
+    ],
+    predators: [
+      {n:'Bobcat', note:'Ambushes along riverbanks'},
+      {n:'Coyote', note:'Opportunistic predator'},
+      {n:'Great Horned Owl', note:'Can take juveniles'},
+      {n:'American Alligator', note:'In southeastern habitats'},
+      {n:'Humans', note:'Historically trapped for fur; road traffic today'},
+    ],
+    neighbors: ['Beaver','Muskrat','Mink','Great Blue Heron','Belted Kingfisher','Osprey','Snapping Turtle','Largemouth Bass','Brook Trout','American Mink','River Cooter','Wood Duck'],
+    threatened: false,
+    facts: [
+      'River otters can locate fish in murky, dark water using their sensitive whiskers (vibrissae), which detect tiny water movements made by swimming fish.',
+      'They communicate with over 12 distinct vocalizations, including chirps, growls, chuckles, screams, and a signature "chitter" used when families greet each other.',
+      'After being extirpated from large parts of their range by the 1970s due to hunting and water pollution, river otters have made a remarkable comeback through reintroduction programs in over 20 U.S. states.',
+    ],
+  },
+
+  'Giant Otter': {
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Giant_otters_%28Pteronura_brasiliensis%29.jpg/800px-Giant_otters_%28Pteronura_brasiliensis%29.jpg',
+    stats: { Weight:'22–32 kg', Length:'up to 1.8 m', Lifespan:'10–20 yrs', Population:'~5,000', Range:'South America', Habitat:'Amazon & Pantanal rivers' },
+    summary: `The giant otter (<em>Pteronura brasiliensis</em>) is the world's longest otter and one of South America's most charismatic predators. Highly social, it lives in tight family groups called holts of up to 20 individuals — all members cooperate to raise pups, defend territory, and hunt. Giant otters are apex predators in their river ecosystems: so ferocious and coordinated that even jaguars and caimans avoid confronting them. Each individual has a unique cream-colored throat patch pattern used by researchers as a natural fingerprint.`,
+    ecosystemRole: `As <strong>top predators</strong> in Amazonian rivers, giant otters regulate fish populations and maintain the balance of freshwater food webs. Their highly vocal nature and large family group territories make them an <strong>umbrella species</strong> — protecting giant otter habitat automatically protects vast stretches of river ecosystem for hundreds of other species.`,
+    prey: [
+      {n:'Large Fish', note:'Up to 4 kg per day — piranha, catfish, perch, and others'},
+      {n:'Young Caimans', note:'Packs have been documented killing and eating them'},
+      {n:'Anacondas', note:'Occasionally engaged when defending territory'},
+      {n:'Turtles', note:'Smaller species'},
+      {n:'Water Snakes', note:''},
+      {n:'Crabs & Crayfish', note:'Supplementary prey'},
+    ],
+    predators: [
+      {n:'Jaguar', note:'Very rarely — giant otters usually drive jaguars away'},
+      {n:'Caiman', note:'May challenge lone otters; avoids family groups'},
+      {n:'Humans', note:'Fur trade and conflict with fishermen are the main threats'},
+    ],
+    neighbors: ['Black Caiman','Capybara','Amazon River Dolphin (Boto)','Hoatzin','Jabiru Stork','Giant Anteater (near rivers)','Piranha','Anaconda','Giant River Turtle','Scarlet Macaw','Lowland Tapir'],
+    threatened: true,
+    reasons: [
+      {t:'The Fur Trade (1940s–1970s)', d:'Giant otters were nearly hunted to extinction for their velvety pelts. By the late 1970s, fewer than 100 individuals were believed to remain in the entire Amazon basin. International trade bans eventually helped populations slowly recover.'},
+      {t:'Amazon Deforestation', d:'Clearing forests for cattle ranching, soy farming, and development degrades river banks, increases soil erosion that clouds water (reducing visibility for hunting), and destroys the otter\'s denning sites on forested riverbanks.'},
+      {t:'Gold Mining & Mercury Poisoning', d:'Illegal gold mining in the Amazon releases mercury into river systems. Mercury bioaccumulates up the food chain — fish absorb it, otters eat the fish, and mercury builds up to toxic levels in otter tissue, damaging their nervous systems and reproductive capacity.'},
+      {t:'Conflict with Fishermen', d:'Fishermen view giant otters as competitors for fish resources and sometimes kill them. Otters also damage fishing nets.'},
+      {t:'Hydroelectric Dams', d:'Dams flood vast stretches of river habitat, fragment otter populations, and alter fish migration patterns that otters depend on.'},
+    ],
+    help: [
+      {i:'🌿', a:'Support <strong>Amazon Watch</strong> or <strong>Rainforest Alliance</strong>, which protect the Amazon ecosystems that giant otters need to survive.'},
+      {i:'🥩', a:'Reduce consumption of beef from Brazil and opt for sustainably certified products to decrease demand for deforestation-driven cattle ranching.'},
+      {i:'⚒️', a:'Avoid purchasing gold jewelry unless it is certified <strong>Fairmined</strong> or from recycled sources, to reduce demand for illegal Amazon gold mining.'},
+      {i:'🐠', a:'Support <strong>WWF\'s giant otter conservation programs</strong> in the Pantanal and Amazon.'},
+      {i:'🏛️', a:'Advocate for stronger enforcement of Brazil\'s Forest Code and protections for indigenous territories that shield the Amazon.'},
+    ],
+    facts: [
+      'Giant otters are the noisiest otter species — they produce at least 22 distinct vocalizations, from explosive snorts when alarmed to high-pitched screams when rallying the group.',
+      'The entire family group helps raise pups. Older siblings from previous litters babysit, bring food, and teach younger pups to swim and hunt.',
+      'Giant otters can consume fish in the water while swimming, but prefer to drag large prey onto a riverbank to eat it — they always start from the head.',
+    ],
+  },
+
+  'Eurasian Otter': {
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Fischotter%2C_Lutra_Lutra.JPG/800px-Fischotter%2C_Lutra_Lutra.JPG',
+    stats: { Weight:'7–12 kg', Length:'0.9–1.3 m', Lifespan:'8–15 yrs', Population:'Recovering', Range:'Europe, Asia, N. Africa', Habitat:'Rivers, lakes, coasts' },
+    summary: `The Eurasian otter (<em>Lutra lutra</em>) holds the record for the widest geographic range of any otter species — from Ireland to the coast of Japan, and from Norway to North Africa. Primarily nocturnal and solitary, it is secretive and rarely seen despite living alongside millions of people. Males maintain vast river territories of up to 40 km, which they mark obsessively with scented droppings called <em>spraints</em>. After being nearly eradicated across Europe by hunting and pesticides in the 20th century, it has made one of conservation's great comebacks.`,
+    ecosystemRole: `Eurasian otters are <strong>indicator species</strong> — their return to a river system is one of the clearest signs that water quality has improved. By controlling fish, eel, and crayfish populations, they maintain balance in riparian and coastal ecosystems across an enormous range.`,
+    prey: [
+      {n:'Fish', note:'Primary prey — eels, trout, salmon, carp, perch'},
+      {n:'Crayfish', note:'Especially in winter when fish are scarce'},
+      {n:'Frogs & Toads', note:''},
+      {n:'Water Voles', note:'Caught along riverbanks'},
+      {n:'Waterfowl', note:'Ducks, coots, moorhens — occasional'},
+      {n:'Insects & Crustaceans', note:'Supplementary'},
+    ],
+    predators: [
+      {n:'Road Traffic', note:'The single biggest killer across Europe today'},
+      {n:'Domestic Dogs', note:'Attacks near waterways are documented'},
+      {n:'Humans (historical)', note:'Hunted for fur and persecuted as fish competitors'},
+      {n:'Large Raptors', note:'Rarely take small/juvenile otters'},
+    ],
+    neighbors: ['Kingfisher','Grey Heron','Mute Swan','Water Vole','Beaver (reintroduced in parts of Europe)','American Mink (invasive competitor)','Moorhen','Dipper','Coot','Atlantic Salmon','Brown Trout','Eel'],
+    threatened: false,
+    facts: [
+      'Eurasian otters leave their spraints at the highest, most prominent points along their territory — bridges, boulders, and logs — as a form of complex chemical communication that can convey identity, reproductive status, and territory boundaries.',
+      'In Shetland, Scotland, some Eurasian otters have adapted entirely to marine life, hunting in the sea and sleeping in coastal rock caves — a lifestyle more like sea otters than river otters.',
+      'Otter numbers across Britain declined by over 90% between 1950 and 1980 due to organochlorine pesticides (like dieldrin) accumulating in their fish prey. A ban on these chemicals led to a remarkable recovery.',
+    ],
+  },
+
+  'Asian Small-clawed Otter': {
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Otter_-_melbourne_zoo.jpg/800px-Otter_-_melbourne_zoo.jpg',
+    stats: { Weight:'1–5 kg', Length:'0.45–0.61 m', Lifespan:'11–16 yrs', Population:'Declining', Range:'South & SE Asia', Habitat:'Mangroves, rice paddies, streams' },
+    summary: `The Asian small-clawed otter (<em>Aonyx cinereus</em>) is the world's smallest otter species and one of its most distinctive. Unlike other otters that primarily catch prey with their mouths, the small-clawed otter uses its highly sensitive, partially webbed paws — tipped with tiny vestigial claws — to feel under rocks and in crevices for crabs, mollusks, and snails. It is the most social of all otters, living in extended family groups of up to 15 individuals where all members cooperate in raising pups and defending territory.`,
+    ecosystemRole: `By preying on crabs and bivalves in mangroves and rice paddies, Asian small-clawed otters help regulate shellfish populations. They are a key part of wetland ecosystems across Southeast Asia and serve as an important <strong>indicator species</strong> for the health of mangrove and freshwater habitats.`,
+    prey: [
+      {n:'Crabs', note:'Primary prey — caught by hand'},
+      {n:'Mollusks & Clams', note:'Opened with dexterous paws'},
+      {n:'Snails', note:''},
+      {n:'Small Fish', note:'Caught in shallow water'},
+      {n:'Frogs & Tadpoles', note:''},
+      {n:'Insects & Worms', note:''},
+    ],
+    predators: [
+      {n:'Large Birds of Prey', note:'Eagles and large hawks can take small adults'},
+      {n:'Saltwater Crocodile', note:'In coastal habitats'},
+      {n:'Pythons', note:'Reticulated python in SE Asia'},
+      {n:'Leopard & Clouded Leopard', note:'In forested habitats'},
+      {n:'Humans', note:'Hunting and the exotic pet trade'},
+    ],
+    neighbors: ['Fishing Cat','Saltwater Crocodile','Monitor Lizard','Smooth-coated Otter (overlapping range)','Proboscis Monkey','Mudskipper','Fiddler Crab','Mangrove Kingfisher','Lesser Adjutant Stork'],
+    threatened: true,
+    reasons: [
+      {t:'The Exotic Pet Trade', d:'Asian small-clawed otters are the most popular otter species kept as pets, particularly in Japan, South Korea, and Thailand. Demand from social media "otter cafes" and viral videos has driven rampant poaching of wild otters. Each pet otter typically results in multiple family members being killed during capture.'},
+      {t:'Habitat Loss', d:'Mangrove forests — their primary habitat — are being cleared at alarming rates across SE Asia for shrimp farms, palm oil plantations, and coastal development. Wetlands and rice paddies are drained for agriculture.'},
+      {t:'Pollution & Pesticides', d:'Pesticide runoff from rice paddies and industrial pollution in rivers bioaccumulates in the otter\'s crustacean prey, poisoning animals higher up the food chain.'},
+      {t:'Hunting for Traditional Medicine', d:'In some range countries, otters are killed for use in traditional medicine and their pelts.'},
+    ],
+    help: [
+      {i:'📱', a:'<strong>Never "like," share, or engage with</strong> videos of pet otters or otter cafes. Social media engagement directly drives demand that fuels the illegal pet trade.'},
+      {i:'🌿', a:'Avoid products containing unsustainably produced <strong>palm oil</strong>, which drives the mangrove and rainforest destruction that destroys otter habitat.'},
+      {i:'🦦', a:'Support the <strong>IUCN Otter Specialist Group</strong> and organizations like Traffic that combat illegal wildlife trade.'},
+      {i:'♻️', a:'Reduce fertilizer and pesticide use in gardens — chemicals run off into waterways and poison the crustaceans that otters depend on.'},
+    ],
+    facts: [
+      'Asian small-clawed otters have 12 distinct vocalizations — more than almost any other otter species. Families are extremely talkative, constantly chirping and chattering to each other.',
+      'Their paws are so sensitive that they can detect the tiny movements of a buried crab in muddy water purely by touch, without seeing it at all.',
+      'Groups establish latrine sites — communal toileting spots — which serve as social bulletin boards conveying information about individual identities and reproductive status.',
+    ],
+  },
+
+  'Smooth-coated Otter': {
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Smooth-coated_otter_%28Lutrogale_perspicillata%29_Kota_Kinabatangan.jpg/800px-Smooth-coated_otter_%28Lutrogale_perspicillata%29_Kota_Kinabatangan.jpg',
+    stats: { Weight:'7–11 kg', Length:'0.95–1.28 m', Lifespan:'~11 yrs', Population:'Declining', Range:'India to Borneo', Habitat:'Wetlands, rivers, mangroves' },
+    summary: `The smooth-coated otter (<em>Lutrogale perspicillata</em>) is the largest otter in Asia, named for its unusually short, sleek, velvety fur compared to other species. Highly social and found across South and Southeast Asia's river systems and wetlands, it is one of the world's most cooperative hunters. Packs of smooth-coated otters have been documented herding fish into shallow water before attacking simultaneously — a sophisticated team strategy previously known only in dolphins and orcas.`,
+    ecosystemRole: `Smooth-coated otters are <strong>apex aquatic predators</strong> in their habitats. Their cooperative fishing behavior can visibly alter fish distribution in river systems, and their role as large predators helps regulate populations of fish and frogs across vast wetland systems in South and Southeast Asia.`,
+    prey: [
+      {n:'Fish', note:'Primary prey — herded cooperatively into shallows'},
+      {n:'Frogs & Toads', note:''},
+      {n:'Crabs & Crustaceans', note:''},
+      {n:'Water Snakes', note:''},
+      {n:'Small Mammals', note:'Occasionally'},
+      {n:'Birds', note:'Waterbirds occasionally taken'},
+    ],
+    predators: [
+      {n:'Tiger', note:'Historically a predator across their shared range'},
+      {n:'Leopard', note:''},
+      {n:'Mugger Crocodile', note:'In Indian river systems'},
+      {n:'Saltwater Crocodile', note:'In SE Asian coastal habitats'},
+      {n:'Humans', note:'Conflict with fishermen; habitat destruction'},
+    ],
+    neighbors: ['Mugger Crocodile','Indian Water Buffalo','Fishing Cat','Ganges River Dolphin','Water Monitor','Asian Openbill Stork','Purple Heron','Painted Stork','Indian Softshell Turtle','Mahseer Fish'],
+    threatened: true,
+    reasons: [
+      {t:'Wetland Drainage & Habitat Loss', d:'Vast areas of South Asian wetlands — the Sundarbans, mangroves, and river floodplains — are being converted for agriculture, aquaculture, and urban development, destroying the habitats smooth-coated otters depend on.'},
+      {t:'Conflict with Fishermen', d:'Smooth-coated otters compete directly with humans for fish. They are sometimes killed as pests, and their cooperative herding behavior makes them particularly noticeable to fishermen.'},
+      {t:'Water Pollution', d:'Heavy agricultural chemical runoff from rice paddies, industrial effluents, and untreated sewage degrade river quality and reduce fish populations across their range.'},
+      {t:'Hunting & Pet Trade', d:'Like other Asian otter species, smooth-coated otters are targeted by the exotic pet trade and killed for traditional medicine in some areas.'},
+    ],
+    help: [
+      {i:'🌊', a:'Support organizations working to protect the Sundarbans and other critical South Asian wetland ecosystems, such as <strong>WWF India</strong>.'},
+      {i:'🐟', a:'Advocate for and practice sustainable fishing — overfishing of rivers removes the food base that otters need to survive.'},
+      {i:'🏭', a:'Support stricter enforcement of industrial pollution standards in South and Southeast Asia.'},
+      {i:'📸', a:'Ecotourism that respectfully observes smooth-coated otters in Singapore, Malaysia, and India generates local economic incentives to protect them.'},
+    ],
+    facts: [
+      'Singapore\'s smooth-coated otter families have become famous worldwide — family groups have colonized the city\'s reservoirs and waterways, delighting residents and tourists while demonstrating that wildlife can coexist with urban development.',
+      'Their cooperative fish-herding strategy is extraordinary: a group spreads out in a line across the water, splashes loudly to panic fish into a tight ball, then all dive simultaneously to feed.',
+      'Smooth-coated otters are the only otter species known to hunt at night in open sea, sometimes swimming far from shore to catch fish in tidal areas.',
+    ],
+  },
+
+  'Hairy-nosed Otter': {
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Otter_from_Cambodia.jpg/800px-Otter_from_Cambodia.jpg',
+    stats: { Weight:'~5–8 kg', Length:'~0.8–1.1 m', Lifespan:'Unknown', Population:'Unknown — critically low', Range:'SE Asia (Sumatra, Borneo, Indochina)', Habitat:'Peat swamp forests, lowland rivers' },
+    summary: `The hairy-nosed otter (<em>Lutra sumatrana</em>) is one of the world's rarest and least-studied mammals. Named for a unique patch of hair covering the upper surface of its nose — a feature found in no other otter species — it inhabits the dense lowland peat swamp forests of Southeast Asia. The species was declared extinct in the early 20th century after decades without confirmed sightings, only to be rediscovered in the 1990s in Vietnam, Thailand, and Sumatra. So little is known about this otter that even basic facts about its behavior and lifespan remain undocumented.`,
+    ecosystemRole: `Little is scientifically documented about the hairy-nosed otter's ecological role. Like other river otters, it likely serves as a <strong>freshwater predator</strong> controlling fish and crustacean populations in the peat swamp river systems it inhabits — ecosystems that are among the most carbon-rich and biodiverse on Earth.`,
+    prey: [
+      {n:'Fish', note:'Presumed primary prey based on habitat'},
+      {n:'Crustaceans', note:''},
+      {n:'Frogs', note:''},
+      {n:'Other Aquatic Invertebrates', note:'Specific diet largely unknown'},
+    ],
+    predators: [
+      {n:'Tiger', note:'Shares habitat in Sumatra and peninsular Malaysia'},
+      {n:'Clouded Leopard', note:'Present throughout its range'},
+      {n:'Saltwater Crocodile', note:'In coastal peat swamp areas'},
+      {n:'Humans', note:'Habitat destruction is the primary threat'},
+    ],
+    neighbors: ['Sumatran Tiger','Saltwater Crocodile','Proboscis Monkey','Bornean Orangutan','Sun Bear','Clouded Leopard','Storm\'s Stork','Malaysian False Gharial','Giant Mudskipper'],
+    threatened: true,
+    reasons: [
+      {t:'Peat Swamp Forest Destruction', d:'The hairy-nosed otter\'s primary habitat — lowland peat swamp forests — is being destroyed at catastrophic rates across Sumatra, Borneo, and peninsular Malaysia, primarily to make way for palm oil and acacia plantations. These forests sit on enormous carbon-rich peat deposits, and their clearing causes devastating fires and emissions.'},
+      {t:'Drainage & Conversion of Wetlands', d:'Peat swamps are deliberately drained to make land suitable for agriculture. Once drained and burned, these wetlands cannot be easily restored.'},
+      {t:'Hunting & Poaching', d:'Despite legal protections, the hairy-nosed otter is occasionally killed for its pelt or caught in traps set for other animals.'},
+      {t:'Extremely Low Population', d:'With so few individuals surviving in such fragmented patches of habitat, even small pressures risk local extinction and inbreeding depression.'},
+    ],
+    help: [
+      {i:'🌿', a:'Avoid products made with <strong>non-sustainable palm oil</strong> — check for RSPO certification or use the Rainforest Alliance shopping guide.'},
+      {i:'🔬', a:'Support <strong>IUCN Otter Specialist Group</strong> research funding — basic field research is desperately needed to understand this species before it disappears.'},
+      {i:'🌏', a:'Support <strong>Borneo Nature Foundation</strong> and <strong>WCS Indonesia</strong> programs protecting peat swamp habitat where hairy-nosed otters survive.'},
+      {i:'📢', a:'Raise awareness — most people have never heard of this species, which means political will to protect it is nearly absent.'},
+    ],
+    facts: [
+      'The hairy-nosed otter was collected as a museum specimen in the 1800s, then vanished entirely. When live individuals were photographed in the 1990s, many scientists considered it a major zoological rediscovery.',
+      'Its peat swamp habitat stores more carbon per hectare than tropical rainforest. Protecting hairy-nosed otters means also protecting some of the world\'s most important carbon sinks.',
+      'Almost everything we know about this species comes from fewer than 50 confirmed sightings, camera trap photos, and skull measurements from museum specimens collected over 150 years ago.',
+    ],
+  },
+
+  'Spotted-necked Otter': {
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Spotted-necked_otter_1.jpg/800px-Spotted-necked_otter_1.jpg',
+    stats: { Weight:'3–5.7 kg', Length:'0.6–0.9 m', Lifespan:'~15 yrs', Population:'Declining', Range:'Sub-Saharan Africa', Habitat:'Clear freshwater lakes & rivers' },
+    summary: `The spotted-necked otter (<em>Hydrictis maculicollis</em>) is a medium-sized African otter named for the distinctive cream-and-brown mottled spotting on its throat and chest — a pattern as unique to each individual as a fingerprint. Found across sub-Saharan Africa in clear lakes and fast-flowing rivers, it is notably more dependent on clean, clear water than most other otter species: it hunts almost exclusively by sight, diving to chase fish through transparent water. When water becomes turbid from pollution or land use change, spotted-necked otters quickly disappear.`,
+    ecosystemRole: `As a <strong>fish predator in clear African lakes and rivers</strong>, the spotted-necked otter helps regulate fish populations and energy flow in freshwater ecosystems. It is a sensitive <strong>indicator species</strong> for water clarity and aquatic ecosystem health.`,
+    prey: [
+      {n:'Fish', note:'Primary prey — cichlids, tilapia, catfish, and others'},
+      {n:'Frogs & Tadpoles', note:''},
+      {n:'Crabs', note:'Freshwater species'},
+      {n:'Aquatic Insects', note:'Larvae and adults'},
+      {n:'Mollusks', note:'Freshwater snails'},
+    ],
+    predators: [
+      {n:'Nile Crocodile', note:'Primary aquatic predator across its range'},
+      {n:'Martial Eagle', note:'Africa\'s most powerful eagle; capable of taking otters'},
+      {n:'Leopard', note:'Ambushes near water'},
+      {n:'Python', note:'African rock python near water'},
+      {n:'Humans', note:'Habitat degradation; occasional hunting'},
+    ],
+    neighbors: ['Hippopotamus','Nile Crocodile','African Fish Eagle','Reed Cormorant','African Darter','Goliath Heron','Tilapia','Nile Perch (invasive)','Otter Shrew','Cape Clawless Otter (in areas of overlap)'],
+    threatened: false,
+    facts: [
+      'Lake Victoria, the world\'s largest tropical lake and the spotted-necked otter\'s historic stronghold, lost hundreds of endemic cichlid fish species after the Nile perch was introduced in the 1950s — devastating local otter populations.',
+      'Spotted-necked otters are almost exclusively visual hunters — they locate fish by sight rather than whisker-touch, which is why water clarity is so critical to their survival.',
+      'In some parts of East Africa, spotted-necked and African clawless otters occupy the same waterways, but reduce competition by eating different prey: the spotted-necked focuses on fish while the clawless focuses on crabs.',
+    ],
+  },
+
+  'African Clawless Otter': {
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Aonyx_capensis%2C_male%2C_Shamvura.jpg/800px-Aonyx_capensis%2C_male%2C_Shamvura.jpg',
+    stats: { Weight:'10–21 kg', Length:'1.1–1.6 m', Lifespan:'~15 yrs', Population:'Stable', Range:'Sub-Saharan Africa', Habitat:'Rivers, estuaries, coastlines' },
+    summary: `The African clawless otter (<em>Aonyx capensis</em>), also called the Cape clawless otter, is the second-largest freshwater otter species and Africa's largest. Its most remarkable feature is its nearly claw-free, largely unwebbed front paws — more like hands than paws — which give it extraordinary dexterity for catching and manipulating prey. Highly adaptable, it is one of the few otter species comfortable in both freshwater rivers and saltwater coastal habitats, including estuaries, mangroves, and rocky ocean shores.`,
+    ecosystemRole: `By focusing primarily on crabs and slow-moving prey that other predators ignore, the African clawless otter fills a <strong>unique ecological niche</strong> as a specialized crustacean predator. This reduces competition with fish-eating predators like herons and crocodiles, while also controlling crab populations in estuarine and riverine food webs.`,
+    prey: [
+      {n:'Crabs', note:'Primary prey — caught by hand in mud and crevices'},
+      {n:'Frogs & Toads', note:''},
+      {n:'Fish', note:'Secondary prey; caught less often than by other species'},
+      {n:'Small Mammals', note:'Occasionally'},
+      {n:'Birds', note:'Occasionally, especially waterbirds'},
+      {n:'Insects & Worms', note:''},
+      {n:'Reptiles', note:'Small lizards and snakes'},
+    ],
+    predators: [
+      {n:'Nile Crocodile', note:'Primary aquatic threat'},
+      {n:'Martial Eagle', note:'Has been recorded predating otters'},
+      {n:'Leopard', note:'Hunts near water at night'},
+      {n:'Domestic Dogs', note:'Near human settlements'},
+      {n:'Humans', note:'Hunting, persecution, habitat loss'},
+    ],
+    neighbors: ['Hippopotamus','Nile Crocodile','African Fish Eagle','Reed Cormorant','Monitor Lizard','Vervet Monkey','Cape Mongoose','Giant Kingfisher','Yellow-billed Stork','Bushbuck (near rivers)','Fiddler Crab'],
+    threatened: false,
+    facts: [
+      'African clawless otters are the most terrestrially agile of all otters — they frequently travel long distances overland between water bodies and have been found kilometers from the nearest water.',
+      'Unlike most otters that eat fish in the water, clawless otters almost always drag prey onto land to eat it — perhaps because their unusual dexterous paws make handling prey on a stable surface easier.',
+      'They have been observed engaging in prolonged "wrestling matches" with large mud crabs — flipping the crab repeatedly to avoid its claws while trying to crush it with their powerful molars.',
+    ],
+  },
+
+  'Congo Clawless Otter': {
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Mazu_from_Congo.jpg/800px-Mazu_from_Congo.jpg',
+    stats: { Weight:'~14–20 kg', Length:'~1.1–1.5 m', Lifespan:'Unknown', Population:'Unknown', Range:'Central Africa (Congo Basin)', Habitat:'Tropical rainforest streams & swamps' },
+    summary: `The Congo clawless otter (<em>Aonyx congicus</em>) is perhaps the most mysterious large mammal in Africa. Restricted to the dense lowland rainforest of the Congo Basin, it is so rarely seen that virtually all scientific knowledge of the species comes from a handful of museum specimens collected over the past 150 years, a small number of camera trap images, and accounts from local hunters. Sometimes treated as a subspecies of the African clawless otter, most authorities now recognize it as a full species — distinct in its smaller teeth, paler coloration, and forest-adapted lifestyle.`,
+    ecosystemRole: `Almost nothing is scientifically documented about the Congo clawless otter\'s ecological role. It is presumed to function as a <strong>freshwater predator</strong> in Congo Basin river systems, which contain the second-highest freshwater fish biodiversity on Earth.`,
+    prey: [
+      {n:'Frogs & Amphibians', note:'Likely primary prey based on habitat'},
+      {n:'Freshwater Crabs', note:''},
+      {n:'Fish', note:''},
+      {n:'Other Aquatic Invertebrates', note:'Specific diet largely unknown'},
+    ],
+    predators: [
+      {n:'Leopard', note:'Apex predator throughout the Congo Basin'},
+      {n:'African Forest Elephant', note:'Not a predator, but shares and shapes the habitat'},
+      {n:'Forest Crocodile', note:'Dwarf crocodile in Congo Basin waterways'},
+      {n:'Humans', note:'Bushmeat hunting; habitat destruction'},
+    ],
+    neighbors: ['Western Lowland Gorilla','Forest Elephant','Chimpanzee','Okapi','Bongo Antelope','Dwarf Crocodile','African Dwarf Kingfisher','Congo Peacock','Bonobo (parts of range)','Forest Buffalo'],
+    threatened: false,
+    facts: [
+      'The Congo clawless otter shares its forest with more great ape species — gorillas, chimpanzees, and bonobos — than any other otter on Earth.',
+      'The Congo rainforest it inhabits is the world\'s second-largest tropical forest and one of the least scientifically studied large ecosystems on the planet.',
+      'Scientists debate whether to classify it as a full species or a subspecies of the African clawless otter — the answer matters legally for conservation protections but remains unresolved due to so little available data.',
+    ],
+  },
+
+  'Neotropical Otter': {
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Lontra_longicaudis_4.jpeg/800px-Lontra_longicaudis_4.jpeg',
+    stats: { Weight:'5–15 kg', Length:'0.86–1.5 m', Lifespan:'~15 yrs', Population:'Declining', Range:'Mexico to Argentina', Habitat:'Tropical rivers, streams, mangroves' },
+    summary: `The neotropical otter (<em>Lontra longicaudis</em>) is the most geographically widespread otter in Latin America, ranging from the tropical coasts of Mexico all the way to central Argentina — covering more latitude than any other otter species in the Americas. Despite this enormous range, populations are highly fragmented and declining due to decades of hunting and ongoing habitat destruction. It is primarily solitary and nocturnal, making it difficult to study. Remarkable for its ecological flexibility, it has been documented hunting in flooded forests, sandy ocean beaches, mountain streams at 3,000 m elevation, and urban waterways.`,
+    ecosystemRole: `As a <strong>generalist predator</strong> across an enormous range of Latin American aquatic habitats, the neotropical otter fills the role of fish and invertebrate population regulator across diverse ecosystems from tropical rainforest streams to Andean rivers to mangrove estuaries.`,
+    prey: [
+      {n:'Fish', note:'Primary prey across all habitats'},
+      {n:'Crustaceans', note:'Crabs, shrimp, crayfish'},
+      {n:'Mollusks', note:'Freshwater mussels and snails'},
+      {n:'Amphibians', note:'Frogs and salamanders'},
+      {n:'Insects', note:'Large aquatic species'},
+      {n:'Small Birds', note:'Occasionally'},
+      {n:'Small Reptiles', note:'Lizards, small snakes'},
+    ],
+    predators: [
+      {n:'Jaguar', note:'The apex predator throughout its range'},
+      {n:'Caiman', note:'Spectacled and other species'},
+      {n:'Anaconda', note:'Green and yellow anaconda in lowland areas'},
+      {n:'Large Raptors', note:'Harpy eagle can take juveniles'},
+      {n:'Humans', note:'Primary threat — hunting and habitat loss'},
+    ],
+    neighbors: ['Jaguar','Caiman','Capybara','Giant River Otter (overlapping range in Amazon)','Amazon River Dolphin','Kingfisher','Sunbittern','Jabiru','Anaconda','Ocelot','Tapir'],
+    threatened: false,
+    facts: [
+      'Neotropical otters have been documented at elevations above 3,000 meters in the Andes — higher than almost any other otter species on Earth.',
+      'In some coastal areas of Brazil, they have been observed surfing and swimming in the ocean, hunting fish along sandy beaches at night.',
+      'Despite being one of the most widespread Latin American carnivores, basic facts about neotropical otter population numbers remain unknown because they are so secretive and fragmented.',
+    ],
+  },
+
+  'Southern River Otter': {
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Southern_River_Otter.jpg/800px-Southern_River_Otter.jpg',
+    stats: { Weight:'~5–10 kg', Length:'0.9–1.1 m', Lifespan:'Unknown', Population:'< 1,000', Range:'Chile & Argentina', Habitat:'Rivers, lakes, rocky sea coasts' },
+    summary: `The southern river otter (<em>Lontra provocax</em>) is one of South America's most critically imperiled mammals. Found only in Chile and Argentina, it inhabits a striking range of cold-water environments — from the temperate rainforest rivers of Patagonia to the kelp-lined rocky coasts of the Pacific and Atlantic. Uniquely among river otters, it regularly hunts in the ocean, foraging along kelp beds in saltwater in a lifestyle resembling the sea otter. Reduced to fewer than 1,000 individuals, it faces the additional threat of inbreeding as its remaining populations are small and isolated.`,
+    ecosystemRole: `The southern river otter is a <strong>top predator in cold Patagonian freshwater and coastal ecosystems</strong>, regulating fish and crustacean populations. Its ability to live in both freshwater and marine environments gives it a broader ecological footprint than most river otters.`,
+    prey: [
+      {n:'Native Fish', note:'Galaxiids and other Patagonian species'},
+      {n:'Crustaceans', note:'Freshwater and marine crabs, crayfish'},
+      {n:'Mollusks', note:'Mussels and snails in marine habitats'},
+      {n:'Frogs', note:'In freshwater habitats'},
+      {n:'Sea Urchins', note:'In marine habitats, like sea otters'},
+    ],
+    predators: [
+      {n:'Puma', note:'The primary land predator throughout Patagonia'},
+      {n:'South American Sea Lion', note:'In marine coastal habitats'},
+      {n:'Humans', note:'Fur hunting nearly caused extinction; American mink competition'},
+    ],
+    neighbors: ['Puma (cougar)','South Andean Deer (Huemul)','Pudu','Andean Condor','Magellanic Penguin','Patagonian Sea Lion','Kelp Goose','Steamer Duck','Introduced American Mink (competitor)'],
+    threatened: true,
+    reasons: [
+      {t:'Historical Fur Trade', d:'Southern river otters were hunted relentlessly for their pelts throughout the 19th and early 20th centuries. By the 1960s–70s, they were virtually gone from most of their former range. Despite decades of legal protection, the population has never fully recovered.'},
+      {t:'Introduced American Mink', d:'American mink, introduced to South America for fur farming, escaped and established wild populations across Patagonia. They compete directly with southern river otters for food and den sites, and may also kill otter pups.'},
+      {t:'Habitat Loss & Water Pollution', d:'Deforestation of Patagonian forests for agriculture, hydroelectric dam construction, salmon farming, and water pollution have all degraded the rivers and coastlines the otter depends on.'},
+      {t:'Inbreeding & Genetic Fragmentation', d:'With fewer than 1,000 individuals split into small, isolated populations, southern river otters are increasingly affected by inbreeding. Reduced genetic diversity weakens immune systems and reproductive health.'},
+    ],
+    help: [
+      {i:'🌿', a:'Support <strong>Rewilding Chile</strong> and the Tompkins Conservation Foundation, which protect vast tracts of Patagonian wilderness — prime southern river otter habitat.'},
+      {i:'🐟', a:'Advocate for responsible, well-regulated salmon farming in Chile, which currently pollutes many Patagonian waterways with chemicals and disease.'},
+      {i:'🦦', a:'Support <strong>WCS Chile</strong> and the Centro de Estudios del Cuaternario (CEQUA) which monitor and protect southern river otter populations in Patagonia.'},
+      {i:'🌍', a:'Ecotourism in Chilean and Argentine Patagonia generates economic incentives to protect the wild rivers and coasts where this species survives.'},
+    ],
+    facts: [
+      'The southern river otter is one of only two river otter species (alongside the marine otter) known to regularly hunt in the open ocean, feeding along kelp beds like a sea otter.',
+      'In the Valdivian temperate rainforest — the world\'s only temperate rainforest in the Southern Hemisphere — southern river otters share rivers with pudus (the world\'s smallest deer), Andean condors, and pumas.',
+      'Genetic studies have found that isolated populations of southern river otters are becoming genetically distinct from each other due to fragmentation, a worrying sign for long-term survival.',
+    ],
+  },
+
+  'Marine Otter': {
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Marine_otter_%28Lontra_felina%29_Chiloe.jpg/800px-Marine_otter_%28Lontra_felina%29_Chiloe.jpg',
+    stats: { Weight:'3–6 kg', Length:'0.57–0.79 m', Lifespan:'Unknown', Population:'< 1,000', Range:'Pacific coast of Peru & Chile', Habitat:'Rocky Pacific coastlines, kelp beds' },
+    summary: `The marine otter (<em>Lontra felina</em>), known locally as the <em>gato marino</em> (sea cat), is the only member of the river otter genus (<em>Lontra</em>) to have evolved a fully marine lifestyle. Clinging to the rocky Pacific coastline of Peru and Chile, it hunts in the crashing surf among kelp beds, bracing itself against the rocks with powerful claws to avoid being swept away. Despite living in the ocean like the sea otter, it is not closely related to it — a remarkable example of parallel evolution. Possibly the rarest otter in the Americas, fewer than 1,000 individuals may remain across its entire range.`,
+    ecosystemRole: `The marine otter is a <strong>coastal marine predator</strong> that helps regulate populations of crabs, urchins, and fish in the rocky intertidal and subtidal zones of the Humboldt Current ecosystem — one of the world's most productive marine systems.`,
+    prey: [
+      {n:'Crabs', note:'Primary prey — caught among rocks in the surf'},
+      {n:'Shrimp & Prawns', note:''},
+      {n:'Mollusks', note:'Mussels, clams, snails'},
+      {n:'Sea Urchins', note:'In kelp-associated habitats'},
+      {n:'Fish', note:'Including anchovies, in coastal waters'},
+    ],
+    predators: [
+      {n:'Orca (Killer Whale)', note:'In deeper coastal waters'},
+      {n:'Great White Shark', note:'In southern parts of range'},
+      {n:'South American Sea Lion', note:'Competes for food; may prey on small otters'},
+      {n:'Humans', note:'Fur hunting, net entanglement, persecution by fishermen'},
+    ],
+    neighbors: ['South American Sea Lion','Humboldt Penguin','Chilean Flamingo','Peruvian Pelican','Kelp Gull','South American Fur Seal','Bottlenose Dolphin','Mola Mola (ocean sunfish)','Giant Kelp'],
+    threatened: true,
+    reasons: [
+      {t:'Historical Hunting', d:'Marine otters were hunted nearly to local extinction throughout the 19th and 20th centuries for their dense fur pelts. By the 1980s, populations had collapsed to dangerously low levels across much of their former range.'},
+      {t:'Entanglement in Fishing Nets', d:'Small-scale fishermen along the Chilean and Peruvian coast frequently deploy gill nets near rocky shores — exactly where marine otters hunt. Bycatch drowning is a significant cause of mortality.'},
+      {t:'Conflict with Fishermen', d:'Marine otters steal fish and shellfish from traps and nets. In retaliation, fishermen sometimes shoot, trap, or poison them.'},
+      {t:'Climate Change & El Niño', d:'El Niño events dramatically reduce marine productivity along the Humboldt Current, collapsing prey availability for marine otters. As climate change intensifies El Niño cycles, these impacts are becoming more severe.'},
+      {t:'Marine Pollution', d:'Plastic debris, chemical runoff from coastal agriculture, and oil from small vessels all degrade the rocky coastline habitats that marine otters depend on.'},
+    ],
+    help: [
+      {i:'🎣', a:'Support efforts to make small-scale fishing in Chile and Peru <strong>otter-friendly</strong> — modified net designs and seasonal closures near otter habitat can dramatically reduce bycatch.'},
+      {i:'🦦', a:'Support <strong>CONAF (Chile\'s National Forest Corporation)</strong> and <strong>SERNANP (Peru)</strong> in enforcing marine protected areas along the Humboldt Coast.'},
+      {i:'🌊', a:'Participate in and donate to coastal cleanup initiatives in Chile and Peru — plastic debris directly harms marine otter habitats.'},
+      {i:'🔬', a:'Fund <strong>basic research</strong> — population surveys, diet studies, and movement tracking for this species are nearly nonexistent, making conservation planning nearly impossible.'},
+    ],
+    facts: [
+      'The marine otter evolved independently from the sea otter — they share a marine lifestyle but are actually more closely related to river otters. This is a textbook example of convergent evolution.',
+      'It is so small (just 3–6 kg) that it hunts in breaking surf and tidal surge zones that larger predators cannot enter — essentially exploiting a niche between the land and the open sea.',
+      'Unlike sea otters, marine otters always sleep on land — they haul out onto rocky shores, sometimes climbing surprisingly steep rocky cliffs to reach sheltered resting spots above the waterline.',
+    ],
+  },
+
+  }; // end ARTICLE
+
+  // ═══════════════════════════════════════════
+  // ARTICLE MODAL LOGIC
+  // ═══════════════════════════════════════════
+  function openArticle(name) {
+    const d = ARTICLE[name];
+    if (!d) return;
+
+    // hero
+    document.getElementById('art-hero-img').src = d.photo;
+    document.getElementById('art-hero-img').alt = name;
+
+    // sticky + title
+    document.getElementById('art-sticky-name').textContent = name;
+    document.getElementById('art-title').textContent = name;
+
+    // find latin + status from OTTERS array
+    const o = OTTERS.find(x=>x.name===name) || {};
+    document.getElementById('art-latin').textContent = o.latin || '';
+    document.getElementById('art-sticky-latin').textContent = o.latin || '';
+    const sBadge = document.getElementById('art-status-badge');
+    sBadge.textContent = o.status || '';
+    sBadge.className = 'status ' + (o.statusClass || '');
+
+    // stats
+    document.getElementById('art-stats').innerHTML = Object.entries(d.stats).map(([k,v])=>
+      `<div class="art-stat"><div class="art-stat-label">${k}</div><div class="art-stat-val">${v}</div></div>`
+    ).join('');
+
+    // summary
+    document.getElementById('art-summary').innerHTML = d.summary;
+
+    // ecosystem role
+    document.getElementById('art-eco-text').innerHTML = d.ecosystemRole;
+
+    // prey
+    document.getElementById('art-prey-chips').innerHTML = d.prey.map(p=>
+      `<span class="art-chip art-chip-prey">${p.n}${p.note?`<span class="art-chip-note"> — ${p.note}</span>`:''}</span>`
+    ).join('');
+
+    // predators
+    document.getElementById('art-pred-chips').innerHTML = d.predators.map(p=>
+      `<span class="art-chip art-chip-pred">${p.n}${p.note?`<span class="art-chip-note"> — ${p.note}</span>`:''}</span>`
+    ).join('');
+
+    // neighbors
+    document.getElementById('art-nbr-chips').innerHTML = d.neighbors.map(n=>
+      `<span class="art-chip art-chip-nbr">${n}</span>`
+    ).join('');
+
+    // threatened sections
+    const tSection = document.getElementById('art-threatened-section');
+    tSection.style.display = d.threatened ? '' : 'none';
+    if (d.threatened) {
+      document.getElementById('art-reasons').innerHTML = d.reasons.map(r=>
+        `<div class="art-reason"><div class="art-reason-title">⚠️ ${r.t}</div><div class="art-reason-desc">${r.d}</div></div>`
+      ).join('');
+      document.getElementById('art-help').innerHTML = d.help.map(h=>
+        `<div class="art-help-item"><span class="art-help-icon">${h.i}</span><span class="art-help-text">${h.a}</span></div>`
+      ).join('');
+    }
+
+    // facts
+    document.getElementById('art-facts-list').innerHTML = d.facts.map(f=>
+      `<div class="art-fact-item"><span class="art-fact-bullet">◆</span><span class="art-fact-text">${f}</span></div>`
+    ).join('');
+
+    // open
+    const ov = document.getElementById('article-overlay');
+    ov.scrollTop = 0;
+    ov.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeArticle() {
+    document.getElementById('article-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.code==='Escape' && document.getElementById('article-overlay').classList.contains('open')) closeArticle();
+  });
+
+  // Escape key closes any open mini game
+  document.addEventListener('keydown', e => {
+    if (e.code!=='Escape') return;
+    ['quiz-ov','tf-ov','ss-ov'].forEach(id=>{
+      if (document.getElementById(id).classList.contains('open')) {
+        document.getElementById(id).classList.remove('open');
+        openMiniHub();
+      }
+    });
+    if (document.getElementById('mini-hub').classList.contains('open')) closeMiniHub();
+  });
+</script>
+
+<!-- ══ MINI GAMES HUB ══ -->
+<div id="mini-hub">
+  <button class="hub-close" onclick="closeMiniHub()">✕ Close</button>
+  <div class="hub-title">🎮 Otter Mini Games</div>
+  <p class="hub-sub">Three games to test your otter knowledge</p>
+  <div class="hub-cards">
+    <div class="hub-card" onclick="openQuiz()">
+      <span class="hub-icon">⚡</span>
+      <div class="hub-name">Trivia Blitz</div>
+      <div class="hub-desc">10 multiple-choice questions. 15 seconds each. How many can you answer before time runs out?</div>
+    </div>
+    <div class="hub-card" onclick="openTF()">
+      <span class="hub-icon">✅</span>
+      <div class="hub-name">True or False</div>
+      <div class="hub-desc">30 seconds, rapid-fire otter facts. Swipe true or false as fast as you can. Build your streak!</div>
+    </div>
+    <div class="hub-card" onclick="openSS()">
+      <span class="hub-icon">⚖️</span>
+      <div class="hub-name">Size Showdown</div>
+      <div class="hub-desc">Can you rank 5 otter species from heaviest to lightest? Their sizes might surprise you!</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ QUIZ OVERLAY ══ -->
+<div class="mini-ov" id="quiz-ov">
+  <div class="mini-bar">
+    <span class="mini-bar-title" style="color:#818cf8">⚡ Trivia Blitz</span>
+    <div style="font-size:.82rem;color:var(--muted)">✓ <strong id="q-correct">0</strong> / <span id="q-total">10</span></div>
+    <button class="mini-back" onclick="closeQuiz()">‹ Games</button>
+  </div>
+  <div class="mini-body">
+    <div class="prog-track" style="max-width:540px"><div class="prog-fill" id="q-prog" style="width:100%;background:var(--accent)"></div></div>
+    <div class="quiz-qnum" id="q-num">Question 1 of 10</div>
+    <div class="quiz-q" id="q-text"></div>
+    <div class="quiz-opts" id="q-opts"></div>
+    <div class="quiz-fact-box" id="q-fact"></div>
+    <button class="quiz-nxt" id="q-nxt" onclick="qNext()">Next →</button>
+    <!-- game over -->
+    <div class="mini-go" id="quiz-go">
+      <div class="go-emoji">🧠</div>
+      <div class="go-title">Quiz Complete!</div>
+      <div class="go-score" id="q-go-score">0/10</div>
+      <p class="go-msg" id="q-go-msg"></p>
+      <div class="go-btns">
+        <button class="go-btn go-primary" onclick="openQuiz()">🔁 Play Again</button>
+        <button class="go-btn go-secondary" onclick="closeQuiz()">‹ Back to Games</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TRUE / FALSE OVERLAY ══ -->
+<div class="mini-ov" id="tf-ov">
+  <div class="mini-bar">
+    <span class="mini-bar-title" style="color:var(--green)">✅ True or False Blitz</span>
+    <div style="font-size:.82rem;color:var(--muted)">Score: <strong id="tf-score-val" style="color:var(--accent);font-size:1.1rem">0</strong></div>
+    <button class="mini-back" onclick="closeTF()">‹ Games</button>
+  </div>
+  <div class="mini-body">
+    <div class="tf-wrap">
+      <div class="tf-ring">
+        <svg width="76" height="76" viewBox="0 0 76 76">
+          <circle cx="38" cy="38" r="30" fill="none" stroke="var(--card2)" stroke-width="6"/>
+          <circle cx="38" cy="38" r="30" fill="none" stroke="var(--accent)" stroke-width="6"
+            stroke-linecap="round" id="tf-circle"
+            style="stroke-dasharray:188.5;stroke-dashoffset:0;transition:stroke-dashoffset .1s linear,stroke .3s"/>
+        </svg>
+        <div class="tf-ring-num" id="tf-ring-num">30</div>
+      </div>
+      <div class="tf-stmt" id="tf-stmt">Loading...</div>
+      <div class="tf-streak" id="tf-streak-txt"></div>
+      <div class="tf-btns">
+        <button class="tf-btn tf-t" onclick="tfAnswer(true)">TRUE<span>T or →</span></button>
+        <button class="tf-btn tf-f" onclick="tfAnswer(false)">FALSE<span>F or ←</span></button>
+      </div>
+      <div class="tf-feedback" id="tf-feedback"></div>
+      <div class="tf-score-row">Correct: <strong id="tf-score-val2">0</strong></div>
+    </div>
+    <!-- game over -->
+    <div class="mini-go" id="tf-go">
+      <div class="go-emoji">⚡</div>
+      <div class="go-title">Time's Up!</div>
+      <div class="go-score" id="tf-go-score">0</div>
+      <p class="go-msg" id="tf-go-msg"></p>
+      <div class="go-btns">
+        <button class="go-btn go-primary" onclick="openTF()">🔁 Play Again</button>
+        <button class="go-btn go-secondary" onclick="closeTF()">‹ Back to Games</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SIZE SHOWDOWN OVERLAY ══ -->
+<div class="mini-ov" id="ss-ov">
+  <div class="mini-bar">
+    <span class="mini-bar-title" style="color:var(--gold)">⚖️ Size Showdown</span>
+    <div style="font-size:.78rem;color:var(--muted)">Heaviest → Lightest</div>
+    <button class="mini-back" onclick="closeSS()">‹ Games</button>
+  </div>
+  <div class="mini-body">
+    <div class="ss-instr" id="ss-instr">Click the otters from HEAVIEST to LIGHTEST</div>
+    <div class="ss-pool" id="ss-pool"></div>
+    <div class="ss-slots" id="ss-slots"></div>
+    <button class="ss-submit" id="ss-submit" onclick="ssCheck()">Check My Ranking ✓</button>
+    <!-- game over -->
+    <div class="mini-go" id="ss-go">
+      <div class="go-emoji">⚖️</div>
+      <div class="go-title">Results!</div>
+      <div class="go-score" id="ss-go-score">0/5</div>
+      <p class="go-msg" id="ss-go-msg"></p>
+      <div class="go-btns">
+        <button class="go-btn go-primary" onclick="openSS()">🔁 Try Again</button>
+        <button class="go-btn go-secondary" onclick="closeSS()">‹ Back to Games</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MATCHING GAME OVERLAY -->
+<div id="mg-overlay">
+  <div class="mg-header">
+    <span class="mg-title">🔮 Otter Matching Game</span>
+    <div class="mg-timer-wrap">
+      <div class="mg-timer" id="mg-timer">0:00.0</div>
+      <div class="mg-timer-label">⏱ Stopwatch — starts on first click</div>
+      <div class="mg-best-time" id="mg-best-time"></div>
+    </div>
+    <div class="mg-header-right">
+      <button class="mg-close" onclick="closeMatchingGame()">✕ Exit</button>
+      <div class="mg-score"><strong id="mg-score">0</strong> / 13 matched</div>
+    </div>
+  </div>
+
+  <div class="mg-panels" id="mg-panels">
+    <div class="mg-panel">
+      <div class="mg-panel-title">🖼 Pictures — tap to select</div>
+      <div class="mg-panel-scroll">
+        <div class="mg-pics-grid" id="mg-pics"></div>
+      </div>
+    </div>
+    <div class="mg-panel">
+      <div class="mg-panel-title">📝 Names — tap to match</div>
+      <div class="mg-panel-scroll">
+        <div class="mg-names-grid" id="mg-names"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mg-complete" id="mg-complete">
+    <div class="mg-complete-trophy">🏆</div>
+    <h2>All 13 Matched!</h2>
+    <div class="mg-final-time" id="mg-final-time">0:00.0</div>
+    <p class="mg-new-best" id="mg-best-result"></p>
+    <p class="mg-encourage" id="mg-encourage"></p>
+    <div class="mg-btns">
+      <button class="mg-btn mg-btn-primary" onclick="mgRestart()">🔁 Play Again</button>
+      <button class="mg-btn mg-btn-secondary" onclick="closeMatchingGame()">✕ Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ARTICLE OVERLAY ── -->
+<div id="article-overlay">
+  <!-- sticky header -->
+  <div class="art-sticky">
+    <div>
+      <div class="art-sticky-name" id="art-sticky-name"></div>
+      <div class="art-sticky-latin" id="art-sticky-latin"></div>
+    </div>
+    <button class="art-close" onclick="closeArticle()">✕ Close</button>
+  </div>
+
+  <!-- hero photo -->
+  <img class="art-hero" id="art-hero-img" src="" alt="">
+
+  <!-- body -->
+  <div class="art-body">
+    <h1 class="art-title" id="art-title"></h1>
+    <div class="art-latin" id="art-latin"></div>
+
+    <div class="art-status-row">
+      <span class="art-status-label">Conservation Status:</span>
+      <span id="art-status-badge"></span>
+    </div>
+
+    <!-- stats grid -->
+    <div class="art-stats-row" id="art-stats"></div>
+
+    <!-- summary -->
+    <div class="art-section">
+      <div class="art-section-title eco">🌊 About This Species</div>
+      <p class="art-para" id="art-summary"></p>
+    </div>
+
+    <!-- ecosystem role -->
+    <div class="art-section">
+      <div class="art-section-title eco">🌿 Role in the Ecosystem</div>
+      <p class="art-para" id="art-eco-text"></p>
+    </div>
+
+    <!-- prey -->
+    <div class="art-section">
+      <div class="art-section-title prey">🦐 What They Eat (Prey)</div>
+      <div class="art-chips" id="art-prey-chips"></div>
+    </div>
+
+    <!-- predators -->
+    <div class="art-section">
+      <div class="art-section-title pred">🦈 What Hunts Them (Predators)</div>
+      <div class="art-chips" id="art-pred-chips"></div>
+    </div>
+
+    <!-- neighbors -->
+    <div class="art-section">
+      <div class="art-section-title nbr">🐾 Animals They Live Alongside</div>
+      <div class="art-chips" id="art-nbr-chips"></div>
+    </div>
+
+    <!-- threatened section (hidden for non-threatened species) -->
+    <div id="art-threatened-section">
+      <div class="art-section">
+        <div class="art-section-title why">⚠️ Why They Are Endangered</div>
+        <div class="art-reason-list" id="art-reasons"></div>
+      </div>
+      <div class="art-section">
+        <div class="art-section-title help">🤝 How You Can Help</div>
+        <div class="art-help-list" id="art-help"></div>
+      </div>
+    </div>
+
+    <!-- cool facts -->
+    <div class="art-section">
+      <div class="art-section-title facts">✨ Cool Facts</div>
+      <div class="art-facts-list" id="art-facts-list"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
