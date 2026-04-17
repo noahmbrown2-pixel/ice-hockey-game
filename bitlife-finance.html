@@ -180,6 +180,8 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 .modal-tag.dis{background:rgba(255,61,61,.2);color:var(--red)}
 .modal-tag.mil{background:rgba(255,215,0,.2);color:var(--gold)}
 .modal-tag.fla{background:rgba(79,195,247,.2);color:var(--blue)}
+.modal-tag.exp{background:rgba(255,167,38,.2);color:var(--orange)}
+.modal-tag.tip{background:rgba(206,147,216,.2);color:var(--purple)}
 .modal-title{font-size:18px;font-weight:800;margin-bottom:6px;text-align:center}
 .modal-body{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:16px;text-align:center}
 .modal-result{background:var(--bg3);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:600;text-align:center;border-left:3px solid var(--gold)}
@@ -332,6 +334,10 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
           <div class="info-row"><span class="ir-label">Credit Cards</span><span class="ir-value neg" id="d-cc">$0</span></div>
           <div class="info-row"><span class="ir-label">Other Loans</span><span class="ir-value neg" id="d-loans">$0</span></div>
           <div class="info-row"><span class="ir-label"><b>Total Debt</b></span><span class="ir-value neg" id="d-total">$0</span></div>
+        </div>
+        <div class="section">
+          <h3>🛍️ Deferred Expenses</h3>
+          <div id="d-deferred"><p style="color:var(--muted);font-size:11px">No deferred expenses.</p></div>
         </div>
       </div>
 
@@ -505,6 +511,30 @@ const CAREER_TIERS = [
 ];
 const DEATH_CAUSES = ['Heart Attack','Cancer','Stroke','Old Age','Pneumonia','Liver Failure','Accident'];
 
+// ── Monthly Expense Items ─────────────────────────────────────────
+const MONTHLY_EXPENSES = [
+  {name:'New Shoes',          icon:'👟', min:80,   max:180},
+  {name:'Brand New TV',       icon:'📺', min:300,  max:900},
+  {name:'New Smartphone',     icon:'📱', min:400,  max:1100},
+  {name:'Designer Jacket',    icon:'🧥', min:120,  max:400},
+  {name:'New Laptop',         icon:'💻', min:600,  max:1500},
+  {name:'Gaming Console',     icon:'🎮', min:300,  max:600},
+  {name:'Headphones',         icon:'🎧', min:50,   max:350},
+  {name:'Smart Watch',        icon:'⌚', min:150,  max:500},
+  {name:'New Couch',          icon:'🛋️', min:400,  max:1200},
+  {name:'Coffee Maker',       icon:'☕', min:40,   max:200},
+  {name:'Gym Equipment',      icon:'🏋️', min:100,  max:600},
+  {name:'Kitchen Appliance',  icon:'🍳', min:80,   max:400},
+  {name:'Car Accessories',    icon:'🚗', min:60,   max:300},
+  {name:'New Outfit',         icon:'👔', min:80,   max:250},
+  {name:'Sunglasses',         icon:'🕶️', min:30,   max:300},
+  {name:'Power Tool',         icon:'🔧', min:80,   max:350},
+  {name:'Backpack',           icon:'🎒', min:40,   max:200},
+  {name:'Home Decor Set',     icon:'🪴', min:60,   max:250},
+  {name:'Bluetooth Speaker',  icon:'🔊', min:50,   max:300},
+  {name:'Air Purifier',       icon:'💨', min:80,   max:350},
+];
+
 function createChar(name, scenario){
   const sc = {broke:{cash:500,savings:0,debt:25000,salaryMult:0.7},middle:{cash:5000,savings:2000,debt:8000,salaryMult:1.0},rich:{cash:50000,savings:100000,debt:0,salaryMult:1.5}};
   const s = sc[scenario]||sc.middle;
@@ -522,6 +552,7 @@ function createChar(name, scenario){
     creditCards:0, studentDebt:s.debt,
     _graduated:scenario!=='broke', _hadFirstJob:false, _everMarried:false,
     events:[],
+    pendingExpenses:[],  // [{name, icon, cost, monthsLeft}]
   };
 }
 
@@ -1087,6 +1118,111 @@ function selectEvents(char){
 //  ANNUAL TICK
 // ════════════════════════════════════════════════════════════════
 
+// ── Financial Tips ───────────────────────────────────────────────
+const FINANCIAL_TIPS = [
+  {icon:'💳', tip:'Pay your credit card balance in full every month. Carrying a balance at 20%+ APR costs you far more than any reward points you earn.'},
+  {icon:'🏦', tip:'Move your savings to a high-yield account. A 4% high-yield account earns 20× more interest than a standard 0.2% savings account.'},
+  {icon:'📊', tip:'Max out your 401(k) match before investing anywhere else. That employer match is an instant 50–100% return — nothing beats free money.'},
+  {icon:'💰', tip:'Follow the 50/30/20 rule: 50% of take-home pay on needs, 30% on wants, 20% on savings and debt. It\'s a simple framework that works.'},
+  {icon:'📈', tip:'Time in the market beats timing the market. Investing $500/month starting at 25 grows to ~$1.7M by 65 at 7% average returns.'},
+  {icon:'🎯', tip:'Build a 3–6 month emergency fund before investing. Without it, one unexpected expense forces you to sell investments at the worst time.'},
+  {icon:'🏠', tip:'Your home is a place to live, not your retirement plan. Don\'t neglect stocks and retirement accounts just because you own property.'},
+  {icon:'📉', tip:'Don\'t panic sell during market crashes. Every major crash in history has recovered. Selling locks in your losses permanently.'},
+  {icon:'🔄', tip:'Automate your savings. Set up automatic transfers on payday. Money you never see in checking is money you never spend.'},
+  {icon:'💸', tip:'Avoid lifestyle inflation. When you get a raise, save at least 50% of it before upgrading your lifestyle. Future you will thank you.'},
+  {icon:'🎓', tip:'Higher education pays off — but only if you earn more than your loan cost. Calculate your expected salary before taking on student debt.'},
+  {icon:'🚗', tip:'Buy used cars, not new. A new car loses 20% of its value the moment you drive it off the lot. A 2-year-old car is often half the price.'},
+  {icon:'📱', tip:'Audit your subscriptions. The average person pays for 4–5 services they barely use. That\'s $100–200/month of invisible spending.'},
+  {icon:'🏋️', tip:'Investing in your health now saves massive medical bills later. Poor health is one of the biggest unexpected financial disasters.'},
+  {icon:'📋', tip:'Track every dollar you spend for one month. Most people are shocked — the small daily purchases add up to thousands per year.'},
+  {icon:'🤝', tip:'Negotiate your salary. Workers who negotiate earn $5,000–$20,000 more per year on average. That gap compounds over an entire career.'},
+  {icon:'🔑', tip:'Real estate builds wealth through equity and appreciation. If you can afford a down payment, owning often beats renting long-term.'},
+  {icon:'💎', tip:'Index funds beat most active fund managers over 10+ years. A simple S&P 500 ETF with low fees outperforms 90% of professional stock pickers.'},
+  {icon:'📅', tip:'Pay yourself first. Treat your savings contribution like a bill due on payday. It\'s not optional — it\'s the rent you pay to your future self.'},
+  {icon:'⚠️', tip:'Credit card debt is the most expensive debt you can carry. At 20% APR, a $5,000 balance costs you $1,000/year just in interest.'},
+  {icon:'🌱', tip:'Compound interest is the 8th wonder of the world. $10,000 invested at 25 becomes $150,000 by 65 at 7% — without adding another cent.'},
+  {icon:'🛡️', tip:'Get term life insurance if anyone depends on your income. A $500k policy can cost as little as $20/month in your 20s and 30s.'},
+  {icon:'🎰', tip:'Gambling, crypto, and "hot stock tips" are entertainment budgets — not investment strategies. Never bet money you can\'t afford to lose.'},
+  {icon:'👴', tip:'Start contributing to a Roth IRA as soon as you have earned income. Tax-free growth for 40+ years is one of the best deals in personal finance.'},
+  {icon:'🏷️', tip:'Buy quality items once instead of cheap items repeatedly. A good pair of boots lasting 10 years is cheaper than buying $30 boots every year.'},
+  {icon:'🔮', tip:'Diversify your investments. Don\'t put all your money in one stock, one sector, or one asset class. Diversification is the only free lunch in finance.'},
+  {icon:'📞', tip:'Call and negotiate your bills annually — internet, insurance, phone. Companies offer retention deals. Most people save $50–200/month just by asking.'},
+  {icon:'🏪', tip:'Cook at home. The average American spends $3,000–5,000/year dining out. Cutting that in half and investing the difference adds up to real wealth.'},
+  {icon:'🧾', tip:'Keep your housing cost under 30% of gross income. Going higher squeezes out savings, investments, and financial flexibility.'},
+  {icon:'💡', tip:'Side income is the fastest way to accelerate savings. Even an extra $500/month invested for 20 years at 7% grows to over $260,000.'},
+];
+
+let _lastTipIndex = -1;
+
+function generateTipEvent(){
+  let idx;
+  do { idx = ri(0, FINANCIAL_TIPS.length-1); } while(idx === _lastTipIndex);
+  _lastTipIndex = idx;
+  const t = FINANCIAL_TIPS[idx];
+  return {
+    id:'financial_tip',
+    title:'Financial Tip',
+    cat:'tip',
+    icon:'💡',
+    desc: t.tip,
+    choices:[{text:'Got it, thanks!', fn(c){ return ''; }}],
+  };
+}
+
+// ── Pending Expense Tick ──────────────────────────────────────────
+function tickPendingExpenses(char, ev){
+  if(!char.pendingExpenses) char.pendingExpenses=[];
+  const stillPending=[];
+  for(const exp of char.pendingExpenses){
+    exp.monthsLeft--;
+    if(exp.monthsLeft<=0){
+      // Time's up — force-pay regardless of balance
+      const hadFunds = char.checking >= exp.cost;
+      char.checking -= exp.cost;
+      // Credit score hit: -15 to -25, worse if it pushed balance negative
+      const scoreDrop = hadFunds ? ri(15,25) : ri(30,50);
+      char.creditScore = clamp(char.creditScore - scoreDrop, 300, 850);
+      const balanceNote = !hadFunds ? ` Account went negative!` : '';
+      ev.push({type:'bad', text:`⚠️ Forced payment: ${exp.icon} ${exp.name} — ${fmt$(exp.cost)} auto-deducted. Credit score -${scoreDrop}.${balanceNote}`});
+    } else {
+      stillPending.push(exp);
+    }
+  }
+  char.pendingExpenses = stillPending;
+}
+
+// ── Monthly Expense Generator ─────────────────────────────────────
+function generateMonthlyExpenseEvent(char){
+  if(char.age < 16) return null;
+  const item = pick(MONTHLY_EXPENSES);
+  const cost = ri(item.min, item.max);
+  return {
+    id: 'monthly_expense_'+Date.now(),
+    title: item.name,
+    cat: 'expense',
+    icon: item.icon,
+    desc: `You spotted a ${item.name.toLowerCase()} you want. It costs ${fmt$(cost)}. Pay now or defer up to 10 months — but miss the deadline and it auto-deducts with a credit penalty.`,
+    _cost: cost,
+    _item: item,
+    choices:[
+      {text:`Buy Now — ${fmt$(cost)} from checking`,
+       fn(c){
+         c.checking -= cost;
+         c.creditScore = clamp(c.creditScore + ri(1,3), 300, 850);
+         return `Paid ${fmt$(cost)} for ${item.name}. Credit score +${ri(1,3)} (on-time).`;
+       }
+      },
+      {text:`Defer — pay within 10 months or auto-deducted`,
+       fn(c){
+         if(!c.pendingExpenses) c.pendingExpenses=[];
+         c.pendingExpenses.push({name:item.name, icon:item.icon, cost, monthsLeft:10});
+         return `Deferred. ${fmt$(cost)} due in 10 months. Miss it and your credit takes a hit.`;
+       }
+      },
+    ],
+  };
+}
+
 function annualTick(){ monthlyTick(); } // alias kept for compatibility
 
 function monthlyTick(){
@@ -1126,6 +1262,9 @@ function monthlyTick(){
     if(c.age>40) c.health=clamp(c.health-rf(0.5,1.5),0,100);
   }
 
+  // Tick deferred expenses (auto-pay overdue ones)
+  tickPendingExpenses(c, ev);
+
   // Monthly finances
   const fin=tickFinances(c, ev);
 
@@ -1146,11 +1285,16 @@ function monthlyTick(){
     return;
   }
 
-  // Interactive events: ~1 event every 3-4 months on average
+  // Build event queue: monthly expense first, then life event, then occasional tip
+  GS.pendingEvents=[];
+  const expEvent = generateMonthlyExpenseEvent(c);
+  if(expEvent) GS.pendingEvents.push(expEvent);
   if(pct(0.30)){
     const events=selectEvents(c);
-    GS.pendingEvents=[...events.slice(0,1)]; // max 1 event per month
+    if(events.length) GS.pendingEvents.push(events[0]);
   }
+  // Financial tip: roughly every 4-5 months
+  if(pct(0.22)) GS.pendingEvents.push(generateTipEvent());
 
   updateUI(fin, prevNW, nw);
   saveGame();
@@ -1212,6 +1356,13 @@ function updateUI(fin, prevNW, nw){
   setText('d-cc',fmt$(c.creditCards||0));
   setText('d-loans',fmt$(Math.max(0,c.debt-(c.studentDebt||0)-(c.creditCards||0))));
   setText('d-total',fmt$(c.debt));
+  // Deferred expenses
+  const defEl=$('d-deferred');
+  if(defEl){
+    const pending=c.pendingExpenses||[];
+    if(!pending.length){defEl.innerHTML='<p style="color:var(--muted);font-size:11px">No deferred expenses.</p>';}
+    else{defEl.innerHTML=pending.map(e=>`<div class="info-row"><span class="ir-label">${e.icon} ${e.name}</span><span class="ir-value neg">${fmt$(e.cost)} <span style="color:var(--muted);font-size:10px">(${e.monthsLeft}mo left)</span></span></div>`).join('');}
+  }
   drawCreditDial(c.creditScore);
 
   // Invest tab
@@ -1364,7 +1515,7 @@ function showEventModal(ev){
   $('m-icon').textContent=ev.icon||'💬';
   const tagEl=$('m-tag');
   tagEl.textContent=ev.cat||'Event';
-  tagEl.className='modal-tag '+(ev.cat==='opportunity'?'opp':ev.cat==='disaster'?'dis':ev.cat==='milestone'?'mil':'fla');
+  tagEl.className='modal-tag '+(ev.cat==='opportunity'?'opp':ev.cat==='disaster'?'dis':ev.cat==='milestone'?'mil':ev.cat==='expense'?'exp':ev.cat==='tip'?'tip':'fla');
   $('m-title').textContent=ev.title;
   $('m-body').textContent=ev.desc;
   $('m-result').style.display='none';
