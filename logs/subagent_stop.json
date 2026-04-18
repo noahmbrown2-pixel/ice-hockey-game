@@ -1,0 +1,110 @@
+[
+  {
+    "session_id": "4449e6cc-adc1-4418-99f5-3524f34257b8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\4449e6cc-adc1-4418-99f5-3524f34257b8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "agent_id": "a914497be07e62a32",
+    "agent_type": "",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\4449e6cc-adc1-4418-99f5-3524f34257b8\\subagents\\agent-a914497be07e62a32.jsonl",
+    "last_assistant_message": "Set up 6 GitHub repos as Claude Code tools and Python packages. Everything is installed \u00e2\u20ac\u201d restart Claude Code and set your ANTHROPIC_API_KEY and ENGINEER_NAME environment variables to activate all hooks."
+  },
+  {
+    "session_id": "0e933e2a-d2ff-4e7f-9828-ca7f69c86398",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\0e933e2a-d2ff-4e7f-9828-ca7f69c86398.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "agent_id": "a85d70b493ba1f581",
+    "agent_type": "claude-code-guide",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\0e933e2a-d2ff-4e7f-9828-ca7f69c86398\\subagents\\agent-a85d70b493ba1f581.jsonl",
+    "last_assistant_message": "Excellent! I've compiled a comprehensive list of recently added Claude Code features. Here's what's new, organized by category:\n\n## **COMPREHENSIVE CLAUDE CODE RECENT FEATURES (v2.1.83\u00e2\u20ac\u201cv2.1.112)**\n\n### **Major New Capabilities**\n\n**Auto Mode (Research Preview)** - v2.1.83+\n- Automatic permission classifier that approves safe actions without prompts and blocks risky ones\n- Middle ground between manual approval and `--dangerously-skip-permissions`\n- Enable with: `--auto-mode` or set `defaultMode: \"auto\"` in settings.json\n- Set `PermissionDenied` hook to retry: `{retry: true}`\n\n**Computer Use** - v2.1.86+\n- Claude can open native apps, click UI, navigate screen\n- Available in CLI (research preview) and Desktop app\n- Enable with: `CLAUDE_CODE_ENABLE_COMPUTER_USE=1`\n- Best for GUI verification tasks\n\n---\n\n### **Effort Levels & Performance**\n\n**Claude Opus 4.7 xhigh** - v2.1.111+\n- New effort level between `high` and `max`\n- Interactive slider: `/effort` (navigate with arrow keys, confirm with Enter)\n- Auto mode available for Max subscribers with Opus 4.7\n- Reset to default: `/effort auto`\n\n---\n\n### **New Slash Commands**\n\n| Command | Purpose |\n|---------|---------|\n| `/ultrareview` | Cloud-based comprehensive code review with multi-agent analysis |\n| `/ultrareview <PR#>` | Review specific GitHub PR |\n| `/effort` | Interactive slider for effort level selection |\n| `/tui` | Switch to flicker-free fullscreen rendering |\n| `/tui fullscreen` | Explicitly enable fullscreen |\n| `/focus` | Toggle focus view (show only final response) |\n| `/less-permission-prompts` | Scan transcripts and auto-generate bash/MCP allowlist |\n| `/powerup` | Interactive feature lessons with demos |\n| `/team-onboarding` | Generate teammate ramp-up guide |\n| `/ultraplan` | Draft plans in cloud, review in web editor, run remotely |\n| `/loop [interval]` | Run prompt on recurring interval; self-paces if interval omitted |\n| `/schedule` | Create/update/list/run scheduled remote agents (cron) |\n| `/autofix-pr` | Enable PR auto-fix from terminal |\n| `/monitor` | Stream background events into conversation |\n| `/copy N` | Copy Nth-latest response |\n| `/undo` | Alias for `/rewind` |\n| `/recap` | Manually invoke recap feature |\n| `/color` | Set session prompt-bar color |\n| `/btw` | Side question during response |\n\n---\n\n### **New Settings & Configuration Options**\n\n**Settings.json New Fields:**\n```json\n{\n  \"showThinkingSummaries\": true,        // enable thinking summaries (off by default)\n  \"disableSkillShellExecution\": true,   // disable skill script execution\n  \"autoMemoryDirectory\": \"/path/to/memory\",\n  \"autoScrollEnabled\": false,           // disable auto-scroll in fullscreen\n  \"showClearContextOnPlanAccept\": false,\n  \"feedbackSurveyRate\": 0.1,           // enterprise admins\n  \"refreshInterval\": 30,                // status line re-run interval (seconds)\n  \"modelOverrides\": {\n    \"Opus\": \"arn:aws:bedrock:...\"      // custom model mappings\n  },\n  \"worktree\": {\n    \"sparsePaths\": [\"packages/web\", \"packages/cli\"]  // sparse checkout\n  },\n  \"sandbox\": {\n    \"failIfUnavailable\": true,\n    \"network.allowMachLookup\": true,    // macOS\n    \"filesystem.allowRead\": [\"/allowed/path\"],\n    \"filesystem.allowWrite\": [\"/absolute/path\"]\n  },\n  \"hooks\": {\n    \"eventName\": {\n      \"if\": \"Bash(git *)\",              // conditional hook execution\n      \"...\": \"...\"\n    }\n  },\n  \"disableDeepLinkRegistration\": true,\n  \"defaultMode\": \"auto\"                 // enable auto mode by default\n}\n```\n\n---\n\n### **New Environment Variables**\n\n```bash\n# Prompt Caching (Critical for Windows 11 users)\nENABLE_PROMPT_CACHING_1H=1                    # 1-hour cache TTL\nFORCE_PROMPT_CACHING_5M=1                     # force 5-min cache\n\n# Rendering & Performance\nCLAUDE_CODE_NO_FLICKER=1                      # flicker-free alt-screen with virtualized scrollback\nCLAUDE_CODE_ENABLE_COMPUTER_USE=1             # enable computer use\nCLAUDE_CODE_USE_POWERSHELL_TOOL=1             # enable PowerShell tool (Windows)\n\n# Logging & Debugging\nOTEL_LOG_RAW_API_BODIES=1                     # emit full API request/response bodies\nCLAUDE_CODE_ENABLE_AWAY_SUMMARY=0             # disable recap feature\nCLAUDE_STREAM_IDLE_TIMEOUT_MS=<ms>            # default 90000 (90s)\n\n# MCP & Plugins\nCLAUDE_CODE_USE_MANTLE=1                      # Bedrock powered by Mantle\nCLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1\nCLAUDE_CODE_DISABLE_CRON=1                    # disable scheduled agents\nMCP_CONNECTION_NONBLOCKING=true               # `-p` mode: skip MCP wait\n\n# Security & Performance\nCLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1            # strip credentials from subprocesses\nCLAUDE_CODE_PERFORCE_MODE=1                   # `p4 edit` hint on read-only files\nCLAUDE_CODE_SKIP_BEDROCK_AUTH=1\nCLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS=<ms> # session end hook timeout\n```\n\n---\n\n### **New Hooks & Events**\n\n**New Hook Types:**\n| Hook | Trigger | Usage |\n|------|---------|-------|\n| `TaskCreated` | Task created via `TaskCreate` | Block with exit code 2 or `{decision: \"block\"}` |\n| `PreCompact` | Before conversation compaction | Block compaction |\n| `PostCompact` | After compaction completes | Reactive tasks |\n| `CwdChanged` | Working directory changes | Reactive environment (direnv) |\n| `FileChanged` | Tracked file modified | - |\n| `PermissionDenied` | Auto mode classifier denial | Return `{retry: true}` to retry |\n| `Elicitation` / `ElicitationResult` | MCP elicitation mid-task | Intercept structured input |\n| `StopFailure` | Turn ends due to API error | Fire on rate limit, auth failure |\n| `WorktreeCreate` (HTTP type) | Return via `hookSpecificOutput.worktreePath` |\n\n**Conditional Hook Execution (NEW):**\n```json\n{\n  \"hooks\": {\n    \"PreToolUse\": {\n      \"if\": \"Bash(git *)\",              // only runs for git commands\n      \"script\": \"...\"\n    }\n  }\n}\n```\n\n---\n\n### **Bash Tool Enhancements**\n\n**Auto-Allow Additions:**\n- Read-only commands with **glob patterns**: `ls *.ts`, `find . -name \"*.json\"` (no prompts)\n- Commands starting with **`cd <project-dir> &&`** skip permission prompts\n- Safe environment variable prefixes: `LANG=C`, `NO_COLOR=1`, `timeout 5`\n- **New tools auto-allowed**: `lsof`, `pgrep`, `tput`, `ss`, `fd`, `fdfind`\n\n**Key Binding Changes:**\n- `Ctrl+U` clears entire input buffer\n- `Ctrl+Y` restores cleared buffer\n- `Ctrl+L` forces full screen redraw\n- `Ctrl+X Ctrl+K` stops all background agents (was `Ctrl+F`)\n\n---\n\n### **MCP Server Enhancements**\n\n- **MCP Elicitation** - Servers request structured input mid-task via interactive dialogs\n- **Protected Resource Metadata** (RFC 9728) - OAuth discovery for authorization servers\n- **Large Result Persistence** - `_meta[\"anthropic/maxResultSizeChars\"]` up to 500KB\n- **Monitor Tool** - Stream events from background scripts live into conversation\n- **Step-up Authorization** - Servers request elevated scopes via `403 insufficient_scope`\n- **Connection Environment Vars**: `CLAUDE_CODE_MCP_SERVER_NAME`, `CLAUDE_CODE_MCP_SERVER_URL`\n- **Plugin Binaries** - Plugins can ship executables under `bin/` for Bash invocation\n\n---\n\n### **IDE Integration Updates**\n\n**VS Code / VSCode Extensions:**\n- **Session Auto-Titling** - AI-generated titles within seconds of first message\n- **`/remote-control`** - Bridge session to claude.ai/code (web/mobile continuation)\n- **Rate Limit Banner** - Shows usage % and reset time\n- **Improved Sidebar** - Session history loads correctly on reopen\n- **`Esc` Twice** - Open keyboard-navigable rewind picker\n- **Thinking Pill** - Shows \"Thought for Ns\" after response\n- **Faster Cold-Open** - Reduced subprocess work\n\n**CLI Deep Links:**\n- `claude-cli://open?q=<query>` supports up to 5,000 characters\n- Newlines: `%0A` encoded newlines no longer rejected\n- Terminal-aware: Opens in preferred terminal\n\n---\n\n### **Opt-In Features (Beta)**\n\n**Flicker-Free Rendering:**\n```bash\nCLAUDE_CODE_NO_FLICKER=1  # alt-screen virtualized scrollback\n```\n- Focus view toggle (`Ctrl+O`): prompt + one-line tool summary + final response\n- Optimized for fullscreen mode\n\n**Extended Thinking (Enhanced):**\n- Rotating progress hint during extended thinking\n- Thinking summaries disabled by default (opt-in: `showThinkingSummaries: true`)\n- Adaptive thinking error handling\n\n---\n\n### **Breaking Changes (Update Required)**\n\n| Change | Old | New |\n|--------|-----|-----|\n| Effort levels | `low`, `medium`, `high`, `max` | `low`, `medium`, `high` + Opus 4.7 `xhigh` |\n| Stop all agents | `Ctrl+F` | `Ctrl+X Ctrl+K` |\n| `/vim` toggle | Via `/vim` command | Via `/config` \u00e2\u2020\u2019 Editor mode |\n| Settings validation | Silent on `cleanupPeriodDays: 0` | **Error thrown** |\n| Windows managed settings | `C:\\ProgramData\\ClaudeCode\\managed-settings.json` | **Removed fallback** |\n| Line-by-line streaming | Enabled on Windows/WSL | **Disabled** (rendering issues) |\n\n---\n\n### **Windows 11 Specific Optimizations**\n\n- **PowerShell Tool** - Native Windows tool with progressive rollout; opt in: `CLAUDE_CODE_USE_POWERSHELL_TOOL=1`\n- **Flicker-Free Rendering** - Windows alt-screen now supports virtualized scrollback\n- **Bash Improvements** - Backslash-escaped flags no longer bypass auto-allow\n- **Deep Link Handling** - Terminal-aware opening in your preferred Windows terminal\n\n---\n\n### **Performance Improvements**\n\n| Optimization | Impact |\n|--------------|--------|\n| Write tool diff | 60% faster on large files |\n| Bash parsing | Native module (faster init, no memory leak) |\n| SSE transport | Large frames now linear (was quadratic) |\n| Bundle size reduction | ~510 KB |\n| `--resume` large sessions | 45% faster, 100-150 MB less peak memory |\n| Startup (macOS) | ~60ms faster |\n\n---\n\n## **For You on Windows 11**\n\nGiven your setup, I recommend configuring:\n\n1. **Enable flicker-free rendering:**\n   ```bash\n   CLAUDE_CODE_NO_FLICKER=1\n   ```\n\n2. **Enable PowerShell tool (native Windows):**\n   ```bash\n   CLAUDE_CODE_USE_POWERSHELL_TOOL=1\n   ```\n\n3. **Enable prompt caching for faster responses:**\n   ```bash\n   ENABLE_PROMPT_CACHING_1H=1\n   ```\n\n4. **Auto mode (skip permission prompts for safe actions):**\n   In `settings.json`:\n   ```json\n   {\n     \"permissions\": {\n       \"defaultMode\": \"auto\"\n     }\n   }\n   ```\n\n5. **Add the `/less-permission-prompts` skill** to auto-generate allowlist (you already have it!):\n   ```bash\n   /less-permission-prompts\n   ```\n\n---\n\n**To check your exact Claude Code version:**\n```bash\nclaude --version\n```\n\n**Full documentation:**\n- [Claude Code docs](https://code.claude.com/docs/llms.txt)\n- [GitHub Changelog](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md)\n- [What's New (Weekly Digest)](https://code.claude.com/docs/en/whats-new)\n\n---\n\nSources:\n- [Claude Code Changelog](https://code.claude.com/docs/en/changelog.md)\n- [What's New - Claude Code Docs](https://code.claude.com/docs/en/whats-new)\n- [GitHub claude-code Releases](https://github.com/anthropics/claude-code/releases)\n- [Claude Code Changelog on GitHub](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md)"
+  },
+  {
+    "session_id": "0e933e2a-d2ff-4e7f-9828-ca7f69c86398",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\0e933e2a-d2ff-4e7f-9828-ca7f69c86398.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "agent_id": "ab83002f4fd395aa2",
+    "agent_type": "",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\0e933e2a-d2ff-4e7f-9828-ca7f69c86398\\subagents\\agent-ab83002f4fd395aa2.jsonl",
+    "last_assistant_message": "Set up new Claude Code features and authenticated Google MCP servers. Next: run /mcp and authorize Gmail, Google Calendar, and Google Drive with your Google account."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "agent_id": "a3cfabdda0818be29",
+    "agent_type": "",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95\\subagents\\agent-a3cfabdda0818be29.jsonl",
+    "last_assistant_message": "Added a Political Inbox column to bitlife-finance.html with monthly newsletters covering fictional presidents, wars, gas and inflation, laws passed, and stock and crypto summaries. Test it by starting a game and clicking Age +1 Month."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "agent_id": "a9f45c753bf19d6f2",
+    "agent_type": "",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95\\subagents\\agent-a9f45c753bf19d6f2.jsonl",
+    "last_assistant_message": "Added a Political Inbox column to bitlife-finance.html with monthly briefings covering presidents, wars, gas prices, new laws, and stock/crypto summaries. Test it by clicking Age +1 Month in the game."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "agent_id": "ac301b1fcbe10a47a",
+    "agent_type": "",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95\\subagents\\agent-ac301b1fcbe10a47a.jsonl",
+    "last_assistant_message": "Added a Political Inbox column to bitlife-finance.html with monthly newsletters covering presidents, wars, gas and inflation, laws, and stock and crypto summaries. Open the game and click Age +1 Month to see the first briefing appear."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "agent_id": "ad9569860aed63866",
+    "agent_type": "",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95\\subagents\\agent-ad9569860aed63866.jsonl",
+    "last_assistant_message": "Added a Political Inbox column and annual career window to bitlife-finance.html. The game now starts players with a job, shows yearly job-change popups with smarts-based success odds, and generates monthly political newsletters. Ready for testing."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "agent_id": "ab7e9c579ca418713",
+    "agent_type": "",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95\\subagents\\agent-ab7e9c579ca418713.jsonl",
+    "last_assistant_message": "Building a BitLife-style financial simulator at bitlife-finance.html. Last session added a Political Inbox column, chart history grids for stocks and crypto, smarts-based annual job windows, and auto-save on refresh. No pending next action."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "agent_id": "a0fa0b4172fc7563e",
+    "agent_type": "",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95\\subagents\\agent-a0fa0b4172fc7563e.jsonl",
+    "last_assistant_message": "Building a BitLife-style financial simulator game. Fixed the Age +1 Month button by moving the annual career window event to after the pending events queue reset. Ready for the next feature or bug report."
+  }
+]

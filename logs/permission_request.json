@@ -1,0 +1,40 @@
+[
+  {
+    "session_id": "0e933e2a-d2ff-4e7f-9828-ca7f69c86398",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\0e933e2a-d2ff-4e7f-9828-ca7f69c86398.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PermissionRequest",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\.claude\\settings.json",
+      "old_string": "{\n  \"autoUpdatesChannel\": \"latest\",\n  \"skipDangerousModePermissionPrompt\": true,\n  \"effortLevel\": \"high\"\n}",
+      "new_string": "{\n  \"autoUpdatesChannel\": \"latest\",\n  \"skipDangerousModePermissionPrompt\": true,\n  \"skipAutoPermissionPrompt\": true,\n  \"effortLevel\": \"high\",\n  \"showThinkingSummaries\": true,\n  \"permissions\": {\n    \"defaultMode\": \"auto\"\n  },\n  \"env\": {\n    \"CLAUDE_CODE_NO_FLICKER\": \"1\",\n    \"CLAUDE_CODE_USE_POWERSHELL_TOOL\": \"1\",\n    \"ENABLE_PROMPT_CACHING_1H\": \"1\",\n    \"CLAUDE_CODE_SUBPROCESS_ENV_SCRUB\": \"1\"\n  }\n}",
+      "replace_all": false
+    },
+    "permission_suggestions": [
+      {
+        "type": "addDirectories",
+        "directories": [
+          "C:\\Users\\noahm\\.claude"
+        ],
+        "destination": "session"
+      }
+    ]
+  },
+  {
+    "session_id": "0e933e2a-d2ff-4e7f-9828-ca7f69c86398",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\0e933e2a-d2ff-4e7f-9828-ca7f69c86398.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PermissionRequest",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\.claude\\settings.json",
+      "old_string": "    \"PreCompact\": [\n      {\n        \"matcher\": \"\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"uv run $CLAUDE_PROJECT_DIR/.claude/hooks/pre_compact.py\"\n          }\n        ]\n      }\n    ],",
+      "new_string": "    \"PreCompact\": [\n      {\n        \"matcher\": \"\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"uv run $CLAUDE_PROJECT_DIR/.claude/hooks/pre_compact.py\"\n          }\n        ]\n      },\n      {\n        \"matcher\": \"\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"git rev-parse --is-inside-work-tree 2>/dev/null && git add -A && git commit -m \\\"pre-compact checkpoint\\\" 2>/dev/null || true\",\n            \"statusMessage\": \"Saving git checkpoint before compact...\"\n          }\n        ]\n      }\n    ],\n    \"CwdChanged\": [\n      {\n        \"matcher\": \"\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"test -f .envrc && direnv allow . 2>/dev/null; true\",\n            \"async\": true\n          }\n        ]\n      }\n    ],\n    \"PermissionDenied\": [\n      {\n        \"matcher\": \"\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"echo '{\\\"retry\\\": true}'\"\n          }\n        ]\n      }\n    ],",
+      "replace_all": false
+    },
+    "permission_suggestions": []
+  }
+]

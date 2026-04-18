@@ -1,0 +1,13 @@
+{
+  "name": "wr-debate",
+  "version": "1.0.0",
+  "description": "Multi-agent WR GOAT debate simulator using Claude API",
+  "main": "debate.js",
+  "scripts": {
+    "start": "node debate.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "dotenv": "^17.3.1"
+  }
+}

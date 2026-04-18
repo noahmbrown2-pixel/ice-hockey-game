@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Man United Best Player Debate</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #1a1016;
+    --surface2: #2a1a22;
+    --border: #3d2030;
+    --text: #f0e6ea;
+    --text-dim: #9a8690;
+    --accent: #da291c;
+    --accent-glow: rgba(218, 41, 28, 0.3);
+    --gold: #ffd700;
+    --silver: #c0c0c0;
+    --bronze: #cd7f32;
+    --green: #00b894;
+    --mufc-red: #da291c;
+    --mufc-yellow: #fbe122;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Hero ── */
+  .hero {
+    text-align: center;
+    padding: 80px 24px 60px;
+    background: linear-gradient(180deg, rgba(218,41,28,0.2) 0%, transparent 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-label {
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--mufc-red);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--mufc-red), #ff4444);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero .subtitle {
+    font-size: 1.2rem;
+    color: var(--text-dim);
+    max-width: 700px;
+    margin: 16px auto 0;
+  }
+  .crest { font-size: 4rem; margin-bottom: 16px; display: block; }
+  .hero-badge {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 8px 20px;
+    background: var(--mufc-red);
+    color: white;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  /* ── Nav tabs ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--surface); }
+  .tab.active {
+    color: var(--mufc-red);
+    background: var(--surface);
+    border-color: var(--mufc-red);
+  }
+
+  .panel { display: none; padding: 32px 0; }
+  .panel.active { display: block; }
+
+  /* ── Rankings ── */
+  .ranking-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .ranking-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .rank-badge {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.2rem;
+    background: var(--surface2);
+    color: var(--text-dim);
+  }
+  .rank-1 .rank-badge { background: linear-gradient(135deg, #ffd700, #f39c12); color: #000; box-shadow: 0 0 20px rgba(255,215,0,0.4); }
+  .rank-2 .rank-badge { background: linear-gradient(135deg, #c0c0c0, #95a5a6); color: #000; }
+  .rank-3 .rank-badge { background: linear-gradient(135deg, #cd7f32, #d35400); color: #fff; }
+  .rank-info { flex: 1; }
+  .rank-info h3 { font-size: 1.25rem; margin-bottom: 6px; }
+  .rank-info p { color: var(--text-dim); font-size: 0.95rem; }
+
+  /* ── Argument cards ── */
+  .arg-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .arg-header {
+    padding: 18px 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 1.05rem;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .arg-header:hover { background: var(--surface2); }
+  .arg-chevron {
+    transition: transform 0.2s;
+    color: var(--text-dim);
+    font-size: 1.2rem;
+  }
+  .arg-card.open .arg-chevron { transform: rotate(180deg); }
+  .arg-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+  }
+  .arg-card.open .arg-body { max-height: 3000px; }
+  .arg-content {
+    padding: 0 24px 24px;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  /* ── Rebuttal thread ── */
+  .rebuttal-group { margin-bottom: 32px; }
+  .rebuttal-group h3 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: var(--mufc-red);
+  }
+  .rebuttal-entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 8px;
+  }
+  .rebuttal-entry .round-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .rebuttal-entry .rebuttal-text {
+    white-space: pre-wrap;
+    color: var(--text-dim);
+    font-size: 0.93rem;
+    line-height: 1.7;
+  }
+
+  /* ── Timeline ── */
+  .timeline { position: relative; padding-left: 40px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 32px;
+  }
+  .timeline-dot {
+    position: absolute;
+    left: -33px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--mufc-red);
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 0 2px var(--mufc-red);
+  }
+  .timeline-item.phase-end .timeline-dot { background: var(--green); box-shadow: 0 0 0 2px var(--green); }
+  .timeline-phase {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--mufc-red);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .timeline-title { font-weight: 600; margin-bottom: 4px; }
+  .timeline-desc { color: var(--text-dim); font-size: 0.9rem; }
+
+  /* ── Declaration box ── */
+  .declaration {
+    background: linear-gradient(135deg, rgba(218,41,28,0.1), rgba(255,215,0,0.1));
+    border: 1px solid var(--mufc-red);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    margin: 32px 0;
+  }
+  .declaration h3 {
+    color: var(--gold);
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+  }
+  .declaration p {
+    color: var(--text-dim);
+    max-width: 800px;
+    margin: 0 auto;
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  /* ── Summary ── */
+  .summary-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-top: 20px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    white-space: pre-wrap;
+  }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+    margin-top: 60px;
+  }
+</style>
+</head>
+<body>
+
+<script>
+const DATA = {
+  "openingArgs": [
+    {
+      "player": "Bruno Fernandes",
+      "argument": "Alright, listen up! Let's settle this once and for all. Anyone who claims Bruno Fernandes isn't the best and most important player in this United squad simply isn't watching the same games I am.\n\nLet's start with the obvious: **six goals and a staggering twelve assists in just 23 appearances.** That's not just good, that's world-class. He's the heartbeat of our attack, the creative force behind every meaningful chance we create. Since arriving in January 2020, he's consistently topped our charts for goals and assists, single-handedly dragging us to victories time and time again. He's a multiple-time Premier League assist leader, a fact his detractors conveniently ignore.\n\nBut it's not just about the stats, is it? It's about the intangible qualities he brings. **He's our captain, our leader!** He embodies the spirit of Manchester United. His passion is infectious, his work rate relentless. He demands more from everyone around him, holding them accountable and driving them to perform at their best.\n\nSure, we have other talented players. But none possess the same combination of raw skill, creative vision, and sheer determination. Bruno unlocks defenses with passes that others wouldn't even attempt, and he steps up in crucial moments with match-winning goals. He’s the link between defense and attack, the orchestrator of our tempo, and the unwavering believer, even when the chips are down.\n\nWithout Bruno Fernandes, this team is simply not the same. He's the key to our success, the engine that drives us forward, and the reason we're competing at the highest level. End of discussion. He IS Manchester United!\n"
+    },
+    {
+      "player": "Bryan Mbeumo",
+      "argument": "Forget Bruno's flicks and Rashford's past glories, the truth is staring you right in the face: Bryan Mbeumo is the heart, lungs, and clinical edge of this Manchester United team. He's not just the *best* player; he's the *most important*.\n\nNine goals in 21 appearances? That's not just good, that's leading the line in a way we haven't seen since peak Rooney. He’s not relying on penalties or tap-ins; these are goals crafted through intelligent movement, searing pace, and a finishing ability honed in the trenches of the Premier League with Brentford. Remember how he consistently terrorized defenses there? That's what he's bringing to Old Trafford, and it's the difference between Champions League qualification and Europa League obscurity.\n\nLook beyond the goals, though. Mbeumo’s off-the-ball work is relentless. He stretches defenses, creating space for others, and his pressing from the front sets the tone for our entire team. He's the catalyst for our attacking transitions, turning defense into attack with a speed and precision that terrifies opponents.\n\nWhile others might have flashes of brilliance, Mbeumo delivers week in, week out. He's the consistent threat, the dependable goalscorer, the player opposition managers specifically gameplan against. He's the reason we're even in the conversation for silverware this season.\n\nWithout Mbeumo, we're a blunt force. With him, we're a razor-sharp weapon. That's why he's not just a good player; he's the single most valuable asset in the entire squad. He *is* Manchester United's present and future.\n"
+    },
+    {
+      "player": "Benjamin Sesko",
+      "argument": "Friends, Romans, United fans, lend me your ears! While some might point to Bruno's creativity or Martinez's grit, I'm here to tell you why Benjamin Sesko, our Slovenian sensation, is undeniably the best and most *important* player at Manchester United right now!\n\nLet's be honest, 6 goals in 21 appearances doesn't scream \"world-beater,\" but context is KING. Sesko arrived at Old Trafford carrying the weight of expectation, immediately thrust into a team still finding its identity. He's been adapting to the Premier League's physicality, the tactical nuances of Erik ten Hag, and the sheer pressure of wearing the United badge. And despite that, flashes of brilliance have been undeniable.\n\nThink about it: at 6'5\", he's an imposing presence, winning aerial duels and holding up the ball like a seasoned veteran. But he's not just a target man; he possesses *blistering* pace and surprising agility for his size. His finishing is already elite – clinical one-on-ones, thunderous strikes from outside the box, and deft headers that leave goalkeepers helpless. These aren't just goals; they're *statements*.\n\nWhat makes Sesko truly invaluable is his *untapped potential*. At just 22, he's a raw diamond being meticulously polished. He's a player around whom we can build our future. He brings a unique combination of size, speed, and skill that no other player in our squad possesses. He's a game-changer, a focal point, and a future Ballon d'Or contender.\n\nWhile others might offer consistency, Sesko offers *possibility*. He's the spark that ignites our attack, the player defenders fear, and the reason why United fans dare to dream again. He's not just a player; he's the future, and the future is NOW. Therefore, Benjamin Sesko is the most important player in this United squad! GGMU!\n"
+    },
+    {
+      "player": "Matheus Cunha",
+      "argument": "Right, let's settle this once and for all. Forget the nostalgia, forget the potential, the ONLY player consistently dragging this United squad kicking and screaming towards results is Matheus Cunha. Yes, I'm talking about our number 10, the Samba star tearing it up on the hallowed Old Trafford turf!\n\nSix goals and two assists in 23 appearances? That's just the tip of the iceberg. You don't measure Cunha's impact with basic stats. You measure it in the sheer terror he instills in opposing defenders. You measure it in the game-changing moments he conjures from seemingly nothing. He's a relentless dynamo, pressing high, tracking back, and capable of the sublime - a perfectly weighted through ball, a thunderous strike from outside the box, or a mesmerizing dribble that leaves defenders in his wake.\n\nWe brought him in from Wolves for his Premier League experience, and he's delivered tenfold. He injects that vital Brazilian flair into our sometimes-stodgy attack, adding a much-needed unpredictable element. But unlike some flashy South Americans, Cunha *wants* the fight. He thrives in the physical battles, winning crucial aerial duels and bullying defenders off the ball.\n\nLook around the squad. Is Rashford consistently delivering? Nope. Is Bruno dictating play like he used to? Not even close. Cunha's versatility allows him to be deployed anywhere across the front line, patching up weaknesses and maximizing our attacking options. He's the spark, the engine, the damn heart and soul of this team. He IS Manchester United right now. Period. Without Cunha, we're a mid-table team. With him, we're a force to be reckoned with, climbing back to where we belong!\n"
+    },
+    {
+      "player": "Kobbie Mainoo",
+      "argument": "Friends, Reds, United fans! Let's be honest, this season has been a rollercoaster. But amidst the turbulence, a beacon of hope has emerged, a diamond polished in the Carrington academy: Kobbie Mainoo. Forget the goalscorers, the flashy wingers, and the seasoned veterans – Kobbie Mainoo, at just 20 years old, is the best and most important player in this Manchester United squad.\n\nTwo assists in 17 appearances? Those numbers are a mere whisper of his true impact. He's not just a statistic; he's a catalyst. Mainoo brings a calmness and control to our midfield that we haven't seen since the days of Scholes and Carrick. His composure on the ball is breathtaking, his passing range exquisite, and his tackling surprisingly tenacious. He breaks up play, dictates tempo, and unlocks defenses with a vision that belies his age.\n\nLook beyond the stats to see the intangible qualities: the leadership he exudes, the unwavering confidence, the respect he commands from his teammates. He's the anchor in our midfield, the metronome setting the rhythm, the shield protecting our defense. He's the player who makes everyone around him better.\n\nWhile others might grab headlines, Mainoo is the glue that holds us together. He's the foundation upon which our future success will be built. He *is* the future of Manchester United. Don't let fleeting moments of brilliance elsewhere distract you from the unwavering brilliance of Kobbie Mainoo. He's not just good; he's transformative. He's the best we've got, and he's only getting better. Glory, Glory, Kobbie Mainoo!\n"
+    },
+    {
+      "player": "Lisandro Martínez",
+      "argument": "Forget the fancy flicks and headline-grabbing goals, the bedrock of this Manchester United squad, the beating heart that pumps resilience and victory through our veins, is Lisandro Martínez. At 28, \"The Butcher\" isn't just a defender, he's the spine of our entire team.\n\nWhile others might dazzle with moments of brilliance, Licha delivers consistent excellence, game after game. He's a World Cup winner, forged in the crucible of international competition, a mentality he brings to every single United match. That winning pedigree is invaluable.\n\nLook at our season record when he plays! Fourteen appearances this season – and in those games, we're a different beast. His aggressive defending isn't reckless; it's calculated, disruptive, and sets the tone for the entire team. Opposing strikers know they're in for a torrid afternoon when they face him. He commands respect and instills fear.\n\nBut Licha is more than just a hard-tackling enforcer. His exceptional ball-playing ability from centre-back is crucial to our build-up play. He breaks lines with his passes, initiates attacks, and keeps possession under pressure. He’s essentially an extra midfielder, dictating tempo from the back.\n\nAnd above all else, Martínez is a leader. A warrior. He embodies the spirit of Manchester United. He's the player who bleeds for the badge, who inspires those around him to fight for every inch of the pitch. While others may have more goals or assists, none possess the comprehensive impact and unwavering dedication of Lisandro Martínez. He *is* Manchester United. He is, without a doubt, our best and most important player.\n"
+    },
+    {
+      "player": "Leny Yoro",
+      "argument": "Right, let's settle this. Leny Yoro isn't just *a* good player for Manchester United; he *is* the single most important player we have right now. Forget the flashy forwards and midfield maestros; Yoro is the bedrock upon which our entire season is built.\n\n23 appearances this season at just 20 years old? That's a testament to his immediate and indispensable impact. We’re talking about a lad who walked into Old Trafford, fresh from Lille, carrying the weight of expectation as a generational talent, and hasn’t just met it, he’s exceeded it.\n\nThink about it. Before Yoro, our defense was a sieve. Now? We're keeping clean sheets, dominating aerial duels, and opponents are having nightmares just trying to break us down. That's the \"Yoro effect.\" He anticipates danger like he's reading the future, his 6'3\" frame commanding the penalty area with a maturity that belies his age. His composure on the ball allows us to play out from the back with confidence, turning defense into attack in a heartbeat.\n\nForget the goals – Yoro provides something far more valuable: stability. That stability allows our attacking players the freedom to express themselves, knowing they have a rock at the back. He's the silent leader, the calming presence, and the cornerstone of our present and future success. He's not just stopping goals; he's inspiring confidence, and that, my friends, is priceless. Leny Yoro *is* Manchester United.\n"
+    },
+    {
+      "player": "Patrick Dorgu",
+      "argument": "Forget Bruno's flicks, Marcus's pace, and even that new striker's goals – the beating heart, the engine, the *most* important player at Manchester United right now is Patrick Dorgu. Number 13 isn't unlucky; it's the new number of dynamism, the number of victory, and it's all thanks to this Danish dynamo.\n\nThree goals in 22 appearances from *defence*? Those aren't just goals; they're game-changers! Think of that late winner against City – Dorgu bursting through their midfield like a runaway train. Recall the thunderbolt against Liverpool - absolute scenes! He’s not just preventing goals; he’s scoring them, directly impacting our points tally and injecting a lethal dose of unpredictability.\n\nBut it's more than just goals. Dorgu's explosive pace unlocks our entire left flank. He stretches the opposition, creating space for our attackers and providing overlaps that terrify defenders. His powerful runs from deep draw defenders out of position, opening up passing lanes for the midfielders and creating chaos in the final third.\n\nWhile others provide moments of brilliance, Dorgu provides consistent, unrelenting energy and a genuine goal threat. He isn't just a defender; he's a modern full-back, a wing-back powerhouse, a genuine attacking weapon disguised as a defender. He's the difference between grinding out a draw and snatching a win. He's the foundation upon which our attacking ambitions are built, and that, my friends, makes him the single most valuable player at Old Trafford. Dorgu is the future, and the future is now!\n"
+    },
+    {
+      "player": "Amad Diallo",
+      "argument": "Alright, let's settle this once and for all: Amad Diallo is unequivocally the best and most important player at Manchester United right now! Forget the big names and inflated transfer fees, Amad's the real deal.\n\nYes, the stats this season show only 2 goals and 2 assists in 20 appearances. But that doesn't tell the whole story. Look beyond the numbers. Amad is a game-changer. He's the spark that ignites our attack when we're flat. Remember last season? He wasn't just scoring goals, he was scoring *crucial* late goals that salvaged points and kept us in the hunt! That's the hallmark of a truly special player.\n\nWhat makes Amad so vital? It's his unpredictability. He's a nightmare for defenders. He's got the dribbling skills to bamboozle anyone, the vision to pick out a killer pass, and the fearlessness to take on any opponent. He's pure chaos in the final third – exactly what we need to unlock stubborn defenses.\n\nWhile others might offer consistency, Amad offers the X-factor, that moment of magic that separates good teams from great ones. He's the one who can create something out of nothing. And let's not forget the intangible: his connection with the fans. Every time he gets the ball, Old Trafford roars. That energy, that belief, is infectious and it lifts the entire team.\n\nSome may point to other players with better stats, but they lack Amad's sheer dynamism and impact. He's not just a cog in the machine; he's the engine, the inspiration, and the reason we'll be lifting trophies again soon. Trust me, Amad Diallo is the future of Manchester United, and the future is now!\n"
+    },
+    {
+      "player": "Casemiro",
+      "argument": "Right, let's get one thing straight: in the hallowed halls of Old Trafford, there's only one undisputed king, and that's Carlos Henrique Casemiro! Forget the flashy forwards or the up-and-coming youngsters, Casemiro is the bedrock upon which Manchester United's success is built.\n\nFive Champions League titles? You don't accidentally stumble into that kind of pedigree. He's a serial winner, and that mentality is contagious. This isn't just about the medals gathering dust in his trophy cabinet; it's about the unwavering belief he instills in every single player on that pitch. At 33, some might write him off, but they do so at their peril. This season, he's reinvented himself, showing a level of consistency and tactical awareness that's simply unmatched. Five goals in 24 appearances from a defensive midfielder proves he can still contribute in the final third when called upon.\n\nLook at the cold, hard facts. When Casemiro plays, United *perform*. He's the shield protecting our defense, the metronome dictating the tempo, and the steel-eyed warrior who wins back possession time and again. He allows the attacking players to flourish, knowing they have a world-class safety net behind them.\n\nWho else in the squad can claim that level of influence? Who else provides that intangible leadership, that calming presence in the face of pressure? Nobody. Casemiro is more than just a player; he's the beating heart of Manchester United, the key to unlocking our full potential. He's the most decorated player in the squad, and right now, he's the most valuable too. Without him, we're simply not the same team. Period.\n"
+    }
+  ],
+  "rebuttalRound1": [
+    {
+      "player": "Bruno Fernandes",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down. All this talk of potential and defensive solidity is fine, but let’s get real: Manchester United needs a playmaker, a leader, a game-changer. And that, plain and simple, is Bruno Fernandes.\n\nMbeumo? He has a respectable goal tally but is not at the level of Bruno Fernandes, who has the ability to be a game changer in every single match. Sesko? Potential is great, but United needs results *now*. Cunha, for all his tenacity, lacks Bruno's vision and quality. They are complementary not competing! Mainoo is the future of the team and hopefully can contribute significantly. Martinez and Yoro have a case of being the defensive rocks of the team, but ultimately defence is not the only thing a team needs, and not enough of a reason to name them the best player. Dorgu, Diallo, and Casemiro? Solid players, but not at Bruno's level of influence and vision.\n\nBruno has a higher ceiling than all the arguments made. He’s consistently creating chances, dictating the tempo, and dragging this team forward – even when others are faltering. Others might offer glimpses, but Bruno delivers week in, week out and is still the heartbeat of Manchester United. He is a true leader, on and off the pitch, and his passion and commitment are unmatched.\n"
+    },
+    {
+      "player": "Bryan Mbeumo",
+      "round": 1,
+      "rebuttal": "Okay, okay, settle down everyone. It's clear some of you are blinded by nostalgia or seduced by potential. Bruno's assists? Yes, impressive, but how many are from set-pieces? And let's be honest, his on-field histrionics are hardly captain material. Sesko? Raw potential is just that – potential. We need *impact now*. Cunha provides passion, I agree, but passion without end product is just a lot of running around.\n\nYou all talk about needing a creative spark, a consistent threat, a player who can unlock a defense and put the ball in the back of the net, game after game, season after season. That player is Bryan Mbeumo. He's not just a \"glue guy\" like Mainoo, he's the superglue that binds our attack together. Defensively, Martínez provides steel, but even he can't fix our problems alone, and Yoro is untested in the Prem.\n\nDorgu and Diallo? Flashes in the pan, nothing more. The most important player on Manchester United must be a player who consistently impacts games and makes his teammates better. Only Mbeumo can offer that.\n\nCasemiro is a legend, no doubt, but his legs are going. We need a player who's in his prime, leading the line, and delivering week in, week out.\n\nThe stats speak for themselves: Mbeumo's goals-per-game ratio is superior to nearly all of these contenders. He creates chances, he finishes them, and he terrifies defenders. Mbeumo is the complete package – the best player in this squad, period.\n"
+    },
+    {
+      "player": "Benjamin Sesko",
+      "round": 1,
+      "rebuttal": "With all due respect to these passionate arguments for other players, let's be realistic: Manchester United is DESPERATE for a consistent, reliable goalscorer, and none of these options truly fill that void like Benjamin Sesko would. While Bruno provides assists, his overall form is too inconsistent, and he often disappears in big games. Mbeumo and Cunha have their merits, but lack the aerial prowess and physical presence to truly dominate center-backs. We need a focal point, a target man to lead the line.\n\nMainoo, Martinez, and Yoro are all vital, but they address defensive issues. We need goals! Dorgu and Diallo are exciting prospects, but too raw and inconsistent to be the \"best and most important\" player. Casemiro, while a legend, is past his prime and struggles with the pace of the Premier League.\n\nSesko, on the other hand, is the complete package. He’s got the height, the speed, and the finishing ability to be a world-class striker. He's the future! While others are patching holes, Sesko is building a dynasty. He is the missing piece of the puzzle that can finally bring the glory days back to Old Trafford. He is the future and the now!\n"
+    },
+    {
+      "player": "Matheus Cunha",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down everyone! All this talk about established names and supposed \"future stars,\" and you're all missing the obvious! You're all so focused on what *was* or *could be* that you’re ignoring the electric current coursing through our team *right now*: Matheus Cunha!\n\nBruno? Great stats, sure, but those penalties inflate his numbers! And his whining? A captain needs to *inspire*, not exasperate. Mbeumo is a decent finisher, I'll give him that, but he lacks Cunha's raw power and unpredictability, he isn't as good at creating his own opportunities. Sesko? Potential is nice, but Cunha delivers *today*. Mainoo is promising but he is only promising, he doesn't have the impact that Cunha does. Martinez has presence and a good winning mentality, but he is out injured too often. Yoro and Dorgu are good players, but not the most important in the team. Diallo has a big heart and will to win, but Cunha has the skill to back it up. Casemiro? Respect the legend, but his legs are going.\n\nCunha, on the other hand, *is* the complete package! Pace, power, dribbling, a tireless work rate – he terrorizes defenses and creates chances out of nothing. He may not have stats that blow everyone out of the water, but he is the definition of hard worker and is the definition of what it means to play for this club. He brings the energy and the fight every game and also has the talent to back it up. All this talk of leadership – Cunha leads by example, by putting in 110% every single match. He’s the one dragging the team forward when things get tough! He's infectious, he's exciting, and he's exactly what we need to reignite that winning mentality at Old Trafford. Matheus Cunha is the spark we've been waiting for!\n"
+    },
+    {
+      "player": "Kobbie Mainoo",
+      "round": 1,
+      "rebuttal": "Friends, esteemed colleagues, it's genuinely entertaining to hear these desperate pleas for established names. Bruno's stats are inflated by penalties, Mbeumo had ONE good season, and Casemiro is past his prime – clinging to past glory while actively hindering our current play! The future is not in any of these ageing stars.\n\nYou talk of leaders. Real leadership isn't shouting or stat-padding; it's inspiring through action, through unflappable composure, and through sheer, undeniable talent. That, my friends, is Kobbie Mainoo.\n\nYes, he's young. Yes, he's relatively new to the scene. But that's precisely the point! He's injecting a *vital* dose of youthful exuberance, technical brilliance, and tactical intelligence into a squad desperately craving it. Martínez and Yoro are great defenders, but defending alone doesn't win games.\n\nWhile others on this list are either inconsistent (Rashford, Diallo) or simply not impactful enough (Sesko, Cunha, Dorgu), Mainoo has consistently elevated our midfield. He offers defensive solidity, a composed presence in possession, and a progressive passing range that unlocks attacks. He's the glue that holds our midfield together, allowing the forwards to flourish and the defenders to breathe easy.\n\nMainoo isn't just a player for *now*; he's a player for the *future*. Investing in him is investing in Manchester United's long-term success. And frankly, right now, in this squad riddled with inconsistencies and underperformers, that's exactly what we need.\n\nMainoo is the answer. Forget the noise, embrace the future, and back the best player in the squad: Kobbie Mainoo!\n"
+    },
+    {
+      "player": "Lisandro Martínez",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down everyone. All this talk about flashy goals and potential! You're all missing the forest for the trees. While Bruno orchestrates and Mbeumo scores, and the rest...well, let's just say their arguments are weaker than Maguire in a footrace, there's only one player who provides the unshakeable foundation upon which any success is built: Lisandro Martínez.\n\n**Bruno Fernandes**, with all due respect, your flashy stats are often padded with penalties and disappear in the big games. Leadership is more than just shouting, it’s inspiring confidence, something Licha does effortlessly. **Mbeumo**, you're great, but you're still just a cog in the attack. What happens when the attack sputters? Licha is the one who prevents the wheels from completely falling off! As for **Yoro**, Licha has already proven himself at this level.\n\nWhere would we be without Licha's unwavering commitment and defensive brilliance? He’s not just a defender; he’s a warrior who brings a tenacity and grit that is sorely lacking in this squad. His ability to read the game, win aerial duels despite his height, and distribute the ball effectively is unparalleled.\n\nHe *is* the heart of our defense, the one player who brings a sense of solidity and organization that allows everyone else to play with confidence. Without his leadership and grit, our defense crumbles. You can’t win anything without a solid defense, and Licha *is* that defense.\n\nForget the goals and assists for a moment. Look at the impact, the sheer bloody-mindedness of Martínez. He *is* Manchester United's fighting spirit personified. And that, more than any goal or assist, is what makes him the best and most important player in this squad.\n"
+    },
+    {
+      "player": "Leny Yoro",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down everyone. All this talk about goals and assists is fine, but you're missing the forest for the trees! You're so caught up in the *symptoms* of our problems, you're ignoring the *cause*: a shaky defense. That's why **Leny Yoro**, even without playing a single minute yet, *is* already the most important player for Manchester United.\n\nBruno, for all his assists, disappears in big games and embodies the very inconsistent spirit plaguing the club. Mbeumo and Sesko's goals are meaningless if we leak them at the other end. Casemiro's past glories are fading with his legs; he's a shadow of his former self. And Martínez? Fantastic when fit, but consistently injured – we can't build a defense around someone who's always in the treatment room.\n\nForget flashy goals! We need a rock, a colossus, a *future* World Class defender to build around. That's Leny Yoro. He is a signing that fixes our defensive leaks and provides the foundation for future success. He brings stability and a long-term solution – something none of these other players can offer. Stop focusing on patching up the holes and start building a fortress!\n"
+    },
+    {
+      "player": "Patrick Dorgu",
+      "round": 1,
+      "rebuttal": "Okay, settle down, settle down! All this talk about Fernandes' assists, Mbeumo's goals, Casemiro's trophies… it's impressive, sure. But you're all missing the single most crucial element in modern football: **defensive stability AND attacking dynamism in a full-back.** That's why Patrick Dorgu is, without a doubt, the best and most important player in this squad.\n\nFernandes, bless his heart, gives the ball away too much trying Hollywood passes. Mbeumo's great, but can he track back and nullify a world-class winger? No. Casemiro's legs are going. And let's be honest, a lot of the guys mentioned have had inconsistent form.\n\nDorgu, however, brings unwavering consistency and a vital blend of skills. His tackles are clean, his interceptions are crucial, and his surging runs down the left flank provide a constant attacking threat. He's defensively solid AND contributes to the attack.\n\nYoro is good but he is a centreback. The modern game is built on full-backs.\n\nFurthermore, his age (19) means United have the chance to build a team around him for years to come.\n"
+    },
+    {
+      "player": "Amad Diallo",
+      "round": 1,
+      "rebuttal": "Okay, let's address these frankly laughable claims one by one. While I respect passion, I can't stand by while Amad Diallo is overlooked.\n\n**Bruno Fernandes, Matheus Cunha, and Casemiro** are all solid players, but their arguments reek of relying on reputation and past glories, not current form. Are we rewarding past service or judging impact TODAY? Fernandes can be inconsistent and his penalties inflate his stats. Cunha is a spark, but a sparkler compared to Amad's potential supernova. Casemiro, while experienced, shows signs of decline, lacking the dynamism Amad brings.\n\n**Mbeumo and Sesko** talk about potential, but they are nothing compared to Amad. He is already showing his quality. The stats provided are OK at best.\n\n**Martinez and Yoro** are great defenders, and I commend the arguments made. But great defense on it's own does not lead to greatness on the field. Football is about scoring goals, and while the defence does contribute to those goals, they are not as important as the creative players.\n\n**Mainoo and Dorgu** have shown flashes of quality. They don't possess Amad's game-changing ability in the final third. A couple of goals from defence are flukes, not a solid track record. I love Mainoo's calmness, but calmness doesn't win you games when you're chasing a goal.\n\nAmad Diallo is unique. He possesses explosive pace, a wand of a left foot, and an ever-growing understanding of the game. He unlocks defenses, creates chances out of nothing, and has that X-factor that separates good players from world-class talents. And unlike the other mentioned players, he is yet to hit his prime and can only go from strength to strength. He is the complete package, and that is why he is the best player.\n"
+    },
+    {
+      "player": "Casemiro",
+      "round": 1,
+      "rebuttal": "Friends, United faithful, you’ve heard a lot about potential, flashes of brilliance, and future promises. But Manchester United needs leadership *now*. While others talk about what *might* be, I champion the man who *has* been there, done that, and lifted every trophy imaginable: Casemiro.\n\nBruno Fernandes, Mbeumo, and Sesko all bring attacking flair, but goals alone don't win championships. Mainoo's potential is undeniable, but experience matters in the trenches. Martínez, Yoro and Dorgu represent strong defense, but a balanced team needs defensive midfield excellence. Diallo's spark is appreciated, but consistency is key over a grueling season. Cunha's tenacity is valuable, but raw effort without tactical brilliance will only get you so far.\n\nThe glaring issue with all these arguments is the focus on individual stats. Casemiro’s impact isn’t just about goals or assists; it’s about control, tactical awareness, and shielding the defense. How many times has he snuffed out attacks before they even begin? How many crucial interceptions has he made that go unnoticed in the highlights?\n\nHe’s the midfield general, dictating tempo and providing the platform for others to shine. While others are busy chasing individual glory, Casemiro is orchestrating the team, bringing calm and composure to the chaos. Without his presence, the defense is exposed, the midfield is overrun, and the attack sputters. He allows players like Bruno and the forwards to perform at their best, knowing they have a world-class shield behind them.\nCasemiro isn't just a player; he's the foundation. Therefore, he remains the best and most important player at Manchester United.\n"
+    }
+  ],
+  "rebuttalRound2": [
+    {
+      "player": "Bruno Fernandes",
+      "round": 2,
+      "rebuttal": "Alright, let's cut through the noise. All this talk of defensive solidity, raw potential, and fleeting brilliance is missing the point. Manchester United needs someone to consistently *create*. That someone is Bruno Fernandes.\n\nMbeumo, Sesko, and Cunha? They are primarily goalscorers, but if the chances aren't there, they disappear. And that’s the problem! Bruno *creates* those chances. He *makes* the players around him better. Mainoo, Martinez, and Yoro are valuable for sure, but they don't drive the attack. You can't win games by *only* defending, which these defensive players' proponents don't seem to know!\n\nDorgu and Diallo offer exciting glimpses, but they are not consistent enough, with far inferior stats to Bruno. Casemiro is a legend, but he cannot pull the strings offensively anymore. He's lost a yard of pace, and his influence on the *attacking* third is waning.\n\nThe truth is, Bruno has played with several different frontlines and several different midfields. Despite all the change and turnover, Bruno has remained a constant and the key engine that pushes the team forward. Penalties are *part of the game*. And who wins those penalties? Often, it's Bruno's creativity that draws the fouls. He's consistently at the top of the charts for chances created and key passes, despite playing in a team that often struggles to finish those chances. He has the vision, the passing range, and the sheer *will* to win. Forget the flash-in-the-pan moments; Bruno Fernandes is the consistent spark Manchester United desperately needs. He is the BEST player.\n"
+    },
+    {
+      "player": "Bryan Mbeumo",
+      "round": 2,
+      "rebuttal": "Enough with the sentimentality and \"future potential\"! We need a player who delivers **now**, consistently. Casemiro's legs are gone, and relying on past glories is a recipe for mediocrity. Bruno's a fantastic creator, but his inconsistency and penalty reliance hold him back from truly being *the* best. Sesko and Mainoo offer glimpses of brilliance, but Mbeumo delivers week-in, week-out. Cunha is all heart, but lacks the clinical edge. Martinez and Yoro are valuable defenders, but a leaky attack undoes even the best defense. Dorgu and Diallo offer moments, not sustained impact.\n\nThe crucial flaw in all these arguments is **consistency and the ability to unlock a game**. Mbeumo consistently terrifies defenses, creates opportunities out of nothing, and finds the back of the net. He impacts every game he plays. I don't care how good a defender is, and that is no discredit to Martinez and Yoro, if you are not scoring then you will not be winning games.\n\nThe stats don't lie. Mbeumo is the most reliable attacking threat in this squad. He has shown the ability to adapt to any role he is assigned to, and to continue performing no matter who he is up against. He is the complete package! That is why Mbeumo is the best player on Manchester United.\n"
+    },
+    {
+      "player": "Benjamin Sesko",
+      "round": 2,
+      "rebuttal": "Alright, alright, let's get serious. While I admire the passion for these other players, the core issue remains: Manchester United desperately needs a world-class striker. You're all dancing around the problem with midfielders, defenders, and potential.\n\nBruno Fernandes' assists are impressive, but we saw his inconsistency this season, and Mbeumo, while a good player, lacks the out-and-out striker qualities United need. Cunha has the passion, but not the goals. Diallo has flashes, Yoro and Martinez offer defensive solidarity.\n\nMainoo has a promising career, but has failed to show any goal threat whatsoever. Casemiro is past his prime, and Dorgu...come on, a few goals from full-back don't make you the best player, they are not going to challenge for the Premier League title.\n\nSesko is the antidote. He is the complete striker that this team needs. He has the physical attributes to lead the line, the finishing ability to be a consistent goalscorer, and the potential to become a world-class talent. And crucially, he's not relying on past glory or \"potential\" alone – he is ready to make an instant impact. Forget filling the gaps; we need a game-changer, and that's Benjamin Sesko. Therefore, he is the best player in the team.\n"
+    },
+    {
+      "player": "Matheus Cunha",
+      "round": 2,
+      "rebuttal": "Okay, let's cut the sentimentality. All these arguments boil down to either potential, past glories, or stats that don't tell the whole story.\n\nBruno's penalties and inconsistency in big games nullify his argument. The goals and assists aren't everything and aren't as helpful when the team needs goals in the biggest matches. Mbeumo is a good player but has nowhere near the impact a player like Cunha does. Sesko is simply potential and raw talent and isn't having the impact that a player like Cunha is. Mainoo is the future and is still far too early in his career to be considered the best player. And speaking of that, youngsters such as Yoro, Dorgu, and Diallo do not have enough of a track record and sample size to be considered anything more than decent players at this point.\n\nMartinez and Casemiro, both legends, are beginning to slow down. Martinez also struggles with injuries and cannot be relied upon. Casemiro is nowhere near the player he used to be and has lost a step.\n\nCunha's work ethic and determination are the two most important things this team needs. The argument that his stats don't tell the whole story are true in the sense that he has the hard work and determination to be great. The others lack this combination, making Cunha the most important player in this team.\n"
+    },
+    {
+      "player": "Kobbie Mainoo",
+      "round": 2,
+      "rebuttal": "Right, let's cut through the noise. You're all obsessed with shiny objects – goals, assists, past glories. But Manchester United needs more than fleeting brilliance; we need **balance, control, and a future.** That's Mainoo.\n\n**Bruno Fernandes**, for all his creativity, is a liability defensively and disappears when things get tough. We need consistency. **Mbeumo and Sesko** are goalscorers, yes, but what happens when they're marked out of the game? Mainoo is the midfield engine that allows our attack to function even when the forwards struggle. **Martinez and Yoro** are great defensively but what about when we are on the attack?\n\n**Casemiro**, with all due respect, is on the decline. His legs are gone, and he's constantly caught out of position, he is a liability to the team at this stage in his career. **Cunha's** passion is commendable, but he lacks the tactical discipline and composure that Mainoo brings to the midfield. **Dorgu and Diallo** offer glimpses of promise, and are not the most important in the squad at this stage in their careers.\n\nMainoo provides that defensive solidity, offering a calming presence and allowing others to be more creative! Mainoo’s passing unlocks the attackers and he progresses the ball seamlessly from defence to attack. He dictates tempo and provides a solid defensive block. He's more than a holding midfielder; he is a complete midfielder. And at 19, he’s only going to get better.\n\nMainoo embodies the Manchester United spirit; always giving 100% and never backing down.\n\nForget the short-term fixes. Let's invest in the future. The future is Kobbie Mainoo.\n"
+    },
+    {
+      "player": "Lisandro Martínez",
+      "round": 2,
+      "rebuttal": "Alright, enough is enough! I've listened patiently to these arguments, and frankly, they're all missing a critical ingredient: **unwavering defensive stability**. You can't build a house on sand, and you certainly can't build a winning team without a rock at the back, which makes Lisandro Martinez the best player.\n\n**To Bruno's point:** Penalties inflate his stats and his erratic nature in big games undermines his argument. Also, not a defender.\n\n**To Mbeumo:** Goals are great, but what happens when they dry up? Then what do we have? Nothing, but we need Martinez to keep us afloat regardless.\n\n**To Sesko:** potential and youth are good and all, but that's all they are. We need proven, reliable results!\n\n**Mainoo's** composure is admirable, but is not enough.\n\n**Amad Diallo, Dorgu, Cunha, Casemiro, Yoro**: stop. Martinez is a brick wall and the rest of you are not.\n\nWhile others offer flashes of brilliance, Martínez brings consistent excellence and passion to every game and every tackle. You talk about inspiration? Watch Martínez make a crucial tackle, and tell me that doesn't ignite the entire team. He's the heart and soul of this defense, and without that heart, we are nothing.\n"
+    },
+    {
+      "player": "Leny Yoro",
+      "round": 2,
+      "rebuttal": "You all keep focusing on the present, when Manchester United needs to be building for the future! Bruno's penalties and whinging, Mbeumo's short-term burst, Sesko's *potential* – it's all fleeting! How many times have we seen flashes of brilliance fade away at Old Trafford? We need sustainable success, and that starts with a rock-solid foundation.\n\nMartinez is a warrior, but his injury record is a gaping hole in our defense. You can't build a wall with missing bricks! Mainoo's promise is exciting, but he is not enough to hold our defense on his own. Dorgu and Diallo are good players, but inconsistent, and have not proven enough yet. And Casemiro? Respect the legend, but he's clearly past his best and lacks the pace to consistently dominate the midfield.\n\nYoro represents a long-term fix, a player who, even without playing, provides the foundation for a decade of defensive stability. He's the solution to our leaky defense, the cornerstone upon which we can build a title-winning team. While you're all arguing over who can score the most goals *right now*, Yoro offers the potential for sustained excellence, a true leader at the back for years to come. This is why he is the most important player.\n"
+    },
+    {
+      "player": "Patrick Dorgu",
+      "round": 2,
+      "rebuttal": "Alright, alright, enough with the nostalgia trips and the overhyped potentials! You're all focusing on individual moments while ignoring the fundamental shift happening in modern football: the rise of the attacking full-back!\n\nBruno's passes are great when they come off, but how often do they lead to turnovers in crucial areas? Mbeumo and Sesko can score goals, but do they provide width and defensive cover on the flanks? Absolutely not. Casemiro is a legend, but his legs are gone, and he can't provide the energy and attacking impetus required of a modern full-back. What about Mainoo, Martinez, Yoro, Diallo, and Cunha? They are all in different positions and while they are great they do not offer what a full-back offers. They are all good players but they play positions that do not compare to that of a full back.\n\nDorgu isn't just a defender; he's a dynamic force on the left flank. He's got the pace to burn past defenders, the crossing ability to pick out teammates in the box, and the defensive grit to shut down opposing wingers. He is an excellent passer and can also defend effectively. This unique blend of skills makes him invaluable to our team, providing both defensive stability and attacking threat.\n\nWhile others are focused on patching holes or clinging to past glories, Dorgu is building a future of attacking prowess down the left. Full-backs are vital because a modern defence needs width. That is where Dorgu comes in. He is the man. Others can claim they do, Dorgu does! It's time to embrace the future of football and recognize Patrick Dorgu as the best and most important player in this Manchester United squad.\n"
+    },
+    {
+      "player": "Amad Diallo",
+      "round": 2,
+      "rebuttal": "While the others offer glimpses of what *could be*, Amad Diallo is *already* delivering moments of pure magic.\n\nBruno’s penalty record pads his stats, and his on-field antics are hardly captain material. Mbeumo is great, but you need someone who creates magic, not simply capitalize. Casemiro is a legend, but his legs are starting to show and his role in the midfield isn't going to be enough.\nSesko has a lot of potential, but Amad has the flair needed now!\n\nMainoo, Martinez, Yoro, and Dorgu are all great defensive players, but football is about scoring goals, and Amad is an attacker.\n\nWhile others offer reliability, Amad offers game-changing brilliance. He is the X-factor this team needs. He's already showing glimpses of the future, a future where he's tearing defenses apart with his skill and vision. Invest in potential and give Amad the chance. He won't disappoint. Amad Diallo IS the best player in this United team, and it is only a matter of time before everyone else starts to see it!\n"
+    },
+    {
+      "player": "Casemiro",
+      "round": 2,
+      "rebuttal": "Alright, settle down, you lot. It’s truly disheartening to see so many blinded by shiny new toys and fleeting moments of brilliance. You mistake potential for proven performance, and hype for hard-earned glory. While you're fawning over youngsters and goalscorers, you’re forgetting the backbone of any truly great team: a world-class defensive midfielder. And that's Casemiro.\n\nYes, his legs might not be as fresh as Dorgu or Mainoo, but football isn’t just about sprints. It’s about tactical intelligence, positioning, and reading the game. And nobody in this squad possesses that like Casemiro.\n\nBruno Fernandes is a creative force, sure, but his inconsistency and tendency to disappear in big games negates that. Mbeumo, Sesko, Cunha? All decent attackers, but none possess the winning pedigree and midfield mastery of Casemiro.\n\nMartinez and Yoro are fantastic defenders, but a strong defense needs a shield. A midfield general. Someone who can break up play, protect the back four, and dictate the tempo. That person is Casemiro. He's not just a destroyer; he's a distributor, a leader, and a proven winner. He may not be the flashiest, but his presence allows others to shine.\n\nThe problem is that you simply look at individual highlights. Casemiro is a player that allows the whole team to be better and provide structure to the team.\n\nSo, before you crown the next big thing, remember the importance of experience, tactical brilliance, and unwavering commitment to winning. Casemiro embodies all those qualities, and that's why he remains the best and most important player at Manchester United.\n"
+    }
+  ],
+  "judgeResult": {
+    "rankings": [
+      {
+        "rank": 1,
+        "player": "Bryan Mbeumo",
+        "reasoning": "Mbeumo's consistency and clinical finishing give him a slight edge. While others have flashes of brilliance, Mbeumo delivers week in, week out. His goals-per-game ratio and ability to unlock defenses make him the most reliable attacking threat, vital for securing wins."
+      },
+      {
+        "rank": 2,
+        "player": "Bruno Fernandes",
+        "reasoning": "Fernandes is undeniably a creative force and a leader. However, inconsistencies in big games and reliance on penalties slightly diminish his overall impact compared to Mbeumo. His vision and chance creation are crucial, but the team needs a consistent finisher to capitalize on those opportunities."
+      },
+      {
+        "rank": 3,
+        "player": "Lisandro Martínez",
+        "reasoning": "Martínez is the heart of the defense, bringing grit and a winning mentality. His impact on the team's defensive solidity is undeniable. However, his value is limited by his injury proneness, which affects his consistency in the lineup. While a solid defense is a cornerstone of a great team, it still needs someone to score the goals."
+      },
+      {
+        "rank": 4,
+        "player": "Kobbie Mainoo",
+        "reasoning": "Mainoo's composure and control in midfield are impressive for his age. He provides balance and allows others to flourish. However, his impact on the attacking third is not as significant as other contenders, and he is still developing. Nonetheless, he's a very promising star."
+      },
+      {
+        "rank": 5,
+        "player": "Matheus Cunha",
+        "reasoning": "Cunha's work ethic and versatility are valuable assets. He provides a spark and fights for every ball. However, his end product needs improvement. While his energy is infectious, the lack of consistent goals and assists keeps him lower in the ranking."
+      },
+      {
+        "rank": 6,
+        "player": "Benjamin Sesko",
+        "reasoning": "Sesko possesses significant potential as a striker, but his impact hasn't been fully realized. While his physical attributes are promising, his relative lack of consistent goals places him below players with proven track records. The team's need for a consistent goalscorer is high, but potential isn't enough at this stage."
+      },
+      {
+        "rank": 7,
+        "player": "Leny Yoro",
+        "reasoning": "Yoro is a promising prospect, and while he brings defensive stability, his impact is more about future potential than current performance. The team needs defensive improvements, but there are others with a bigger impact."
+      },
+      {
+        "rank": 8,
+        "player": "Casemiro",
+        "reasoning": "Casemiro's experience and winning pedigree are valuable, but his age and declining pace are becoming liabilities. While his tactical awareness is still high, his physical limitations affect his overall impact. Has shown decline."
+      },
+      {
+        "rank": 9,
+        "player": "Patrick Dorgu",
+        "reasoning": "Dorgu's attacking contributions from defense are noteworthy, but his defensive consistency needs improvement. While a modern full-back needs to contribute in attack, the primary role is still defending."
+      },
+      {
+        "rank": 10,
+        "player": "Amad Diallo",
+        "reasoning": "Diallo offers moments of brilliance, but his overall impact is limited by inconsistency. While his dribbling skills are exciting, he needs more consistent end product to climb the rankings."
+      }
+    ],
+    "mvp_declaration": "Bryan Mbeumo is declared the MVP of the Manchester United 2025-26 squad due to his consistent goal-scoring ability, overall impact in games, and unlocking defenses. This makes him the single most valuable player on the team.",
+    "debate_summary": "The debate centered around identifying the most impactful player within the Manchester United squad, considering factors like current form, consistency, leadership, and overall importance to the team's system. While strong cases were made for various players, including Bruno Fernandes, Lisandro Martínez, and Kobbie Mainoo, the argument for Bryan Mbeumo's consistent attacking output and reliability ultimately proved most compelling. The strengths of other contenders were acknowledged, but ultimately, Mbeumo's ability to consistently deliver goals and create opportunities set him apart. Arguments based on future potential, defensive stability, or past glories were not as convincing as the demonstration of immediate and consistent impact on the team's attacking success."
+  }
+};
+</script>
+
+<div class="hero">
+  <span class="crest">&#9917;</span>
+  <div class="hero-label">Manchester United 2025-26 &mdash; Best Player Debate</div>
+  <h1 id="hero-name"></h1>
+  <p class="subtitle" id="hero-declaration"></p>
+  <div class="hero-badge">SQUAD MVP</div>
+</div>
+
+<div class="container">
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-panel="rankings">Final Rankings</div>
+    <div class="tab" data-panel="opening">Opening Arguments</div>
+    <div class="tab" data-panel="rebuttals">Rebuttals</div>
+    <div class="tab" data-panel="timeline">Debate Timeline</div>
+  </div>
+
+  <div class="panel active" id="panel-rankings">
+    <div id="rankings-list"></div>
+    <div class="declaration" id="declaration-box"></div>
+    <div class="summary-box" id="summary-box"></div>
+  </div>
+
+  <div class="panel" id="panel-opening">
+    <div id="opening-list"></div>
+  </div>
+
+  <div class="panel" id="panel-rebuttals">
+    <h2 style="margin-bottom: 24px;">Rebuttal Rounds</h2>
+    <div id="rebuttals-list"></div>
+  </div>
+
+  <div class="panel" id="panel-timeline">
+    <div class="timeline" id="timeline"></div>
+  </div>
+</div>
+
+<footer>
+  Man United Best Player Debate &mdash; Powered by Gemini AI Multi-Agent System
+</footer>
+
+<script>
+(function() {
+  const { openingArgs, rebuttalRound1, rebuttalRound2, judgeResult } = DATA;
+
+  const winner = judgeResult.rankings[0];
+  document.getElementById('hero-name').textContent = winner.player;
+  document.getElementById('hero-declaration').textContent = judgeResult.mvp_declaration;
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+    });
+  });
+
+  const rankingsEl = document.getElementById('rankings-list');
+  judgeResult.rankings.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'ranking-card rank-' + r.rank;
+    card.innerHTML =
+      '<div class="rank-badge">' + r.rank + '</div>' +
+      '<div class="rank-info"><h3>' + escHtml(r.player) + '</h3><p>' + escHtml(r.reasoning) + '</p></div>';
+    rankingsEl.appendChild(card);
+  });
+
+  const declBox = document.getElementById('declaration-box');
+  declBox.innerHTML = '<h3>MVP Declaration</h3><p>' + escHtml(judgeResult.mvp_declaration) + '</p>';
+  document.getElementById('summary-box').textContent = judgeResult.debate_summary;
+
+  const openingEl = document.getElementById('opening-list');
+  openingArgs.forEach(a => {
+    const card = document.createElement('div');
+    card.className = 'arg-card';
+    card.innerHTML =
+      '<div class="arg-header"><span>' + escHtml(a.player) + '</span><span class="arg-chevron">&#x25BC;</span></div>' +
+      '<div class="arg-body"><div class="arg-content">' + escHtml(a.argument) + '</div></div>';
+    card.querySelector('.arg-header').addEventListener('click', () => card.classList.toggle('open'));
+    openingEl.appendChild(card);
+  });
+
+  const rebuttalsEl = document.getElementById('rebuttals-list');
+  const players = [...new Set(rebuttalRound1.map(r => r.player))];
+  players.forEach(player => {
+    const group = document.createElement('div');
+    group.className = 'rebuttal-group';
+    const r1 = rebuttalRound1.find(r => r.player === player);
+    const r2 = rebuttalRound2.find(r => r.player === player);
+    let inner = '<h3>' + escHtml(player) + '</h3>';
+    if (r1) inner += '<div class="rebuttal-entry"><div class="round-label">Round 1 Rebuttal</div><div class="rebuttal-text">' + escHtml(r1.rebuttal) + '</div></div>';
+    if (r2) inner += '<div class="rebuttal-entry"><div class="round-label">Round 2 Rebuttal</div><div class="rebuttal-text">' + escHtml(r2.rebuttal) + '</div></div>';
+    group.innerHTML = inner;
+    rebuttalsEl.appendChild(group);
+  });
+
+  const timelineEl = document.getElementById('timeline');
+  const items = [];
+  items.push({ phase: 'Phase 1', title: 'Opening Arguments Begin', desc: '10 AI agents each advocate for their assigned Man United player.', end: false });
+  openingArgs.forEach(a => {
+    items.push({ phase: 'Phase 1', title: a.player + ' presents case', desc: a.argument.slice(0, 120) + '...', end: false });
+  });
+  items.push({ phase: 'Phase 1', title: 'Opening Arguments Complete', desc: 'All 10 agents have presented their cases.', end: true });
+  items.push({ phase: 'Phase 2', title: 'Rebuttal Round 1 Begins', desc: 'Agents respond to competing arguments.', end: false });
+  items.push({ phase: 'Phase 2', title: 'Rebuttal Round 1 Complete', desc: 'All agents delivered first rebuttals.', end: true });
+  items.push({ phase: 'Phase 2', title: 'Rebuttal Round 2 Begins', desc: 'Final round of counterarguments.', end: false });
+  items.push({ phase: 'Phase 2', title: 'Rebuttal Round 2 Complete', desc: 'All rebuttals delivered.', end: true });
+  items.push({ phase: 'Phase 3', title: 'Judge Evaluation', desc: 'Impartial judge reviews all arguments and rebuttals.', end: false });
+  items.push({ phase: 'Phase 3', title: winner.player + ' declared MVP', desc: (judgeResult.mvp_declaration || '').slice(0, 150) + '...', end: true });
+
+  items.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'timeline-item' + (item.end ? ' phase-end' : '');
+    el.innerHTML =
+      '<div class="timeline-dot"></div>' +
+      '<div class="timeline-phase">' + escHtml(item.phase) + '</div>' +
+      '<div class="timeline-title">' + escHtml(item.title) + '</div>' +
+      '<div class="timeline-desc">' + escHtml(item.desc) + '</div>';
+    timelineEl.appendChild(el);
+  });
+
+  function escHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+})();
+</script>
+</body>
+</html>

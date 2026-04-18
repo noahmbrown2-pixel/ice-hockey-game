@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dinosaur Battle Royale</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #090b0a;
+    --surface: #121a14;
+    --surface2: #1a2a1e;
+    --border: #2a3d2e;
+    --text: #e8f0ea;
+    --text-dim: #7a9a80;
+    --accent: #4ade80;
+    --accent-dark: #22803d;
+    --gold: #ffd700;
+    --silver: #c0c0c0;
+    --bronze: #cd7f32;
+    --blood: #dc2626;
+    --fire: #f97316;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  .hero {
+    text-align: center;
+    padding: 80px 24px 60px;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(74,222,128,0.12) 0%, transparent 60%),
+      linear-gradient(180deg, rgba(34,128,61,0.15) 0%, transparent 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-icon { font-size: 5rem; margin-bottom: 16px; display: block; }
+  .hero-label {
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: var(--blood);
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-size: clamp(2.2rem, 6vw, 3.8rem);
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent), #16a34a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero .subtitle {
+    font-size: 1.15rem;
+    color: var(--text-dim);
+    max-width: 750px;
+    margin: 16px auto 0;
+  }
+  .hero-badge {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 8px 20px;
+    background: linear-gradient(135deg, var(--blood), #991b1b);
+    color: white;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── Battle Narrative ── */
+  .narrative-box {
+    background: linear-gradient(135deg, rgba(220,38,38,0.08), rgba(249,115,22,0.08));
+    border: 1px solid var(--blood);
+    border-radius: 16px;
+    padding: 32px;
+    margin: 32px 0;
+    text-align: center;
+  }
+  .narrative-box h3 {
+    color: var(--fire);
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  .narrative-box p {
+    color: var(--text-dim);
+    max-width: 800px;
+    margin: 0 auto;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    font-style: italic;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--surface); }
+  .tab.active { color: var(--accent); background: var(--surface); border-color: var(--accent); }
+
+  .panel { display: none; padding: 32px 0; }
+  .panel.active { display: block; }
+
+  .ranking-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .ranking-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+  .rank-badge {
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.3rem;
+    background: var(--surface2);
+    color: var(--text-dim);
+  }
+  .rank-1 .rank-badge { background: linear-gradient(135deg, #ffd700, #b8860b); color: #000; box-shadow: 0 0 24px rgba(255,215,0,0.5); font-size: 1.5rem; }
+  .rank-2 .rank-badge { background: linear-gradient(135deg, #c0c0c0, #808080); color: #000; }
+  .rank-3 .rank-badge { background: linear-gradient(135deg, #cd7f32, #8b4513); color: #fff; }
+  .rank-info { flex: 1; }
+  .rank-info h3 { font-size: 1.25rem; margin-bottom: 6px; }
+  .rank-info .dino-emoji { margin-right: 8px; }
+  .rank-info p { color: var(--text-dim); font-size: 0.95rem; }
+  .eliminated { display: inline-block; margin-left: 8px; font-size: 11px; padding: 2px 8px; background: rgba(220,38,38,0.2); color: var(--blood); border-radius: 4px; font-weight: 600; }
+  .survivor { display: inline-block; margin-left: 8px; font-size: 11px; padding: 2px 8px; background: rgba(74,222,128,0.2); color: var(--accent); border-radius: 4px; font-weight: 600; }
+
+  .arg-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .arg-header {
+    padding: 18px 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 1.05rem;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .arg-header:hover { background: var(--surface2); }
+  .arg-chevron { transition: transform 0.2s; color: var(--text-dim); font-size: 1.2rem; }
+  .arg-card.open .arg-chevron { transform: rotate(180deg); }
+  .arg-body { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+  .arg-card.open .arg-body { max-height: 3000px; }
+  .arg-content { padding: 0 24px 24px; color: var(--text-dim); white-space: pre-wrap; font-size: 0.95rem; line-height: 1.7; }
+
+  .rebuttal-group { margin-bottom: 32px; }
+  .rebuttal-group h3 { font-size: 1.1rem; margin-bottom: 12px; color: var(--accent); }
+  .rebuttal-entry { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 8px; }
+  .rebuttal-entry .round-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); margin-bottom: 8px; }
+  .rebuttal-entry .rebuttal-text { white-space: pre-wrap; color: var(--text-dim); font-size: 0.93rem; line-height: 1.7; }
+
+  .timeline { position: relative; padding-left: 40px; }
+  .timeline::before { content: ''; position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .timeline-item { position: relative; margin-bottom: 32px; }
+  .timeline-dot { position: absolute; left: -33px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 3px solid var(--bg); box-shadow: 0 0 0 2px var(--accent); }
+  .timeline-item.phase-end .timeline-dot { background: var(--blood); box-shadow: 0 0 0 2px var(--blood); }
+  .timeline-phase { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 4px; font-weight: 600; }
+  .timeline-title { font-weight: 600; margin-bottom: 4px; }
+  .timeline-desc { color: var(--text-dim); font-size: 0.9rem; }
+
+  .declaration {
+    background: linear-gradient(135deg, rgba(74,222,128,0.08), rgba(255,215,0,0.08));
+    border: 1px solid var(--accent-dark);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    margin: 32px 0;
+  }
+  .declaration h3 { color: var(--gold); font-size: 1.3rem; margin-bottom: 12px; }
+  .declaration p { color: var(--text-dim); max-width: 800px; margin: 0 auto; font-size: 1rem; line-height: 1.7; }
+
+  footer {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+    margin-top: 60px;
+  }
+</style>
+</head>
+<body>
+
+<script>
+const DATA = {
+  "openingArgs": [
+    {
+      "player": "Tyrannosaurus Rex",
+      "argument": "Ladies and gentlemen, esteemed paleontologists, prepare to witness the undisputed champion of the Mesozoic! I present to you *Tyrannosaurus rex*, the king, the apex predator, the ultimate dinosaurian combatant! In a 10-dinosaur battle royale, the outcome is clear: *T. rex* reigns supreme.\n\nLet's dissect the advantages. First, the bite force: a staggering 12,800 pounds. This isn't just a bite; it's a bone-crushing, armor-shattering demolition tool. *Stegosaurus* and *Ankylosaurus*, with their puny plates and clubs, would be rendered into dino-sushi with a single chomp. Their armor is irrelevant.\n\nNext, consider *T. rex's* binocular vision. While others rely on peripheral awareness, *T. rex* sees in 3D, pinpointing weaknesses with laser-like accuracy. Speed? At 25 mph, it's faster than you think. It closes the gap, delivers a crippling bite, and moves on.\n\nThe strategy is simple: intimidate, dominate, eliminate. The sheer size and power of *T. rex* would send smaller predators like *Velociraptor* and *Dilophosaurus* scurrying for cover. Against herbivores like *Triceratops* or *Parasaurolophus*, *T. rex* targets the neck or legs, delivering a disabling bite before finishing them off. Even a formidable opponent like *Allosaurus* lacks the raw power to compete. *T. rex* would exploit their weaker bite and fragile bones.\n\nIn the chaos of a battle royale, *T. rex* thrives. It's built for carnage. It's the ultimate killing machine. When the dust settles, there will only be one dinosaur standing: *Tyrannosaurus rex*. Thank you.\n"
+    },
+    {
+      "player": "Spinosaurus",
+      "argument": "Ladies and gentlemen, esteemed colleagues, prepare to witness the dawn of a new apex predator! Forget your T-Rexes and Raptors; the undisputed champion of this 10-dinosaur battle royale is, without a doubt, *Spinosaurus aegyptiacus*!\n\nLet's be clear: Spino isn't just big; it's a leviathan! At 50 feet and nearly 9 tons, it dwarfs most contenders. That sail isn't just for show; it's a billboard screaming, \"I'm the boss!\" Intimidation matters.\n\nBut Spino's advantages go far beyond size. Its semi-aquatic lifestyle gives it an unparalleled edge. Imagine a *Giganotosaurus* lumbering onto the riverbank, only to be ambushed by Spino. Those crocodile-like jaws, while not bone-crushing, are perfect for grabbing and holding struggling prey. A quick snap of the neck underwater, and another contender is neutralized.\n\nOn land, Spino's long arms and massive claws become devastating weapons. Picture a *Ceratosaurus* trying to flank; one swipe from Spino's claws, and it's bleeding out. Its height gives it a reach advantage against shorter theropods like *Carnotaurus*.\n\nNow, some may question Spino's speed. But consider this: it doesn't need to outrun everything. It needs to control the battlefield. Lure opponents to the water, use its size to dominate, and exploit its unique hunting adaptations.\n\nThe other dinosaurs are specialized for one type of environment, but Spino is flexible. In the water, it's an apex predator. On land, it's a formidable foe. And with its size, reach, and killer claws, Spino will adapt, survive, and reign supreme!\n"
+    },
+    {
+      "player": "Velociraptor",
+      "argument": "Ladies and gentlemen, esteemed colleagues! I stand before you today to champion the apex predator, the feathered terror, the true assassin of the Cretaceous: *Velociraptor mongoliensis*!\n\nForget your lumbering herbivores and your oversized, overrated carnivores. In a 10-dinosaur battle royale, the Raptor isn't just a contender; it's the inevitable victor.\n\n**The Raptor Advantage:**\n\n*   **Speed and Agility:** Clocking in at 40 mph, the Raptor is a blur of feathers and fury. It can outmaneuver, outflank, and outpace any brute force opponent.\n*   **The Killing Claw:** A 3-inch retractable sickle claw, razor-sharp, designed to disembowel. One precise strike can cripple, bleed out, or outright kill any opponent.\n*   **Intelligence and Pack Tactics:** With a brain-to-body ratio rivaling modern birds, Raptors are cunning strategists. In a free-for-all, they'd assess weaknesses, exploit openings, and use coordinated attacks.\n\n**The Raptor Strategy:**\n\nThe Raptor wouldn't engage in head-on collisions. Instead, it uses hit-and-run tactics, targeting vulnerable areas: eyes, legs, underbelly.\n\n**Why the Raptor Wins:**\n\n*   **Against armored dinosaurs:** Raptors would target the legs, crippling them, then go for the soft underbelly.\n*   **Against larger theropods:** Raptors are too fast and agile to be caught, and can use hit and run tactics. They will attack weak spots, then leap away using their agility and speed.\n*   **Against herbivores:** Raptors will take the element of surprise and coordinated attacks to quickly bring down any herbivore.\n\nIn the chaos of a battle royale, intelligence, speed, and precision are paramount. The Raptor embodies these qualities, making it the ultimate survivor, the last dinosaur standing!\n"
+    },
+    {
+      "player": "Triceratops",
+      "argument": "Ladies and gentlemen, esteemed paleontologists, prepare to witness the coronation of the true champion of the Cretaceous: *Triceratops horridus!*\n\nForget your flashy theropods and lumbering sauropods. When the dust settles in this ten-dinosaur melee, it will be the sturdy Trike, the rhino of its day, standing triumphant. Why? Because *Triceratops* isn't just built for survival; it's engineered for brutal, close-quarters combat.\n\nIts primary weapon is its *skull.* Armed with two three-foot-long brow horns and a shorter nose horn, Trike is a walking, charging battering ram. Imagine a *Velociraptor* trying to flank a Trike. One swift turn, and *CRUNCH*! The raptor is impaled. \n\n\"But what about larger predators?\" I hear you cry. Let's talk *Tyrannosaurus rex*. Fossil evidence shows *T. rex* and *Triceratops* engaged in mortal combat. Bite marks on *Triceratops* frills, and horn gouges on *T. rex* bones, tell a story of epic battles. The frill serves as a shield, deflecting bites and protecting the vulnerable neck. Trike would aim for the legs, crippling the tyrant lizard before delivering a fatal horn strike to the belly.\n\nTrike is a master of defense. Its thick hide and powerful build can withstand significant punishment. It has a low center of gravity and four stout legs. It can pivot, turn, and counterattack with surprising speed. Other herbivores like *Stegosaurus* or *Ankylosaurus* are too slow and unwieldy. Carnivores like *Allosaurus* or *Carnotaurus* lack the armor and raw power to penetrate Trike's defenses.\n\nIn a battle royale, Trike would adopt a defensive posture, using its frill to protect its flanks and waiting for an opening. Then, with a thunderous charge, it would deliver a knockout blow. When the arena is littered with the bones of its rivals, the king will be crowned: *Triceratops horridus!*\n"
+    },
+    {
+      "player": "Ankylosaurus",
+      "argument": "Ladies and gentlemen, esteemed paleontologists, prepare to witness the triumph of the ultimate armored behemoth! In this 10-dinosaur battle royale, I present to you the undisputed champion: Ankylosaurus magniventris.\n\nForget your flashy carnivores. Raw power and impenetrable defense win wars, and Anky brings BOTH to this fight. Imagine the chaos as nine other contenders collide – a feeding frenzy of teeth and claws. But amidst the carnage stands Anky, an eight-ton fortress of bone and muscle.\n\n**Anky's advantages are clear:**\n\n*   **Unbreakable Defense:** Anky's full-body osteoderm armor laughed in the face of T-Rex bites. What chance do Allosaurus, Ceratosaurus, or even Triceratops horns have against this walking tank?\n*   **The Bone-Crushing Hammer:** That club tail isn't just for show. A single swing delivers over 5,000 Newtons of force. One hit to the legs of a charging Carnotaurus and it's down for the count. A direct hit on the skull of a Stegosaurus? Lights out.\n*   **Strategic Brilliance:** Anky wasn't the smartest dinosaur, but it was smart enough. Its low center of gravity makes it nearly impossible to flip, unlike Allosaurus or Raptors. Anky will hunker down, weathering the initial storm, waiting for the opportune moment to unleash its devastating tail.\n\n**Anky's strategy is simple: Survive, then destroy.**\n\nWhile the others tear at each other, Anky will methodically eliminate the threats one by one. Theropods are fragile, relying on speed and agility. Anky will deny them that advantage, smashing legs and crippling their attacks. Herbivores? Their horns and headbutts are useless against Anky's armor.\n\nIn the end, only one dinosaur will remain standing: the armored titan, the bone-crushing champion, the one and only Ankylosaurus. Place your bets now because the outcome is inevitable.\n"
+    },
+    {
+      "player": "Giganotosaurus",
+      "argument": "Ladies and gentlemen, esteemed colleagues! I stand before you to champion the undisputed king of this ten-dinosaur deathmatch: Giganotosaurus! Forget your oversized lizards from North America. The *real* apex predator of the Late Cretaceous was Giga, and it would obliterate the competition.\n\nGiganotosaurus wasn't just big; it was a *killing machine* built for one purpose: bringing down the largest prey on the planet. Its size gave it a crucial advantage. At 43 feet, even a T-Rex would look up to it! \n\nWhile T-Rex had a bone-crushing bite, Giga had a *slashing* bite designed to inflict massive, debilitating wounds. Against armored opponents like Ankylosaurus, Giga would target limbs and necks, tearing through flesh and muscle, causing catastrophic bleeding and crippling mobility. Triceratops? A charging Triceratops is a threat, but Giga was fast, likely clocking in at 30 mph. It would dodge the horns and deliver a devastating bite to the vulnerable frill or legs, turning the horned beast into a sluggish, bleeding target.\n\nVelociraptors? Please. They're glorified turkeys. Giga would simply step on them. Carnotaurs? Giga's superior size and power render its advantage insurmountable. Spinosaurus would be out of its element away from the water. \n\nGiga likely hunted in packs, indicating a level of coordination and intelligence unseen in many other contenders. This inherent pack mentality would translate into a calculated, strategic approach to the battle royale, making it the ultimate victor! Giganotosaurus wouldn't just win; it would *dominate*.\n"
+    },
+    {
+      "player": "Utahraptor",
+      "argument": "Ladies and gentlemen, prepare to witness the reign of the apex predator! I present to you, Utahraptor ostrommaysi, the undisputed champion of this 10-dinosaur deathmatch!\n\nUtah isn't just another raptor; it's a **20-foot, 1,100-pound engine of destruction.** Imagine a velociraptor supersized and battle-hardened. Its signature weapon, a **9-inch sickle claw**, isn't for show. It's a specialized disemboweling tool, designed to rip through flesh and incapacitate prey with a single, brutal strike.\n\nIn a battle royale, size and intelligence matter. Utah combines both. Its agility allows it to evade larger opponents, while its raptor intelligence enables strategic ambushes and coordinated attacks (yes, even solo, it retains pack-hunting instincts).\n\n**Matchup analysis:**\n\n*   **Against heavily armored dinosaurs:** Utah targets vulnerable areas – the eyes, the throat, the underbelly. Its claws bypass armor; its bite force crushes bone.\n*   **Against larger herbivores:** Forget going head-to-head. Utah uses hit-and-run tactics, hamstringing legs and delivering crippling blows until the giant collapses.\n*   **Against smaller carnivores:** Speed, agility, and superior weaponry make short work of any competition. One precise strike from that sickle claw is all it takes.\n\nUtahraptor is not just a survivor; it's a hunter. It will survey the battlefield, identify weaknesses, and exploit them with deadly efficiency. In the chaos of a free-for-all, its combination of size, intelligence, and unparalleled weaponry makes it the ultimate victor. Place your bets on Utah; you won't be disappointed.\n"
+    },
+    {
+      "player": "Therizinosaurus",
+      "argument": "Ladies and gentlemen, esteemed colleagues, prepare to witness the reign of the *Therizinosaurus cheloniformis*! You see a herbivore, I see a walking nightmare for any Cretaceous carnivore foolish enough to approach. Forget your tyrannosaurs and your raptors – the Scythe Lizard is the apex predator of this arena!\n\nLet's be clear: *Therizinosaurus* wasn't built for gentle grazing. Those three-foot claws weren't for show. They were instruments of disembowelment, capable of ripping through flesh and bone with terrifying ease. Imagine a *Velociraptor* attempting its signature leaping attack – one swipe from *Therizinosaurus* and it's sliced into ribbons. A *Triceratops* charges? It'll find its frill shredded and its vital organs exposed.\n\n\"But it's an herbivore!\" I hear you cry. So was a rhino, and you wouldn't want to be on the receiving end of its horn. *Therizinosaurus*'s size and reach provide an unparalleled advantage. Its claws allowed it to reach high vegetation, so it could easily slash down at any opponent, maintaining a safe distance.\n\nIts strategy is simple: defense first. Stand tall, intimidate with those massive claws, and unleash hell on anything that gets close. A *Carnotaurus* tries to flank? Doesn't matter. *Therizinosaurus* can pivot and deliver a fatal blow with surprising agility. An *Ankylosaurus*, relying on its armor, is in for a rude awakening. Those claws can find the gaps, tear at the legs, and leave it vulnerable for a final, decisive strike.\n\nIn a ten-dinosaur free-for-all, chaos reigns. But amidst the carnage, *Therizinosaurus* remains calm, calculating, and utterly lethal. When the dust settles, it will be the Scythe Lizard, scarred but triumphant, standing atop the fallen. Place your bets wisely.\n"
+    },
+    {
+      "player": "Carnotaurus",
+      "argument": "Ladies and gentlemen, prepare to witness the Cretaceous carnage as Carnotaurus, the \"meat-eating bull,\" charges to victory! Forget your lumbering giants and armored tanks. In a 10-dinosaur battle royale, speed, agility, and ruthless aggression are king, and Carno is the undisputed monarch.\n\nCarno isn't built for prolonged grappling. It's a Cretaceous streetfighter, a hit-and-run artist par excellence. Clocking in at 35+ mph, Carno will run circles around the competition, delivering devastating ramming attacks with those bull-like horns. Imagine a *Triceratops* trying to turn fast enough, or an *Ankylosaurus* flipping over on its back when Carno strikes with lightning speed!\n\nThose tiny arms? Irrelevant! Carno's secret weapon is its hyper-muscular tail, providing explosive bursts of acceleration. This allows Carno to close distance in a heartbeat, deliver a skull-crushing headbutt, and then vanish before its opponent can react.\n\nAgainst heavyweights like *Tyrannosaurus rex*, Carno uses agility to avoid direct confrontation, bleeding it with hit-and-run attacks. Against pack hunters like *Velociraptor*, Carno uses its size to threaten and intimidate, and will focus on taking down the smaller ones quickly. Against other mid-sized theropods, Carno's ramming attack and superior speed will be the deciding factor. Carno is the ultimate predator: fast, agile, and utterly relentless. Place your bets now — Carnotaurus will be the last dinosaur standing!\n"
+    },
+    {
+      "player": "Stegosaurus",
+      "argument": "Ladies and gentlemen, esteemed colleagues! I stand before you to champion the victor of a ten-dinosaur battle royale — the magnificent *Stegosaurus stenops*! Forget your teeth and claws, this is a war of attrition and armored dominance!\n\nStego's advantages are clear. First, defense. Those iconic dorsal plates? More than mere decoration, they were likely reinforced with a dense, bony core. While not impenetrable, they offer substantial protection against glancing blows from carnivores.\n\nBut Stego's true weapon is its thagomizer! Four bone-shattering spikes, each a potential killing blow. We have fossil evidence of these spikes puncturing the bones of *Allosaurus*. This is not conjecture, this is battle-proven lethality!\n\n**Combat Strategy:** Stego wouldn't charge head-on. It's a master of the pivot. It would use its forelimbs to turn its body, keeping its tail pointed at the greatest threat. A well-placed thagomizer strike could cripple a *Ceratosaurus*, shatter the leg of a *Torvosaurus*, or even puncture the flank of a larger predator.\n\n**Matchup Advantages:** *Allosaurus* might be faster, but one solid tail strike and it's limping. *Ceratosaurus* is outmatched in terms of weaponry and armor. And the smaller carnivores? A stomp from Stego's powerful legs would end them instantly.\n\nStego survived for millions of years in a world teeming with predators. It evolved this brutal, yet effective defense. It's a walking tank with a built-in mace! In a chaotic free-for-all, where stamina and armor count as much as bite force, *Stegosaurus* will be the last dinosaur standing. Its battle-tested design, combined with its deadly thagomizer, makes it the ultimate survivor!\n"
+    }
+  ],
+  "rebuttalRound1": [
+    {
+      "player": "Tyrannosaurus Rex",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down everyone! I've heard enough bluster and frankly, a lot of wishful thinking. This isn't a beauty contest; it's a fight to the death! And when it comes to delivering death, *Tyrannosaurus rex* is the undisputed champion.\n\nSpinosaurus? A glorified crane. It is built for the water, which is not the setting here. On land, it's unstable and those pathetic crocodile jaws? The bite force pales in comparison to T. rex, which would tear through any bone, muscle and sail. \n\nVelociraptor? A pack of feathered distractions! One well-placed foot from Rex and its game over!\n\nTriceratops and Ankylosaurus claim invulnerability? Cute. T. rex had a bite force that could shatter bones, armor is irrelevant! No skull is resisting the force of tyrannosaurus rex. They'll be flipped and dispatched.\n\nGiganotosaurus with its slashing bite? Against an animal with thick hide it is simply ineffective. It wouldn’t penetrate deep enough to actually hurt. It will attempt to wound the legs, but it is too slow and too small.\n\nUtahraptor? A bigger raptor doesn’t change the end result.\n\nTherizinosaurus? It's a glass cannon. Big claws but no armor. A T. rex simply needs to push in with brute strength.\n\nCarnotaurus? Is a literal joke. A headbutt? Pathetic.\n\nStegosaurus? slow and stupid, easy to avoid thagomizer.\n\nThe others rely on gimmicks and specialized attacks. T. rex brings overwhelming force. Size, power, bone-crushing bite. It's not about fancy footwork; it's about absolute dominance. T. rex was built to kill the biggest, toughest prey. This battle royale? It's just another Tuesday.\n\nSo, place your bets on the oversized chicken then get prepared to watch it lose. The Tyrant Lizard King takes the throne.\n"
+    },
+    {
+      "player": "Spinosaurus",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down everyone! I've heard enough land-lubber logic from you terrestrial titans. Let's talk about the REAL apex predator: *Spinosaurus aegyptiacus*!\n\n*T. rex* and their vaunted bite? Cute for crunching land snails. My Spino, however, delivers swift, debilitating strikes with its *massive*, three-foot-long claws. Think Freddy Krueger on steroids but with a far deadlier purpose. And a bite force sufficient to subdue large prey, while the size, reach, and agility to avoid those bone-crushing chompers!\n\nVelociraptors? Please! Feathered dust bunnies! Spino would flick them into the cheap seats with a casual tail swipe. Triceratops and Ankylosaurus? Overrated armored speed bumps. While they're busy lumbering around, Spino's semi-aquatic lifestyle grants superior agility and maneuverability in varied terrain, allowing it to dictate the terms of engagement.\n\nGiganotosaurus and Utahraptor? Just bigger, slower versions of the same failed theropod template. Their slashing bites and puny claws wouldn't stand a chance against Spino's reach and devastating arm strength. And Therizinosaurus? Nice claws, but all defense, no offense. A sitting duck for Spino's superior size and aquatic prowess.\n\nCarnotaurus? A comical distraction. Stegosaurus? Thagomizer? A rear attack won't stop an aquatic predator, who can fight in water and move deftly in land.\n\nMy Spino isn't just big, it's adaptive! It’s the only dinosaur known to swim. It's a predator that can navigate both land and water, exploiting weaknesses and turning the environment into its weapon. So when the others are brawling like simpletons, Spino will be strategizing, ambushing, and reigning supreme over this so-called \"battle royale.\" Game over!\n"
+    },
+    {
+      "player": "Velociraptor",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down, you lumbering lizards and armored behemoths! You're all touting size and brute force, but you're forgetting the key to survival: intelligence and precision! And that, my friends, is where *Velociraptor* reigns supreme!\n\n*T. rex's* \"bone-crushing bite\"? Impressive, if it can actually *hit* something smaller than a building! Its arms are too short and it's too slow to catch my Raptors. *Spinosaurus* in a ten-dino brawl? You mean the oversized heron that probably couldn’t even support its own weight on land? Good luck trying to get to the water. That sail is a liability, not a billboard – a big, fragile target!\n\n*Triceratops* and *Ankylosaurus*, you're tough, sure. But you're also slow and predictable. A pack of Raptors can run circles around you, targeting your soft underbellies and eyes. *Giganotosaurus* and *Utahraptor* – big, but still relying on brute force. Raptors use their intelligence and agility. Forget the movies, a pack of Raptors would strategically coordinate their attacks, using their sickle claws to hamstring, disembowel, and cripple before going for the kill. A pack is like a swarm of knives!\n\n*Therizinosaurus* with its Freddy Krueger claws? A herbivore, people! Easily distracted and outmaneuvered. And *Stegosaurus*? A walking pin cushion. One well-placed leap onto its back, and a Raptor can sever the spinal cord, rendering that fancy tail useless.\n\n*Carnotaurus* claims speed, but lacks the precision and coordinated attack tactics of Velociraptors. In this battle royale, it's not about being the biggest or the strongest, it's about being the smartest and the deadliest. And that, my friends, is why *Velociraptor* will emerge victorious!\n"
+    },
+    {
+      "player": "Triceratops",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down everyone. I've heard enough bluster from these would-be champions! Rexy's bite force? Impressive, but she needs to *catch* Trike first. And Spino? All that sail and posing won't help when a horn punctures your vital organs.\n\nRaptors? Cute, but a slight annoyance to a multi-ton herbivore. Ankylosaurus thinks it can just turtle up? Trike will flip it over and go for the soft underbelly; the game is over! Giganotosaurus' pack mentality? My Trike will charge directly into them with horns lowered and put them into disarray! Utahraptor, with an oversized Velociraptor? Simply step aside, turn around, and show that giant sickle-claw exactly what 10,000+ lbs. of muscle is capable of.\n\nTherizinosaurus has long arms, but that slow-moving, clumsy body is no match for the raw power of Triceratops. Carnotaurus is quick, but it is still too small to take on a Triceratops.\n\nAnd Stego? Sorry to break it to you, but Trike's horns are designed to penetrate, not just bruise. That thagomizer won't mean much when Trike is goring your belly!\n\nTriceratops wins this battle royale because it is the perfect combination of offense and defense. With its bony frill and horns, it can withstand attacks from even the largest theropods. And when it is ready to strike, it can unleash a devastating charge that will leave its opponents reeling. When the dust settles, the only dinosaur standing will be Triceratops!\n"
+    },
+    {
+      "player": "Ankylosaurus",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down everyone. I've heard enough boasting about flimsy claws, fancy sails, and oversized egos. You all seem to be forgetting the golden rule of dinosaur combat: *armor wins wars!* And who is the undisputed champion of armor? That's right, it's *Ankylosaurus magniventris*!\n\n**T-Rex?** All bite, no brains. Sure, it could *try* to bite through Anky's armor, but it would break its teeth first. And those tiny arms? Please, Anky could probably trip it.\n\n**Spinosaurus** in the water? Cute. Anky can hold its breath and wait for that top-heavy freak to tip over and drown. On land, those pathetic claws won't even scratch Anky's hide!\n\n**Velociraptor** with its \"intelligence?\" The only strategy a raptor would accomplish would be finding itself stuck on Anky’s armor. \n\n**Triceratops?** Horns are nice, but can Trike protect its entire body? No! Anky will wait for an opening and take those legs out with one swing of the club. \n\n**Giganotosaurus?** That slashing bite will accomplish nothing against Anky’s armor!\n\n**Utahraptor?** Please. You have to be able to get close to deal damage. How would it deal damage to the Ankylosaurus? \n\n**Therizinosaurus?** Those claws will only be grabbing at the Ankylosaurus’s armor, leaving it open for the killing blow!\n\n**Carnotaurus?** A headbutt may scratch Anky’s armor, but a tail swipe from the club will end things quickly!\n\n**Stegosaurus** and its \"thagomizer\"? The only thing that tail would be hitting is solid armor.\n\nHere's the deal. Ankylosaurus is a *tank*. Underside protection, bony scutes, and a club designed to shatter bones? This is a dinosaur built to endure and *destroy*. While you predators are busy circling, strategizing, and inevitably tripping over each other, Anky will be methodically dismantling the competition, one broken leg at a time. In a battle royale, the last one standing wins, and the last one standing will be the armored fortress, *Ankylosaurus!*\n"
+    },
+    {
+      "player": "Giganotosaurus",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down! You've all made compelling cases...for dinosaurs destined to become *Giganotosaurus* appetizers. You tout bite force, agility, armor, and even *feathers*? Please!\n\nRexy, your bite is impressive, I'll give you that. But you waddle like a bloated chicken, relying on brute force over finesse. Giga is faster, more agile, and packs a serrated-tooth slicing bite designed to bleed you out before you even land a clumsy chomp. Those tiny arms? Forget about it, you can't even scratch your chin!\n\nSpino, you oversized heron, you're built for fishing, not fighting! That sail is a liability, a giant target for Giga to shred. You're a sitting duck on land, and Giga won't give you time to reach the water.\n\nVelociraptor and Utahraptor, you're both glorified turkeys! Sure, you're fast, but Giga is a bus compared to you. You're relying on lucky scratches and pack tactics, which goes out the window in a free for all. Giga would simply step on you.\n\nTriceratops and Ankylosaurus, you're tanks, I agree. But tanks are slow! Giga will circle you, slice your legs, and bleed you out while you struggle to turn. That club and those horns won't save you from a strategic, well-placed attack.\n\nTherizinosaurus, those claws are impressive for…gardening? You’re a slow-moving target with no real bite. Giga will treat you like a giant, feathery pin cushion.\n\nCarnotaurus, you are all speed, but lack any real substance. A glass cannon, if you will.\n\nStego, you're all defense, no offense! Giga will play matador, dodging your clumsy tail swipes and delivering the killing blow to your vulnerable neck.\n\n*Giganotosaurus* possesses the size, speed, and weaponry to dominate. It's the apex predator, designed for one thing: to kill. When the dust settles, Giga will be the only one left standing, feasting on the remains of your overrated champions.\n"
+    },
+    {
+      "player": "Utahraptor",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down everyone! I've listened to all this talk of \"bone-crushing bites\" and \"unbreakable armor,\" and frankly, I'm underwhelmed. You're all focused on brute force while ignoring the finesse and calculated savagery of *Utahraptor ostrommaysi*!\n\n**T. rex?** A glass cannon! All that bite force is useless if you can't *hit* anything. *Utahraptor* is agile enough to dance around it. And that tiny-armed tyrant can't reach down to defend its legs from a slashing attack. One well-placed kick to the leg and the king is on the ground, a sitting duck.\n\n**Spinosaurus?** A glorified fish-eater! On land, it's an awkward, slow-moving sail with toothpick teeth. *Utahraptor* is too fast. It will leap on its back and rip out its throat before it even knows what's happening. \n\n**Velociraptor?** Cute, but come on! These are the actual predators here, not the over-hyped movie monsters. *Utahraptor* is larger, stronger, and packs a much more dangerous punch!\n\n**Triceratops and Ankylosaurus?** Slow-moving tanks are vulnerable to precisely placed attacks. *Utahraptor* and its packmates will swarm them, targeting their limbs and underbellies, crippling them for the kill.\n\n**Giganotosaurus and Carnotaurus?** Fast and strong, but clumsy compared to *Utahraptor*. Their bites are useless against something that never stays in one place for long. Hit and run tactics. Wear them down.\n\n**Stegosaurus?** A walking pincushion with terrible eyesight! *Utahraptor* is intelligent and agile, easily evading the thagomizer and going for the legs.\n\n**Therizinosaurus?** Long arms and slow movement. An overspecialized herbivore that doesn't belong in a fight. \n\n*Utahraptor* is a true predator, built for coordinated pack hunting and deadly precision. It's not about size; it's about *skill*. And when it comes to skill, *Utahraptor* reigns supreme!\n"
+    },
+    {
+      "player": "Therizinosaurus",
+      "round": 1,
+      "rebuttal": "My esteemed colleagues, I've listened patiently to your claims of dominance, your boasts of bite force, speed, and armor. However, you've all overlooked a crucial element: adaptability. You've failed to recognize the unique power and versatility of *Therizinosaurus cheloniformis*!\n\n*T. rex* boasts a bone-crushing bite? Impressive, but try biting a *Therizinosaurus* that's actively shredding you with foot-long claws. That bite won't matter much when your face is hamburger. *Spinosaurus*? A semi-aquatic ambush predator is useless when facing claws that can reach over 8ft, capable of slashing through even the thickest hide. Drag *Therizinosaurus* into the water, and it will simply pull you out and disembowel you.\n\n*Velociraptor*'s \"killing claw\" is a joke compared to *Therizinosaurus'*. And \"pack tactics\" are irrelevant when facing an opponent that can cleave multiple raptors in half with a single swing. *Triceratops* and *Ankylosaurus* rely on brute force and armor. But *Therizinosaurus* doesn't need to break through armor. It can simply reach *around* it, tearing into vulnerable necks and limbs. Good luck charging when your tendons are severed!\n\n*Giganotosaurus*? Size is its only advantage. A lumbering giant is an easy target for *Therizinosaurus'*. Its long arms give it an unparalleled reach advantage, easily delivering debilitating wounds while staying safely out of the *Giganotosaurus*'s reach. *Utahraptor* is slightly larger than a *Velociraptor*, but still too small and weak to pose a threat to my animal. *Carnotaurus* is fast, but its headbutts are a tickle compared to the rending power of *Therizinosaurus*' claws. And *Stegosaurus*? Its \"thagomizer\" is a danger to the *Allosaurus* it co-existed with, but it pales in comparison to the scythes that *Therizinosaurus* uses.\n\nThe others are built for specific combat styles. *Therizinosaurus* can adapt to any situation. It is the ultimate generalist, and therefore the ultimate survivor. *Therizinosaurus* doesn't need to be the strongest, fastest, or most armored. It just needs to be *Therizinosaurus*.\n"
+    },
+    {
+      "player": "Carnotaurus",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down everyone! I've been listening to these fantastical claims, and frankly, I'm appalled. A *Velociraptor* winning? A *Stegosaurus* outlasting everyone? Utter nonsense! Let's inject some reality into this dino-battle royale, shall we?\n\nYou all underestimate speed and adaptability! My *Carnotaurus sastrei* isn't just some quirky-looking weirdo; it's a lean, mean, fighting machine. Rexy boasts about bite force? Impressive, but slow. *Carno* will dart in, deliver a precise bite to a vulnerable spot, and be GONE before *T. rex* can even turn its tiny arms. Its horns aren’t just for show, they are weapons! Ramming the legs of a *Triceratops*? Easy money, folks!\n\n*Spinosaurus*? All sail and no game! Clumsy and uncoordinated. Drag it away from the water and the *Carno* circles like a shark sensing blood. Ankylosaurus and Stegosaurus? These dinosaurs are slow and easy to outmaneuver. A quick strike to the legs will render them immobile.\n\nForget your pack tactics, *Utahraptor*; in a free-for-all, it is every dinosaur for themselves! The *Carno* will use its speed to its advantage and wait for the opportune moment to strike the competition. *Giganotosaurus* is an overrated brute that’s too big and clumsy for this fight. It's all size, no finesse! *Therizinosaurus* has big claws? They're meant for foliage, not fighting!\n\n*Carnotaurus* is agile, intelligent, and vicious. In the chaos of a battle royale, it will use its superior speed and cunning to pick off the weak, outmaneuver the strong, and emerge victorious! Place your bets wisely, because *Carno* is bringing home the bacon!\n"
+    },
+    {
+      "player": "Stegosaurus",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down everyone! I've heard a lot of impressive boasts, a lot of chest-thumping. But let's get real about who's *actually* built for a dinosaur battle royale. You're all focusing on offense, but what about staying power? Enter *Stegosaurus stenops*, the armored endurance champion!\n\n*   **T. Rex and Giganotosaurus**: \"Bite force,\" you say? Big deal! *Stego* doesn't need to bite *you*. My boy's got SEVENTEEN plates acting as shields. Good luck getting through that to a vital organ. While you're wasting energy trying to crunch bone, *Stego* will be patiently waiting for an opening. And your tiny arms? You can't even reach *Stego's* underbelly.\n\n*   **Spinosaurus**: A \"leviathan\" in the water? Great! This fight's on land! Those crocodile jaws are no match for *Stego's* hide. And while you're flailing your sail around, *Stego* is lining up a devastating tail strike.\n\n*   **Velociraptor and Utahraptor**: \"Speed and agility?\" Cute. A swift tail to the midsection would send either of you flying to the nearest fossil dig site. And those sickle claws? Good luck finding purchase on *Stego's* thick scales. \n\n*   **Triceratops**: \"Horns and a frill?\" Another herbivore. The *Stego's* thagomizer can target your unprotected legs, and take out your legs. \n\n*   **Ankylosaurus**: You're slow, *Stego* is faster than you, your club isn't as deadly. And you can't reach its armored areas.\n\n*   **Therizinosaurus**: \"Scythe Lizard\", yeah, but also slow and a glass cannon. *Stego* is a tank.\n\n*   **Carnotaurus**: The \"meat-eating bull\" is a glass cannon. The tail is also more a hindrance, and the headbutts are blocked by *Stego's* armored plates.\n\n*Stegosaurus* isn't about flashy kills, it's about *survival*. It's about wearing down opponents, and then delivering a decisive strike with that magnificent thagomizer. A direct hit from those spikes? Game over. My money's on *Stego*. It's the last one standing.\n"
+    }
+  ],
+  "rebuttalRound2": [
+    {
+      "player": "Tyrannosaurus Rex",
+      "round": 2,
+      "rebuttal": "Alright, alright, settle down you relics of the past! I've had enough of this nonsense about \"adaptability\" and \"armor.\" In this battle royale, there's only one adaptation that matters: *the ability to crush your enemies*. And no one, let me repeat, NO ONE, crushes like *Tyrannosaurus rex*.\n\nSpinosaurus is banking on claws? Good luck reaching *T. rex* over its tiny arms. While it claws the Rex’s legs, Rexy is going to crush the Spino with its jaws. Those jaws are simply not meant for fighting a predator like Rex. And even if it got to the water, a single bite can end its pathetic life.\n\nThe Raptors continue to tout intelligence and speed, but it will accomplish nothing. I ask what intelligence can the raptors use to defeat the King when he steps on them? Their speed is irrelevant.\n\nTriceratops thinks it will charge? *T. rex* laughs at your horns. A face full of bone-shattering force will send that pointy head spinning. If you were so tough, why did you have bite marks on your frill?\n\nAnkylosaurus wants to turtle up? Great! A perfect, stationary target for *T. rex* to flip and pulverize. That hammer tail is worthless against jaws that can pulverize bone.\n\nGiganotosaurus hopes to bleed *T. rex* out? Please, that slashing bite is going to barely scratch its thick hide, meanwhile Rexy's jaws will render the giant's bones into powder.\n\nUtahraptor can kick the king's legs out from under him. But I ask, how much force is behind it? Can it compare to tyrannosaurus rex's bite? No? Then be quiet!\n\nTherizinosaurus thinks its claws are scary? They will barely penetrate the thick hide. The T-rex only needs to step in to kill the Therizinosaurus.\n\nCarnotaurus and it's small horns? A headbutt can barely make me flinch.\n\nStegosaurus? Seventeen plates that are weak? Pathetic.\n\n*T. rex* isn’t some specialized weakling; it's the ultimate generalist. A predator designed to take down anything. It is the perfect killing machine.\n"
+    },
+    {
+      "player": "Spinosaurus",
+      "round": 2,
+      "rebuttal": "Enough with the landlocked fantasies! You all waddle around like it's the Mesozoic Olympics. *Spinosaurus* is an apex predator, and you're all just prehistoric roadkill waiting to happen!\n\n*T. rex* thinks it’s a king? More like a crownless clown! That bone-crushing bite is useless against Spino's agility. While Rexy is trying to turn its oversized head, Spino's claws are already disemboweling it! And that Spino has to be in water is utter nonsense! As evidenced by its bone density, *Spinosaurus* is fully capable of walking and fighting on land, and the same could not be said for a top-heavy *T. rex*.\n\nVelociraptor and Utahraptor, your sickle claws are cute, but *Spinosaurus* has 3ft long weapons. You're both just annoying appetizers for a real predator. The Triceratops and Ankylosaurus, you think armor will save you? *Spinosaurus* can just tip you over!\n\nGiganotosaurus, your slashing bite is a joke! *Spinosaurus* is big enough to fight on land, and you're slower. And good luck trying to actually bite it, let alone kill it! Therizinosaurus with its Freddy Krueger claws? You're a herbivore! Carnotaurus? You're too tiny and weak. Stegosaurus, you're nothing but a walking roadbump, and you have no chance against the Spinosaurus.\n\nSpino isn't just a predator, it's an *adaptable predator*. A shark-toothed terror that dominates any environment, land or water! It's the Cretaceous equivalent of a Swiss Army Knife of death. Game Over!\n"
+    },
+    {
+      "player": "Velociraptor",
+      "round": 2,
+      "rebuttal": "\"Alright, alright, enough with the delusions of grandeur! You all sound like you've been hitting the Mesozoic happy hour too hard! Let's talk reality, shall we? You're focusing on size, armor, or ONE fancy weapon while forgetting the TRUE key to victory: adaptability, intelligence, and lethal precision. That's *Velociraptor*!\n\n*T. rex*? Still harping on bite force? Newsflash, Rexy, you're fighting a pack of ninja velociraptors, not a Brachiosaurus buffet! You wouldn’t be able to actually hit us, and the moment you turn your back on the others, we'll latch on and disembowel you.\n\n*Spinosaurus* is out of its environment. And the water is not an element of this battle. A swift kick will send it crashing down on its face before it even gets close enough.\n\n*Triceratops and Ankylosaurus*? Slow, plodding tanks. *Raptors* can coordinate attacks and leap over you, striking at vulnerable areas like the eyes and soft underbelly. You are too slow to even turn!\n\n*Giganotosaurus* and *Utahraptor*? Big, dumb bullies. Relying on overwhelming size and brute force with no finesse. It is likely that Utahraptor or Giganotosaurus would simply step on their allies and crush them if they grouped together. You are not a threat to someone who has learned pack tactics. You are a threat to your allies.\n\n*Therizinosaurus* and the silly claws? The slowest animal here. It is literally defenseless against coordinated packs!\n\n*Stegosaurus* with the slow tail swing, what are you gonna do? It would take you a week to turn to actually get to us! The tail would barely connect with us.\n\n*Carnotaurus* will simply be distracted by the other dinos.\n\n*Velociraptor*'s INTELLIGENCE combined with the killing claw. We survey, adapt, and strike where it hurts most. Good night!\n"
+    },
+    {
+      "player": "Triceratops",
+      "round": 2,
+      "rebuttal": "Alright, alright, settle down everyone! I've been listening to these arguments, and frankly, they're laughably flawed! You're all so focused on individual strengths, you're forgetting the importance of a balanced approach: offense AND defense! That's why *Triceratops* will be the LAST dinosaur standing.\n\n*T. rex*, *Giganotosaurus*, and *Utahraptor* with their bites? Sure, they have bite force, but *Trike's* frill acts as a shield, deflecting attacks and giving him time to counter. That neck frill isn’t just for show. It can take some of the force from your attacks! Furthermore, *Trike* will aim for the legs! The legs that help move you!\n\n*Spinosaurus* the \"leviathan?” On land, Spino is a lumbering joke, about to get GORED into next week. That sail is a massive target. *Velociraptor* and *Carnotaurus*? Irritating at best. *Trike* will simply stomp on the velociraptors and use its superior size to topple *Carno*. *Ankylosaurus*? You’re so busy turtling, you won't see *Trike* flip you over for a soft belly attack. No club can withstand the force of a charging *Triceratops*.\n\n*Stegosaurus* with those plates? The thagomizer is nice, but the placement can't reach the underbelly of a charging *Triceratops*. Those horns will pierce those soft spots! *Therizinosaurus* with those Freddy Krueger claws? *Trike* will keep his face far out of reach and charge!\n\n*Triceratops* brings the best of both worlds, a tank with serious offensive capabilities. Other dinosaurs will be ripped apart from trying to get into the ring with *Triceratops*, because it's the ultimate survivor.\n"
+    },
+    {
+      "player": "Ankylosaurus",
+      "round": 2,
+      "rebuttal": "Alright, alright, settle down! Clearly, you all are severely underestimating the power of natural selection and a REALLY good defense! You're all focused on *offense*, forgetting that survival of the fittest favors those who can *endure!* And when it comes to enduring, *Ankylosaurus* laughs in the face of your puny attacks!\n\n**T. rex, Spinosaurus, and Giganotosaurus:** You three oversized egos are obsessed with bite force and slashing...well guess what? *Anky's* entire body is a NO BITE ZONE! Your pathetic attempts to crunch through its armor would result in shattered teeth and frustration. Good luck trying to attack the Ankylosaurus on its underside. Your attacks will simply slide off the Anky's back!\n\n**Velociraptor and Utahraptor:** A swarm of feathered distractions is precisely what Anky loves! A literal swarm of rocks. One tail swing and a raptor is flying into the next country, another and another. \n\n**Triceratops:** Horns are intimidating, but you're still a glass cannon! Anky will turtle. Charge? Anky will then turtle, and wait for an opening! Enjoy getting your legs broken by the Anky's club. Enjoy being flipped and having your stomach torn apart. \n\n**Therizinosaurus:** Those claws are great for high-fiving the sky. Here’s a news flash: A slashing attack is far less effective than blunt force trauma.\n\n**Carnotaurus:** Speed is irrelevant when you're facing a mobile fortress. Those headbutts? They will do nothing. You are too weak to even flip me.\n\n**Stegosaurus**: A walking pincushion with no offense. What is that gonna do against a literal moving tank? It is too slow to hit me with the thagomizer.\n\nThe battle royale is a war of attrition. And *Ankylosaurus* is built for the long haul. So, go ahead, waste your energy trying to break through its armor. The Anky's just waiting for you to tire yourselves out before delivering the coup de grace with the bone-shattering club. Bet on a literal rock to win.\n"
+    },
+    {
+      "player": "Giganotosaurus",
+      "round": 2,
+      "rebuttal": "Oh, please! Are we seriously still singing the praises of these Cretaceous has-beens? Let's get real.\n\n**Rexy**, you're still clinging to that bite force, huh? Against *Giga*’s thick hide it is simply ineffective. It wouldn’t penetrate deep enough to actually hurt. Try hitting something that's constantly circling you, slicing your legs and sending you tumbling with those dainty arms flailing!\n\n**Spino**, still dreaming of swimming? This is a land battle, darling, not a triathlon! You're a top-heavy disaster waiting to happen. Giga is agile enough to close the gap before you can even think about flapping that ridiculous sail.\n\n**Velociraptor**, you oversized chickens think you're clever, but cunning gets you nowhere against brute force when you're getting stomped.\n\n**Triceratops and Ankylosaurus**, you're just armored snacks to Giga. Horns and clubs are useless when Giga slices your legs from beneath.\n\n**Utahraptor**, big but still as dumb as all raptors. You are slightly more of a challenge but not by much. Try getting close to Giga.\n\n**Therizinosaurus**, those claws are for show. Giga doesn’t need to worry about big arms when Giga can bleed you out from afar, which I remind you is how Giga hunts!\n\n**Carnotaurus**, a joke.\n\n**Stego** the tank? A tank can't turn, baby! Giga is agile enough to dart around that thagomizer and deliver a fatal slice to the neck.\n\nGiga isn't just big, it's smart, fast, and lethal. Size, power, speed, and precision are superior to gimmick weapons and armor. Giga is the apex predator, designed to kill!\n\nThe others here will fall before the great Giga.\n"
+    },
+    {
+      "player": "Utahraptor",
+      "round": 2,
+      "rebuttal": "Alright, let's get real, folks. I've been hearing a lot of hot air about \"bite force\" and \"armor,\" but you're forgetting one crucial element: ruthless, intelligent pack hunting. You're underestimating what an animal can do with coordination and an *actual* killing tool.\n\nT. rex? A lumbering oaf! Its 'superior' bite force is irrelevant when a pack of Utahraptors is hamstringing it. Good luck stomping something that never stays still. And that Spinosaurus? A glorified heron. We are on land. A few Utahraptors are all it will take to bring it down.\n\nTriceratops and Ankylosaurus? You think those horns and clubs are going to stop a coordinated assault? Utahraptors would exploit their blind spots, crippling them with targeted strikes to the legs and underbelly. Your armor means nothing when you're on the ground and bleeding out.\n\nGiganotosaurus? Just a bigger, slower, dumber version of T. rex. Good luck with that bite. Therizinosaurus? A walking buffet. Carnotaurus? Tiny arms and a stupid head.\n\nStegosaurus? Slow, dim-witted, and a walking pincushion. Those plates offer minimal protection. And those spikes? A skilled Utahraptor can dodge those and go for the legs.\n\nYou are touting feathers, sails, and oversized teeth, while forgetting agility and lethal weapons. Velociraptor is small. The Utahraptor is a proper killing machine! Its toe claws are bigger than any other dinosaur's, and it is the size of a bear. \n\n*Utahraptor* isn't relying on brute force or outdated weapons. It's bringing intelligence, agility, and the deadliest weapon in the Cretaceous: coordinated pack hunting with a true killing claw. You all want to talk about who's the biggest, who's the strongest. We're talking about who is the most skilled predator here, and it's *Utahraptor*! When the dust settles, these guys are going home to become fossils and *Utahraptor* walks away.\n"
+    },
+    {
+      "player": "Therizinosaurus",
+      "round": 2,
+      "rebuttal": "Alright, alright, settle down! I've been hearing about bite forces, armor, and even pack tactics. Impressive, I guess, if you're trying to win a popularity contest. But this is a fight to the death, and the key to survival isn't just brute strength, but adaptability and reach. And that's where *Therizinosaurus* decimates the competition.\n\n*T. rex*, with its bite? So what? *Therizinosaurus* will slash at its face and arms. Good luck biting when your face is a bloody mess.\n*Spinosaurus*, you rely on water which is not available. Your giant sail is a perfect target for my Therizinosaurus.\n\n*Velociraptor* and *Utahraptor*? Please, my *Therizinosaurus* can punt you both into the Jurassic period.\n\n*Triceratops* and *Ankylosaurus*, your armor is useless, I'm slashing around you! Underbellies and legs are exposed, and the reach of *Therizinosaurus* makes it impossible for either of you to even get close enough to be a threat. Enjoy bleeding out while trying to figure out how to pivot!\n\n*Giganotosaurus* may be big, but they're just large, slow targets. *Therizinosaurus* will circle and slash. *Carnotaurus* is too small and those tiny arms mean it's going to get shredded.\n\n*Stegosaurus* is just sad. Seventeen plates of what? Armor that doesn't fully protect. The tail is too slow. One slash to the eyes.\n\n*Therizinosaurus* is not a glass cannon, but a versatile weapon. It can take on any challenge and has been here since the Jurassic Period!"
+    },
+    {
+      "player": "Carnotaurus",
+      "round": 2,
+      "rebuttal": "Alright, alright, simmer down, folks! I've heard all the talk of crushing bites, impenetrable armor, and even...gardening claws? You’re missing the crucial element: adaptability born of speed and aggression. You want a survivor? You need a *Carnotaurus sastrei!*\n\n*   **T. rex, Giganotosaurus, Utahraptor**: All boast about their advantages, but they lack the agility. Too big, too slow. *Carno* can zig and zag, drawing their attacks into each other. Watch them fall like dominoes, distracted by their own fury.\n*   **Spinosaurus**: A glorified sail with a bad fishing habit. On land, that sail is a billboard screaming, \"Hit me!\" One well-placed ram from *Carno's* horns will destabilize the Spino, sending it crashing down like a poorly designed kite. Good riddance!\n*   **Triceratops and Ankylosaurus**: You're both slow and predictable. Sure, you have armor, but what about your legs? *Carno* will ram those legs like a bowling ball knocking down pins. Enjoy crawling around while the rest of us have a real fight!\n*   **Velociraptor**: Thinks it's a ninja. *Carno* doesn't need stealth. It's got raw speed and a skull made for battering. *Carno* will play bumper-dino with a Raptor, sending it flying and ending its chances.\n*   **Therizinosaurus**: Long claws for gardening? Laughable! A herbivore in a battle royale? Easy pickings. That is the glassiest of cannons.\n*   **Stegosaurus**: The old man needs to be put out to pasture! Too slow, too stupid. Can’t see me coming!\n \nCarnotaurus is the opportunistic predator this battle royale needs. Don’t underestimate *Carno's* intelligence. It will pick its battles, exploit weaknesses, and use its speed to survive when others are exhausted. So, when the dust settles, bet on *Carnotaurus* - the last one standing and sprinting away for a well-earned meal.\n"
+    },
+    {
+      "player": "Stegosaurus",
+      "round": 2,
+      "rebuttal": "Hold on, hold on! Did I just hear someone call Stego \"slow and stupid\"? Unacceptable! Let's set the record straight. *Stegosaurus* wasn't slow, it was *deliberate*. And those \"tiny brains\"? Please! That's brain shaming! Stego had a sophisticated nervous system, allowing for complex movement and coordination, which is exactly what you need for survival.\n\nRexy, your tiny arms can't reach Stego's vital areas, and a face full of plate is not a great outcome for you. Spino, you're a fish-out-of-water on land. Against Stego's thagomizer? No chance! Raptors, Giga, Carnotaurus - all relying on speed and slashing? Stego's armor is the best defense against these attacks and a simple tail swipe at the center mass ends that threat quickly. \n\nTriceratops, you want to gore Stego? Good luck getting close enough before eating seventeen plates. Ankylosaurus, you're too slow and that club will only dent armor, while Stegosaurus is too tall to be attacked, and Stego can take you out with its Thagomizer, and a hit in the leg turns you over where you are finished.\n\nTherizinosaurus, your claws are impressive, but can you aim them accurately when Stego is spinning, and you're too slow to run away from its thagomizer? I think not!\n\nStego isn't about brute force; it's about strategic defense and a devastating counter-attack. Let the carnivores tire themselves out, let the armor-heads bash each other senseless. *Stegosaurus* will outlast them all. The thagomizer is ready to strike!\n\n"
+    }
+  ],
+  "judgeResult": {
+    "rankings": [
+      {
+        "rank": 1,
+        "player": "Ankylosaurus magniventris",
+        "reasoning": "While not the fastest or flashiest, Ankylosaurus's incredible armor and devastating tail club give it exceptional survivability in a chaotic battle royale scenario. Its defenses are too strong for most attackers, and a single well-placed tail strike can cripple or kill opponents. Its low center of gravity makes it difficult to flip, and it can methodically eliminate threats one by one, outlasting the competition."
+      },
+      {
+        "rank": 2,
+        "player": "Triceratops horridus",
+        "reasoning": "Triceratops boasts a potent combination of offense and defense with its horns and frill. While lacking all-around armor, it can withstand attacks from large theropods and deliver devastating charges. Its ability to pivot and counterattack makes it a formidable opponent, and its sturdy build allows it to endure prolonged combat."
+      },
+      {
+        "rank": 3,
+        "player": "Tyrannosaurus rex",
+        "reasoning": "T. rex possesses immense bite force and size, making it a terrifying predator. However, its limited agility and short arms can be vulnerabilities. While its bite could shatter armor, landing that bite against faster opponents proves challenging. Its sheer dominance and power keep it high in the rankings, but it lacks the all-around defense of the top contenders."
+      },
+      {
+        "rank": 4,
+        "player": "Giganotosaurus carolinii",
+        "reasoning": "Giganotosaurus's size and slashing bite make it a dangerous predator, but it lacks the armor and raw power of T. rex or the comprehensive defense of Ankylosaurus. While its speed and potential pack hunting behavior are advantages, its vulnerability to targeted attacks and reliance on bleeding injuries limit its overall effectiveness in a free-for-all."
+      },
+      {
+        "rank": 5,
+        "player": "Therizinosaurus cheloniformis",
+        "reasoning": "Therizinosaurus's massive claws provide a unique offensive weapon, but its herbivorous nature and lack of armor make it vulnerable to sustained attacks. Its reach advantage is significant, but its overall fragility limits its ability to withstand a prolonged battle."
+      },
+      {
+        "rank": 6,
+        "player": "Spinosaurus aegyptiacus",
+        "reasoning": "Spinosaurus's size and semi-aquatic adaptations are advantages in certain environments, but its awkward gait and limited bite force make it less effective on land. Its sail is a vulnerability, and its reliance on ambushes limits its effectiveness in a chaotic battle royale."
+      },
+      {
+        "rank": 7,
+        "player": "Utahraptor ostrommaysi",
+        "reasoning": "Utahraptor's size, intelligence, and sickle claw make it a formidable predator, but its lack of significant armor makes it vulnerable to larger opponents. While pack tactics would be helpful, the free-for-all nature of the competition and lack of communication hinders them."
+      },
+      {
+        "rank": 8,
+        "player": "Stegosaurus stenops",
+        "reasoning": "Stegosaurus's plates offer some defense, and its thagomizer is a dangerous weapon. However, its slow speed and limited agility make it vulnerable to more agile predators. Its eyesight also poses an issue against fast opponents."
+      },
+      {
+        "rank": 9,
+        "player": "Carnotaurus sastrei",
+        "reasoning": "Carnotaurus's speed and horns are advantages for hit-and-run attacks, but its small size and lack of armor make it vulnerable to larger, more powerful opponents. Its tiny arms further limit its offensive capabilities."
+      },
+      {
+        "rank": 10,
+        "player": "Velociraptor mongoliensis",
+        "reasoning": "Velociraptor's speed and intelligence are advantages for hunting smaller prey, but its small size and fragility make it highly vulnerable in a battle royale against larger dinosaurs. Its sickle claw is effective, but it lacks the size and power to inflict significant damage on heavily armored opponents."
+      }
+    ],
+    "champion_declaration": "Ankylosaurus magniventris is declared the champion of this dinosaur battle royale!",
+    "battle_narrative": "The initial clash saw Carnotaurus darting around, ramming Triceratops before being swatted aside by a Stegosaurus tail. As the larger theropods clashed, the Utahraptors focused on hamstringing the giants, but a misstep put one under the foot of T. rex. Ultimately, the dust settled to reveal a battered Triceratops facing off against the seemingly unfazed Ankylosaurus. A final, bone-shattering blow from the Ankylosaurus's tail club crushed Triceratops's leg, leaving the armored titan victorious."
+  }
+};
+const DINO_EMOJIS = {"Tyrannosaurus Rex":"🦖","Spinosaurus":"🐊","Velociraptor":"🦖","Triceratops":"🦕","Ankylosaurus":"🛡️","Giganotosaurus":"🦖","Utahraptor":"🗡️","Therizinosaurus":"⚔️","Carnotaurus":"🐂","Stegosaurus":"🦕"};
+</script>
+
+<div class="hero">
+  <span class="hero-icon">🦖</span>
+  <div class="hero-label">Dinosaur Battle Royale</div>
+  <h1 id="hero-name"></h1>
+  <p class="subtitle" id="hero-declaration"></p>
+  <div class="hero-badge">Last One Standing</div>
+</div>
+
+<div class="container">
+  <div class="tabs">
+    <div class="tab active" data-panel="rankings">Final Rankings</div>
+    <div class="tab" data-panel="opening">Battle Cases</div>
+    <div class="tab" data-panel="rebuttals">Rebuttals</div>
+    <div class="tab" data-panel="timeline">Battle Timeline</div>
+  </div>
+
+  <div class="panel active" id="panel-rankings">
+    <div class="narrative-box" id="narrative-box"></div>
+    <div id="rankings-list"></div>
+    <div class="declaration" id="declaration-box"></div>
+  </div>
+
+  <div class="panel" id="panel-opening">
+    <div id="opening-list"></div>
+  </div>
+
+  <div class="panel" id="panel-rebuttals">
+    <h2 style="margin-bottom: 24px;">Rebuttal Rounds</h2>
+    <div id="rebuttals-list"></div>
+  </div>
+
+  <div class="panel" id="panel-timeline">
+    <div class="timeline" id="timeline"></div>
+  </div>
+</div>
+
+<footer>
+  Dinosaur Battle Royale &mdash; Powered by Gemini AI Multi-Agent System
+</footer>
+
+<script>
+(function() {
+  const { openingArgs, rebuttalRound1, rebuttalRound2, judgeResult } = DATA;
+
+  const winner = judgeResult.rankings[0];
+  document.getElementById('hero-name').textContent = (DINO_EMOJIS[winner.player] || '') + ' ' + winner.player;
+  document.getElementById('hero-declaration').textContent = judgeResult.champion_declaration;
+
+  const narBox = document.getElementById('narrative-box');
+  narBox.innerHTML = '<h3>The Battle</h3><p>' + escHtml(judgeResult.battle_narrative) + '</p>';
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+    });
+  });
+
+  const rankingsEl = document.getElementById('rankings-list');
+  judgeResult.rankings.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'ranking-card rank-' + r.rank;
+    const emoji = DINO_EMOJIS[r.player] || '';
+    const badge = r.rank === 1 ? '<span class="survivor">CHAMPION</span>' : '<span class="eliminated">#' + r.rank + ' ELIMINATED</span>';
+    card.innerHTML =
+      '<div class="rank-badge">' + r.rank + '</div>' +
+      '<div class="rank-info"><h3><span class="dino-emoji">' + emoji + '</span>' + escHtml(r.player) + badge + '</h3><p>' + escHtml(r.reasoning) + '</p></div>';
+    rankingsEl.appendChild(card);
+  });
+
+  const declBox = document.getElementById('declaration-box');
+  declBox.innerHTML = '<h3>Champion Declaration</h3><p>' + escHtml(judgeResult.champion_declaration) + '</p>';
+
+  const openingEl = document.getElementById('opening-list');
+  openingArgs.forEach(a => {
+    const emoji = DINO_EMOJIS[a.player] || '';
+    const card = document.createElement('div');
+    card.className = 'arg-card';
+    card.innerHTML =
+      '<div class="arg-header"><span>' + emoji + ' ' + escHtml(a.player) + '</span><span class="arg-chevron">&#x25BC;</span></div>' +
+      '<div class="arg-body"><div class="arg-content">' + escHtml(a.argument) + '</div></div>';
+    card.querySelector('.arg-header').addEventListener('click', () => card.classList.toggle('open'));
+    openingEl.appendChild(card);
+  });
+
+  const rebuttalsEl = document.getElementById('rebuttals-list');
+  const players = [...new Set(rebuttalRound1.map(r => r.player))];
+  players.forEach(player => {
+    const emoji = DINO_EMOJIS[player] || '';
+    const group = document.createElement('div');
+    group.className = 'rebuttal-group';
+    const r1 = rebuttalRound1.find(r => r.player === player);
+    const r2 = rebuttalRound2.find(r => r.player === player);
+    let inner = '<h3>' + emoji + ' ' + escHtml(player) + '</h3>';
+    if (r1) inner += '<div class="rebuttal-entry"><div class="round-label">Round 1 Rebuttal</div><div class="rebuttal-text">' + escHtml(r1.rebuttal) + '</div></div>';
+    if (r2) inner += '<div class="rebuttal-entry"><div class="round-label">Round 2 Rebuttal</div><div class="rebuttal-text">' + escHtml(r2.rebuttal) + '</div></div>';
+    group.innerHTML = inner;
+    rebuttalsEl.appendChild(group);
+  });
+
+  const timelineEl = document.getElementById('timeline');
+  const items = [];
+  items.push({ phase: 'Phase 1', title: 'Battle Cases Begin', desc: '10 dinosaur advocates present their combat arguments.', end: false });
+  openingArgs.forEach(a => {
+    const emoji = DINO_EMOJIS[a.player] || '';
+    items.push({ phase: 'Phase 1', title: emoji + ' ' + a.player + ' enters the arena', desc: a.argument.slice(0, 120) + '...', end: false });
+  });
+  items.push({ phase: 'Phase 1', title: 'All combatants assessed', desc: 'Opening arguments complete.', end: true });
+  items.push({ phase: 'Phase 2', title: 'Rebuttal Round 1 — Claws Out', desc: 'Advocates attack each other's weaknesses.', end: false });
+  items.push({ phase: 'Phase 2', title: 'Round 1 Complete', desc: 'First blood drawn in the debate.', end: true });
+  items.push({ phase: 'Phase 2', title: 'Rebuttal Round 2 — Final Strikes', desc: 'Last chance to make the case.', end: false });
+  items.push({ phase: 'Phase 2', title: 'Round 2 Complete', desc: 'All arguments delivered.', end: true });
+  items.push({ phase: 'Phase 3', title: 'The Judge Rules', desc: 'Expert paleontologist delivers the final verdict.', end: false });
+  items.push({ phase: 'Phase 3', title: (DINO_EMOJIS[winner.player] || '') + ' ' + winner.player + ' wins!', desc: (judgeResult.champion_declaration || '').slice(0, 150) + '...', end: true });
+
+  items.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'timeline-item' + (item.end ? ' phase-end' : '');
+    el.innerHTML =
+      '<div class="timeline-dot"></div>' +
+      '<div class="timeline-phase">' + escHtml(item.phase) + '</div>' +
+      '<div class="timeline-title">' + escHtml(item.title) + '</div>' +
+      '<div class="timeline-desc">' + escHtml(item.desc) + '</div>';
+    timelineEl.appendChild(el);
+  });
+
+  function escHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+})();
+</script>
+</body>
+</html>

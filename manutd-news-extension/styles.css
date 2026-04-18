@@ -1,0 +1,279 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+  min-height: 100vh;
+  color: #ffffff;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header Styles */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 3px solid #ff0000;
+  margin-bottom: 30px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.devil-icon {
+  font-size: 48px;
+  background: linear-gradient(135deg, #ff0000, #ff3333);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.logo h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff0000, #ff4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.tagline {
+  color: #888;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.date-time {
+  text-align: right;
+  color: #aaa;
+}
+
+.date-time span {
+  display: block;
+}
+
+#current-time {
+  font-size: 2rem;
+  font-weight: 300;
+  color: #fff;
+}
+
+#current-date {
+  font-size: 0.9rem;
+  color: #888;
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #333;
+  border-top-color: #ff0000;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading p {
+  margin-top: 15px;
+  color: #888;
+}
+
+/* Error State */
+.error {
+  text-align: center;
+  padding: 40px;
+  background: rgba(255, 0, 0, 0.1);
+  border-radius: 10px;
+  border: 1px solid #ff0000;
+}
+
+.error button {
+  margin-top: 15px;
+  padding: 10px 25px;
+  background: #ff0000;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s;
+}
+
+.error button:hover {
+  background: #ff3333;
+}
+
+/* News Grid */
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 25px;
+}
+
+/* News Card */
+.news-card {
+  background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+  border: 1px solid #333;
+}
+
+.news-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(255, 0, 0, 0.3);
+  border-color: #ff0000;
+}
+
+.news-card a {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  padding: 25px;
+}
+
+.news-source {
+  display: inline-block;
+  background: #ff0000;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.news-card h2 {
+  font-size: 1.2rem;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  color: #fff;
+  transition: color 0.3s;
+}
+
+.news-card:hover h2 {
+  color: #ff4444;
+}
+
+.news-description {
+  color: #999;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 15px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.news-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #666;
+  font-size: 0.8rem;
+  padding-top: 12px;
+  border-top: 1px solid #333;
+}
+
+.news-date {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.read-more {
+  color: #ff0000;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+.news-card:hover .read-more {
+  color: #ff4444;
+}
+
+/* Footer */
+footer {
+  margin-top: 40px;
+  padding: 20px 0;
+  text-align: center;
+  border-top: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+footer p {
+  color: #666;
+}
+
+.refresh-btn {
+  background: transparent;
+  border: 2px solid #ff0000;
+  color: #ff0000;
+  padding: 10px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.refresh-btn:hover {
+  background: #ff0000;
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .logo h1 {
+    font-size: 1.5rem;
+  }
+
+  header {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .date-time {
+    text-align: center;
+  }
+
+  .news-grid {
+    grid-template-columns: 1fr;
+  }
+
+  footer {
+    flex-direction: column;
+    gap: 15px;
+  }
+}

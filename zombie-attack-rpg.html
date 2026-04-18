@@ -1,0 +1,2331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Zombie Attack RPG</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#000;overflow:hidden;font-family:'Courier New',monospace;}
+canvas{display:block;}
+#ui{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+#overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;z-index:100;}
+#overlay h1{font-size:56px;color:#e00;text-shadow:0 0 30px #f00,0 0 60px #800;margin-bottom:10px;letter-spacing:4px;}
+#overlay .sub{color:#aaa;font-size:14px;margin-bottom:30px;}
+.class-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin:20px 0;}
+.class-card{border:2px solid #444;padding:15px;cursor:pointer;text-align:center;transition:all 0.2s;min-width:160px;pointer-events:all;}
+.class-card:hover,.class-card.selected{border-color:#e00;background:rgba(220,0,0,0.15);}
+.class-card h3{color:#f88;margin-bottom:8px;}
+.class-card p{font-size:11px;color:#aaa;line-height:1.5;}
+.class-card .stats{font-size:10px;color:#8f8;margin-top:8px;}
+#startBtn{background:#c00;color:#fff;border:none;padding:14px 40px;font-size:20px;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:2px;pointer-events:all;margin-top:10px;}
+#startBtn:hover{background:#e00;}
+#pauseMenu{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.95);border:2px solid #c00;padding:30px;color:#fff;z-index:200;display:none;min-width:280px;text-align:center;}
+#pauseMenu h2{color:#e00;margin-bottom:20px;}
+#pauseMenu button{display:block;width:100%;margin:8px 0;padding:10px;background:#333;color:#fff;border:1px solid #666;cursor:pointer;font-family:'Courier New',monospace;font-size:14px;}
+#pauseMenu button:hover{background:#555;}
+#craftMenu{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.97);border:2px solid #08f;padding:20px;color:#fff;z-index:200;display:none;min-width:400px;}
+#craftMenu h2{color:#8cf;margin-bottom:15px;}
+.craft-recipe{display:flex;align-items:center;padding:8px;border:1px solid #333;margin:4px 0;cursor:pointer;}
+.craft-recipe:hover{background:#222;border-color:#08f;}
+.craft-recipe span{flex:1;font-size:12px;}
+.craft-recipe .result{color:#8f8;}
+.craft-recipe .needs{color:#fa8;font-size:11px;}
+#invPanel{position:fixed;right:10px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.9);border:2px solid #666;padding:10px;color:#fff;z-index:150;display:none;min-width:200px;}
+#invPanel h3{color:#fc8;margin-bottom:10px;text-align:center;}
+.inv-slot{display:inline-block;width:40px;height:40px;border:1px solid #555;margin:2px;text-align:center;line-height:40px;font-size:10px;cursor:pointer;position:relative;}
+.inv-slot:hover{border-color:#fc8;}
+.inv-slot.equipped{border-color:#0f0;}
+.inv-slot .count{position:absolute;bottom:0;right:2px;font-size:9px;color:#ff8;}
+#msgLog{position:fixed;bottom:130px;left:10px;pointer-events:none;z-index:50;}
+.msg{color:#ff8;font-size:12px;text-shadow:1px 1px 2px #000;animation:fadeMsg 3s forwards;}
+@keyframes fadeMsg{0%{opacity:1}70%{opacity:1}100%{opacity:0}}
+#skillBar{position:fixed;bottom:130px;left:50%;transform:translateX(-50%);display:flex;gap:10px;pointer-events:none;z-index:50;}
+.skill-icon{width:50px;height:50px;border:2px solid #666;background:rgba(0,0,0,0.7);color:#fff;text-align:center;font-size:10px;position:relative;}
+.skill-icon .key{position:absolute;top:2px;left:3px;font-size:9px;color:#aaa;}
+.skill-icon .cd-overlay{position:absolute;top:0;left:0;width:100%;background:rgba(0,0,0,0.7);transition:height 0.1s;}
+#achieveToast{position:fixed;top:80px;right:20px;background:rgba(0,0,0,0.9);border:2px solid gold;padding:12px 20px;color:gold;font-size:13px;z-index:300;display:none;}
+#pauseBtn{position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.7);color:#fff;border:2px solid #666;padding:6px 14px;font-family:'Courier New',monospace;font-size:13px;cursor:pointer;z-index:100;pointer-events:all;display:none;}
+#pauseBtn:hover{background:rgba(180,0,0,0.7);border-color:#e00;}
+
+/* ── MOBILE CONTROLS ── */
+#mobileControls{display:none;position:fixed;bottom:0;left:0;width:100%;height:220px;z-index:90;pointer-events:none;}
+#joystickZone{position:absolute;bottom:20px;left:20px;width:130px;height:130px;pointer-events:all;}
+#joystickBase{width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,0.12);border:2px solid rgba(255,255,255,0.3);position:absolute;}
+#joystickKnob{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.45);border:2px solid rgba(255,255,255,0.7);position:absolute;top:39px;left:39px;transition:box-shadow 0.1s;}
+.mbtn{position:absolute;border-radius:50%;border:2px solid rgba(255,255,255,0.4);color:#fff;font-family:'Courier New',monospace;font-weight:bold;text-align:center;display:flex;align-items:center;justify-content:center;pointer-events:all;user-select:none;-webkit-user-select:none;cursor:pointer;transition:background 0.1s;}
+.mbtn:active{filter:brightness(1.4);}
+#mbtnMelee{width:70px;height:70px;bottom:90px;right:100px;font-size:10px;background:rgba(200,50,50,0.6);border-color:#e44;}
+#mbtnShoot{width:70px;height:70px;bottom:20px;right:20px;font-size:10px;background:rgba(50,100,200,0.6);border-color:#46f;}
+#mbtnInteract{width:50px;height:50px;bottom:100px;right:180px;font-size:9px;background:rgba(255,200,0,0.5);border-color:#fc0;}
+#mbtnReload{width:50px;height:50px;bottom:20px;right:100px;font-size:9px;background:rgba(80,160,80,0.5);border-color:#4a4;}
+#mbtnSkillQ{width:44px;height:44px;bottom:170px;right:20px;font-size:9px;background:rgba(160,0,200,0.5);border-color:#a0c;}
+#mbtnSkillE{width:44px;height:44px;bottom:170px;right:70px;font-size:9px;background:rgba(0,160,200,0.5);border-color:#0ac;}
+#mbtnSkillR{width:44px;height:44px;bottom:170px;right:120px;font-size:9px;background:rgba(200,100,0,0.5);border-color:#c60;}
+#mbtnCraft{width:44px;height:44px;bottom:170px;left:160px;font-size:9px;background:rgba(80,80,80,0.6);border-color:#888;}
+#mbtnInv{width:44px;height:44px;bottom:170px;left:210px;font-size:9px;background:rgba(80,80,80,0.6);border-color:#888;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui">
+<div id="msgLog"></div>
+<div id="skillBar"></div>
+<div id="achieveToast"></div>
+<button id="pauseBtn" onclick="pauseGame()">&#9646;&#9646; PAUSE</button>
+</div>
+
+<div id="mobileControls">
+  <div id="joystickZone">
+    <div id="joystickBase"></div>
+    <div id="joystickKnob"></div>
+  </div>
+  <div class="mbtn" id="mbtnMelee">⚔️<br>MELEE</div>
+  <div class="mbtn" id="mbtnShoot">🔫<br>SHOOT</div>
+  <div class="mbtn" id="mbtnInteract">E<br>USE</div>
+  <div class="mbtn" id="mbtnReload">R<br>LOAD</div>
+  <div class="mbtn" id="mbtnSkillQ">Q</div>
+  <div class="mbtn" id="mbtnSkillE">F</div>
+  <div class="mbtn" id="mbtnSkillR">G</div>
+  <div class="mbtn" id="mbtnCraft">🔧<br>CRAFT</div>
+  <div class="mbtn" id="mbtnInv">🎒<br>INV</div>
+</div>
+
+<div id="overlay">
+<h1>ZOMBIE ATTACK</h1>
+<div class="sub">— POST-APOCALYPTIC SURVIVAL RPG —</div>
+<p style="color:#888;font-size:12px;max-width:600px;text-align:center;margin-bottom:20px;">
+The dead walk the earth. Cities have fallen. Choose your class and survive as long as you can.<br>
+Day 1 begins at dawn. Night brings hordes. Find shelter. Stay alive.
+</p>
+<div style="color:#fc8;font-size:13px;margin-bottom:10px;">SELECT YOUR CLASS</div>
+<div class="class-grid" id="classGrid"></div>
+<button id="startBtn" onclick="startGame()">BEGIN SURVIVAL</button>
+</div>
+
+<div id="pauseMenu">
+<h2>— PAUSED —</h2>
+<button onclick="resumeGame()">Resume</button>
+<button onclick="openCraft()">Crafting Table</button>
+<button onclick="openInv()">Inventory</button>
+<button onclick="saveGame()">Save Game</button>
+<button onclick="loadGame()">Load Game</button>
+<button onclick="location.reload()">Main Menu</button>
+</div>
+
+<div id="craftMenu">
+<h2>CRAFTING</h2>
+<div id="craftList"></div>
+<button onclick="document.getElementById('craftMenu').style.display='none'" style="margin-top:10px;padding:6px 20px;background:#333;color:#fff;border:1px solid #666;cursor:pointer;font-family:'Courier New',monospace;">Close</button>
+</div>
+
+<div id="invPanel">
+<h3>INVENTORY</h3>
+<div id="invGrid"></div>
+<div id="invInfo" style="margin-top:8px;font-size:11px;color:#aaa;min-height:40px;"></div>
+<button onclick="document.getElementById('invPanel').style.display='none'" style="margin-top:8px;padding:5px 15px;background:#333;color:#fff;border:1px solid #666;cursor:pointer;font-family:'Courier New',monospace;width:100%;">Close</button>
+</div>
+
+<script>
+// ============================================================
+// CONSTANTS & CONFIG
+// ============================================================
+const WORLD_W = 3000, WORLD_H = 3000;
+const TILE = 40;
+const DAY_LEN = 480; // seconds per full day
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let W = window.innerWidth, H = window.innerHeight;
+canvas.width = W; canvas.height = H;
+window.onresize = () => { W = window.innerWidth; H = window.innerHeight; canvas.width = W; canvas.height = H; };
+
+// ============================================================
+// AUDIO
+// ============================================================
+let AC;
+function initAudio() { try { AC = new AudioContext(); } catch(e){} }
+function beep(freq, dur, vol=0.3, type='square') {
+  if(!AC) return;
+  try {
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.connect(g); g.connect(AC.destination);
+    o.frequency.value = freq; o.type = type;
+    g.gain.setValueAtTime(vol, AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + dur);
+    o.start(); o.stop(AC.currentTime + dur);
+  } catch(e){}
+}
+function playGunshot(type='pistol') {
+  if(!AC) return;
+  try {
+    const buf = AC.createBuffer(1, AC.sampleRate*0.15, AC.sampleRate);
+    const d = buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, type==='shotgun'?1.5:3);
+    const src = AC.createBufferSource(), g = AC.createGain();
+    src.buffer = buf; src.connect(g); g.connect(AC.destination);
+    g.gain.value = type==='shotgun'?0.6:0.4;
+    src.start();
+  } catch(e){}
+}
+function playHit() { beep(80+Math.random()*40, 0.08, 0.2, 'sawtooth'); }
+function playDeath() { beep(60, 0.4, 0.3, 'sawtooth'); beep(40, 0.6, 0.2, 'square'); }
+function playLevelUp() { [400,500,600,800].forEach((f,i) => setTimeout(()=>beep(f,0.15,0.3,'sine'),i*100)); }
+function playPickup() { beep(600, 0.08, 0.15, 'sine'); }
+function playAmbientNight() {
+  if(!AC) return;
+  try {
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type='sine'; o.frequency.value=60+Math.random()*20;
+    g.gain.setValueAtTime(0,AC.currentTime);
+    g.gain.linearRampToValueAtTime(0.04,AC.currentTime+1);
+    g.gain.linearRampToValueAtTime(0,AC.currentTime+3);
+    o.connect(g); g.connect(AC.destination);
+    o.start(); o.stop(AC.currentTime+3);
+  } catch(e){}
+}
+
+// ============================================================
+// CLASSES
+// ============================================================
+const CLASSES = {
+  soldier: {
+    name:'Soldier', color:'#4af', icon:'★',
+    desc:'Combat veteran. High damage, military training, can use all guns.',
+    stats:{hp:120,stamina:100,speed:2.8,damage:1.4,defense:0.8},
+    skills:['adrenaline','grenade','suppression'],
+    startItems:['pistol','ammo_pistol','bandage','rations']
+  },
+  medic: {
+    name:'Medic', color:'#4f8', icon:'✚',
+    desc:'Field medic. Strong healing abilities, can revive and buff allies.',
+    stats:{hp:100,stamina:110,speed:3.0,damage:0.8,defense:0.7},
+    skills:['heal_surge','medkit_craft','adrenaline_shot'],
+    startItems:['bat','bandage','bandage','medkit','water']
+  },
+  engineer: {
+    name:'Engineer', color:'#fa4', icon:'⚙',
+    desc:'Resourceful builder. Superior crafting, can build barricades and traps.',
+    stats:{hp:110,stamina:100,speed:2.7,damage:1.0,defense:1.0},
+    skills:['build_barricade','trap_deploy','overclock'],
+    startItems:['axe','wood','wood','nails','rations']
+  },
+  survivor: {
+    name:'Survivor', color:'#f84', icon:'◈',
+    desc:'Street-smart scavenger. Balanced stats, stealth bonus, lucky looting.',
+    stats:{hp:110,stamina:120,speed:3.2,damage:1.0,defense:0.9},
+    skills:['stealth','scavenge','second_wind'],
+    startItems:['machete','bandage','water','food_can','flashlight']
+  }
+};
+
+const SKILL_DEFS = {
+  adrenaline:{name:'Adrenaline',key:'Q',cd:20,color:'#f44',desc:'Speed+damage boost 5s'},
+  grenade:{name:'Grenade',key:'E',cd:25,color:'#f84',desc:'Throw grenade (AoE)'},
+  suppression:{name:'Suppression',key:'R',cd:30,color:'#48f',desc:'Slow all nearby zombies 4s'},
+  heal_surge:{name:'Heal Surge',key:'Q',cd:15,color:'#4f8',desc:'Heal 40 HP instantly'},
+  medkit_craft:{name:'Field Medkit',key:'E',cd:45,color:'#8f8',desc:'Craft medkit from inventory'},
+  adrenaline_shot:{name:'Stim Shot',key:'R',cd:35,color:'#ff4',desc:'Full stamina + haste 8s'},
+  build_barricade:{name:'Barricade',key:'Q',cd:20,color:'#fa4',desc:'Place wood barricade'},
+  trap_deploy:{name:'Bear Trap',key:'E',cd:30,color:'#a84',desc:'Deploy spike trap'},
+  overclock:{name:'Overclock',key:'R',cd:40,color:'#f4f',desc:'Double attack speed 6s'},
+  stealth:{name:'Stealth',key:'Q',cd:25,color:'#888',desc:'Invisible to zombies 5s'},
+  scavenge:{name:'Scavenge',key:'E',cd:60,color:'#8f8',desc:'Find random supply cache'},
+  second_wind:{name:'Second Wind',key:'R',cd:90,color:'#4ff',desc:'Revive self with 50 HP (once per death)'},
+};
+
+// ============================================================
+// GAME STATE
+// ============================================================
+let G = {
+  running: false, paused: false,
+  time: 0, day: 1,
+  wave: 1, waveTimer: 0, nextWave: 90,
+  kills: 0, dayKills: 0,
+  selectedClass: 'soldier',
+  spawnCooldown: 0,
+  nightAmbient: 0,
+  barricades: [], traps: [],
+  supplyDrops: [], survivors: [],
+  weatherTimer: 200, weather: 'clear',
+  achievements: {}
+};
+
+let CAM = { x: 0, y: 0 };
+let KEYS = {};
+let MOUSE = { x: 0, y: 0, down: false, rdown: false };
+
+// ============================================================
+// PLAYER
+// ============================================================
+let P = {
+  x: 1500, y: 1500,
+  w: 20, h: 20,
+  vx: 0, vy: 0,
+  hp: 100, maxHp: 100,
+  stamina: 100, maxStamina: 100,
+  hunger: 100, maxHunger: 100,
+  thirst: 100, maxThirst: 100,
+  xp: 0, level: 1, xpNeeded: 100,
+  speed: 3.0,
+  damage: 1.0,
+  defense: 1.0,
+  class: 'soldier',
+  skillCDs: {Q:0, F:0, G:0},
+  skillActive: {},
+  effects: {},
+  inventory: Array(20).fill(null),
+  hotbar: Array(8).fill(null),
+  equipped: 0,
+  equippedRanged: null,
+  coins: 0,
+  skillPoints: 0,
+  passives: {},
+  dead: false,
+  secondWindUsed: false,
+  facing: 0,
+  attackCD: 0,
+  damageFlash: 0,
+  angle: 0,
+};
+
+// ============================================================
+// ITEM DEFINITIONS
+// ============================================================
+const ITEMS = {
+  fist:       {name:'Fist',type:'melee',dmg:5,dur:999,maxDur:999,color:'#fa8',speed:0.3,range:30,icon:'✊'},
+  bat:        {name:'Baseball Bat',type:'melee',dmg:15,dur:80,maxDur:80,color:'#a84',speed:0.5,range:35,icon:'🏏'},
+  machete:    {name:'Machete',type:'melee',dmg:22,dur:60,maxDur:60,color:'#aaf',speed:0.4,range:38,icon:'⚔'},
+  axe:        {name:'Axe',type:'melee',dmg:30,dur:50,maxDur:50,color:'#888',speed:0.7,range:36,icon:'🪓'},
+  chainsaw:   {name:'Chainsaw',type:'melee',dmg:45,dur:40,maxDur:40,color:'#f44',speed:0.25,range:40,icon:'⛏'},
+  spiked_bat: {name:'Spiked Bat',type:'melee',dmg:28,dur:70,maxDur:70,color:'#f84',speed:0.45,range:35,icon:'🔩'},
+  pistol:     {name:'Pistol',type:'ranged',dmg:25,dur:999,maxDur:999,color:'#aaa',ammo:12,maxAmmo:12,spread:0.05,speed:1.0,range:400,icon:'🔫'},
+  shotgun:    {name:'Shotgun',type:'ranged',dmg:18,dur:999,maxDur:999,color:'#888',ammo:6,maxAmmo:6,spread:0.25,pellets:6,speed:1.2,range:250,icon:'🔫'},
+  rifle:      {name:'Rifle',type:'ranged',dmg:55,dur:999,maxDur:999,color:'#4a4',ammo:8,maxAmmo:8,spread:0.02,speed:1.5,range:600,icon:'🔫'},
+  smg:        {name:'SMG',type:'ranged',dmg:15,dur:999,maxDur:999,color:'#48f',ammo:30,maxAmmo:30,spread:0.12,speed:0.25,range:300,icon:'🔫'},
+  ammo_pistol:{name:'Pistol Ammo',type:'ammo',for:'pistol',count:12,icon:'•'},
+  ammo_shotgun:{name:'Shotgun Ammo',type:'ammo',for:'shotgun',count:6,icon:'•'},
+  ammo_rifle: {name:'Rifle Ammo',type:'ammo',for:'rifle',count:8,icon:'•'},
+  ammo_smg:   {name:'SMG Ammo',type:'ammo',for:'smg',count:30,icon:'•'},
+  bandage:    {name:'Bandage',type:'consumable',heal:20,icon:'🩹'},
+  medkit:     {name:'Medkit',type:'consumable',heal:60,icon:'🏥'},
+  food_can:   {name:'Canned Food',type:'food',hunger:40,icon:'🥫'},
+  rations:    {name:'Rations',type:'food',hunger:25,icon:'🍱'},
+  water:      {name:'Water Bottle',type:'drink',thirst:50,icon:'💧'},
+  soda:       {name:'Soda',type:'drink',thirst:30,hunger:10,icon:'🥤'},
+  wood:       {name:'Wood',type:'material',icon:'🪵'},
+  nails:      {name:'Nails',type:'material',icon:'📌'},
+  alcohol:    {name:'Alcohol',type:'material',icon:'🧴'},
+  cloth:      {name:'Cloth',type:'material',icon:'🧶'},
+  metal:      {name:'Metal Scrap',type:'material',icon:'⚙'},
+  gunpowder:  {name:'Gunpowder',type:'material',icon:'💣'},
+  flashlight: {name:'Flashlight',type:'tool',icon:'🔦'},
+  key_card:   {name:'Key Card',type:'key',icon:'🔑'},
+  blueprint:  {name:'Blueprint',type:'blueprint',icon:'📋'},
+  armor_vest: {name:'Armor Vest',type:'armor',defense:0.4,icon:'🦺'},
+  helmet:     {name:'Helmet',type:'armor',defense:0.2,icon:'⛑'},
+  grenade_item:{name:'Grenade',type:'throwable',dmg:80,radius:120,icon:'💣'},
+};
+
+// ============================================================
+// CRAFTING RECIPES
+// ============================================================
+const RECIPES = [
+  {result:'medkit',count:1,needs:{bandage:2,alcohol:1},name:'Medkit',level:1},
+  {result:'spiked_bat',count:1,needs:{bat:1,nails:2},name:'Spiked Bat',level:1},
+  {result:'ammo_pistol',count:1,needs:{gunpowder:2,metal:1},name:'Pistol Ammo',level:3},
+  {result:'armor_vest',count:1,needs:{cloth:3,metal:2},name:'Armor Vest',level:2},
+  {result:'helmet',count:1,needs:{metal:3},name:'Helmet',level:2},
+  {result:'grenade_item',count:1,needs:{metal:2,gunpowder:3},name:'Grenade',level:4},
+];
+
+// ============================================================
+// LOOT TABLES
+// ============================================================
+const LOOT_TABLES = {
+  tavern:    ['food_can','food_can','soda','water','alcohol','bandage','bat','machete','cloth'],
+  farmhouse: ['food_can','water','bandage','cloth','bat','wood','nails','flashlight'],
+  barn:      ['wood','wood','nails','metal','axe','cloth','food_can','armor_vest'],
+  mill:      ['wood','metal','nails','food_can','water'],
+  crop:      ['food_can','food_can','food_can','water','cloth','bandage'],
+  forest:    ['wood','wood','cloth','food_can'],
+  // kept for compatibility
+  house:     ['bandage','food_can','water','wood','nails','cloth','bat','flashlight'],
+  hospital:  ['medkit','bandage','bandage','alcohol','cloth','water'],
+  military:  ['pistol','ammo_pistol','ammo_rifle','rifle','armor_vest','helmet','grenade_item'],
+  mall:      ['food_can','soda','cloth','armor_vest','bat','machete','flashlight'],
+};
+
+// ============================================================
+// ZONE / MAP DEFINITIONS
+// ============================================================
+const ZONES = [
+  {name:'Tavern',      x:1350,y:1350,w:300,h:300,color:'#6b4c1e',danger:2,loot:'tavern'},
+  {name:'North Hay Field', x:400,y:80, w:2200,h:700,color:'#c8a030',danger:1,loot:'crop'},
+  {name:'South Hay Field', x:400,y:2220,w:2200,h:700,color:'#c8a030',danger:1,loot:'crop'},
+  {name:'West Hay Field',  x:80, y:400,w:600, h:2200,color:'#c8a030',danger:1,loot:'crop'},
+  {name:'East Hay Field',  x:2320,y:400,w:600,h:2200,color:'#c8a030',danger:1,loot:'crop'},
+  {name:'Old Farmhouse',   x:150,y:150,w:500,h:500,color:'#7a6040',danger:1,loot:'farmhouse'},
+  {name:'Barn',            x:2350,y:150,w:500,h:450,color:'#7a2a1a',danger:2,loot:'barn'},
+  {name:'Crop Fields',     x:150,y:2350,w:500,h:500,color:'#4a7a20',danger:1,loot:'crop'},
+  {name:'Old Mill',        x:2350,y:2350,w:500,h:500,color:'#6a5030',danger:2,loot:'mill'},
+];
+
+// ============================================================
+// BUILDINGS
+// ============================================================
+let BUILDINGS = [];
+function genBuildings() {
+  BUILDINGS = [];
+
+  // Tavern — fixed large central building
+  BUILDINGS.push({x:1390,y:1390,w:220,h:180,zone:'tavern',looted:false,
+    doorX:1500,doorY:1565,isTavern:true,name:'Tavern',
+    color:'#8b5e2a',color2:'#a0702e'});
+
+  // Old Farmhouse zone — 4-6 farmhouses
+  const fhZone = ZONES.find(z=>z.name==='Old Farmhouse');
+  for(let i=0;i<5;i++){
+    const bw=90+Math.random()*40, bh=80+Math.random()*40;
+    const bx=fhZone.x+30+Math.random()*(fhZone.w-bw-60);
+    const by=fhZone.y+30+Math.random()*(fhZone.h-bh-60);
+    BUILDINGS.push({x:bx,y:by,w:bw,h:bh,zone:'farmhouse',looted:false,
+      doorX:bx+bw/2-10,doorY:by+bh-5,name:'Farmhouse',
+      color:'#8a7050',color2:'#9a8060'});
+  }
+  // Safehouse is the first farmhouse
+  BUILDINGS[1].safe=true; BUILDINGS[1].name='Safe House';
+
+  // Barn zone — 2 big barns + small sheds
+  const barnZone = ZONES.find(z=>z.name==='Barn');
+  for(let i=0;i<3;i++){
+    const bw=120+Math.random()*60, bh=100+Math.random()*50;
+    const bx=barnZone.x+30+Math.random()*(barnZone.w-bw-60);
+    const by=barnZone.y+30+Math.random()*(barnZone.h-bh-60);
+    BUILDINGS.push({x:bx,y:by,w:bw,h:bh,zone:'barn',looted:false,
+      doorX:bx+bw/2-10,doorY:by+bh-5,name:'Barn',
+      color:'#7a2010',color2:'#8b3020'});
+  }
+
+  // Crop Fields — scattered sheds
+  const cropZone = ZONES.find(z=>z.name==='Crop Fields');
+  for(let i=0;i<3;i++){
+    const bw=60+Math.random()*30, bh=50+Math.random()*30;
+    const bx=cropZone.x+20+Math.random()*(cropZone.w-bw-40);
+    const by=cropZone.y+20+Math.random()*(cropZone.h-bh-40);
+    BUILDINGS.push({x:bx,y:by,w:bw,h:bh,zone:'crop',looted:false,
+      doorX:bx+bw/2-10,doorY:by+bh-5,name:'Storage Shed',
+      color:'#6a5030',color2:'#7a6040'});
+  }
+
+  // Old Mill zone — mill + sheds
+  const millZone = ZONES.find(z=>z.name==='Old Mill');
+  for(let i=0;i<3;i++){
+    const bw=70+Math.random()*50, bh=70+Math.random()*50;
+    const bx=millZone.x+20+Math.random()*(millZone.w-bw-40);
+    const by=millZone.y+20+Math.random()*(millZone.h-bh-40);
+    BUILDINGS.push({x:bx,y:by,w:bw,h:bh,zone:'mill',looted:false,
+      doorX:bx+bw/2-10,doorY:by+bh-5,name:'Mill',
+      color:'#7a6040',color2:'#8a7050'});
+  }
+}
+
+// ============================================================
+// ZOMBIE DEFINITIONS
+// ============================================================
+const ZOMBIE_TYPES = {
+  walker: {name:'Walker',hp:50,speed:0.9,dmg:8,color:'#4a4',score:10,size:16},
+  runner: {name:'Runner',hp:35,speed:2.2,dmg:5,color:'#a84',score:15,size:14},
+  bloater: {name:'Bloater',hp:90,speed:0.6,dmg:12,color:'#8a2',score:25,size:22,explodes:true},
+  screamer: {name:'Screamer',hp:40,speed:1.3,dmg:6,color:'#a4a',score:20,size:15,screams:true},
+  boss: {name:'Boss',hp:500,speed:1.1,dmg:25,color:'#f44',score:150,size:32,boss:true},
+};
+
+let ZOMBIES = [];
+let BULLETS = [];
+let PARTICLES = [];
+let FLOATTEXTS = [];
+
+// ============================================================
+// WORLD GENERATION
+// ============================================================
+let ROADS = [];
+function genRoads() {
+  // Dirt paths leading from each corner zone to the central tavern
+  ROADS = [
+    {x1:1500,y1:0,   x2:1500,y2:3000,w:28}, // N-S dirt path
+    {x1:0,   y1:1500,x2:3000,y2:1500,w:28}, // E-W dirt path
+    {x1:400, y1:400, x2:1450,y2:1450,w:20}, // NW farmhouse to tavern
+    {x1:2600,y1:400, x2:1550,y2:1450,w:20}, // NE barn to tavern
+    {x1:400, y1:2600,x2:1450,y2:1550,w:20}, // SW crop to tavern
+    {x1:2600,y1:2600,x2:1550,y2:1550,w:20}, // SE mill to tavern
+  ];
+}
+
+// ============================================================
+// SUPPLY DROPS
+// ============================================================
+function spawnSupplyDrop() {
+  const x = 200 + Math.random()*(WORLD_W-400);
+  const y = 200 + Math.random()*(WORLD_H-400);
+  G.supplyDrops.push({x,y,collected:false,items:['medkit','ammo_pistol','ammo_rifle','food_can','water']});
+  addMsg('⚠ Supply drop detected!','#ff8');
+}
+
+// ============================================================
+// UTILITY
+// ============================================================
+function wx(sx){ return sx + CAM.x; }
+function wy(sy){ return sy + CAM.y; }
+function sx(wx){ return wx - CAM.x; }
+function sy(wy){ return wy - CAM.y; }
+function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+function rand(a,b){ return a + Math.random()*(b-a); }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+
+function isNight() {
+  const t = (G.time % DAY_LEN) / DAY_LEN;
+  return t > 0.55 || t < 0.05;
+}
+function getDayT() {
+  return (G.time % DAY_LEN) / DAY_LEN;
+}
+function getSkyColor() {
+  const t = getDayT();
+  if(t < 0.05) return lerpCol('#0a0520','#1a1540',t/0.05);
+  if(t < 0.15) return lerpCol('#1a1540','#ff6b00',( t-0.05)/0.1);
+  if(t < 0.25) return lerpCol('#ff6b00','#87ceeb',(t-0.15)/0.1);
+  if(t < 0.5)  return '#87ceeb';
+  if(t < 0.6)  return lerpCol('#87ceeb','#ff4400',(t-0.5)/0.1);
+  if(t < 0.7)  return lerpCol('#ff4400','#0a0520',(t-0.6)/0.1);
+  return '#0a0520';
+}
+function lerpCol(c0,c1,t) {
+  t = clamp(t,0,1);
+  const p=(s)=>parseInt(s.slice(1),16);
+  const a=p(c0),b=p(c1);
+  const r=Math.round(((a>>16)&255)+t*(((b>>16)&255)-((a>>16)&255)));
+  const g=Math.round(((a>>8)&255)+t*(((b>>8)&255)-((a>>8)&255)));
+  const bl=Math.round((a&255)+t*((b&255)-(a&255)));
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${bl.toString(16).padStart(2,'0')}`;
+}
+
+function addMsg(txt, col='#ff8') {
+  const el = document.createElement('div');
+  el.className = 'msg';
+  el.style.color = col;
+  el.textContent = txt;
+  document.getElementById('msgLog').appendChild(el);
+  setTimeout(()=>el.remove(), 3000);
+}
+
+function floatText(x,y,txt,col='#ff8',size=14) {
+  FLOATTEXTS.push({x,y,txt,col,size,life:1,vy:-1.5});
+}
+
+function addParticle(x,y,col,vx,vy,life,size=3) {
+  PARTICLES.push({x,y,col,vx,vy,life,maxLife:life,size});
+}
+
+function bloodSplatter(x,y,count=8) {
+  for(let i=0;i<count;i++) {
+    const a = Math.random()*Math.PI*2;
+    const s = 1+Math.random()*3;
+    addParticle(x,y,'#c00',Math.cos(a)*s,Math.sin(a)*s,0.5+Math.random()*0.5,2+Math.random()*3);
+  }
+}
+
+function muzzleFlash(x,y) {
+  for(let i=0;i<6;i++) {
+    const a = Math.random()*Math.PI*2;
+    addParticle(x,y,'#ff8',Math.cos(a)*4,Math.sin(a)*4,0.15,3);
+    addParticle(x,y,'#ff4',Math.cos(a)*2,Math.sin(a)*2,0.1,2);
+  }
+}
+
+function explosion(x,y,r=80) {
+  for(let i=0;i<30;i++) {
+    const a = Math.random()*Math.PI*2;
+    const s = 2+Math.random()*5;
+    addParticle(x,y,Math.random()<0.5?'#f84':'#ff4',Math.cos(a)*s,Math.sin(a)*s,0.6+Math.random(),3+Math.random()*5);
+  }
+  floatText(x,y-30,'BOOM!','#f84',18);
+}
+
+// ============================================================
+// INVENTORY HELPERS
+// ============================================================
+function getItem(id) { return id ? {...ITEMS[id], id} : null; }
+
+function addToInv(id, count=1) {
+  if(!id || !ITEMS[id]) return false;
+  const item = ITEMS[id];
+  // Stack consumables/materials
+  if(['consumable','food','drink','material','ammo'].includes(item.type)) {
+    for(let i=0;i<P.inventory.length;i++) {
+      if(P.inventory[i]?.id === id) {
+        P.inventory[i].count = (P.inventory[i].count||1) + count;
+        return true;
+      }
+    }
+  }
+  for(let i=0;i<P.inventory.length;i++) {
+    if(!P.inventory[i]) {
+      P.inventory[i] = {id, count, ...ITEMS[id]};
+      return true;
+    }
+  }
+  addMsg('Inventory full!','#f44');
+  return false;
+}
+
+function countItem(id) {
+  let n=0;
+  for(const it of P.inventory) if(it?.id===id) n += (it.count||1);
+  return n;
+}
+
+function removeItem(id, count=1) {
+  for(let i=0;i<P.inventory.length;i++) {
+    if(P.inventory[i]?.id===id) {
+      const c = P.inventory[i].count||1;
+      if(c <= count) P.inventory[i]=null;
+      else P.inventory[i].count = c - count;
+      return true;
+    }
+  }
+  return false;
+}
+
+function getEquipped() {
+  return P.hotbar[P.equipped] || P.inventory.find(it=>it?.type==='melee') || {id:'fist',...ITEMS.fist};
+}
+
+function getEquippedRanged() {
+  for(const it of P.hotbar) if(it?.type==='ranged') return it;
+  for(const it of P.inventory) if(it?.type==='ranged') return it;
+  return null;
+}
+
+// ============================================================
+// COMBAT
+// ============================================================
+function meleeAttack() {
+  if(P.attackCD > 0 || P.dead) return;
+  const weapon = getEquipped();
+  const wDef = ITEMS[weapon.id] || ITEMS.fist;
+  P.attackCD = (wDef.speed||0.5) * (P.effects.overclock?0.5:1);
+
+  const mx = Math.cos(P.angle), my = Math.sin(P.angle);
+  const range = wDef.range || 35;
+  let hit = false;
+
+  ZOMBIES.forEach(z => {
+    if(z.dead) return;
+    const dx = z.x - P.x, dy = z.y - P.y;
+    const d = Math.hypot(dx,dy);
+    if(d < range + z.size) {
+      const dot = (dx*mx + dy*my)/d;
+      if(dot > 0.3) {
+        let dmg = wDef.dmg * P.damage * (P.effects.adrenaline?1.5:1);
+        // Headshot chance
+        const headshot = Math.random() < 0.15;
+        if(headshot) { dmg *= 2; floatText(z.x,z.y-20,'HEADSHOT!','#ff4',13); }
+        const crit = Math.random() < 0.1;
+        if(crit) { dmg = Math.floor(dmg * 1.5); floatText(z.x,z.y-20,'CRIT!','#f88',12); }
+        dmg = Math.floor(dmg);
+        damageZombie(z, dmg);
+        // Knockback
+        z.vx = dx/d * 4; z.vy = dy/d * 4;
+        hit = true;
+        beep(150+Math.random()*50,0.1,0.15,'sawtooth');
+        // Weapon durability
+        if(weapon.dur && weapon.dur < 999) weapon.dur = Math.max(0,weapon.dur-1);
+      }
+    }
+  });
+  if(!hit) beep(200,0.05,0.08,'square');
+
+  // Swing particle
+  for(let i=0;i<5;i++) {
+    addParticle(P.x+mx*30,P.y+my*30,'#ff8',
+      mx*3+rand(-1,1),my*3+rand(-1,1),0.2,2);
+  }
+}
+
+function shootBullet() {
+  const weapon = getEquippedRanged();
+  if(!weapon || P.dead) return;
+  if(weapon.ammo <= 0) { addMsg('Out of ammo! Reload with R','#f44'); beep(100,0.1,0.2); return; }
+  if(P.attackCD > 0) return;
+
+  P.attackCD = weapon.speed || 0.5;
+  weapon.ammo--;
+
+  const angle = P.angle;
+  const spread = weapon.spread || 0.05;
+  const pellets = weapon.pellets || 1;
+
+  playGunshot(weapon.id);
+  muzzleFlash(P.x + Math.cos(angle)*15, P.y + Math.sin(angle)*15);
+
+  for(let p=0;p<pellets;p++) {
+    const a = angle + (Math.random()-0.5)*spread*2;
+    BULLETS.push({
+      x:P.x, y:P.y,
+      vx:Math.cos(a)*12, vy:Math.sin(a)*12,
+      dmg:weapon.dmg*P.damage, range:weapon.range||400,
+      dist:0, fromPlayer:true, col:'#ff8'
+    });
+  }
+}
+
+function reloadWeapon() {
+  const weapon = getEquippedRanged();
+  if(!weapon) return;
+  const ammoId = 'ammo_' + weapon.id;
+  const ammoItem = P.inventory.find(it=>it?.id===ammoId) || P.hotbar.find(it=>it?.id===ammoId);
+  if(!ammoItem) { addMsg('No ammo to reload!','#f44'); return; }
+  const need = weapon.maxAmmo - weapon.ammo;
+  if(need <= 0) return;
+  const take = Math.min(need, ammoItem.count||1);
+  weapon.ammo += take;
+  if(ammoItem.count > take) ammoItem.count -= take;
+  else {
+    const idx = P.inventory.indexOf(ammoItem);
+    if(idx>=0) P.inventory[idx]=null;
+  }
+  addMsg(`Reloaded ${weapon.name}!`,'#8f8');
+  beep(300,0.1,0.2,'square');
+}
+
+function damageZombie(z, dmg) {
+  z.hp -= dmg;
+  floatText(z.x, z.y-20, `-${dmg}`, '#f44', 12);
+  bloodSplatter(z.x, z.y);
+  playHit();
+  z.alert = true; z.alertTimer = 10;
+
+  if(z.hp <= 0) killZombie(z);
+}
+
+function killZombie(z) {
+  if(z.dead) return;
+  z.dead = true;
+  G.kills++;
+  G.dayKills++;
+  playDeath();
+
+  const def = ZOMBIE_TYPES[z.type];
+  P.xp += def.score * G.wave;
+  floatText(z.x,z.y-10,`+${def.score*G.wave}XP`,'#8f8',11);
+
+  if(z.type==='bloater') {
+    explosion(z.x,z.y,100);
+    ZOMBIES.forEach(oz=>{
+      if(!oz.dead && dist(oz,z)<100) damageZombie(oz,40);
+    });
+    if(dist(z,P)<100) damagePlayer(30,'explosion');
+  }
+
+  // Drop loot
+  if(Math.random()<0.3) {
+    const drops = ['bandage','food_can','water','ammo_pistol','cloth','nails'];
+    const drop = drops[Math.floor(Math.random()*drops.length)];
+    PARTICLES.push({type:'loot',x:z.x,y:z.y,id:drop,life:15,col:'#ff8'});
+  }
+
+  checkAchievements();
+
+  if(P.xp >= P.xpNeeded) levelUp();
+}
+
+function damagePlayer(dmg, src='zombie') {
+  if(P.dead || P.effects.stealth) return;
+  const reduction = P.defense * (P.effects.armored?1.3:1);
+  dmg = Math.max(1, Math.floor(dmg / reduction));
+  P.hp -= dmg;
+  P.damageFlash = 0.5;
+  floatText(P.x, P.y-20, `-${dmg}`, '#f44', 14);
+  beep(80,0.15,0.25,'sawtooth');
+
+  if(P.hp <= 0) {
+    if(P.class==='survivor' && !P.secondWindUsed && P.skills && SKILL_DEFS.second_wind) {
+      P.secondWindUsed = true;
+      P.hp = 50;
+      addMsg('SECOND WIND! Survived death!','#4ff');
+    } else {
+      P.hp = 0;
+      P.dead = true;
+      setTimeout(()=>showGameOver(), 1500);
+    }
+  }
+}
+
+function levelUp() {
+  P.level++;
+  P.xp -= P.xpNeeded;
+  P.xpNeeded = Math.floor(P.xpNeeded * 1.4);
+  P.maxHp += 5;
+  P.hp = Math.min(P.hp+20, P.maxHp);
+  P.skillPoints++;
+  playLevelUp();
+  addMsg(`LEVEL UP! Now level ${P.level}!`,'#ff4');
+  floatText(P.x,P.y-40,'LEVEL UP!','#ff4',20);
+  showLevelUpChoice();
+}
+
+let levelUpChoices = [];
+function showLevelUpChoice() {
+  const upgrades = [
+    {name:'+20 Max HP',apply:()=>{P.maxHp+=20;P.hp=Math.min(P.hp+20,P.maxHp);}},
+    {name:'+15% Damage',apply:()=>{P.damage*=1.15;}},
+    {name:'+10% Speed',apply:()=>{P.speed*=1.1;}},
+    {name:'+15 Stamina',apply:()=>{P.maxStamina+=15;P.stamina=Math.min(P.stamina+15,P.maxStamina);}},
+    {name:'+0.2 Defense',apply:()=>{P.defense+=0.2;}},
+    {name:'+15% XP Gain',apply:()=>{P.passives.xpBonus=(P.passives.xpBonus||1)*1.15;}},
+  ];
+  levelUpChoices = [upgrades[Math.floor(Math.random()*upgrades.length)],upgrades[Math.floor(Math.random()*upgrades.length)],upgrades[Math.floor(Math.random()*upgrades.length)]];
+  showLevelUpMenu();
+}
+
+function showLevelUpMenu() {
+  G.paused = true;
+  const menu = document.getElementById('pauseMenu');
+  menu.style.display = 'none';
+
+  let html = '<div id="lvlUpMenu" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.97);border:2px solid gold;padding:25px;color:#fff;z-index:300;text-align:center;">';
+  html += '<h2 style="color:gold;margin-bottom:15px;">LEVEL UP! Choose Upgrade</h2>';
+  levelUpChoices.forEach((ch,i) => {
+    html += `<button onclick="applyLevelUpChoice(${i})" style="display:block;width:100%;margin:6px 0;padding:12px;background:#222;color:#ff8;border:1px solid gold;cursor:pointer;font-size:14px;font-family:Courier New;">${ch.name}</button>`;
+  });
+  html += '</div>';
+
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  document.body.appendChild(div);
+}
+
+function applyLevelUpChoice(idx) {
+  levelUpChoices[idx].apply();
+  const menu = document.getElementById('lvlUpMenu');
+  if(menu) menu.parentElement.remove();
+  G.paused = false;
+}
+
+// ============================================================
+// ZOMBIE SPAWNING & AI
+// ============================================================
+function spawnZombie(x,y,type='walker') {
+  const def = ZOMBIE_TYPES[type];
+  const nightMult = isNight() ? 1.5 : 1;
+  ZOMBIES.push({
+    x:x||rand(50,WORLD_W-50),
+    y:y||rand(50,WORLD_H-50),
+    vx:0,vy:0,
+    hp:def.hp*nightMult*(1+G.wave*0.1),
+    maxHp:def.hp*nightMult*(1+G.wave*0.1),
+    type,
+    speed:def.speed*(1+G.wave*0.03),
+    dmg:def.dmg*(1+G.wave*0.05),
+    size:def.size,
+    color:def.color,
+    dead:false,
+    alert:false,
+    alertTimer:0,
+    state:'wander',
+    wanderAngle:Math.random()*Math.PI*2,
+    screamCD:0,
+    attackCD:0,
+    angle:0,
+    stunned:0,
+  });
+}
+
+function spawnWave() {
+  const types = ['walker','runner','bloater','screamer'];
+  const count = 5 + G.wave*3 + (isNight()?8:0);
+  const boss = G.wave % 5 === 0;
+
+  for(let i=0;i<count;i++) {
+    // Spawn offscreen
+    const side = Math.floor(Math.random()*4);
+    let x,y;
+    const r = 600 + Math.random()*200;
+    const a = Math.random()*Math.PI*2;
+    x = clamp(P.x + Math.cos(a)*r, 50, WORLD_W-50);
+    y = clamp(P.y + Math.sin(a)*r, 50, WORLD_H-50);
+    const type = types[Math.floor(Math.random()*types.length)];
+    spawnZombie(x,y,type);
+  }
+
+  if(boss) {
+    const a = Math.random()*Math.PI*2;
+    spawnZombie(P.x+Math.cos(a)*500, P.y+Math.sin(a)*500,'boss');
+    addMsg(`⚠ BOSS ZOMBIE INCOMING! Wave ${G.wave}`,'#f44');
+  } else {
+    addMsg(`Wave ${G.wave} — ${count} zombies!`, isNight()?'#f44':'#fa8');
+  }
+
+  beep(150,0.5,0.3,'sawtooth');
+}
+
+function updateZombie(z, dt) {
+  if(z.dead || z.stunned > 0) { z.stunned = Math.max(0,z.stunned-dt); return; }
+
+  const dp = dist(z,P);
+  const sight = isNight() ? 250 : 180;
+
+  // Screamer alert
+  if(z.type==='screamer' && z.screamCD <= 0 && dp < sight) {
+    z.screamCD = 10;
+    ZOMBIES.forEach(oz => {
+      if(!oz.dead && dist(oz,z)<300) { oz.alert=true; oz.alertTimer=8; }
+    });
+    beep(800,0.3,0.1,'sawtooth');
+  }
+  if(z.screamCD>0) z.screamCD-=dt;
+  if(z.alertTimer>0) z.alertTimer-=dt;
+
+  if(dp < sight || z.alert) {
+    // Chase player
+    const dx = P.x-z.x, dy = P.y-z.y;
+    const d = Math.hypot(dx,dy)||1;
+    z.vx = (dx/d)*z.speed*(P.effects.suppressed?0.3:1);
+    z.vy = (dy/d)*z.speed*(P.effects.suppressed?0.3:1);
+    z.angle = Math.atan2(dy,dx);
+
+    // Boss special attack
+    if(z.type==='boss' && z.attackCD<=0 && dp<400) {
+      BULLETS.push({x:z.x,y:z.y,vx:(dx/d)*8,vy:(dy/d)*8,dmg:20,range:500,dist:0,fromPlayer:false,col:'#f44'});
+      z.attackCD = 2;
+      beep(200,0.2,0.2,'sawtooth');
+    }
+    if(z.attackCD>0) z.attackCD-=dt;
+
+    // Attack player
+    if(dp < z.size + 15 && z.attackCD<=0) {
+      damagePlayer(z.dmg);
+      z.attackCD = 1.5;
+    }
+  } else {
+    // Wander
+    z.wanderAngle += (Math.random()-0.5)*0.3;
+    z.vx = Math.cos(z.wanderAngle)*z.speed*0.3;
+    z.vy = Math.sin(z.wanderAngle)*z.speed*0.3;
+  }
+
+  // Zombie-zombie separation
+  ZOMBIES.forEach(oz=>{
+    if(oz===z||oz.dead) return;
+    const d2 = dist(z,oz);
+    if(d2 < (z.size+oz.size)) {
+      const dx=(z.x-oz.x)/(d2||1), dy=(z.y-oz.y)/(d2||1);
+      z.vx+=dx*0.5; z.vy+=dy*0.5;
+    }
+  });
+
+  z.vx*=0.85; z.vy*=0.85;
+  z.x = clamp(z.x+z.vx, 0, WORLD_W);
+  z.y = clamp(z.y+z.vy, 0, WORLD_H);
+}
+
+// ============================================================
+// SKILLS
+// ============================================================
+function useSkill(key) {
+  if(P.dead || G.paused) return;
+  const cls = CLASSES[P.class];
+  const skillId = key==='Q'?cls.skills[0]:key==='F'?cls.skills[1]:cls.skills[2];
+  if(!skillId) return;
+  const def = SKILL_DEFS[skillId];
+  if(!def) return;
+  if(P.skillCDs[key] > 0) { addMsg(`${def.name} on cooldown: ${P.skillCDs[key].toFixed(1)}s`,'#f84'); return; }
+
+  P.skillCDs[key] = def.cd;
+
+  switch(skillId) {
+    case 'adrenaline':
+      P.effects.adrenaline = 5;
+      P.effects.speedBoost = 5;
+      addMsg('Adrenaline Rush!','#f44');
+      beep(500,0.2,0.3,'square');
+      break;
+    case 'grenade': {
+      const a = P.angle;
+      const tx = P.x+Math.cos(a)*200, ty = P.y+Math.sin(a)*200;
+      setTimeout(()=>{
+        explosion(tx,ty,120);
+        ZOMBIES.forEach(z=>{if(!z.dead&&dist(z,{x:tx,y:ty})<120)damageZombie(z,80);});
+      },500);
+      addMsg('Grenade thrown!','#f84');
+      beep(300,0.15,0.2);
+      break;
+    }
+    case 'suppression':
+      P.effects.suppressed_enemies = 4;
+      ZOMBIES.forEach(z=>{ if(dist(z,P)<300) { z.stunned=4; } });
+      addMsg('Suppression fire!','#48f');
+      break;
+    case 'heal_surge':
+      P.hp = Math.min(P.maxHp, P.hp+40);
+      floatText(P.x,P.y-20,'+40 HP','#4f8',16);
+      beep(600,0.2,0.3,'sine');
+      addMsg('Heal Surge!','#4f8');
+      break;
+    case 'medkit_craft':
+      if(countItem('bandage')>=2&&countItem('alcohol')>=1) {
+        removeItem('bandage',2); removeItem('alcohol',1);
+        addToInv('medkit');
+        addMsg('Crafted Medkit!','#4f8');
+      } else addMsg('Need: 2x Bandage, 1x Alcohol','#f44');
+      break;
+    case 'adrenaline_shot':
+      P.stamina = P.maxStamina;
+      P.effects.haste = 8;
+      addMsg('Stim Shot!','#ff4');
+      beep(700,0.15,0.3,'sine');
+      break;
+    case 'build_barricade':
+      if(countItem('wood')>=2) {
+        removeItem('wood',2);
+        G.barricades.push({x:P.x+Math.cos(P.angle)*60,y:P.y+Math.sin(P.angle)*60,hp:100,maxHp:100,w:50,h:12});
+        addMsg('Barricade placed!','#fa4');
+        beep(300,0.15,0.2,'square');
+      } else addMsg('Need: 2x Wood','#f44');
+      break;
+    case 'trap_deploy':
+      if(countItem('metal')>=1) {
+        removeItem('metal',1);
+        G.traps.push({x:P.x+Math.cos(P.angle)*40,y:P.y+Math.sin(P.angle)*40,active:true,dmg:60});
+        addMsg('Trap deployed!','#a84');
+      } else addMsg('Need: 1x Metal','#f44');
+      break;
+    case 'overclock':
+      P.effects.overclock = 6;
+      addMsg('Overclock active!','#f4f');
+      beep(800,0.2,0.3,'square');
+      break;
+    case 'stealth':
+      P.effects.stealth = 5;
+      addMsg('Stealth activated!','#888');
+      break;
+    case 'scavenge': {
+      const items = ['bandage','food_can','water','ammo_pistol','metal','cloth','wood'];
+      const picks = 3+Math.floor(Math.random()*3);
+      for(let i=0;i<picks;i++) addToInv(items[Math.floor(Math.random()*items.length)]);
+      addMsg('Scavenged supplies!','#8f8');
+      playPickup();
+      break;
+    }
+    case 'second_wind':
+      addMsg('Second Wind ready! (auto-activates on death)','#4ff');
+      break;
+  }
+}
+
+// ============================================================
+// LOOT / INTERACTION
+// ============================================================
+function tryInteract() {
+  // Buildings
+  for(const b of BUILDINGS) {
+    const d = Math.hypot(P.x-b.doorX, P.y-b.doorY);
+    if(d < 50) {
+      lootBuilding(b);
+      return;
+    }
+  }
+  // Supply drops
+  for(const sd of G.supplyDrops) {
+    if(!sd.collected && dist(sd,P)<50) {
+      sd.items.forEach(id=>addToInv(id));
+      sd.collected = true;
+      addMsg('Supply drop collected!','#ff8');
+      playPickup();
+      return;
+    }
+  }
+  // Ground loot
+  for(let i=PARTICLES.length-1;i>=0;i--) {
+    const p = PARTICLES[i];
+    if(p.type==='loot' && Math.hypot(P.x-p.x,P.y-p.y)<30) {
+      addToInv(p.id);
+      playPickup();
+      PARTICLES.splice(i,1);
+      return;
+    }
+  }
+}
+
+function lootBuilding(b) {
+  if(b.looted) { addMsg('Already looted.','#888'); return; }
+  b.looted = true;
+  const table = LOOT_TABLES[b.zone] || LOOT_TABLES.house;
+  const count = 2 + Math.floor(Math.random()*3);
+  const got = [];
+  for(let i=0;i<count;i++) {
+    const id = table[Math.floor(Math.random()*table.length)];
+    if(addToInv(id)) got.push(ITEMS[id].name);
+  }
+  addMsg(`Found: ${got.join(', ')}`, '#8f8');
+  playPickup();
+  checkAchievements();
+}
+
+// ============================================================
+// CRAFTING
+// ============================================================
+function openCraft() {
+  const menu = document.getElementById('craftMenu');
+  menu.style.display = 'block';
+  document.getElementById('pauseMenu').style.display='none';
+  renderCraftList();
+}
+
+function renderCraftList() {
+  const list = document.getElementById('craftList');
+  list.innerHTML = '';
+  RECIPES.filter(r=>r.level<=P.level).forEach((r,i) => {
+    const canMake = Object.entries(r.needs).every(([id,n])=>countItem(id)>=n);
+    const needsStr = Object.entries(r.needs).map(([id,n])=>`${n}x${ITEMS[id]?.name||id}`).join(', ');
+    const div = document.createElement('div');
+    div.className = 'craft-recipe';
+    div.style.opacity = canMake?'1':'0.5';
+    div.innerHTML = `<span class="result">${r.name}</span><span class="needs">${needsStr}</span>`;
+    if(canMake) div.onclick = ()=>doCraft(r);
+    list.appendChild(div);
+  });
+}
+
+function doCraft(recipe) {
+  Object.entries(recipe.needs).forEach(([id,n])=>removeItem(id,n));
+  for(let i=0;i<recipe.count;i++) addToInv(recipe.result);
+  addMsg(`Crafted: ${recipe.name}!`,'#8f8');
+  playPickup();
+  renderCraftList();
+}
+
+// ============================================================
+// INVENTORY UI
+// ============================================================
+function openInv() {
+  const panel = document.getElementById('invPanel');
+  panel.style.display = panel.style.display==='block'?'none':'block';
+  if(panel.style.display==='block') renderInv();
+}
+
+function renderInv() {
+  const grid = document.getElementById('invGrid');
+  grid.innerHTML = '';
+  P.inventory.forEach((it,i) => {
+    const slot = document.createElement('div');
+    slot.className = 'inv-slot';
+    if(it) {
+      slot.textContent = it.icon||it.name.slice(0,3);
+      slot.title = it.name + (it.dur&&it.dur<999?` (${it.dur}/${it.maxDur})`:'') + (it.count>1?` x${it.count}`:'');
+      if(it.count>1) {
+        const c = document.createElement('div');
+        c.className = 'count';
+        c.textContent = it.count;
+        slot.appendChild(c);
+      }
+      slot.onclick = ()=>useInventoryItem(i);
+    }
+    grid.appendChild(slot);
+  });
+  document.getElementById('invInfo').textContent = 'Click item to use/equip';
+}
+
+function useInventoryItem(idx) {
+  const it = P.inventory[idx];
+  if(!it) return;
+  if(it.type==='consumable'||it.type==='food'||it.type==='drink') {
+    if(it.heal) { P.hp=Math.min(P.maxHp,P.hp+it.heal); floatText(P.x,P.y-20,`+${it.heal}HP`,'#4f8',14); }
+    if(it.hunger) P.hunger=Math.min(P.maxHunger,P.hunger+it.hunger);
+    if(it.thirst) P.thirst=Math.min(P.maxThirst,P.thirst+it.thirst);
+    removeItem(it.id,1);
+    beep(500,0.1,0.2,'sine');
+    addMsg(`Used ${it.name}`,'#8f8');
+  } else if(it.type==='melee'||it.type==='ranged') {
+    // Equip to hotbar
+    for(let i=0;i<P.hotbar.length;i++) {
+      if(!P.hotbar[i]) { P.hotbar[i]=it; P.inventory[idx]=null; addMsg(`Equipped ${it.name}`,'#8f8'); break; }
+    }
+  }
+  renderInv();
+}
+
+// ============================================================
+// SAVE / LOAD
+// ============================================================
+function saveGame() {
+  const save = {
+    P: JSON.parse(JSON.stringify(P)),
+    G: JSON.parse(JSON.stringify(G)),
+    CAM: {...CAM},
+  };
+  localStorage.setItem('zar_save', JSON.stringify(save));
+  addMsg('Game saved!','#8f8');
+}
+
+function loadGame() {
+  const s = localStorage.getItem('zar_save');
+  if(!s) { addMsg('No save found.','#f44'); return; }
+  const save = JSON.parse(s);
+  Object.assign(P, save.P);
+  Object.assign(G, save.G);
+  Object.assign(CAM, save.CAM);
+  addMsg('Game loaded!','#8f8');
+  document.getElementById('pauseMenu').style.display='none';
+  G.paused = false;
+}
+
+// ============================================================
+// ACHIEVEMENTS
+// ============================================================
+const ACHIEVEMENTS_DEF = {
+  first_blood:{name:'First Blood',desc:'Kill your first zombie',cond:()=>G.kills>=1},
+  kills_10:{name:'Zombie Slayer',desc:'Kill 10 zombies',cond:()=>G.kills>=10},
+  kills_50:{name:'Mass Murderer',desc:'Kill 50 zombies',cond:()=>G.kills>=50},
+  kills_100:{name:'Century',desc:'Kill 100 zombies',cond:()=>G.kills>=100},
+  level_5:{name:'Veteran',desc:'Reach level 5',cond:()=>P.level>=5},
+  level_10:{name:'Legend',desc:'Reach level 10',cond:()=>P.level>=10},
+  day_3:{name:'Survivor',desc:'Survive to day 3',cond:()=>G.day>=3},
+  day_7:{name:'One Week',desc:'Survive 7 days',cond:()=>G.day>=7},
+  wave_10:{name:'Horde Slayer',desc:'Survive wave 10',cond:()=>G.wave>=10},
+};
+
+function checkAchievements() {
+  Object.entries(ACHIEVEMENTS_DEF).forEach(([id,ach]) => {
+    if(!G.achievements[id] && ach.cond()) {
+      G.achievements[id] = true;
+      showAchievement(ach.name, ach.desc);
+    }
+  });
+}
+
+function showAchievement(name, desc) {
+  const el = document.getElementById('achieveToast');
+  el.innerHTML = `🏆 Achievement: <b>${name}</b><br><small>${desc}</small>`;
+  el.style.display = 'block';
+  beep(800,0.1,0.2,'sine'); beep(1000,0.1,0.2,'sine');
+  setTimeout(()=>el.style.display='none', 3500);
+}
+
+// ============================================================
+// DRAWING
+// ============================================================
+function drawBackground() {
+  const sky = getSkyColor();
+  ctx.fillStyle = sky;
+  ctx.fillRect(0,0,W,H);
+
+  // Stars at night
+  const t = getDayT();
+  if(t > 0.6 || t < 0.15) {
+    const alpha = t>0.6 ? Math.min(1,(t-0.6)/0.1) : Math.min(1,(0.15-t)/0.05);
+    ctx.fillStyle = `rgba(255,255,255,${alpha*0.8})`;
+    // Static stars based on seed
+    for(let i=0;i<200;i++) {
+      const sx2 = (i*137.5%1)*W;
+      const sy2 = (i*97.3%1)*H*0.6;
+      ctx.fillRect(sx2,sy2,1+i%2,1+i%2);
+    }
+    // Moon
+    ctx.beginPath();
+    ctx.arc(W*0.8, H*0.15, 30, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(240,240,200,${alpha*0.9})`;
+    ctx.fill();
+  }
+}
+
+function drawGround() {
+  // Base grass
+  ctx.fillStyle = '#3a6a18';
+  ctx.fillRect(0, 0, W, H);
+
+  // Zone fills
+  ZONES.forEach(z => {
+    ctx.fillStyle = z.color;
+    ctx.fillRect(sx(z.x), sy(z.y), z.w, z.h);
+
+    // Hay field rows — horizontal golden lines
+    if(z.loot==='crop' || z.name.includes('Hay Field')) {
+      ctx.strokeStyle = 'rgba(180,130,20,0.45)';
+      ctx.lineWidth = 5;
+      ctx.setLineDash([]);
+      const rowSpacing = 22;
+      const startRow = Math.floor(z.y/rowSpacing)*rowSpacing;
+      for(let wy=startRow; wy<z.y+z.h; wy+=rowSpacing) {
+        const screenY = sy(wy);
+        if(screenY < -10 || screenY > H+10) continue;
+        ctx.beginPath();
+        ctx.moveTo(sx(z.x), screenY);
+        ctx.lineTo(sx(z.x+z.w), screenY);
+        ctx.stroke();
+      }
+    }
+  });
+
+  // Dirt paths
+  ctx.setLineDash([]);
+  ROADS.forEach(r => {
+    ctx.strokeStyle = '#9b7040';
+    ctx.lineWidth = r.w;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(sx(r.x1),sy(r.y1));
+    ctx.lineTo(sx(r.x2),sy(r.y2));
+    ctx.stroke();
+    // Worn center strip
+    ctx.strokeStyle = '#b08850';
+    ctx.lineWidth = r.w * 0.35;
+    ctx.setLineDash([30,20]);
+    ctx.beginPath();
+    ctx.moveTo(sx(r.x1),sy(r.y1));
+    ctx.lineTo(sx(r.x2),sy(r.y2));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+  ctx.lineCap = 'butt';
+}
+
+function drawBuildings() {
+  BUILDINGS.forEach(b => {
+    const bsx = sx(b.x), bsy = sy(b.y);
+    if(bsx > W+100 || bsx < -b.w-100 || bsy > H+100 || bsy < -b.h-100) return;
+
+    const looted = b.looted;
+
+    // Building body
+    ctx.fillStyle = looted ? '#554433' : b.color;
+    ctx.fillRect(bsx, bsy, b.w, b.h);
+
+    // Roof / inner floor tint
+    ctx.fillStyle = looted ? '#665544' : b.color2;
+    ctx.fillRect(bsx+3, bsy+3, b.w-6, b.h-6);
+
+    // Tavern special: timber frame lines
+    if(b.isTavern) {
+      ctx.strokeStyle = '#5a3810';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(bsx+3, bsy+3, b.w-6, b.h-6);
+      // Cross beams
+      ctx.beginPath();
+      ctx.moveTo(bsx+3, bsy+b.h/2); ctx.lineTo(bsx+b.w-3, bsy+b.h/2);
+      ctx.moveTo(bsx+b.w/2, bsy+3); ctx.lineTo(bsx+b.w/2, bsy+b.h-3);
+      ctx.stroke();
+      // Tavern sign above door
+      ctx.fillStyle = '#3a2005';
+      ctx.fillRect(bsx+b.w/2-35, bsy-22, 70, 18);
+      ctx.fillStyle = '#f0c060';
+      ctx.font = 'bold 11px Courier New';
+      ctx.textAlign = 'center';
+      ctx.fillText('🍺 TAVERN', bsx+b.w/2, bsy-9);
+      ctx.textAlign = 'left';
+    }
+
+    // Barn: red siding planks
+    if(b.zone==='barn') {
+      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+      ctx.lineWidth = 2;
+      for(let i=1;i<4;i++) {
+        ctx.beginPath();
+        ctx.moveTo(bsx, bsy+b.h*i/4);
+        ctx.lineTo(bsx+b.w, bsy+b.h*i/4);
+        ctx.stroke();
+      }
+      // X on barn door
+      ctx.strokeStyle = '#5a1008';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(sx(b.doorX), sy(b.doorY)-20);
+      ctx.lineTo(sx(b.doorX)+24, sy(b.doorY));
+      ctx.moveTo(sx(b.doorX)+24, sy(b.doorY)-20);
+      ctx.lineTo(sx(b.doorX), sy(b.doorY));
+      ctx.stroke();
+    }
+
+    // Windows (farmhouse / tavern / mill)
+    if(b.zone!=='barn') {
+      ctx.fillStyle = isNight() ? 'rgba(255,230,100,0.7)' : 'rgba(140,210,255,0.5)';
+      const wCount = Math.max(1, Math.floor(b.w/30));
+      for(let i=0;i<wCount;i++) {
+        ctx.fillRect(bsx+10+i*26, bsy+10, 14, 11);
+        if(b.h>60) ctx.fillRect(bsx+10+i*26, bsy+b.h-28, 14, 11);
+      }
+    }
+
+    // Door
+    ctx.fillStyle = b.isTavern ? '#4a2800' : '#6a4020';
+    ctx.fillRect(sx(b.doorX), sy(b.doorY)-18, 22, 20);
+
+    // Safe house label
+    if(b.safe) {
+      ctx.fillStyle = '#0f0';
+      ctx.font = 'bold 11px Courier New';
+      ctx.textAlign = 'center';
+      ctx.fillText('SAFE HOUSE', bsx+b.w/2, bsy-8);
+      ctx.textAlign = 'left';
+    }
+
+    // Looting prompt
+    if(Math.hypot(P.x-b.doorX,P.y-b.doorY)<55) {
+      ctx.fillStyle = '#ff8';
+      ctx.font = '12px Courier New';
+      ctx.textAlign = 'center';
+      ctx.fillText(looted?'[Empty]':'[E] Loot', bsx+b.w/2, bsy-8);
+      ctx.textAlign = 'left';
+    }
+  });
+}
+
+function drawBarricades() {
+  G.barricades.forEach(b => {
+    if(b.hp<=0) return;
+    const ratio = b.hp/b.maxHp;
+    ctx.save();
+    ctx.translate(sx(b.x), sy(b.y));
+    ctx.fillStyle = `rgba(${Math.floor(100+100*(1-ratio))},${Math.floor(80*ratio)},0,1)`;
+    ctx.fillRect(-b.w/2,-b.h/2,b.w,b.h);
+    // HP bar
+    ctx.fillStyle='#f00'; ctx.fillRect(-b.w/2,-b.h/2-6,b.w,4);
+    ctx.fillStyle='#0f0'; ctx.fillRect(-b.w/2,-b.h/2-6,b.w*ratio,4);
+    ctx.restore();
+  });
+}
+
+function drawTraps() {
+  G.traps.forEach(t => {
+    if(!t.active) return;
+    ctx.fillStyle = '#888';
+    ctx.fillRect(sx(t.x)-8, sy(t.y)-3, 16, 6);
+    ctx.fillStyle = '#a44';
+    ctx.fillRect(sx(t.x)-1, sy(t.y)-8, 2, 16);
+  });
+}
+
+function drawSupplyDrops() {
+  G.supplyDrops.forEach(sd => {
+    if(sd.collected) return;
+    const time = Date.now()/500;
+    const bx = sx(sd.x), by = sy(sd.y);
+    ctx.fillStyle = '#fa4';
+    ctx.fillRect(bx-15, by-15+(Math.sin(time)*3), 30, 20);
+    ctx.fillStyle = '#f84';
+    ctx.fillRect(bx-20, by-18+(Math.sin(time)*3), 40, 6);
+    ctx.fillStyle = '#fff';
+    ctx.font = '10px Courier New';
+    ctx.fillText('SUPPLY', bx-18, by-20+(Math.sin(time)*3));
+
+    if(dist(sd,P)<50) {
+      ctx.fillStyle='#ff8';
+      ctx.font='12px Courier New';
+      ctx.fillText('[E] Collect',bx-25,by-30);
+    }
+  });
+}
+
+function drawZombies() {
+  ZOMBIES.forEach(z => {
+    if(z.dead) return;
+    const zsx = sx(z.x), zsy = sy(z.y);
+    if(zsx < -50 || zsx > W+50 || zsy < -50 || zsy > H+50) return;
+
+    ctx.save();
+    ctx.translate(zsx, zsy);
+
+    // Body
+    ctx.fillStyle = z.color;
+    ctx.beginPath();
+    ctx.arc(0, 0, z.size, 0, Math.PI*2);
+    ctx.fill();
+
+    // Face direction
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(Math.cos(z.angle)*z.size*0.5, Math.sin(z.angle)*z.size*0.5, 3, 0, Math.PI*2);
+    ctx.fill();
+
+    // Eyes
+    ctx.fillStyle = '#f00';
+    const ey = -z.size*0.3;
+    ctx.fillRect(-z.size*0.35, ey, 5, 4);
+    ctx.fillRect(z.size*0.1, ey, 5, 4);
+
+    // Boss indicator
+    if(z.type==='boss') {
+      ctx.strokeStyle='#f44'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.arc(0,0,z.size+4,0,Math.PI*2); ctx.stroke();
+    }
+
+    // HP bar
+    const hpRatio = z.hp/z.maxHp;
+    const bw = z.size*2+4;
+    ctx.fillStyle='#400'; ctx.fillRect(-bw/2,-z.size-8,bw,4);
+    ctx.fillStyle=hpRatio>0.5?'#0f0':'#f80'; ctx.fillRect(-bw/2,-z.size-8,bw*hpRatio,4);
+
+    // Stunned indicator
+    if(z.stunned>0) {
+      ctx.fillStyle='rgba(100,100,255,0.5)';
+      ctx.beginPath(); ctx.arc(0,0,z.size,0,Math.PI*2); ctx.fill();
+    }
+
+    ctx.restore();
+  });
+}
+
+function drawBullets() {
+  BULLETS.forEach(b => {
+    ctx.fillStyle = b.fromPlayer ? '#ff8' : '#f44';
+    ctx.beginPath();
+    ctx.arc(sx(b.x), sy(b.y), 3, 0, Math.PI*2);
+    ctx.fill();
+  });
+}
+
+function drawParticles() {
+  PARTICLES.forEach(p => {
+    if(p.type==='loot') {
+      // Ground loot
+      ctx.fillStyle = '#ff8';
+      ctx.font = '14px serif';
+      ctx.fillText(ITEMS[p.id]?.icon||'?', sx(p.x)-7, sy(p.y)+7);
+      if(dist(p,P)<40) {
+        ctx.fillStyle='#ff8';
+        ctx.font='11px Courier New';
+        ctx.fillText(`[E] ${ITEMS[p.id]?.name||p.id}`,sx(p.x)-20,sy(p.y)-15);
+      }
+      return;
+    }
+    const alpha = p.life/p.maxLife;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = p.col;
+    ctx.beginPath();
+    ctx.arc(sx(p.x), sy(p.y), p.size, 0, Math.PI*2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+}
+
+function drawPlayer() {
+  const px = sx(P.x), py = sy(P.y);
+  ctx.save();
+  ctx.translate(px, py);
+
+  // Stealth
+  if(P.effects.stealth) ctx.globalAlpha = 0.4;
+
+  // Damage flash
+  if(P.damageFlash > 0) {
+    ctx.shadowColor='#f00'; ctx.shadowBlur=20;
+  }
+
+  // Body
+  const cls = CLASSES[P.class];
+  ctx.fillStyle = P.dead ? '#555' : cls.color;
+  ctx.beginPath();
+  ctx.arc(0, 0, 12, 0, Math.PI*2);
+  ctx.fill();
+
+  // Direction indicator
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(Math.cos(P.angle)*8, Math.sin(P.angle)*8, 4, 0, Math.PI*2);
+  ctx.fill();
+
+  // Class icon
+  ctx.fillStyle = '#000';
+  ctx.font = '10px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(cls.icon, 0, 4);
+  ctx.textAlign = 'left';
+
+  // Weapon indication
+  const w = getEquipped();
+  if(w && w.type==='melee' && P.attackCD>0) {
+    ctx.strokeStyle='#ff8'; ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(P.angle)*12, Math.sin(P.angle)*12);
+    ctx.lineTo(Math.cos(P.angle)*35, Math.sin(P.angle)*35);
+    ctx.stroke();
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function drawFloatTexts() {
+  FLOATTEXTS.forEach(ft => {
+    ctx.globalAlpha = ft.life;
+    ctx.fillStyle = ft.col;
+    ctx.font = `bold ${ft.size}px Courier New`;
+    ctx.fillText(ft.txt, sx(ft.x), sy(ft.y));
+    ctx.globalAlpha = 1;
+  });
+}
+
+function drawWeather() {
+  if(G.weather==='rain') {
+    ctx.strokeStyle = 'rgba(150,200,255,0.3)';
+    ctx.lineWidth = 1;
+    for(let i=0;i<100;i++) {
+      const x = (Date.now()/10+i*127)%W;
+      const y = (Date.now()/5+i*97)%H;
+      ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+2,y+10); ctx.stroke();
+    }
+  } else if(G.weather==='fog') {
+    ctx.fillStyle = 'rgba(180,180,200,0.25)';
+    ctx.fillRect(0,0,W,H);
+  }
+}
+
+function drawNightOverlay() {
+  const t = getDayT();
+  let alpha = 0;
+  if(t > 0.7) alpha = Math.min(0.65, (t-0.7)*6);
+  else if(t < 0.05) alpha = Math.min(0.65, (0.05-t)*6);
+  else if(t > 0.6) alpha = Math.min(0.5, (t-0.6)*5);
+
+  if(alpha > 0) {
+    ctx.fillStyle = `rgba(0,0,30,${alpha})`;
+    ctx.fillRect(0,0,W,H);
+
+    // Flashlight cone
+    if(P.inventory.some(it=>it?.id==='flashlight')||P.hotbar.some(it=>it?.id==='flashlight')) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      const px = sx(P.x), py = sy(P.y);
+      const grad = ctx.createRadialGradient(px,py,0,px,py,200);
+      grad.addColorStop(0,'rgba(0,0,0,0.8)');
+      grad.addColorStop(0.5,'rgba(0,0,0,0.5)');
+      grad.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=grad;
+      ctx.beginPath();
+      ctx.moveTo(px,py);
+      ctx.arc(px,py,200,P.angle-0.6,P.angle+0.6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+}
+
+// ============================================================
+// HUD
+// ============================================================
+function drawHUD() {
+  const pad = 10;
+
+  // ---- TOP LEFT: Status bars ----
+  const bars = [
+    {label:'HP',val:P.hp,max:P.maxHp,col:'#f44'},
+    {label:'STA',val:P.stamina,max:P.maxStamina,col:'#48f'},
+    {label:'HGR',val:P.hunger,max:P.maxHunger,col:'#fa8'},
+    {label:'THR',val:P.thirst,max:P.maxThirst,col:'#4af'},
+  ];
+  bars.forEach((b,i) => {
+    const y = pad + i*18;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(pad, y, 150, 14);
+    ctx.fillStyle = b.val/b.max<0.25?'#f00':b.col;
+    ctx.fillRect(pad, y, 150*(b.val/b.max), 14);
+    ctx.strokeStyle='#666'; ctx.lineWidth=1;
+    ctx.strokeRect(pad, y, 150, 14);
+    ctx.fillStyle='#fff'; ctx.font='10px Courier New';
+    ctx.fillText(`${b.label}: ${Math.ceil(b.val)}/${b.max}`, pad+3, y+11);
+  });
+
+  // Effects indicators
+  let efx = [];
+  if(P.effects.adrenaline) efx.push({t:'ADR',c:'#f44'});
+  if(P.effects.stealth) efx.push({t:'HIDE',c:'#888'});
+  if(P.effects.haste) efx.push({t:'HASTE',c:'#ff4'});
+  if(P.effects.overclock) efx.push({t:'OVR',c:'#f4f'});
+  efx.forEach((e,i) => {
+    ctx.fillStyle=e.c;
+    ctx.font='10px Courier New';
+    ctx.fillText(e.t, pad+i*50, pad+4*18+14);
+  });
+
+  // ---- TOP RIGHT: XP / Level ----
+  const xpW = 180, xpH = 14;
+  const xpX = W - xpW - pad, xpY = pad;
+  ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(xpX,xpY,xpW,xpH);
+  ctx.fillStyle='#88f'; ctx.fillRect(xpX,xpY,xpW*(P.xp/P.xpNeeded),xpH);
+  ctx.strokeStyle='#666'; ctx.lineWidth=1; ctx.strokeRect(xpX,xpY,xpW,xpH);
+  ctx.fillStyle='#fff'; ctx.font='10px Courier New';
+  ctx.fillText(`LVL ${P.level}  XP: ${P.xp}/${P.xpNeeded}`, xpX+4, xpY+11);
+
+  // Stats
+  ctx.fillStyle='rgba(0,0,0,0.6)';
+  ctx.fillRect(xpX,xpY+18,xpW,58);
+  ctx.fillStyle='#aaf'; ctx.font='11px Courier New';
+  ctx.fillText(`Kills: ${G.kills}  Wave: ${G.wave}`,xpX+4,xpY+30);
+  ctx.fillText(`Day ${G.day}  Score: ${G.kills*10}`,xpX+4,xpY+44);
+  ctx.fillText(`SP: ${P.skillPoints}`,xpX+4,xpY+58);
+
+  // Day/night clock
+  const t = getDayT();
+  const hour = Math.floor(t*24);
+  const min = Math.floor((t*24%1)*60);
+  const timeStr = `${hour.toString().padStart(2,'0')}:${min.toString().padStart(2,'0')}`;
+  ctx.fillStyle = isNight()?'#88f':'#ff8';
+  ctx.font = 'bold 13px Courier New';
+  ctx.fillText(`${isNight()?'🌙':'☀'} ${timeStr} Day ${G.day}`, W-160, xpY+78);
+
+  // Wave timer
+  const waveIn = Math.max(0, G.nextWave - G.waveTimer);
+  ctx.fillStyle = waveIn<30?'#f44':'#fa8';
+  ctx.font='11px Courier New';
+  ctx.fillText(`Next wave: ${waveIn.toFixed(0)}s`, W-160, xpY+95);
+
+  // ---- BOTTOM CENTER: Hotbar ----
+  const slotSz = 48, slots = 8;
+  const hbX = W/2 - slots*slotSz/2, hbY = H - slotSz - pad;
+  for(let i=0;i<slots;i++) {
+    const it = P.hotbar[i];
+    ctx.fillStyle = i===P.equipped?'rgba(255,200,0,0.3)':'rgba(0,0,0,0.7)';
+    ctx.fillRect(hbX+i*slotSz, hbY, slotSz-2, slotSz-2);
+    ctx.strokeStyle = i===P.equipped?'#fc0':'#666';
+    ctx.lineWidth = i===P.equipped?2:1;
+    ctx.strokeRect(hbX+i*slotSz, hbY, slotSz-2, slotSz-2);
+
+    if(it) {
+      ctx.fillStyle = it.type==='melee'?'#fa8':it.type==='ranged'?'#8af':'#8f8';
+      ctx.font='18px serif';
+      ctx.fillText(it.icon||'?', hbX+i*slotSz+8, hbY+28);
+      if(it.ammo!==undefined) {
+        ctx.fillStyle='#ff8'; ctx.font='9px Courier New';
+        ctx.fillText(`${it.ammo}`, hbX+i*slotSz+2, hbY+slotSz-4);
+      }
+      if(it.dur&&it.dur<999) {
+        ctx.fillStyle='#f80'; ctx.font='9px Courier New';
+        ctx.fillText(`${it.dur}`, hbX+i*slotSz+30, hbY+slotSz-4);
+      }
+    }
+
+    ctx.fillStyle='#888'; ctx.font='9px Courier New';
+    ctx.fillText(i+1, hbX+i*slotSz+2, hbY+10);
+  }
+
+  // Current weapon + ammo
+  const cw = getEquipped();
+  const cr = getEquippedRanged();
+  ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(W-200,H-95,195,90);
+  ctx.fillStyle='#ff8'; ctx.font='bold 12px Courier New';
+  ctx.fillText(cw?.name||'Fist', W-196, H-76);
+  if(cw?.dur&&cw.dur<999) {
+    ctx.fillStyle='#f80'; ctx.font='11px Courier New';
+    ctx.fillText(`DUR: ${cw.dur}/${cw.maxDur}`, W-196, H-62);
+  }
+  if(cr) {
+    ctx.fillStyle='#8af'; ctx.font='11px Courier New';
+    ctx.fillText(`${cr.name}: ${cr.ammo}/${cr.maxAmmo}`, W-196, H-46);
+  }
+  ctx.fillStyle='#aaa'; ctx.font='10px Courier New';
+  ctx.fillText('RClick:Shoot  R:Reload', W-196, H-30);
+  ctx.fillText('LClick:Melee  E:Loot', W-196, H-16);
+
+  // ---- MINIMAP (bottom right) ----
+  drawMinimap();
+
+  // ---- SKILL BAR ----
+  drawSkillBar();
+
+  // Zone name
+  let curZone = null;
+  ZONES.forEach(z => {
+    if(P.x>z.x&&P.x<z.x+z.w&&P.y>z.y&&P.y<z.y+z.h) curZone=z.name;
+  });
+  if(curZone) {
+    ctx.fillStyle='rgba(0,0,0,0.5)';
+    ctx.fillRect(W/2-80, 10, 160, 20);
+    ctx.fillStyle='#ff8'; ctx.font='12px Courier New';
+    ctx.textAlign='center';
+    ctx.fillText(curZone, W/2, 24);
+    ctx.textAlign='left';
+  }
+
+  // Wave progress bar
+  const waveY = H - slotSz - pad - 20;
+  ctx.fillStyle='rgba(0,0,0,0.5)';
+  ctx.fillRect(W/2-120, waveY, 240, 12);
+  const waveAlive = ZOMBIES.filter(z=>!z.dead).length;
+  if(waveAlive > 0) {
+    ctx.fillStyle='#f44';
+    ctx.fillRect(W/2-120, waveY, 240*(waveAlive/Math.max(1,waveAlive+5)), 12);
+    ctx.fillStyle='#fff'; ctx.font='9px Courier New'; ctx.textAlign='center';
+    ctx.fillText(`${waveAlive} zombies remaining`, W/2, waveY+10);
+    ctx.textAlign='left';
+  }
+
+  // Kill counter top center
+  ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(W/2-60,36,120,18);
+  ctx.fillStyle='#f44'; ctx.font='bold 12px Courier New'; ctx.textAlign='center';
+  ctx.fillText(`☠ ${G.kills} KILLS`, W/2, 50);
+  ctx.textAlign='left';
+
+  // Weather indicator
+  if(G.weather!=='clear') {
+    ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(pad,H/2-15,80,18);
+    ctx.fillStyle='#8cf'; ctx.font='11px Courier New';
+    ctx.fillText(G.weather==='rain'?'🌧 RAIN':'🌫 FOG', pad+4,H/2);
+  }
+}
+
+function drawMinimap() {
+  const mmW=160, mmH=160, mmX=W-mmW-10, mmY=H-mmH-120;
+  const scaleX = mmW/WORLD_W, scaleY = mmH/WORLD_H;
+
+  ctx.fillStyle='rgba(0,0,0,0.7)';
+  ctx.fillRect(mmX,mmY,mmW,mmH);
+  ctx.strokeStyle='#666'; ctx.lineWidth=1; ctx.strokeRect(mmX,mmY,mmW,mmH);
+
+  // Zones
+  ZONES.forEach(z => {
+    ctx.fillStyle=z.color+'88';
+    ctx.fillRect(mmX+z.x*scaleX, mmY+z.y*scaleY, z.w*scaleX, z.h*scaleY);
+  });
+
+  // Safe house
+  const sh = BUILDINGS.find(b=>b.safe);
+  if(sh) {
+    ctx.fillStyle='#0f0';
+    ctx.fillRect(mmX+sh.x*scaleX-2,mmY+sh.y*scaleY-2,4,4);
+  }
+
+  // Supply drops
+  G.supplyDrops.forEach(sd=>{
+    if(!sd.collected) {
+      ctx.fillStyle='#fa4';
+      ctx.fillRect(mmX+sd.x*scaleX-2,mmY+sd.y*scaleY-2,4,4);
+    }
+  });
+
+  // Nearby zombies
+  ctx.fillStyle='#f44';
+  ZOMBIES.forEach(z=>{
+    if(!z.dead && dist(z,P)<600) {
+      ctx.fillRect(mmX+z.x*scaleX-1,mmY+z.y*scaleY-1,2,2);
+    }
+  });
+
+  // Player
+  ctx.fillStyle='#fff';
+  ctx.beginPath();
+  ctx.arc(mmX+P.x*scaleX, mmY+P.y*scaleY, 3, 0, Math.PI*2);
+  ctx.fill();
+
+  // FOV indicator on minimap
+  ctx.strokeStyle='#ffffff44'; ctx.lineWidth=1;
+  ctx.strokeRect(mmX+Math.max(0,P.x-W/2)*scaleX, mmY+Math.max(0,P.y-H/2)*scaleY, W*scaleX, H*scaleY);
+
+  ctx.fillStyle='#aaa'; ctx.font='9px Courier New';
+  ctx.fillText('MAP', mmX+mmW/2-10, mmY-3);
+}
+
+function drawSkillBar() {
+  const cls = CLASSES[P.class];
+  const keys = ['Q','F','G'];
+  const skillX = W/2-75, skillY = H - 140;
+
+  keys.forEach((key,i) => {
+    const skillId = cls.skills[i];
+    const def = SKILL_DEFS[skillId];
+    if(!def) return;
+    const cd = P.skillCDs[key]||0;
+    const maxCd = def.cd;
+    const x = skillX + i*55;
+
+    ctx.fillStyle='rgba(0,0,0,0.7)';
+    ctx.fillRect(x,skillY,48,48);
+    ctx.strokeStyle=cd>0?'#666':def.color||'#888';
+    ctx.lineWidth=2; ctx.strokeRect(x,skillY,48,48);
+
+    // CD overlay
+    if(cd>0) {
+      ctx.fillStyle=`rgba(0,0,0,${0.7*cd/maxCd})`;
+      ctx.fillRect(x,skillY,48,48*(cd/maxCd));
+    }
+
+    ctx.fillStyle=cd>0?'#666':'#fff';
+    ctx.font='10px Courier New'; ctx.textAlign='center';
+    ctx.fillText(def.name.slice(0,6), x+24, skillY+28);
+    ctx.fillStyle='#aaa'; ctx.font='9px Courier New';
+    ctx.fillText(key, x+24, skillY+10);
+    if(cd>0) ctx.fillText(cd.toFixed(0)+'s', x+24, skillY+42);
+    ctx.textAlign='left';
+  });
+}
+
+// ============================================================
+// GAME OVER
+// ============================================================
+function showGameOver() {
+  G.running = false;
+  const d = document.createElement('div');
+  d.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;z-index:500;font-family:Courier New;';
+  d.innerHTML = `
+    <div style="font-size:60px;color:#f00;text-shadow:0 0 30px #f00;">YOU DIED</div>
+    <div style="font-size:16px;color:#aaa;margin:20px 0;">Day ${G.day} | Wave ${G.wave} | ${G.kills} Kills | Level ${P.level}</div>
+    <div style="font-size:14px;color:#fa8;margin-bottom:30px;">Score: ${G.kills*10 + P.level*100 + G.day*50}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;font-size:12px;">
+      ${Object.entries(G.achievements).filter(([,v])=>v).map(([id])=>`<div style="background:#222;padding:8px;border:1px solid #666;color:#ff8;">🏆 ${ACHIEVEMENTS_DEF[id]?.name||id}</div>`).join('')}
+    </div>
+    <button onclick="location.reload()" style="padding:14px 40px;background:#c00;color:#fff;border:none;font-size:18px;cursor:pointer;font-family:Courier New;">PLAY AGAIN</button>
+  `;
+  document.body.appendChild(d);
+}
+
+// ============================================================
+// PAUSE / RESUME
+// ============================================================
+function pauseGame() {
+  if(P.dead) return;
+  G.paused = !G.paused;
+  document.getElementById('pauseMenu').style.display = G.paused?'block':'none';
+  document.getElementById('pauseBtn').innerHTML = G.paused ? '&#9654; RESUME' : '&#9646;&#9646; PAUSE';
+}
+function resumeGame() {
+  G.paused = false;
+  document.getElementById('pauseMenu').style.display='none';
+  document.getElementById('craftMenu').style.display='none';
+  document.getElementById('invPanel').style.display='none';
+  document.getElementById('pauseBtn').innerHTML = '&#9646;&#9646; PAUSE';
+}
+
+// ============================================================
+// MAIN GAME LOOP
+// ============================================================
+let lastTime = 0;
+function gameLoop(ts) {
+  if(!G.running) return;
+  requestAnimationFrame(gameLoop);
+
+  const dt = Math.min((ts - lastTime)/1000, 0.1);
+  lastTime = ts;
+
+  if(!G.paused) update(dt);
+  draw();
+}
+
+function update(dt) {
+  G.time += dt;
+
+  // Day tracking
+  const newDay = Math.floor(G.time/DAY_LEN)+1;
+  if(newDay > G.day) {
+    G.day = newDay;
+    P.hunger = Math.min(P.maxHunger, P.hunger+10);
+    P.thirst = Math.min(P.maxThirst, P.thirst+5);
+    addMsg(`Day ${G.day} begins.`, '#ff8');
+    checkAchievements();
+  }
+
+  // Weather
+  G.weatherTimer -= dt;
+  if(G.weatherTimer <= 0) {
+    const weathers = ['clear','clear','clear','rain','fog'];
+    G.weather = weathers[Math.floor(Math.random()*weathers.length)];
+    G.weatherTimer = 60+Math.random()*120;
+    if(G.weather!=='clear') addMsg(`Weather: ${G.weather}`,'#8af');
+  }
+
+  // Wave system
+  G.waveTimer += dt;
+  if(G.waveTimer >= G.nextWave) {
+    G.waveTimer = 0;
+    spawnWave();
+    G.wave++;
+    G.nextWave = Math.max(30, 90 - G.wave*3);
+  }
+
+  // Night ambient zombies
+  if(isNight() && ZOMBIES.filter(z=>!z.dead).length < 5+G.wave*2) {
+    G.spawnCooldown -= dt;
+    if(G.spawnCooldown<=0) {
+      const types = ['walker','walker','runner','screamer'];
+      const a = Math.random()*Math.PI*2, r=500+Math.random()*200;
+      spawnZombie(clamp(P.x+Math.cos(a)*r,50,WORLD_W-50),clamp(P.y+Math.sin(a)*r,50,WORLD_H-50),
+        types[Math.floor(Math.random()*types.length)]);
+      G.spawnCooldown = isNight()?2:6;
+    }
+  }
+
+  // Night ambient sound
+  G.nightAmbient -= dt;
+  if(isNight() && G.nightAmbient<=0) {
+    playAmbientNight();
+    G.nightAmbient = 8+Math.random()*12;
+  }
+
+  // Supply drop random
+  if(Math.random()<0.0005) spawnSupplyDrop();
+
+  // Player movement
+  if(!P.dead) {
+    let mx=0,my=0;
+    if(KEYS['w']||KEYS['arrowup']) my=-1;
+    if(KEYS['s']||KEYS['arrowdown']) my=1;
+    if(KEYS['a']||KEYS['arrowleft']) mx=-1;
+    if(KEYS['d']||KEYS['arrowright']) mx=1;
+
+    const moving = mx!==0||my!==0;
+    const spd = P.speed * (P.effects.adrenaline?1.3:1) * (P.effects.haste?1.4:1) * (KEYS['shift']?1.5:1);
+
+    if(moving) {
+      const len = Math.hypot(mx,my)||1;
+      P.x = clamp(P.x + mx/len*spd, 10, WORLD_W-10);
+      P.y = clamp(P.y + my/len*spd, 10, WORLD_H-10);
+
+      if(KEYS['shift']) {
+        P.stamina = Math.max(0, P.stamina-dt*15);
+        if(P.stamina<=0) {/* no sprint */}
+      }
+    }
+
+    // Stamina regen
+    if(!KEYS['shift']||!moving) P.stamina=Math.min(P.maxStamina,P.stamina+dt*8);
+
+    // Hunger/thirst drain
+    P.hunger = Math.max(0, P.hunger - dt*0.8);
+    P.thirst = Math.max(0, P.thirst - dt*1.2);
+    if(P.hunger<=0) P.hp=Math.max(1,P.hp-dt*2);
+    if(P.thirst<=0) P.hp=Math.max(1,P.hp-dt*3);
+
+    if(P.hunger<20&&Math.random()<0.002) addMsg('Hungry! Find food.','#fa8');
+    if(P.thirst<20&&Math.random()<0.002) addMsg('Thirsty! Find water.','#4af');
+
+    // Mouse aim
+    P.angle = Math.atan2(MOUSE.y - sy(P.y), MOUSE.x - sx(P.x));
+
+    // Attack cooldown
+    if(P.attackCD>0) P.attackCD = Math.max(0, P.attackCD-dt);
+    if(P.damageFlash>0) P.damageFlash=Math.max(0,P.damageFlash-dt*3);
+
+    // Auto melee if holding left
+    if(MOUSE.down && P.attackCD<=0) meleeAttack();
+    // Auto shoot if holding right
+    if(MOUSE.rdown && P.attackCD<=0) shootBullet();
+
+    // Skill cooldowns
+    ['Q','F','G'].forEach(k=>{ if(P.skillCDs[k]>0) P.skillCDs[k]=Math.max(0,P.skillCDs[k]-dt); });
+
+    // Effects tick
+    Object.keys(P.effects).forEach(k=>{
+      if(typeof P.effects[k]==='number') {
+        P.effects[k]=Math.max(0,P.effects[k]-dt);
+        if(P.effects[k]<=0) delete P.effects[k];
+      }
+    });
+  }
+
+  // Camera lerp
+  CAM.x += (P.x - W/2 - CAM.x) * 0.1;
+  CAM.y += (P.y - H/2 - CAM.y) * 0.1;
+  CAM.x = clamp(CAM.x, 0, WORLD_W-W);
+  CAM.y = clamp(CAM.y, 0, WORLD_H-H);
+
+  // Update zombies
+  ZOMBIES.forEach(z=>updateZombie(z,dt));
+
+  // Barricades block zombies
+  ZOMBIES.forEach(z=>{
+    G.barricades.forEach(b=>{
+      if(b.hp<=0) return;
+      const zx=z.x,zy=z.y;
+      if(zx>b.x-b.w/2&&zx<b.x+b.w/2&&zy>b.y-b.h/2&&zy<b.y+b.h/2) {
+        b.hp-=z.dmg*dt;
+        z.vx*=-0.5; z.vy*=-0.5;
+        z.x=clamp(z.x,b.x-b.w/2-z.size,b.x+b.w/2+z.size);
+      }
+    });
+    // Traps
+    G.traps.forEach(t=>{
+      if(!t.active) return;
+      if(dist(z,t)<15) {
+        damageZombie(z,t.dmg);
+        t.active=false;
+        explosion(t.x,t.y,30);
+      }
+    });
+  });
+
+  // Update bullets
+  BULLETS.forEach(b=>{
+    b.x+=b.vx; b.y+=b.vy;
+    b.dist+=Math.hypot(b.vx,b.vy);
+    // Hit zombies
+    if(b.fromPlayer) {
+      ZOMBIES.forEach(z=>{
+        if(!z.dead&&Math.hypot(z.x-b.x,z.y-b.y)<z.size+4) {
+          damageZombie(z,b.dmg);
+          b.dist=b.range;
+          bloodSplatter(z.x,z.y,5);
+        }
+      });
+    } else {
+      if(!P.dead&&Math.hypot(P.x-b.x,P.y-b.y)<14) {
+        damagePlayer(b.dmg,'bullet');
+        b.dist=b.range;
+      }
+    }
+  });
+  BULLETS = BULLETS.filter(b=>b.dist<b.range&&b.x>0&&b.x<WORLD_W&&b.y>0&&b.y<WORLD_H);
+
+  // Update particles
+  PARTICLES.forEach(p=>{
+    if(p.type==='loot') { p.life-=dt; return; }
+    p.x+=p.vx; p.y+=p.vy;
+    p.vx*=0.92; p.vy*=0.92;
+    p.life-=dt;
+  });
+  PARTICLES = PARTICLES.filter(p=>p.life>0);
+
+  // Float texts
+  FLOATTEXTS.forEach(ft=>{ ft.y+=ft.vy; ft.life-=dt; });
+  FLOATTEXTS = FLOATTEXTS.filter(ft=>ft.life>0);
+
+  // Clean dead zombies
+  if(ZOMBIES.filter(z=>z.dead).length > 30) ZOMBIES = ZOMBIES.filter(z=>!z.dead);
+
+  checkAchievements();
+}
+
+function draw() {
+  ctx.clearRect(0,0,W,H);
+  drawBackground();
+  drawGround();
+  drawBuildings();
+  drawBarricades();
+  drawTraps();
+  drawSupplyDrops();
+  drawParticles();
+  drawBullets();
+  drawZombies();
+  drawPlayer();
+  drawFloatTexts();
+  drawWeather();
+  drawNightOverlay();
+  if(!P.dead) drawHUD();
+
+  if(G.paused) {
+    ctx.fillStyle='rgba(0,0,0,0.5)';
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff';
+    ctx.font='bold 30px Courier New';
+    ctx.textAlign='center';
+    ctx.fillText('PAUSED',W/2,H/2);
+    ctx.textAlign='left';
+  }
+}
+
+// ============================================================
+// INPUT
+// ============================================================
+window.addEventListener('keydown', e=>{
+  const k = e.key.toLowerCase();
+  KEYS[k]=true;
+  if(!G.running) return;
+  if(k==='escape') { pauseGame(); return; }
+  if(G.paused) return;
+  if(k==='e') { tryInteract(); return; }
+  if(k==='r') { reloadWeapon(); return; }
+  if(k==='q') { useSkill('Q'); return; }
+  if(k==='f') { useSkill('E'); return; }
+  if(k==='g') { useSkill('R'); return; }
+  if(k==='c') { G.paused=true; openCraft(); return; }
+  if(k==='tab') { openInv(); e.preventDefault(); return; }
+  if(k==='i') { openInv(); return; }
+  if(k>='1'&&k<='8') { P.equipped=parseInt(k)-1; return; }
+});
+
+window.addEventListener('keyup', e=>{ KEYS[e.key.toLowerCase()]=false; });
+
+canvas.addEventListener('mousemove', e=>{ MOUSE.x=e.clientX; MOUSE.y=e.clientY; });
+canvas.addEventListener('mousedown', e=>{
+  if(e.button===0) { MOUSE.down=true; if(G.running&&!G.paused) meleeAttack(); }
+  if(e.button===2) { MOUSE.rdown=true; if(G.running&&!G.paused) shootBullet(); }
+});
+canvas.addEventListener('mouseup', e=>{ if(e.button===0) MOUSE.down=false; if(e.button===2) MOUSE.rdown=false; });
+canvas.addEventListener('contextmenu', e=>e.preventDefault());
+canvas.addEventListener('touchstart', e=>e.preventDefault(), {passive:false});
+canvas.addEventListener('touchmove',  e=>e.preventDefault(), {passive:false});
+
+// ============================================================
+// MOBILE CONTROLS
+// ============================================================
+const isMobile = () => ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+function showMobileControls() {
+  document.getElementById('mobileControls').style.display = 'block';
+  // Hide skill bar (redundant with mobile buttons)
+  document.getElementById('skillBar').style.display = 'none';
+}
+
+// Auto-aim: point MOUSE toward nearest zombie on screen
+function mobileAutoAim() {
+  let best = null, bestDist = Infinity;
+  for(const m of MONSTERS) {
+    if(m.dead) continue;
+    const dx = m.x - P.x, dy = m.y - P.y;
+    const d = Math.sqrt(dx*dx+dy*dy);
+    if(d < bestDist) { bestDist = d; best = m; }
+  }
+  if(best) {
+    MOUSE.x = sx(best.x);
+    MOUSE.y = sy(best.y);
+  } else {
+    // aim in direction player is facing
+    MOUSE.x = W/2 + Math.cos(P.angle)*150;
+    MOUSE.y = H/2 + Math.sin(P.angle)*150;
+  }
+}
+
+// Joystick
+(function() {
+  const zone = document.getElementById('joystickZone');
+  const knob = document.getElementById('joystickKnob');
+  const R = 65; // max radius
+  let touching = false, tid = -1, ox = 0, oy = 0;
+
+  function getCenter() {
+    const r = zone.getBoundingClientRect();
+    return { x: r.left + r.width/2, y: r.top + r.height/2 };
+  }
+
+  zone.addEventListener('touchstart', e => {
+    e.preventDefault();
+    touching = true;
+    tid = e.changedTouches[0].identifier;
+    const c = getCenter();
+    ox = c.x; oy = c.y;
+  }, {passive:false});
+
+  window.addEventListener('touchmove', e => {
+    if(!touching) return;
+    for(const t of e.changedTouches) {
+      if(t.identifier !== tid) continue;
+      e.preventDefault();
+      let dx = t.clientX - ox, dy = t.clientY - oy;
+      const dist = Math.sqrt(dx*dx+dy*dy);
+      if(dist > R) { dx = dx/dist*R; dy = dy/dist*R; }
+      knob.style.left = (39+dx)+'px';
+      knob.style.top  = (39+dy)+'px';
+      const threshold = 18;
+      KEYS['w'] = dy < -threshold;
+      KEYS['s'] = dy >  threshold;
+      KEYS['a'] = dx < -threshold;
+      KEYS['d'] = dx >  threshold;
+    }
+  }, {passive:false});
+
+  function endTouch(e) {
+    for(const t of e.changedTouches) {
+      if(t.identifier !== tid) continue;
+      touching = false;
+      knob.style.left = '39px'; knob.style.top = '39px';
+      KEYS['w']=KEYS['s']=KEYS['a']=KEYS['d']=false;
+    }
+  }
+  window.addEventListener('touchend', endTouch);
+  window.addEventListener('touchcancel', endTouch);
+})();
+
+// Mobile action buttons
+function mbind(id, fn) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); fn(); }, {passive:false});
+}
+
+mbind('mbtnMelee',    () => { if(G.running&&!G.paused) { mobileAutoAim(); meleeAttack(); } });
+mbind('mbtnShoot',    () => { if(G.running&&!G.paused) { mobileAutoAim(); shootBullet(); } });
+mbind('mbtnInteract', () => { if(G.running&&!G.paused) tryInteract(); });
+mbind('mbtnReload',   () => { if(G.running&&!G.paused) reloadWeapon(); });
+mbind('mbtnSkillQ',   () => { if(G.running&&!G.paused) { mobileAutoAim(); useSkill('Q'); } });
+mbind('mbtnSkillE',   () => { if(G.running&&!G.paused) { mobileAutoAim(); useSkill('E'); } });
+mbind('mbtnSkillR',   () => { if(G.running&&!G.paused) { mobileAutoAim(); useSkill('R'); } });
+mbind('mbtnCraft',    () => { if(G.running) { G.paused=true; openCraft(); } });
+mbind('mbtnInv',      () => { if(G.running) openInv(); });
+
+// ============================================================
+// START SCREEN
+// ============================================================
+function buildStartScreen() {
+  const grid = document.getElementById('classGrid');
+  Object.entries(CLASSES).forEach(([id,cls])=>{
+    const card = document.createElement('div');
+    card.className='class-card';
+    card.id='card_'+id;
+    const statStr = `HP:${cls.stats.hp} SPD:${cls.stats.speed} DMG:${cls.stats.damage}`;
+    const skillNames = cls.skills.map(s=>SKILL_DEFS[s]?.name||s).join(', ');
+    card.innerHTML = `<h3 style="color:${cls.color}">${cls.icon} ${cls.name}</h3><p>${cls.desc}</p><div class="stats">${statStr}<br>Skills: ${skillNames}</div>`;
+    card.onclick = ()=>{
+      document.querySelectorAll('.class-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+      G.selectedClass = id;
+    };
+    grid.appendChild(card);
+  });
+  // Default select
+  document.getElementById('card_soldier').classList.add('selected');
+}
+
+function startGame() {
+  initAudio();
+  const cls = CLASSES[G.selectedClass];
+
+  // Set player stats
+  P.class = G.selectedClass;
+  P.hp = P.maxHp = cls.stats.hp;
+  P.stamina = P.maxStamina = cls.stats.stamina;
+  P.speed = cls.stats.speed;
+  P.damage = cls.stats.damage;
+  P.defense = cls.stats.defense;
+  P.x = 320; P.y = 320; // Start at Old Farmhouse (safe house)
+
+  // Starting items
+  cls.startItems.forEach(id=>addToInv(id));
+
+  // Equip first melee/ranged to hotbar
+  P.inventory.forEach((it,i)=>{
+    if(it&&(it.type==='melee'||it.type==='ranged')) {
+      const emptyHotbar = P.hotbar.findIndex(h=>!h);
+      if(emptyHotbar>=0) { P.hotbar[emptyHotbar]=it; P.inventory[i]=null; }
+    }
+  });
+
+  genBuildings();
+  genRoads();
+
+  // Initial spawn
+  for(let i=0;i<8;i++) {
+    const a=Math.random()*Math.PI*2, r=400+Math.random()*300;
+    spawnZombie(clamp(P.x+Math.cos(a)*r,50,WORLD_W-50),clamp(P.y+Math.sin(a)*r,50,WORLD_H-50),'walker');
+  }
+
+  // First supply drop
+  G.supplyDrops.push({x:700,y:500,collected:false,items:['medkit','ammo_pistol','food_can','water','bandage']});
+
+  document.getElementById('overlay').style.display='none';
+  document.getElementById('pauseBtn').style.display='block';
+  if(isMobile()) showMobileControls();
+  G.running = true;
+  CAM.x = P.x - W/2;
+  CAM.y = P.y - H/2;
+
+  requestAnimationFrame(ts=>{ lastTime=ts; gameLoop(ts); });
+  addMsg(`Welcome, ${cls.name}. Survive.`, cls.color);
+  addMsg('WASD:Move  LClick:Melee  RClick:Shoot  E:Loot  R:Reload  Q/F/G:Skills  C:Craft  I:Inv','#aaa');
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+buildStartScreen();
+</script>
+</body>
+</html>

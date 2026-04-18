@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WR GOAT Debate Simulator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242836;
+    --border: #2e3345;
+    --text: #e4e6f0;
+    --text-dim: #8b8fa3;
+    --accent: #6c5ce7;
+    --accent-glow: rgba(108, 92, 231, 0.3);
+    --gold: #f1c40f;
+    --silver: #bdc3c7;
+    --bronze: #e67e22;
+    --green: #00b894;
+    --red: #e74c3c;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Hero ── */
+  .hero {
+    text-align: center;
+    padding: 80px 24px 60px;
+    background: linear-gradient(180deg, rgba(108,92,231,0.15) 0%, transparent 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-label {
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--gold), #f39c12);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero .subtitle {
+    font-size: 1.2rem;
+    color: var(--text-dim);
+    max-width: 700px;
+    margin: 16px auto 0;
+  }
+  .crown { font-size: 4rem; margin-bottom: 16px; display: block; }
+
+  /* ── Nav tabs ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); background: var(--surface); }
+  .tab.active {
+    color: var(--accent);
+    background: var(--surface);
+    border-color: var(--accent);
+  }
+
+  .panel { display: none; padding: 32px 0; }
+  .panel.active { display: block; }
+
+  /* ── Rankings ── */
+  .ranking-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .ranking-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .rank-badge {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.2rem;
+    background: var(--surface2);
+    color: var(--text-dim);
+  }
+  .rank-1 .rank-badge { background: linear-gradient(135deg, #f1c40f, #f39c12); color: #000; box-shadow: 0 0 20px rgba(241,196,15,0.4); }
+  .rank-2 .rank-badge { background: linear-gradient(135deg, #bdc3c7, #95a5a6); color: #000; }
+  .rank-3 .rank-badge { background: linear-gradient(135deg, #e67e22, #d35400); color: #fff; }
+  .rank-info { flex: 1; }
+  .rank-info h3 { font-size: 1.25rem; margin-bottom: 6px; }
+  .rank-info p { color: var(--text-dim); font-size: 0.95rem; }
+
+  /* ── Argument cards ── */
+  .arg-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .arg-header {
+    padding: 18px 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 1.05rem;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .arg-header:hover { background: var(--surface2); }
+  .arg-chevron {
+    transition: transform 0.2s;
+    color: var(--text-dim);
+    font-size: 1.2rem;
+  }
+  .arg-card.open .arg-chevron { transform: rotate(180deg); }
+  .arg-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+  }
+  .arg-card.open .arg-body { max-height: 3000px; }
+  .arg-content {
+    padding: 0 24px 24px;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  /* ── Rebuttal thread ── */
+  .rebuttal-group { margin-bottom: 32px; }
+  .rebuttal-group h3 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: var(--accent);
+  }
+  .rebuttal-entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 8px;
+  }
+  .rebuttal-entry .round-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .rebuttal-entry .rebuttal-text {
+    white-space: pre-wrap;
+    color: var(--text-dim);
+    font-size: 0.93rem;
+    line-height: 1.7;
+  }
+
+  /* ── Timeline ── */
+  .timeline { position: relative; padding-left: 40px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 32px;
+  }
+  .timeline-dot {
+    position: absolute;
+    left: -33px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+  .timeline-item.phase-end .timeline-dot { background: var(--green); box-shadow: 0 0 0 2px var(--green); }
+  .timeline-phase {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .timeline-title { font-weight: 600; margin-bottom: 4px; }
+  .timeline-desc { color: var(--text-dim); font-size: 0.9rem; }
+
+  /* ── Declaration box ── */
+  .declaration {
+    background: linear-gradient(135deg, rgba(108,92,231,0.1), rgba(241,196,15,0.1));
+    border: 1px solid var(--accent);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    margin: 32px 0;
+  }
+  .declaration h3 {
+    color: var(--gold);
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+  }
+  .declaration p {
+    color: var(--text-dim);
+    max-width: 800px;
+    margin: 0 auto;
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  /* ── Summary ── */
+  .summary-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-top: 20px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    white-space: pre-wrap;
+  }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+    margin-top: 60px;
+  }
+</style>
+</head>
+<body>
+
+<script>
+const DATA = {
+  "openingArgs": [
+    {
+      "player": "Jerry Rice",
+      "argument": "Ladies and gentlemen, the debate for the greatest wide receiver of all time begins and ends with one name: Jerry Rice. The numbers don't lie, they scream his dominance. We're not just talking about leading the league, we're talking about owning the record books to a degree that borders on absurdity. Receptions? 1,549 – nearly 300 more than second place. Receiving yards? 22,895 – an unfathomable 6,000-yard lead over his nearest competitor. Touchdowns? 197, a number so high it feels like a typo.\n\nBut it's not just the raw numbers; it's the context. Rice didn't just excel, he redefined the position. He did it in an era of more physical defenses and less pass-happy offenses. While others benefited from rule changes designed to protect receivers, Rice was busy dominating defensive backs who could legally clothesline him.\n\nThree Super Bowl rings, 13 Pro Bowls, 10 First-Team All-Pro selections – these aren't just accolades, they're testaments to his unparalleled consistency and impact. He wasn't just a great receiver; he was the engine of a dynasty. He elevated the game, he set a standard that is unlikely to ever be matched. Anyone else is playing for second. The GOAT is Jerry Rice.\n"
+    },
+    {
+      "player": "Randy Moss",
+      "argument": "Let's settle this once and for all: Randy Moss is the greatest wide receiver to ever lace them up. Forget the debates, look at the facts. We're talking about a player whose name became a verb – \"Mossed\" – synonymous with physically dominating defensive backs.\n\nWhile Jerry Rice has longevity records, Moss had peak dominance unlike anything we've ever seen. He walked into the league as a rookie in 1998 and instantly transformed the Minnesota Vikings into an offensive juggernaut, hauling in 17 touchdowns. Then, in 2007, he shattered the single-season touchdown record with 23 – *23!* – while paired with Tom Brady in New England. That record still stands, a testament to his unparalleled ability to stretch the field and win contested catches.\n\nBeyond the numbers, it's the *way* he played. His combination of size, speed, and incredible leaping ability was simply unmatched. Defenses had to completely alter their schemes to even attempt to contain him, often resorting to double and triple coverage, which, frankly, rarely worked. He struck fear into the hearts of opposing secondaries.\n\nRice was great, no doubt. But Moss possessed a raw, undeniable talent that redefined the position. He wasn't just catching passes; he was *imposing his will*. He forced defenses to play scared, and that, more than any statistic, is the mark of a true GOAT.\n"
+    },
+    {
+      "player": "Calvin Johnson",
+      "argument": "Forget Rice. Forget Moss. Calvin Johnson, \"Megatron,\" is the undisputed GOAT. You cannot judge him by career totals alone because his career was tragically cut short. But in his prime, no receiver was more dominant, more physically imposing, or more unstoppable.\n\nLet's start with the obvious: He holds the single-season receiving record – 1,964 yards in 2012. That's not just a record; it's a testament to pure, unadulterated dominance. He achieved this while facing constant double and triple coverage on a team that often struggled offensively.\n\nBeyond the stats, consider the *how*. Johnson was 6'5\", 240 pounds, and ran a 4.35 40-yard dash. He was a physical freak capable of out-jumping, out-muscling, and out-running any defender. His catch radius was absurd; he could make contested catches look routine.\n\nHis impact transcended the box score. Defenses had to game-plan around him. He drew constant attention, opening opportunities for his teammates. His presence alone elevated the entire Detroit Lions offense.\n\nPeople will point to his lack of playoff success. But that's a team indictment, not an individual one. He dragged mediocre Lions teams to respectability. He retired early, at 30, because of the toll the game took on his body – a testament to the punishment he absorbed every single snap.\n\nCalvin Johnson's peak was higher than any other receiver in NFL history. He redefined the position. He was a force of nature, a walking mismatch. He wasn't just great; he was transformative. He is, without a doubt, the GOAT.\n"
+    },
+    {
+      "player": "Terrell Owens",
+      "argument": "Ladies and gentlemen, the debate ends here. The greatest wide receiver of all time is, without a shadow of a doubt, Terrell Owens. While others boast about Super Bowl rings and highlight-reel catches, T.O. delivered raw, unparalleled dominance, fueled by an unmatched passion that redefined the wide receiver position.\n\nLet's talk numbers. Upon retirement, Owens stood third all-time in receiving touchdowns with 153 – a testament to his undeniable nose for the endzone and his imposing physical presence. He ranks high in all-time receiving yards, proving his consistent ability to stretch the field and terrorize defenses. But it's more than just stats; it's *how* he achieved them.\n\nOwens played in an era defined by physical cornerbacks and smash-mouth football, facing double teams and constant harassment. Yet, he thrived. He was the prototype for the modern, physically imposing receiver, a force of nature who demanded the ball and consistently delivered.\n\nHe wasn't just a receiver; he was a game-changer, an iconoclast who elevated the intensity and entertainment value of the sport. His impact transcended statistics. He possessed an unquantifiable swagger, a relentless drive, and an unrivaled work ethic. Say what you will about his personality, but his dedication to his craft was undeniable.\n\nWhile others may have had shorter peaks of glory, Terrell Owens' sustained excellence, combined with his sheer physical dominance and undeniable impact on the game, cements his place as the undisputed GOAT. He revolutionized the position, and his legacy continues to inspire today's generation of wide receivers. The numbers speak for themselves, and the legend of T.O. lives on.\n"
+    },
+    {
+      "player": "Larry Fitzgerald",
+      "argument": "Forget the hype, the highlight reels, and the recency bias. Larry Fitzgerald is the undisputed GOAT wide receiver, and it's not even close. While names like Rice and Moss get thrown around, they lack the complete package and context of Fitzgerald's dominance.\n\nFirst, the numbers don't lie. Second all-time in receptions (1,432) and receiving yards (17,492), playing much of his career with quarterbacks who couldn't lace Kurt Warner's cleats. He was a model of consistency and longevity.\n\nBut it's more than just stats. Fitzgerald was the ultimate team player, a selfless leader who consistently put the Cardinals organization above personal accolades. Playing through injury, demanding double teams, and still producing at an elite level. His 2008 playoff run was legendary, carrying the Cardinals to the Super Bowl with acrobatic catches and unmatched will.\n\nHe wasn't just a receiver; he was a blocker, a mentor, and a class act on and off the field. In an era of diva receivers and constant drama, Fitzgerald was a beacon of professionalism and dedication. Rice played in a pass-happy era with a Hall of Fame QB. Moss relied on unparalleled athleticism, never developing the refined route running and hands of Fitzgerald.\n\nLarry Fitzgerald's combination of longevity, production, character, and impact on the game sets him apart. He is the gold standard for wide receivers, the embodiment of greatness, and the rightful owner of the GOAT title.\n"
+    },
+    {
+      "player": "Don Hutson",
+      "argument": "Ladies and gentlemen, the debate for the greatest wide receiver of all time begins and ends with Don Hutson. To even suggest another name is to ignore the very foundation upon which the modern passing game was built.\n\nLet’s talk dominance. Eight times, *eight times*, Hutson led the NFL in receiving. Consider that Jerry Rice, the consensus \"GOAT,\" led the league six times. But what truly separates Hutson is the context of his era. He was catching passes when the forward pass was still considered a risky gimmick, a time when offenses were committed to the run. Yet, despite this ground-game obsession, Hutson redefined what a receiver could be, inventing the very pass routes that are still used today.\n\nHis stats are otherworldly. In 1942, Hutson caught 74 passes for 1,211 yards and 17 touchdowns—*in 11 games*. He not only led the league in all three categories but also in scoring, as a receiver! Think about that: he outscored *entire teams*.\n\nDon Hutson didn’t just play the game; he transcended it. He dragged the NFL into the modern era of passing offense with sheer force of will and unmatched talent. He was a three-time champion, a two-time MVP, and an eight-time All-Pro. Before Rice, before Moss, there was Hutson, carving up defenses and rewriting the record books. To deny him the title of GOAT is to deny history itself.\n"
+    },
+    {
+      "player": "Lance Alworth",
+      "argument": "Ladies and gentlemen, the debate for the greatest wide receiver of all time begins and ends with Lance \"Bambi\" Alworth. To ignore his dominance is to ignore the very evolution of the modern passing game. Alworth didn't just play wide receiver; he *defined* it.\n\nLet's talk numbers. While modern receivers benefit from rules changes that favor the pass, Alworth carved his legend in a brutal era of defensive holding and head-hunting safeties. Yet, he still amassed 10,266 yards and 85 touchdowns on just 542 receptions. That's a staggering 18.9 yards per catch *for his entire career*. Name me another receiver, past or present, who consistently terrorized defenses like that!\n\nMore than numbers, Alworth's impact on the *game* is undeniable. He was the face of the high-flying AFL, a league desperate to prove its legitimacy. His graceful athleticism and incredible deep threat ability forced defensive coordinators to completely rethink their coverages. He didn’t just beat you; he embarrassed you.\n\nFirst AFL player inducted into the Pro Football Hall of Fame? That's not just a footnote, it's a testament to his groundbreaking influence. Alworth wasn't just a star; he was a pioneer.\n\nWhile others may boast of gaudier stats in a pass-happy modern NFL, Lance Alworth’s combination of raw talent, revolutionary impact, and sheer dominance in a tougher era unequivocally crowns him the GOAT. He wasn’t just good, he was transformative. And that, my friends, is the difference.\n"
+    },
+    {
+      "player": "Steve Largent",
+      "argument": "Ladies and gentlemen, the debate ends here! The greatest wide receiver of all time is, without question, Steve Largent. You want stats? I'll drown you in them. Largent didn't just play in the NFL; he *dominated* it for 14 seasons! He retired holding the *triple crown* of receiving records: most receptions (819), most receiving yards (13,089), and most receiving touchdowns (100). That's not just impressive; it's legendary!\n\nBut stats alone don't tell the whole story. Consider the era. Largent played in a far more physical NFL, where defensive backs could practically mug receivers. He faced double teams, blatant pass interference that went uncalled, and quarterbacks who weren't always throwing pinpoint passes. Yet, he *still* consistently produced at an elite level.\n\nThen, there's the ironman streak: 177 consecutive games with a reception. Think about the punishment he endured, the injuries he played through. That's a testament to his toughness, dedication, and unparalleled work ethic.\n\nWhile others might boast about flashy plays or Super Bowl rings, Largent built his legacy on consistent excellence and unwavering determination. He wasn't the fastest, he wasn't the biggest, but he was undeniably the best. He redefined the wide receiver position, proving that intelligence, route running, and sheer will could conquer any obstacle. Steve Largent wasn't just a great receiver; he was a football icon. End of discussion!\n"
+    },
+    {
+      "player": "Marvin Harrison",
+      "argument": "Let's settle this once and for all: Marvin Harrison *is* the greatest wide receiver ever to grace the gridiron. You can talk about Jerry Rice's longevity, but peak performance and revolutionary impact belong to Harrison.\n\nForget highlight-reel catches. Harrison was a *surgeon*. His precision route running with Peyton Manning wasn't just a connection; it was a symbiotic dance of perfection. His single-season record of 143 receptions in 2002? Untouchable. That's not just a record; it's a testament to his unparalleled ability to get open *every. single. play.*\n\nLook at the context. In an era of increasing defensive complexity, Harrison consistently torched double coverage, bracket coverage, and everything else thrown his way. Eight Pro Bowls and three First-Team All-Pro selections aren't accidents; they're proof of sustained dominance against the best the NFL had to offer.\n\nYes, longevity matters, but Harrison's prime was a masterclass in route running, hands, and football IQ. He redefined the position, influencing generations of receivers. When you combine unparalleled precision, record-breaking performance, and consistent excellence, the argument isn't just compelling; it's undeniable. Marvin Harrison is the GOAT, period.\n"
+    },
+    {
+      "player": "Cris Carter",
+      "argument": "Forget the highlight reels of acrobatic catches; I'm here to tell you why Cris Carter is the undisputed GOAT. It's not about one-handed grabs, it's about relentless reliability and touchdown dominance. Carter wasn't just a receiver; he was an offensive institution.\n\nLet's talk numbers. 1,101 receptions. 130 touchdowns. Those aren't just statistics; they're testaments to consistency and an unparalleled nose for the end zone. \"All he does is catch touchdowns\" wasn't just a catchy phrase; it was the truth. Compare him to contemporaries: while Jerry Rice played longer, Carter’s prime years were just as, if not more, impactful in terms of red-zone efficiency.\n\nConsider the context: Carter resurrected his career after early struggles, showcasing an unmatched work ethic. He mastered the art of the sideline catch, turning impossible throws into first downs. That skill, perfected by Carter, is now a staple in every receiver's arsenal.\n\nBut it's more than just numbers and technique. It's about the intangible: Carter possessed an unwavering determination. He elevated every quarterback he played with, turning check-downs into game-changing plays. He wasn't just a receiver; he was a playmaker, a leader, and the most dependable target the game has ever seen. Cris Carter isn't just in the Hall of Fame; he *is* the Hall of Fame of wide receivers. He is the GOAT.\n"
+    }
+  ],
+  "rebuttalRound1": [
+    {
+      "player": "Jerry Rice",
+      "round": 1,
+      "rebuttal": "With all due respect to these other phenomenal athletes, the GOAT conversation begins and ends with Jerry Rice. These arguments highlight impressive peaks, but they crumble under the weight of Rice's unmatched longevity, consistency, and total dominance.\n\nMoss's argument rests on a single-season touchdown record. Impressive, yes, but Rice holds *over 100 NFL records,* not just one flashy stat. While Moss \"Mossed\" defenders, Rice consistently *dominated* entire eras. The verb should be \"Riced,\" meaning to obliterate all competition for two decades.\n\nJohnson's short peak is lauded, but his career was tragically cut short. The GOAT title can't be awarded on potential. Rice played at an elite level for far longer, accumulating numbers that are statistically impossible to replicate. \"What if\" is a weak argument against actual, sustained greatness.\n\nOwens’ \"passion\" and \"physicality\" are noted, but Rice's quiet intensity and surgical precision resulted in far superior results. To brag about ranking third in touchdowns is to admit you aren’t #1. T.O. was explosive, but Rice was an atomic bomb of production over two decades.\n\nThese were all great players, but the sustained level of brilliance over a long period of time is why Rice is the best. He wasn't just a receiver; he was the gold standard, the measuring stick, the GOAT.\n"
+    },
+    {
+      "player": "Randy Moss",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down! I've heard enough about longevity, route-running surgeons, and guys who redefined receiving in the 40s. While those are all fine players, we're talking about the *Greatest Of All Time*! And there's only one answer: Randy Moss.\n\nFirst, Rice's longevity argument is a smokescreen. Yes, he played forever, but Moss’s *peak* was on another planet. Moss arrived in the league and immediately changed the game. No receiver EVER had that instant, seismic impact. Rice had the benefit of Montana and Young. Moss made QBs better. You could throw it up to him from anywhere on the field. Moss demanded double and triple coverage, yet still consistently produced. Rice? Fantastic, but never the same *pure* fear factor.\n\nJohnson? A beast, no doubt, but his career was short, and his team success was minimal. And T.O.'s antics, while entertaining, can't mask the fact that he never elevated a team to true championship contention like Moss did in '07. A circus act, not the GOAT.\n\nFitzgerald's a class act, but this is about on-field dominance, not winning popularity contests. And Steve Largent? Respect the numbers, but Moss had the athleticism and explosiveness that Largent could only dream of. With all due respect to Don Hutson and Lance Alworth, their highlights are in black and white, while Moss was playing in High Definition. I rest my case.\n"
+    },
+    {
+      "player": "Calvin Johnson",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down everyone! All these arguments for longevity, flash, and \"revolutionary impact\" are fine, but you're missing the forest for the trees. We're talking about the GOAT receiver, and that means peak, undeniable dominance against the absolute best defenses. That man is Calvin Johnson.\n\nRice? Incredible longevity, but let's be real, a lot of those numbers came in a far less complicated era for passing. Moss? A physical freak, no doubt, but his focus and consistency weren't always there. Owens? Too much drama, not enough rings. Fitzgerald? A fantastic player, but he benefited from volume and never reached the statistical heights of Johnson.\n\nHere's the truth: Johnson was *uncoverable*. Defenses knew the ball was going to him, they threw double teams, triple teams, every coverage imaginable, and he *still* produced at an elite level. His 2012 season? 1,964 yards. Jerry Rice *never* came close to that. Moss only had one season over 1600 yards.\n\nJohnson's career was cut short due to the physical toll he endured, a testament to his willingness to put his body on the line. But those 9 years were some of the most dominant the league has ever seen. He was a generational talent, a cheat code.\n\nSo, while everyone else is talking about their volume or \"revolutionary impact,\" I'll take the guy who, at his peak, was simply unstoppable. Calvin Johnson is the standard, and that's why he's the GOAT.\n"
+    },
+    {
+      "player": "Terrell Owens",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down. All this talk about longevity and \"peak performance\" is masking the real truth: Terrell Owens was a force of nature, a player who combined elite athleticism with unparalleled passion, and he was robbed of his rightful place in history.\n\nRice has the rings and the longevity, yes, but let's be honest, he also had Joe Montana and Steve Young throwing him the ball. Owens played with a carousel of quarterbacks and *still* produced Hall of Fame numbers. Rice benefited from scheme and circumstance; T.O. *demanded* the ball and delivered regardless. And let’s not forget Rice’s, shall we say, “sticky” gloves?\n\nMoss's peak was undeniable, but his impact on the game's evolution isn't as profound as T.O.'s. Moss was a physical marvel, T.O. was a revolutionary. He brought swagger and unapologetic intensity that changed how WRs are perceived. Did Moss have the cultural impact of T.O.? Absolutely not.\n\nJohnson’s peak was incredible, but it was far too short. Longevity matters and T.O. had it! As for Fitzgerald’s “team player” narrative, winning also matters! T.O. produced despite \"drama,\" Fitzgerald played in anonymity for much of his career.\n\nDon Hutson played in a different era. He had weak competition. Alworth and Largent, while legends, simply don't have the numbers to compete with Owens in the modern game. Harrison was a system receiver; T.O. was a one-man wrecking crew! And Carter's touchdown reliance doesn't compare to Owens's explosive plays and pure yardage output.\n\nTerrell Owens was more than stats; he was a cultural phenomenon. A physical freak who could outrun, out-jump, and out-will any defender, he was the complete package and he did it his way. He’s the GOAT. End of discussion.\n"
+    },
+    {
+      "player": "Larry Fitzgerald",
+      "round": 1,
+      "rebuttal": "Respectfully, the arguments presented gloss over what true greatness embodies: sustained excellence, unquestionable character, and unwavering dedication to the team. While some boast peak performances or touchdown records, none combined longevity, class, and selfless play like Larry Fitzgerald.\n\nJerry Rice's numbers are inflated by an era where defenders couldn't breathe on receivers. Fitzgerald faced a modern, more regulated NFL, consistently drawing double teams and the toughest coverage schemes, *and still produced* at a high level for nearly two decades. Longevity matters, and Fitzgerald's is second only to Rice while playing in a more challenging era.\n\nRandy Moss's \"Mossed\" moments are highlight-reel worthy, but Fitzgerald's career is a *career* reel of consistent, reliable catches, often in crucial situations.\n\nCalvin Johnson’s peak was undeniably high, but his abbreviated career disqualifies him from GOAT status. Fitz played 17 seasons.\n\nAnd while Terrell Owens’ passion is admirable, Fitzgerald's leadership and positive influence on his team eclipse T.O.'s antics. Leaders don't make their teammates worse like T.O. did.\n\nOthers like Hutson, Alworth, and Largent, while legendary, played in vastly different eras. Their accomplishments are difficult to compare directly.\n\nHarrison and Carter were phenomenal, but Fitzgerald’s overall impact, both on and off the field, makes him the better choice. He wasn't just a receiver; he was a leader, a mentor, and a true sportsman. Fitzgerald represents the *best* of the NFL, a model of consistency and character that elevates him above the rest.\n"
+    },
+    {
+      "player": "Don Hutson",
+      "round": 1,
+      "rebuttal": "Respectfully, while these other receivers achieved greatness, none revolutionized the game quite like Don Hutson.\n\nRice's longevity is impressive, but Hutson dominated his era to an extent Rice never approached. Rice played when defenses were more complex and offenses more pass-heavy, while Hutson re-wrote the playbook in a run-dominated league. His touchdown rate dwarfs Rice's, adjusted for era.\n\nMoss's peak was explosive, and Johnson's physical gifts undeniable, but neither displayed Hutson's sustained, multifaceted dominance. Hutson led the league in receiving yards seven times; Moss and Johnson combined did it twice. Both were more specialized receivers who failed to contribute to the game in other phases.\n\nOwens and Carter were undeniably talented, but neither held the game in their hands to the extent of Hutson. He was an elite defensive back, a consistent scorer, and a constant threat.\n\nFitzgerald's longevity and leadership are admirable, but his raw dominance pales in comparison to Hutson's. The other modern-era receivers did not play in multiple phases, a testament to Huston's value.\n\nAlworth and Largent were excellent for their time, but Hutson set the standard. He made them possible. He *was* the modern passing game. No one else can claim that.\n\nHarrison and others benefitted from focused offensive coaching and specialization. Huston had to pioneer with far less.\n\nThe numbers show clear leaders in several modern categories. Hutson was the best at everything in his era, on both sides of the ball. Period.\n"
+    },
+    {
+      "player": "Lance Alworth",
+      "round": 1,
+      "rebuttal": "Gentlemen, the Alworth campaign hears your arguments loud and clear, but they mostly miss the forest for the trees. You're blinded by modern stats and romanticized narratives. Let's inject some historical perspective, shall we?\n\nRice's longevity is undeniable, but Alworth's impact was *revolutionary*. Rice benefited from rules specifically designed to *protect* receivers, while Alworth was catching bombs from Tobin Rote as safeties were trying to take his head off.\n\nMoss's peak was spectacular, but Alworth’s peak spanned nearly a decade of AFL dominance, a league known for its wide-open offensive innovation. Defenses had no answers for BAM BAM.\n\nJohnson and Owens are impressive talents, but neither achieved the level of sustained excellence or championship success that Alworth did.\n\nFitzgerald and Harrison were excellent in the modern era, but their production is a reflection of the pass-heavy nature of today's game. Alworth would dominate with today's rules.\n\nHutson? A pioneer, yes. But Alworth surpassed him in terms of pure athleticism and game-breaking ability. Largent? A great player, but Alworth was on another stratosphere in terms of pure athletic ability.\n\nCarter's red zone prowess is notable, but Alworth stretched the field unlike anyone of his era.\n\nYou speak of statistics and accolades. Alworth may not have all the *career* records, but his yards per catch (18.9) and touchdown rate are amongst the best. More importantly, he was a *champion* in the AFL when that league was a true contender.\n\nLance Alworth redefined the wide receiver position. He was a prototype for the modern receiver, a game-changer who deserves to be remembered as the greatest of all time.\n"
+    },
+    {
+      "player": "Steve Largent",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down! I've heard enough about these \"flashy\" and \"dominant\" receivers, conveniently glossing over the true GOAT: Steve Largent. All this talk about peak dominance and revolutionized positions ignores the quiet, consistent excellence that *defined* Largent’s career.\n\nRice’s longevity is impressive, sure, but Largent dominated *his* era while facing constant double coverage and being legitimately mugged by defensive backs. No receiver today faces the kind of physical abuse Largent endured. And Moss? A physical freak, no doubt, but his career was more about highlight-reel plays than consistent production over a long period. Largent was about reliable excellence, year after year.\n\nJohnson's peak was impressive, but his career was far too short to be in the GOAT conversation. Owens had the TDs, but lacked team accolades and Largent's leadership. Fitzgerald, great hands, but never the consistent elite production that Largent had in his era.\n\nDon Hutson deserves respect, but the game was completely different then. Same with Alworth. Harrison's peak was great, but Largent was a key cog on a playoff team for a long time. Carter was great in the red zone, but Largent was also great.\n\nLargent *was* the Seahawks’ offense. He was a leader on and off the field, a consistent Pro Bowler, and a touchdown machine in an era that wasn’t designed for gaudy receiving numbers. He was a technician, a master route runner, and a clutch performer. You can talk about \"Mossing\" someone, but Largent was simply *outsmarting* defenders for over a decade. Before rule changes designed to protect receivers, Largent was carving up defenses based on skill and grit. That's staying power, that's excellence, that's the GOAT.\n"
+    },
+    {
+      "player": "Marvin Harrison",
+      "round": 1,
+      "rebuttal": "While these contenders boast impressive stats and accolades, they all fall short of Marvin Harrison's unparalleled blend of precision, consistency, and football IQ.\n\nRice’s longevity is undeniable, but much of his yardage came *after* the catch, a testament to his environment as much as his raw skill. Harrison's routes were surgical, creating separation *before* the catch, making his connection with Manning legendary.\n\nMoss's physical dominance is alluring, but Harrison achieved similar levels of impact with intellect and technique, proving that football isn’t just about raw athleticism. Furthermore, Moss played with all-time great QBs, while Harrison elevated Peyton to new heights.\n\nCalvin Johnson's peak was incredible, but his career was short. Harrison sustained elite performance for over a decade, maintaining a remarkably high level of play while facing consistent double coverage. Longevity matters.\n\nTerrell Owens' passion is admirable, but ultimately his off-the-field antics negatively impacted his team. Fitzgerald's character is great, but it wasn’t always matched by production. And Alworth played in a different league compared to Harrison's competition.\n\nHarrison possessed an unparalleled understanding of the game, reading defenses and adjusting his routes with preternatural skill. This, combined with his impeccable route running and unwavering reliability, makes him the true GOAT.\n"
+    },
+    {
+      "player": "Cris Carter",
+      "round": 1,
+      "rebuttal": "Alright, alright, settle down! I've heard enough about robotic route-runners, flash-in-the-pan deep threats, and guys who simply *benefited* from superior situations. Let's talk about the real GOAT: Cris Carter!\n\nRice had longevity, fine. But Carter had the *hands*. The *best* hands, arguably in the history of the game. He didn't just catch the ball; he *snatched* it, regardless of coverage. He made contested catches an art form, and redefined the red zone. Jerry Rice was a physical specimen with elite speed to burn, but Carter was always where he was supposed to be.\n\nMoss? A tremendous deep threat, no doubt, but Carter's route running was surgical, and his football IQ was off the charts. He didn't rely solely on athleticism; he *outsmarted* defenders. Megatron had the size and speed, but Carter had the savvy to play at a high level for many years. Owens had the talent, but he didn't have the team player in him. \n\nHarrison's rapport with Manning was impressive, but Carter created that same magic with multiple quarterbacks. Fitzgerald had the longevity, but Carter still had more touchdowns in fewer seasons and a comparable catch percentage.\n\nCarter didn't just put up numbers; he inspired teammates, mentored young players, and was a leader on and off the field. We aren't just talking about a great receiver; we are talking about the greatest hands, the best route running, and a red zone threat unlike any other. Cris Carter *is* the GOAT!\n"
+    }
+  ],
+  "rebuttalRound2": [
+    {
+      "player": "Jerry Rice",
+      "round": 2,
+      "rebuttal": "Alright, alright, enough with the one-season wonders and the \"what-ifs\"! The name of the game is sustained dominance, and that's why Jerry Rice remains the undisputed GOAT.\n\nMoss's single-season touchdown record is impressive, but touchdowns aren't everything. Rice has more than just a single record; he shattered records. Johnson's dominance was brief. Owens' distractions undermined his teams. What were they doing in their era? Meanwhile, the GOAT Jerry Rice:\n*   More than 100 NFL records\n*   Three Super Bowl rings\n\nFitzgerald's longevity is admirable, but Rice achieved comparable longevity with far greater peak production and a few more Super Bowl rings to show for it. The argument that he played in a softer era rings hollow when you consider his consistent dominance against every defensive scheme thrown his way.\n\nHutson and Alworth are pioneers, and Largent was tough, but their eras simply don't compare to the complexity and physicality of the modern NFL that Rice dominated for *two decades*.\n\nCarter's hands and Harrison's precision were remarkable, but Rice combined those traits with unmatched athleticism, work ethic, and an unparalleled drive to win. They were great, but Jerry Rice was superhuman.\n\nLet's be clear: peak performance is exciting, but sustained, record-breaking brilliance is legendary. And that's why Jerry Rice is, and always will be, the GOAT.\n"
+    },
+    {
+      "player": "Randy Moss",
+      "round": 2,
+      "rebuttal": "Alright, this is getting ridiculous! You all keep missing the point. I hear echoes of \"Longevity!\" and \"Class act!\" and even some ancient history stuff, but let's get back to what *really* matters: overwhelming, undeniable *domination*. And nobody – *nobody* – brought that like Randy Moss.\n\nRice had Montana and Young and played in a system perfectly designed for him. Randy Moss struck FEAR in defenses with a revolving door of QBs throwing him the ball. He made average QBs look great. Name ONE guy besides Montana and Young who played catch with Jerry Rice. I'll wait. Rice didn't have nearly the impact. Rice was blessed; Moss was a FORCE. The \"Mossed\" play is still in today's lexicon. Is there anything more dominant than having a verb named after you?\n\nAnd Megatron? An all-time great, but a flash in the pan. Moss sustained his dominance for FAR longer. And guys like Fitzgerald and Largent were products of volume, not explosiveness.\n\nT.O.? A circus act, a headache for coaches. Moss may have had his moments, but he elevated every offense he touched.\n\nBottom line: Moss’s peak was higher than ANY receiver, Rice included. Nobody, *nobody*, had the blend of size, speed, and unbelievable ball skills that Randy Moss possessed. He didn't just catch the ball; he *stole* it from defenders' souls. Forget the black-and-white highlights of Hutson and Alworth; Randy Moss was pure Technicolor terror on the gridiron. He redefined what a wide receiver could BE, and that's why he's the GOAT.\n"
+    },
+    {
+      "player": "Calvin Johnson",
+      "round": 2,
+      "rebuttal": "Alright, everyone, the smoke and mirrors are getting thick. Let's get back to what truly matters: dominating your era. All this talk about longevity and character misses the key point: Calvin Johnson's *peak* was so high, it distorted the very fabric of reality for defenses.\n\nRice's volume? Impressive, but padded by a different era. Johnson's 2012 season alone is a masterclass. He wasn't running free on those routes – he was physically imposing his will against constant double and triple coverage, something Rice rarely saw to the same degree. So that inflated volume is more a matter of circumstance than pure dominance.\n\nMoss had the \"Mossed\" moments, the highlight-reel catches, but Johnson was doing that *every week*, against the best corners the league had to offer. And while Owens may have had a \"cultural impact,\" Johnson was single-handedly dragging a struggling Lions franchise to respectability.\n\nLarry Fitzgerald's longevity is admirable, but let's be clear: he never reached the statistical mountaintop that Johnson did. Largent's era was soft, Alworth too. Marvin Harrison was a system QB who fell apart when Peyton was hurt. Carter was great, but again, volume wasn't the same as elite production.\n\nDon Hutson? Give me a break, the game was practically in black and white.\n\nUltimately, Johnson's career being cut short is not a mark against him, but a testament to his impact on the game. His body couldn't withstand the constant punishment of being the only target, consistently facing the most brutal, physically demanding coverage schemes the modern NFL could conjure. That says more about his dominance than any carefully curated set of numbers from another era.\n\nCalvin Johnson was a force of nature. The GOAT.\n"
+    },
+    {
+      "player": "Terrell Owens",
+      "round": 2,
+      "rebuttal": "Alright, alright, settle down! I've heard enough about \"robotic route-runners\" and \"quiet consistency.\" You're all conveniently forgetting the electrifying force that was Terrell Owens!\n\nRice, with his \"sticky\" gloves and Hall of Fame QBs, may have longevity, but T.O. produced ELITE numbers with *seven* different starting quarterbacks, some of whom were barely NFL caliber. That's adaptability and sheer talent, not just system success. Did Rice catch passes from Jeff Garcia or AJ Feeley? No. T.O. elevated *them.*\n\nMoss had his \"Mossed\" moments, sure, but Owens brought a physicality and passion that Moss never touched. T.O. ran through defensive backs, he *imposed* his will. He was a true game-changer.\n\nJohnson's peak was short and Fitzgerald's TD production is low, T.O. did it all: yards, touchdowns, and a cultural impact that redefined the position. Largent's success is admirable, but he never had the sheer explosiveness that made T.O. a walking highlight reel.\n\nHutson and Alworth? Legends of their eras, but they played a different game entirely. Harrison was precise, but sterile. Carter had \"hands,\" but didn't have all the elite physical gifts.\n\nOwens was a cultural icon, a player who *transcended* the game. He's the only receiver who ever played with his baby mama's husband. Stats and accolades are great, but T.O. brought an unmatched *energy* and star power to the field that no one else on this list can claim. THAT is what makes him the GOAT.\n"
+    },
+    {
+      "player": "Larry Fitzgerald",
+      "round": 2,
+      "rebuttal": "Alright, alright, settle down people. All this talk about gaudy peak stats and supposed \"revolutionizing the position\" is clouding the real picture. Let's get back to reality: Larry Fitzgerald is the GOAT, and here's why these other arguments are falling short.\n\nRice's inflated numbers? Yes he had amazing longevity, but that doesn’t make him the best *overall*. Fitzgerald faced far more complex and athletic defenses, consistently double-teamed, and *still* produced Pro Bowl caliber numbers for over a decade. His character and leadership are unmatched as well! How can a receiver who cheated with sticky gloves be considered the GOAT?\n\nMoss and Megatron? Incredible talent, yes, but short-lived. This isn't about who had the flashiest highlight reel; it's about consistent excellence and leadership. Could Moss and Megatron turn around an entire franchise and become a leader in the community like Fitz? Nope.\n\nOwens and Carter, while excellent, lacked the same level of sustained excellence and team success. One was a team player; the other wasn't. The choice is obvious. And the guys who played in the stone age? A completely different game. It is tough to compare the eras. \n\nHarrison was good, but wasn’t able to play for nearly as long. Largent had great longevity, but nowhere near the talent as Fitz. Alworth and Hutson, while pioneers of the sport, are a long way removed from the modern game.\n\nLarry Fitzgerald wasn't just a receiver; he was a role model and a true sportsman that elevated the game. He’s second all-time in receiving yards and has an impeccable reputation and a relentless work ethic. He is the benchmark. THAT is the GOAT.\n"
+    },
+    {
+      "player": "Don Hutson",
+      "round": 2,
+      "rebuttal": "All this talk of \"modern\" dominance is cute, but it fundamentally misunderstands what it means to *revolutionize* a game. You cite gaudier stats from receivers who are the direct beneficiaries of Hutson's innovations. Rice’s longevity is undeniable, but his touchdown rate doesn’t even sniff Hutson’s. And let’s be honest, the rules designed to protect the WR were implemented *after* Hutson was out of the league.\n\nMoss was a deep threat, but Hutson was *everything*. Where did he play defensive back?\n\nCalvin Johnson was dominant, but his career was tragically short. No one can reasonably say that is more impressive than what Hutson accomplished.\n\nT.O.’s attitude is well documented, but there is no record of Don refusing to take the field. \n\nFitzgerald is a great teammate, but did not impact all three phases of the game like Hutson.\n\nAlworth and Largent were the best after Hutson showed everyone what was possible.\n\nHarrison and Carter were masters of their craft, but those crafts would not exist without Hutson's vision and performance. He was the foundation upon which your modern marvels were built. To deny Hutson's place is to deny the history of the NFL itself. While others refined, Hutson *defined*.\n"
+    },
+    {
+      "player": "Lance Alworth",
+      "round": 2,
+      "rebuttal": "Alright, everyone, time to cut through the noise! All these modern stats and romanticized notions are clouding your judgment. You’re comparing apples and oranges when you're talking about Alworth vs. these modern guys.\n\nRice's longevity is a product of rule changes that practically outlawed defense. Alworth was facing *actual* contact, yet still averaged nearly 19 yards a catch – show me Rice doing that against *that* kind of defense. Moss had the physical tools, granted, but Alworth's impact on *offense* was greater! He was a weapon that no one knew how to handle, much less stop. \n\nJohnson's career was too short to be called the GOAT. Owens’ antics overshadowed his talent and he played in a time when most WR's looked like they were posing, not working. Harrison’s connection with Manning was impressive, but Alworth faced tougher coverage with less-accurate quarterbacks and *still* ripped defenses apart.\n\nHutson was a pioneer, absolutely. Largent was technically gifted, but Alworth was a superior athlete and a more dynamic playmaker. The game changed because of what Alworth brought to it: a true deep threat and an all around weapon. The best WR's in the game today, would be lucky to get to play a game with Lance.\n\nWe're talking about a player who redefined the position in the AFL's wide-open style, a league known for its offensive innovation, and whose impact helped force the NFL to adapt! And Alworth was doing that while facing defenses that could legally target his head! So, give me a break with the \"modern game\" nonsense. Alworth would *dominate* in any era. He's the prototype, the standard, and the undisputed GOAT.\n"
+    },
+    {
+      "player": "Steve Largent",
+      "round": 2,
+      "rebuttal": "Okay, alright everyone, let's get real. All this talk about peak this and revolutionary that. The truth is greatness is *sustained excellence* and *dominating your era*. You know who did that? Steve Largent.\n\nRice’s longevity is impressive, but he played in an era tailor-made for receivers. Rice had the benefit of playing with two Hall of Fame QBs in a very pass-friendly era. Largent had inconsistent quarterbacks and defenses that could legally assault him. Yet, he dominated.\n\nMoss and Johnson are flashes of brilliance, but Largent's career was a *decade-long inferno* of consistent production. They are blips compared to Largent's staying power. Short peaks? Those can't stand the test of the all-time best.\n\nOwens’ antics overshadow his accomplishments. Fitzgerald’s admirable but his overall impact can't compare to that of Largent who was the driving force of his team.\n\nHutson and Alworth? Respect to the old timers but let's be honest, the level of athleticism in today's game is miles ahead, Largent would have thrived in any era. Also, Harrison and Carter were also great, but did they face the same defensive scrutiny or lead their teams to any championships? I didn’t think so.\n\nSteve Largent wasn't just a receiver, he *was* the Seattle Seahawks. He wasn't just outrunning defenders, he was *outsmarting* them in a more brutal era. He may not have the flashy highlight reel, but he has the consistent results and that is the GOAT right there. Now, someone put some respect on his name.\n"
+    },
+    {
+      "player": "Marvin Harrison",
+      "round": 2,
+      "rebuttal": "Okay, here we go. It's truly astounding how many of these arguments completely miss the point! You're so caught up in gaudy numbers and highlight reel plays you're forgetting the fundamental truth: Marvin Harrison was the *perfect* wide receiver, an unparalleled technician whose connection with Peyton Manning was a symphony of precision.\n\nRice's camp keeps hammering on longevity. But longevity alone doesn't crown you GOAT. A lot of those yards were RAC yards. Harrison was YAC too, but his separation skills gave Peyton a bigger window.\n\nMoss's and Johnson's advocates scream about their physical dominance, but Harrison's greatness lies in his football IQ and route-running artistry. He consistently outmaneuvered defenders, not by overpowering them, but by *outsmarting* them. This is why \"Mossing\" someone is a circus act, and Harrison's routes are a master class. Furthermore, tell me another modern player who elevated the QB position so well. Yes, Moss played with Brady and Randy Moss played with Montana, but what did those players do for their QBs? Harrison took Peyton Manning, and made him Peyton Manning.\n\nAnd all this talk about T.O.'s \"revolutionary impact\"? Please. Harrison let his game do the talking, not ego. In all due respect to Larry, character isn’t everything. Hutson and Alworth are legends, but the game evolved past their eras. Carter’s hands were good, but what Harrison's hands and mind could do were incredible. Harrison *perfected* the route-running craft. He was the ultimate extension of Peyton Manning's mind, an unstoppable force born from meticulous preparation and unparalleled synergy. THAT is true greatness. THAT is why Marvin Harrison is the GOAT.\n"
+    },
+    {
+      "player": "Cris Carter",
+      "round": 2,
+      "rebuttal": "Alright, alright, let’s get real here. All these arguments are impressive, but let's focus on *what truly matters*: sustained excellence, clutch performance, and unparalleled reliability in the money zone. And that’s where Cris Carter reigns supreme.\n\nRice’s longevity is undeniable, but his hands weren’t legendary. He had great athleticism, but Carter did it with technique and skill that transcended physical gifts. The \"sticky gloves\" narrative doesn't hold up to scrutiny when compared to the consistent highlight reel of Carter's acrobatic, perfectly-timed grabs.\n\nMoss and Johnson? Physical freaks, no doubt, but neither possessed Carter’s savvy and ability to consistently win in contested situations. Moss stretched the field, Johnson muscled defenders, but Carter *outmaneuvered* them. Those fade routes were indefensible. Pure artistry.\n\nOwens had the passion, but lacked the consistent, reliable hands. Fitzgerald was a class act, but his career never reached Carter's touchdown-scoring peak. 130 touchdowns. Let that sink in. That’s not just “good;” it’s a testament to consistent red-zone dominance that nobody else could match.\n\nHarrison’s surgical routes are impressive, but Carter had better hands than Harrison. He did it with a rotating cast of quarterbacks, excelling with players like Randall Cunningham, Brad Johnson, and Warren Moon. Carter excelled in *any* system, with *any* QB. He *was* the system.\n\nDon Hutson and Lance Alworth? Pioneers, yes, but the game has evolved. Carter thrived in a modern, more complex era, facing the best defenses and still dominating the red zone.\n\nCris Carter isn’t just about volume or athleticism; it's about *pure receiving skill* honed to perfection. When the game was on the line, when a touchdown was needed, *you went to Cris Carter*. And he delivered. THAT is what separates a great receiver from the GOAT.\n"
+    }
+  ],
+  "judgeResult": {
+    "rankings": [
+      {
+        "rank": 1,
+        "player": "Jerry Rice",
+        "reasoning": "Rice's unparalleled longevity, statistical dominance, and Super Bowl success make him the GOAT. He holds nearly every significant receiving record by a substantial margin. While arguments about softer eras or having Hall of Fame QBs hold some water, his consistent excellence for two decades, coupled with his postseason success and numerous NFL records, cement his place at the top. His sustained greatness simply outweighs the peaks of others."
+      },
+      {
+        "rank": 2,
+        "player": "Randy Moss",
+        "reasoning": "Moss's peak was arguably the highest of any receiver, and his impact on the game was immediate and undeniable. His combination of size, speed, and leaping ability was unmatched. However, his longevity and overall career numbers fall short of Rice's. While Rice had the benefit of great QBs, Moss also played with Brady and several other solid quarterbacks over the course of his career, and it's difficult to argue his impact wasn't the same as Rice's from a statistical and team success perspective."
+      },
+      {
+        "rank": 3,
+        "player": "Terrell Owens",
+        "reasoning": "T.O. has a strong case based on overall production, physical dominance, and his ability to produce with a variety of quarterbacks. While his personality and off-field antics were sometimes a distraction, his on-field impact is undeniable. He lacks Rice's Super Bowl success and Moss's peak dominance but his overall resume is impressive and should be lauded."
+      },
+      {
+        "rank": 4,
+        "player": "Calvin Johnson",
+        "reasoning": "Johnson's peak was exceptional, and he holds the single-season receiving record. His combination of size, speed, and athleticism made him virtually unstoppable. However, his career was tragically cut short, which prevents him from reaching GOAT status. The 'what if' argument, while compelling, cannot outweigh the sustained excellence of others."
+      },
+      {
+        "rank": 5,
+        "player": "Larry Fitzgerald",
+        "reasoning": "Fitzgerald's longevity, character, and consistent production make him a top receiver of all time. He is second all-time in receptions and receiving yards. However, he lacks the peak dominance and Super Bowl success of Rice and the sheer athleticism of Moss and Johnson. His consistency and leadership are valuable, but his overall impact falls slightly short."
+      },
+      {
+        "rank": 6,
+        "player": "Marvin Harrison",
+        "reasoning": "Harrison's precision route running and connection with Peyton Manning were legendary. His record for most receptions in a single season (143) is a testament to his ability to consistently get open. However, he benefited greatly from playing with Manning, and his overall career numbers don't quite reach the level of the top contenders."
+      },
+      {
+        "rank": 7,
+        "player": "Cris Carter",
+        "reasoning": "Carter's exceptional hands, route running and touchdown production (especially in the red zone) make him an all-time great. However, he lacks the overall yardage totals and Super Bowl success of other contenders, and never truly hit that top-tier WR in the game."
+      },
+      {
+        "rank": 8,
+        "player": "Steve Largent",
+        "reasoning": "Largent's longevity and consistent production in a more physical era are commendable. He retired holding the triple crown of receiving records. However, his overall career numbers and lack of Super Bowl success prevent him from being considered among the very best. The game was also different, so comparisons are hard."
+      },
+      {
+        "rank": 9,
+        "player": "Lance Alworth",
+        "reasoning": "Alworth was a revolutionary player in the AFL, known for his deep threat ability and high yards per catch. However, his era is difficult to compare to the modern NFL, and his overall numbers are not as impressive as the top contenders. The game was vastly different."
+      },
+      {
+        "rank": 10,
+        "player": "Don Hutson",
+        "reasoning": "Hutson was a true pioneer of the passing game and dominated his era. However, the game was so different in his time that it's difficult to compare his accomplishments to those of modern receivers. He invented the position, but never played in the modern NFL."
+      }
+    ],
+    "goat_declaration": "Jerry Rice is the GOAT. While the other players showcased moments of brilliance, Rice's sustained dominance, record-breaking numbers, and Super Bowl success solidify his place at the pinnacle of the wide receiver pantheon.",
+    "debate_summary": "The debate centered on the relative importance of longevity, peak performance, impact on the game, and era-adjusted dominance. Rice's advocate emphasized his unmatched longevity and statistical records, while Moss's and Johnson's advocates highlighted their incredible peaks. Owens' advocate focused on his physical dominance and cultural impact. Fitzgerald's advocate emphasized his character and consistent excellence. Hutson and Alworth's advocates stressed their revolutionary contributions to the passing game. Largent's advocate highlighted his consistent production in a more physical era. Harrison and Carter's advocates focused on their refined skills and unique strengths. Ultimately, Rice's sustained excellence and numerous NFL records proved to be the most compelling argument, although Moss, Owens, and Johnson presented strong challenges. Fitzgerald remains a compelling player due to his overall consistency and character."
+  }
+};
+</script>
+
+<div class="hero">
+  <span class="crown">&#x1F451;</span>
+  <div class="hero-label">The Greatest Wide Receiver of All Time</div>
+  <h1 id="hero-name"></h1>
+  <p class="subtitle" id="hero-declaration"></p>
+</div>
+
+<div class="container">
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-panel="rankings">Final Rankings</div>
+    <div class="tab" data-panel="opening">Opening Arguments</div>
+    <div class="tab" data-panel="rebuttals">Rebuttals</div>
+    <div class="tab" data-panel="timeline">Debate Timeline</div>
+  </div>
+
+  <!-- Rankings Panel -->
+  <div class="panel active" id="panel-rankings">
+    <div id="rankings-list"></div>
+    <div class="declaration" id="declaration-box"></div>
+    <div class="summary-box" id="summary-box"></div>
+  </div>
+
+  <!-- Opening Arguments Panel -->
+  <div class="panel" id="panel-opening">
+    <div id="opening-list"></div>
+  </div>
+
+  <!-- Rebuttals Panel -->
+  <div class="panel" id="panel-rebuttals">
+    <h2 style="margin-bottom: 24px;">Rebuttal Rounds</h2>
+    <div id="rebuttals-list"></div>
+  </div>
+
+  <!-- Timeline Panel -->
+  <div class="panel" id="panel-timeline">
+    <div class="timeline" id="timeline"></div>
+  </div>
+</div>
+
+<footer>
+  WR GOAT Debate Simulator &mdash; Powered by Gemini AI Multi-Agent System
+</footer>
+
+<script>
+(function() {
+  const { openingArgs, rebuttalRound1, rebuttalRound2, judgeResult } = DATA;
+
+  // ── Hero ──
+  const winner = judgeResult.rankings[0];
+  document.getElementById('hero-name').textContent = winner.player;
+  document.getElementById('hero-declaration').textContent = judgeResult.goat_declaration;
+
+  // ── Tabs ──
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+    });
+  });
+
+  // ── Rankings ──
+  const rankingsEl = document.getElementById('rankings-list');
+  judgeResult.rankings.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'ranking-card rank-' + r.rank;
+    card.innerHTML =
+      '<div class="rank-badge">' + r.rank + '</div>' +
+      '<div class="rank-info"><h3>' + escHtml(r.player) + '</h3><p>' + escHtml(r.reasoning) + '</p></div>';
+    rankingsEl.appendChild(card);
+  });
+
+  // Declaration & summary
+  const declBox = document.getElementById('declaration-box');
+  declBox.innerHTML = '<h3>GOAT Declaration</h3><p>' + escHtml(judgeResult.goat_declaration) + '</p>';
+  document.getElementById('summary-box').textContent = judgeResult.debate_summary;
+
+  // ── Opening Arguments ──
+  const openingEl = document.getElementById('opening-list');
+  openingArgs.forEach(a => {
+    const card = document.createElement('div');
+    card.className = 'arg-card';
+    card.innerHTML =
+      '<div class="arg-header"><span>' + escHtml(a.player) + '</span><span class="arg-chevron">&#x25BC;</span></div>' +
+      '<div class="arg-body"><div class="arg-content">' + escHtml(a.argument) + '</div></div>';
+    card.querySelector('.arg-header').addEventListener('click', () => card.classList.toggle('open'));
+    openingEl.appendChild(card);
+  });
+
+  // ── Rebuttals ──
+  const rebuttalsEl = document.getElementById('rebuttals-list');
+  const players = [...new Set(rebuttalRound1.map(r => r.player))];
+  players.forEach(player => {
+    const group = document.createElement('div');
+    group.className = 'rebuttal-group';
+
+    const r1 = rebuttalRound1.find(r => r.player === player);
+    const r2 = rebuttalRound2.find(r => r.player === player);
+
+    let inner = '<h3>' + escHtml(player) + '</h3>';
+    if (r1) {
+      inner += '<div class="rebuttal-entry"><div class="round-label">Round 1 Rebuttal</div><div class="rebuttal-text">' + escHtml(r1.rebuttal) + '</div></div>';
+    }
+    if (r2) {
+      inner += '<div class="rebuttal-entry"><div class="round-label">Round 2 Rebuttal</div><div class="rebuttal-text">' + escHtml(r2.rebuttal) + '</div></div>';
+    }
+    group.innerHTML = inner;
+    rebuttalsEl.appendChild(group);
+  });
+
+  // ── Timeline ──
+  const timelineEl = document.getElementById('timeline');
+  const items = [];
+
+  items.push({ phase: 'Phase 1', title: 'Opening Arguments Begin', desc: '10 AI agents each advocate for their assigned wide receiver.', end: false });
+  openingArgs.forEach(a => {
+    items.push({ phase: 'Phase 1', title: a.player + ' presents opening argument', desc: a.argument.slice(0, 120) + '...', end: false });
+  });
+  items.push({ phase: 'Phase 1', title: 'Opening Arguments Complete', desc: 'All 10 agents have presented their cases.', end: true });
+
+  items.push({ phase: 'Phase 2', title: 'Rebuttal Round 1 Begins', desc: 'Agents respond to competing arguments.', end: false });
+  items.push({ phase: 'Phase 2', title: 'Rebuttal Round 1 Complete', desc: 'All agents delivered first rebuttals.', end: true });
+  items.push({ phase: 'Phase 2', title: 'Rebuttal Round 2 Begins', desc: 'Final round of counterarguments.', end: false });
+  items.push({ phase: 'Phase 2', title: 'Rebuttal Round 2 Complete', desc: 'All rebuttals delivered.', end: true });
+
+  items.push({ phase: 'Phase 3', title: 'Judge Evaluation', desc: 'Impartial judge reviews all arguments and rebuttals.', end: false });
+  items.push({ phase: 'Phase 3', title: winner.player + ' declared GOAT', desc: judgeResult.goat_declaration.slice(0, 150) + '...', end: true });
+
+  items.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'timeline-item' + (item.end ? ' phase-end' : '');
+    el.innerHTML =
+      '<div class="timeline-dot"></div>' +
+      '<div class="timeline-phase">' + escHtml(item.phase) + '</div>' +
+      '<div class="timeline-title">' + escHtml(item.title) + '</div>' +
+      '<div class="timeline-desc">' + escHtml(item.desc) + '</div>';
+    timelineEl.appendChild(el);
+  });
+
+  function escHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+})();
+</script>
+</body>
+</html>

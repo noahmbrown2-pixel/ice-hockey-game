@@ -1,0 +1,18 @@
+[
+  {
+    "session_id": "4449e6cc-adc1-4418-99f5-3524f34257b8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\4449e6cc-adc1-4418-99f5-3524f34257b8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionEnd",
+    "reason": "prompt_input_exit",
+    "logged_at": "2026-04-17T15:55:39.284192"
+  },
+  {
+    "session_id": "394400b9-2a5e-43c8-aba2-c2ff2ad7765c",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\394400b9-2a5e-43c8-aba2-c2ff2ad7765c.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionEnd",
+    "reason": "clear",
+    "logged_at": "2026-04-17T19:41:22.948603"
+  }
+]

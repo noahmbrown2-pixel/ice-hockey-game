@@ -1,0 +1,211 @@
+[
+  {
+    "timestamp": "2026-04-17T15:46:51.505357",
+    "session_id": "4449e6cc-adc1-4418-99f5-3524f34257b8",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_013V1nQJz16yTLy9eFwcKna6",
+    "tool_input": {
+      "command": "# Check if claude-advanced-tools installed correctly\npython -c \"import claude_advanced_tools; print('claude-advanced-tools: OK')\" 2>&1\npython -c \"import blindoracle_client; print('blindoracle-client: OK')\" 2>&1"
+    },
+    "error": "Exit code 1\nclaude-advanced-tools: OK\r\nTraceback (most recent call last):\r\n  File \"<string>\", line 1, in <module>\r\nModuleNotFoundError: No module named 'blindoracle_client'",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\4449e6cc-adc1-4418-99f5-3524f34257b8.jsonl",
+    "raw_input": {
+      "session_id": "4449e6cc-adc1-4418-99f5-3524f34257b8",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\4449e6cc-adc1-4418-99f5-3524f34257b8.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "# Check if claude-advanced-tools installed correctly\npython -c \"import claude_advanced_tools; print('claude-advanced-tools: OK')\" 2>&1\npython -c \"import blindoracle_client; print('blindoracle-client: OK')\" 2>&1"
+      },
+      "tool_use_id": "toolu_013V1nQJz16yTLy9eFwcKna6",
+      "error": "Exit code 1\nclaude-advanced-tools: OK\r\nTraceback (most recent call last):\r\n  File \"<string>\", line 1, in <module>\r\nModuleNotFoundError: No module named 'blindoracle_client'",
+      "is_interrupt": false,
+      "logged_at": "2026-04-17T15:46:51.505357"
+    }
+  },
+  {
+    "timestamp": "2026-04-17T15:53:27.418743",
+    "session_id": "4449e6cc-adc1-4418-99f5-3524f34257b8",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01GtYJdhP23uQu47rVYtNgQf",
+    "tool_input": {
+      "command": "cd \"C:/Users/noahm/Project\" && git check-ignore -v credentials.json && git check-ignore -v .claude/settings.local.json"
+    },
+    "error": "Exit code 1\n.gitignore:11:*credentials*.json\tcredentials.json",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\4449e6cc-adc1-4418-99f5-3524f34257b8.jsonl",
+    "raw_input": {
+      "session_id": "4449e6cc-adc1-4418-99f5-3524f34257b8",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\4449e6cc-adc1-4418-99f5-3524f34257b8.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "cd \"C:/Users/noahm/Project\" && git check-ignore -v credentials.json && git check-ignore -v .claude/settings.local.json"
+      },
+      "tool_use_id": "toolu_01GtYJdhP23uQu47rVYtNgQf",
+      "error": "Exit code 1\n.gitignore:11:*credentials*.json\tcredentials.json",
+      "is_interrupt": false,
+      "logged_at": "2026-04-17T15:53:27.418743"
+    }
+  },
+  {
+    "timestamp": "2026-04-17T15:53:31.231788",
+    "session_id": "4449e6cc-adc1-4418-99f5-3524f34257b8",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_0115seDoEwS2kmywGutHNWuu",
+    "tool_input": {
+      "command": "cd \"C:/Users/noahm/Project\" && git check-ignore -v \".claude/settings.local.json\""
+    },
+    "error": "Exit code 1",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\4449e6cc-adc1-4418-99f5-3524f34257b8.jsonl",
+    "raw_input": {
+      "session_id": "4449e6cc-adc1-4418-99f5-3524f34257b8",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\4449e6cc-adc1-4418-99f5-3524f34257b8.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "cd \"C:/Users/noahm/Project\" && git check-ignore -v \".claude/settings.local.json\""
+      },
+      "tool_use_id": "toolu_0115seDoEwS2kmywGutHNWuu",
+      "error": "Exit code 1",
+      "is_interrupt": false,
+      "logged_at": "2026-04-17T15:53:31.231788"
+    }
+  },
+  {
+    "timestamp": "2026-04-17T16:07:04.982005",
+    "session_id": "0e933e2a-d2ff-4e7f-9828-ca7f69c86398",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01VdVPR82sfrKENBeY1HPQGg",
+    "tool_input": {
+      "command": "jq . \"C:/Users/noahm/.claude/settings.json\" && echo \"user settings OK\" && jq . \"C:/Users/noahm/Project/.claude/settings.json\" && echo \"project settings OK\"",
+      "description": "Validate JSON syntax of both settings files"
+    },
+    "error": "Exit code 127\n/usr/bin/bash: line 1: jq: command not found",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\0e933e2a-d2ff-4e7f-9828-ca7f69c86398.jsonl",
+    "raw_input": {
+      "session_id": "0e933e2a-d2ff-4e7f-9828-ca7f69c86398",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\0e933e2a-d2ff-4e7f-9828-ca7f69c86398.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "jq . \"C:/Users/noahm/.claude/settings.json\" && echo \"user settings OK\" && jq . \"C:/Users/noahm/Project/.claude/settings.json\" && echo \"project settings OK\"",
+        "description": "Validate JSON syntax of both settings files"
+      },
+      "tool_use_id": "toolu_01VdVPR82sfrKENBeY1HPQGg",
+      "error": "Exit code 127\n/usr/bin/bash: line 1: jq: command not found",
+      "is_interrupt": false,
+      "logged_at": "2026-04-17T16:07:04.982005"
+    }
+  },
+  {
+    "timestamp": "2026-04-17T16:07:08.235055",
+    "session_id": "0e933e2a-d2ff-4e7f-9828-ca7f69c86398",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01SPjTrwxZt18kfyVDzsafSs",
+    "tool_input": {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('/c/Users/noahm/.claude/settings.json','utf8')); console.log('user OK')\" && node -e \"JSON.parse(require('fs').readFileSync('/c/Users/noahm/Project/.claude/settings.json','utf8')); console.log('project OK')\"",
+      "description": "Validate JSON syntax using node"
+    },
+    "error": "Exit code 1\nnode:fs:440\r\n    return binding.readFileUtf8(path, stringToFlags(options.flag));\r\n                   ^\r\n\r\nError: ENOENT: no such file or directory, open 'C:\\c\\Users\\noahm\\.claude\\settings.json'\r\n    at Object.readFileSync (node:fs:440:20)\r\n    at [eval]:1:26\r\n    at runScriptInThisContext (node:internal/vm:219:10)\r\n    at node:internal/process/execution:451:12\r\n    at [eval]-wrapper:6:24\r\n    at runScriptInContext (node:internal/process/execution:449:60)\r\n    at evalFunction (node:internal/process/execution:283:30)\r\n    at evalTypeScript (node:internal/process/execution:295:3)\r\n    at node:internal/main/eval_string:71:3 {\r\n  errno: -4058,\r\n  code: 'ENOENT',\r\n  syscall: 'open',\r\n  path: 'C:\\\\c\\\\Users\\\\noahm\\\\.claude\\\\settings.json'\r\n}\r\n\r\nNode.js v24.12.0",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\0e933e2a-d2ff-4e7f-9828-ca7f69c86398.jsonl",
+    "raw_input": {
+      "session_id": "0e933e2a-d2ff-4e7f-9828-ca7f69c86398",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\0e933e2a-d2ff-4e7f-9828-ca7f69c86398.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "node -e \"JSON.parse(require('fs').readFileSync('/c/Users/noahm/.claude/settings.json','utf8')); console.log('user OK')\" && node -e \"JSON.parse(require('fs').readFileSync('/c/Users/noahm/Project/.claude/settings.json','utf8')); console.log('project OK')\"",
+        "description": "Validate JSON syntax using node"
+      },
+      "tool_use_id": "toolu_01SPjTrwxZt18kfyVDzsafSs",
+      "error": "Exit code 1\nnode:fs:440\r\n    return binding.readFileUtf8(path, stringToFlags(options.flag));\r\n                   ^\r\n\r\nError: ENOENT: no such file or directory, open 'C:\\c\\Users\\noahm\\.claude\\settings.json'\r\n    at Object.readFileSync (node:fs:440:20)\r\n    at [eval]:1:26\r\n    at runScriptInThisContext (node:internal/vm:219:10)\r\n    at node:internal/process/execution:451:12\r\n    at [eval]-wrapper:6:24\r\n    at runScriptInContext (node:internal/process/execution:449:60)\r\n    at evalFunction (node:internal/process/execution:283:30)\r\n    at evalTypeScript (node:internal/process/execution:295:3)\r\n    at node:internal/main/eval_string:71:3 {\r\n  errno: -4058,\r\n  code: 'ENOENT',\r\n  syscall: 'open',\r\n  path: 'C:\\\\c\\\\Users\\\\noahm\\\\.claude\\\\settings.json'\r\n}\r\n\r\nNode.js v24.12.0",
+      "is_interrupt": false,
+      "logged_at": "2026-04-17T16:07:08.235055"
+    }
+  },
+  {
+    "timestamp": "2026-04-17T16:07:11.517968",
+    "session_id": "0e933e2a-d2ff-4e7f-9828-ca7f69c86398",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01HNKExvADWdjKzHoqGrjiNC",
+    "tool_input": {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('C:\\\\\\\\Users\\\\\\\\noahm\\\\\\\\.claude\\\\\\\\settings.json','utf8')); console.log('user OK')\" && node -e \"JSON.parse(require('fs').readFileSync('C:\\\\\\\\Users\\\\\\\\noahm\\\\\\\\Project\\\\\\\\.claude\\\\\\\\settings.json','utf8')); console.log('project OK')\"",
+      "description": "Validate JSON syntax using node with Windows paths"
+    },
+    "error": "Exit code 1\nnode:fs:440\r\n    return binding.readFileUtf8(path, stringToFlags(options.flag));\r\n                   ^\r\n\r\nError: ENOENT: no such file or directory, open 'C:\\Users\\noahm\\Project\\Users\r\noahm.claudesettings.json'\r\n    at Object.readFileSync (node:fs:440:20)\r\n    at [eval]:1:26\r\n    at runScriptInThisContext (node:internal/vm:219:10)\r\n    at node:internal/process/execution:451:12\r\n    at [eval]-wrapper:6:24\r\n    at runScriptInContext (node:internal/process/execution:449:60)\r\n    at evalFunction (node:internal/process/execution:283:30)\r\n    at evalTypeScript (node:internal/process/execution:295:3)\r\n    at node:internal/main/eval_string:71:3 {\r\n  errno: -4058,\r\n  code: 'ENOENT',\r\n  syscall: 'open',\r\n  path: 'C:\\\\Users\\\\noahm\\\\Project\\\\Users\\noahm.claudesettings.json'\r\n}\r\n\r\nNode.js v24.12.0",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\0e933e2a-d2ff-4e7f-9828-ca7f69c86398.jsonl",
+    "raw_input": {
+      "session_id": "0e933e2a-d2ff-4e7f-9828-ca7f69c86398",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\0e933e2a-d2ff-4e7f-9828-ca7f69c86398.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "node -e \"JSON.parse(require('fs').readFileSync('C:\\\\\\\\Users\\\\\\\\noahm\\\\\\\\.claude\\\\\\\\settings.json','utf8')); console.log('user OK')\" && node -e \"JSON.parse(require('fs').readFileSync('C:\\\\\\\\Users\\\\\\\\noahm\\\\\\\\Project\\\\\\\\.claude\\\\\\\\settings.json','utf8')); console.log('project OK')\"",
+        "description": "Validate JSON syntax using node with Windows paths"
+      },
+      "tool_use_id": "toolu_01HNKExvADWdjKzHoqGrjiNC",
+      "error": "Exit code 1\nnode:fs:440\r\n    return binding.readFileUtf8(path, stringToFlags(options.flag));\r\n                   ^\r\n\r\nError: ENOENT: no such file or directory, open 'C:\\Users\\noahm\\Project\\Users\r\noahm.claudesettings.json'\r\n    at Object.readFileSync (node:fs:440:20)\r\n    at [eval]:1:26\r\n    at runScriptInThisContext (node:internal/vm:219:10)\r\n    at node:internal/process/execution:451:12\r\n    at [eval]-wrapper:6:24\r\n    at runScriptInContext (node:internal/process/execution:449:60)\r\n    at evalFunction (node:internal/process/execution:283:30)\r\n    at evalTypeScript (node:internal/process/execution:295:3)\r\n    at node:internal/main/eval_string:71:3 {\r\n  errno: -4058,\r\n  code: 'ENOENT',\r\n  syscall: 'open',\r\n  path: 'C:\\\\Users\\\\noahm\\\\Project\\\\Users\\noahm.claudesettings.json'\r\n}\r\n\r\nNode.js v24.12.0",
+      "is_interrupt": false,
+      "logged_at": "2026-04-17T16:07:11.517968"
+    }
+  },
+  {
+    "timestamp": "2026-04-17T19:45:33.540174",
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Read",
+    "tool_use_id": "toolu_01LACLe4L3suAgg8DY2jHAXx",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html"
+    },
+    "error": "File content (40538 tokens) exceeds maximum allowed tokens (25000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "raw_input": {
+      "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Read",
+      "tool_input": {
+        "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html"
+      },
+      "tool_use_id": "toolu_01LACLe4L3suAgg8DY2jHAXx",
+      "error": "File content (40538 tokens) exceeds maximum allowed tokens (25000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.",
+      "is_interrupt": false,
+      "logged_at": "2026-04-17T19:45:33.540174"
+    }
+  }
+]

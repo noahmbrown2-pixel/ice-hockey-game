@@ -1,0 +1,1120 @@
+- generic [ref=e4]:
+  - banner [ref=e7]:
+    - navigation "BBC" [ref=e8]:
+      - generic [ref=e10]:
+        - link "BBC Homepage" [ref=e12] [cursor=pointer]:
+          - /url: https://www.bbc.com
+          - generic [ref=e13]:
+            - img [ref=e14]
+            - generic [ref=e16]: BBC Homepage
+        - generic:
+          - list:
+            - listitem:
+              - link "Skip to content" [ref=e17] [cursor=pointer]:
+                - /url: "#main-heading"
+            - listitem:
+              - link "Accessibility Help" [ref=e18] [cursor=pointer]:
+                - /url: https://www.bbc.co.uk/accessibility/
+        - generic [ref=e19]:
+          - list [ref=e20]:
+            - listitem [ref=e21]:
+              - link "Sign in" [ref=e1142] [cursor=pointer]:
+                - /url: https://session.bbc.com/session?lang=en-GB&ptrt=https%3A%2F%2Fwww.bbc.com%2Fsport%2Ffootball%2Fpremier-league%2Ftable&userOrigin=SPORT_GNL&sequenceId=c7f0b843-4ddc-488d-99f4-066f61ab7ee2
+                - img [ref=e1144]
+                - text: Sign in
+          - list [ref=e30]:
+            - listitem [ref=e31]:
+              - link "Home" [ref=e32] [cursor=pointer]:
+                - /url: https://www.bbc.com
+                - generic [ref=e33]: Home
+            - listitem [ref=e34]:
+              - link "News" [ref=e35] [cursor=pointer]:
+                - /url: https://www.bbc.com/news
+                - generic [ref=e36]: News
+            - listitem [ref=e37]:
+              - link "Sport" [ref=e38] [cursor=pointer]:
+                - /url: https://www.bbc.com/sport
+                - generic [ref=e39]: Sport
+            - listitem [ref=e40]:
+              - link "Business" [ref=e41] [cursor=pointer]:
+                - /url: https://www.bbc.com/business
+                - generic [ref=e42]: Business
+            - listitem [ref=e43]:
+              - link "Innovation" [ref=e44] [cursor=pointer]:
+                - /url: https://www.bbc.com/innovation
+                - generic [ref=e45]: Innovation
+            - listitem [ref=e46]:
+              - link "Culture" [ref=e47] [cursor=pointer]:
+                - /url: https://www.bbc.com/culture
+                - generic [ref=e48]: Culture
+            - listitem [ref=e49]:
+              - link "Travel" [ref=e50] [cursor=pointer]:
+                - /url: https://www.bbc.com/travel
+                - generic [ref=e51]: Travel
+            - listitem [ref=e52]:
+              - button "More menu" [ref=e53] [cursor=pointer]:
+                - generic [ref=e55]:
+                  - img [ref=e56]
+                  - generic [ref=e59]: More menu
+        - search "Search BBC" [ref=e61]:
+          - link "Search BBC" [ref=e62] [cursor=pointer]:
+            - /url: https://www.bbc.com/search?d=SPORT_GNL
+            - img [ref=e64]
+            - generic [ref=e66]: Search BBC
+    - generic [ref=e67]:
+      - link "BBC Sport" [ref=e72] [cursor=pointer]:
+        - /url: /sport
+        - img [ref=e73]
+        - generic [ref=e75]: BBC Sport
+      - navigation "BBC Sport" [ref=e76]:
+        - generic [ref=e80]:
+          - list [ref=e82]:
+            - listitem [ref=e83]:
+              - link "Home" [ref=e84] [cursor=pointer]:
+                - /url: /sport
+                - generic [ref=e85]: Home
+            - listitem [ref=e86]:
+              - link "Football" [ref=e87] [cursor=pointer]:
+                - /url: /sport/football
+                - generic [ref=e88]: Football
+            - listitem [ref=e89]:
+              - link "Cricket" [ref=e90] [cursor=pointer]:
+                - /url: /sport/cricket
+                - generic [ref=e91]: Cricket
+            - listitem [ref=e92]:
+              - link "Formula 1" [ref=e93] [cursor=pointer]:
+                - /url: /sport/formula1
+                - generic [ref=e94]: Formula 1
+            - listitem [ref=e95]:
+              - link "Rugby U" [ref=e96] [cursor=pointer]:
+                - /url: /sport/rugby-union
+                - generic [ref=e97]: Rugby U
+            - listitem [ref=e98]:
+              - link "Tennis" [ref=e99] [cursor=pointer]:
+                - /url: /sport/tennis
+                - generic [ref=e100]: Tennis
+            - listitem [ref=e101]:
+              - link "Golf" [ref=e102] [cursor=pointer]:
+                - /url: /sport/golf
+                - generic [ref=e103]: Golf
+            - listitem [ref=e104]:
+              - link "Cycling" [ref=e105] [cursor=pointer]:
+                - /url: /sport/cycling
+                - generic [ref=e106]: Cycling
+            - listitem [ref=e107]:
+              - link "Athletics" [ref=e108] [cursor=pointer]:
+                - /url: /sport/athletics
+                - generic [ref=e109]: Athletics
+          - button "More" [ref=e111] [cursor=pointer]:
+            - img [ref=e113]
+            - text: More
+        - list [ref=e118]:
+          - listitem [ref=e119]:
+            - link "Premier League" [ref=e120] [cursor=pointer]:
+              - /url: /sport/football/premier-league
+              - generic [ref=e121]: Premier League
+              - img [ref=e123]
+          - listitem [ref=e125]:
+            - link "Scores & Fixtures" [ref=e126] [cursor=pointer]:
+              - /url: /sport/football/premier-league/scores-fixtures
+              - generic [ref=e127]: Scores & Fixtures
+          - listitem [ref=e128]:
+            - link "Table" [ref=e129] [cursor=pointer]:
+              - /url: /sport/football/premier-league/table
+              - generic [ref=e130]: Table
+          - listitem [ref=e131]:
+            - link "Top Scorers" [ref=e132] [cursor=pointer]:
+              - /url: /sport/football/premier-league/top-scorers
+              - generic [ref=e133]: Top Scorers
+  - main [ref=e136]:
+    - generic [ref=e137]:
+      - heading "Premier League Table" [level=1] [ref=e139]
+      - generic [ref=e145]:
+        - img [ref=e148]
+        - combobox [ref=e150]
+      - generic [ref=e152]:
+        - link "Skip to table key" [ref=e153] [cursor=pointer]:
+          - /url: "#football-premier-league-table-key"
+        - table [ref=e156]:
+          - rowgroup [ref=e157]:
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e158]:
+              - columnheader "Team" [ref=e159]:
+                - generic [ref=e160]: Team
+                - generic [ref=e161]: Team
+              - columnheader "Played" [ref=e162]:
+                - generic [ref=e163]: Played
+                - generic [ref=e164]: Played
+              - columnheader "Won" [ref=e165]:
+                - generic [ref=e166]: Won
+                - generic [ref=e167]: Won
+              - columnheader "Drawn" [ref=e168]:
+                - generic [ref=e169]: Drawn
+                - generic [ref=e170]: Drawn
+              - columnheader "Lost" [ref=e171]:
+                - generic [ref=e172]: Lost
+                - generic [ref=e173]: Lost
+              - columnheader "Goals For" [ref=e174]:
+                - generic [ref=e175]: For
+                - generic [ref=e176]: Goals For
+              - columnheader "Goals Against" [ref=e177]:
+                - generic [ref=e178]: Against
+                - generic [ref=e179]: Goals Against
+              - columnheader "Goal Difference" [ref=e180]:
+                - generic [ref=e181]: GD
+                - generic [ref=e182]: Goal Difference
+              - columnheader "Points" [ref=e183]:
+                - generic [ref=e184]: Points
+                - generic [ref=e185]: Points
+              - columnheader "Form, Last 6 games, Oldest first" [ref=e186]:
+                - generic [ref=e187]: Form
+                - generic [ref=e188]: Form, Last 6 games, Oldest first
+          - rowgroup [ref=e189]:
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e190]:
+              - cell "Team" [ref=e191]:
+                - generic [ref=e192]:
+                  - generic [ref=e193]: "1"
+                  - img [ref=e195]
+                  - link "Arsenal" [ref=e196] [cursor=pointer]:
+                    - /url: /sport/football/teams/arsenal
+                    - generic [ref=e197]: Arsenal
+                    - generic [ref=e198]: Arsenal
+              - cell "Played" [ref=e199]: "30"
+              - cell "Won" [ref=e200]: "20"
+              - cell "Drawn" [ref=e201]: "7"
+              - cell "Lost" [ref=e202]: "3"
+              - cell "Goals For" [ref=e203]: "59"
+              - cell "Goals Against" [ref=e204]: "22"
+              - cell "Goal Difference" [ref=e205]: "37"
+              - cell "Points" [ref=e206]: "67"
+              - cell "Form, Last 6 games, Oldest first" [ref=e207]:
+                - list [ref=e208]:
+                  - listitem [ref=e209]:
+                    - generic [ref=e210]:
+                      - generic [ref=e211]: W
+                      - generic [ref=e212]: Result Win
+                  - listitem [ref=e213]:
+                    - generic [ref=e214]:
+                      - generic [ref=e215]: D
+                      - generic [ref=e216]: Result Draw
+                  - listitem [ref=e217]:
+                    - generic [ref=e218]:
+                      - generic [ref=e219]: D
+                      - generic [ref=e220]: Result Draw
+                  - listitem [ref=e221]:
+                    - generic [ref=e222]:
+                      - generic [ref=e223]: W
+                      - generic [ref=e224]: Result Win
+                  - listitem [ref=e225]:
+                    - generic [ref=e226]:
+                      - generic [ref=e227]: W
+                      - generic [ref=e228]: Result Win
+                  - listitem [ref=e229]:
+                    - generic [ref=e230]:
+                      - generic [ref=e232]: W
+                      - generic [ref=e233]: Result Win
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e234]:
+              - cell "Team" [ref=e235]:
+                - generic [ref=e236]:
+                  - generic [ref=e237]: "2"
+                  - img [ref=e239]
+                  - link "Manchester City" [ref=e240] [cursor=pointer]:
+                    - /url: /sport/football/teams/manchester-city
+                    - generic [ref=e241]: Manchester City
+                    - generic [ref=e242]: Manchester City
+              - cell "Played" [ref=e243]: "29"
+              - cell "Won" [ref=e244]: "18"
+              - cell "Drawn" [ref=e245]: "6"
+              - cell "Lost" [ref=e246]: "5"
+              - cell "Goals For" [ref=e247]: "59"
+              - cell "Goals Against" [ref=e248]: "27"
+              - cell "Goal Difference" [ref=e249]: "32"
+              - cell "Points" [ref=e250]: "60"
+              - cell "Form, Last 6 games, Oldest first" [ref=e251]:
+                - list [ref=e252]:
+                  - listitem [ref=e253]:
+                    - generic [ref=e254]:
+                      - generic [ref=e255]: D
+                      - generic [ref=e256]: Result Draw
+                  - listitem [ref=e257]:
+                    - generic [ref=e258]:
+                      - generic [ref=e259]: W
+                      - generic [ref=e260]: Result Win
+                  - listitem [ref=e261]:
+                    - generic [ref=e262]:
+                      - generic [ref=e263]: W
+                      - generic [ref=e264]: Result Win
+                  - listitem [ref=e265]:
+                    - generic [ref=e266]:
+                      - generic [ref=e267]: W
+                      - generic [ref=e268]: Result Win
+                  - listitem [ref=e269]:
+                    - generic [ref=e270]:
+                      - generic [ref=e271]: W
+                      - generic [ref=e272]: Result Win
+                  - listitem [ref=e273]:
+                    - generic [ref=e274]:
+                      - generic [ref=e276]: D
+                      - generic [ref=e277]: Result Draw
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e278]:
+              - cell "Team" [ref=e279]:
+                - generic [ref=e280]:
+                  - generic [ref=e281]: "3"
+                  - img [ref=e283]
+                  - link "Manchester United" [ref=e284] [cursor=pointer]:
+                    - /url: /sport/football/teams/manchester-united
+                    - generic [ref=e285]: Manchester United
+                    - generic [ref=e286]: Manchester United
+              - cell "Played" [ref=e287]: "29"
+              - cell "Won" [ref=e288]: "14"
+              - cell "Drawn" [ref=e289]: "9"
+              - cell "Lost" [ref=e290]: "6"
+              - cell "Goals For" [ref=e291]: "51"
+              - cell "Goals Against" [ref=e292]: "40"
+              - cell "Goal Difference" [ref=e293]: "11"
+              - cell "Points" [ref=e294]: "51"
+              - cell "Form, Last 6 games, Oldest first" [ref=e295]:
+                - list [ref=e296]:
+                  - listitem [ref=e297]:
+                    - generic [ref=e298]:
+                      - generic [ref=e299]: W
+                      - generic [ref=e300]: Result Win
+                  - listitem [ref=e301]:
+                    - generic [ref=e302]:
+                      - generic [ref=e303]: W
+                      - generic [ref=e304]: Result Win
+                  - listitem [ref=e305]:
+                    - generic [ref=e306]:
+                      - generic [ref=e307]: D
+                      - generic [ref=e308]: Result Draw
+                  - listitem [ref=e309]:
+                    - generic [ref=e310]:
+                      - generic [ref=e311]: W
+                      - generic [ref=e312]: Result Win
+                  - listitem [ref=e313]:
+                    - generic [ref=e314]:
+                      - generic [ref=e315]: W
+                      - generic [ref=e316]: Result Win
+                  - listitem [ref=e317]:
+                    - generic [ref=e318]:
+                      - generic [ref=e320]: L
+                      - generic [ref=e321]: Result Loss
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e322]:
+              - cell "Team" [ref=e323]:
+                - generic [ref=e324]:
+                  - generic [ref=e325]: "4"
+                  - img [ref=e327]
+                  - link "Aston Villa" [ref=e328] [cursor=pointer]:
+                    - /url: /sport/football/teams/aston-villa
+                    - generic [ref=e329]: Aston Villa
+                    - generic [ref=e330]: Aston Villa
+              - cell "Played" [ref=e331]: "29"
+              - cell "Won" [ref=e332]: "15"
+              - cell "Drawn" [ref=e333]: "6"
+              - cell "Lost" [ref=e334]: "8"
+              - cell "Goals For" [ref=e335]: "39"
+              - cell "Goals Against" [ref=e336]: "34"
+              - cell "Goal Difference" [ref=e337]: "5"
+              - cell "Points" [ref=e338]: "51"
+              - cell "Form, Last 6 games, Oldest first" [ref=e339]:
+                - list [ref=e340]:
+                  - listitem [ref=e341]:
+                    - generic [ref=e342]:
+                      - generic [ref=e343]: L
+                      - generic [ref=e344]: Result Loss
+                  - listitem [ref=e345]:
+                    - generic [ref=e346]:
+                      - generic [ref=e347]: D
+                      - generic [ref=e348]: Result Draw
+                  - listitem [ref=e349]:
+                    - generic [ref=e350]:
+                      - generic [ref=e351]: W
+                      - generic [ref=e352]: Result Win
+                  - listitem [ref=e353]:
+                    - generic [ref=e354]:
+                      - generic [ref=e355]: D
+                      - generic [ref=e356]: Result Draw
+                  - listitem [ref=e357]:
+                    - generic [ref=e358]:
+                      - generic [ref=e359]: L
+                      - generic [ref=e360]: Result Loss
+                  - listitem [ref=e361]:
+                    - generic [ref=e362]:
+                      - generic [ref=e364]: L
+                      - generic [ref=e365]: Result Loss
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e366]:
+              - cell "Team" [ref=e367]:
+                - generic [ref=e368]:
+                  - generic [ref=e369]: "5"
+                  - img [ref=e371]
+                  - link "Chelsea" [ref=e372] [cursor=pointer]:
+                    - /url: /sport/football/teams/chelsea
+                    - generic [ref=e373]: Chelsea
+                    - generic [ref=e374]: Chelsea
+              - cell "Played" [ref=e375]: "29"
+              - cell "Won" [ref=e376]: "13"
+              - cell "Drawn" [ref=e377]: "9"
+              - cell "Lost" [ref=e378]: "7"
+              - cell "Goals For" [ref=e379]: "53"
+              - cell "Goals Against" [ref=e380]: "34"
+              - cell "Goal Difference" [ref=e381]: "19"
+              - cell "Points" [ref=e382]: "48"
+              - cell "Form, Last 6 games, Oldest first" [ref=e383]:
+                - list [ref=e384]:
+                  - listitem [ref=e385]:
+                    - generic [ref=e386]:
+                      - generic [ref=e387]: W
+                      - generic [ref=e388]: Result Win
+                  - listitem [ref=e389]:
+                    - generic [ref=e390]:
+                      - generic [ref=e391]: W
+                      - generic [ref=e392]: Result Win
+                  - listitem [ref=e393]:
+                    - generic [ref=e394]:
+                      - generic [ref=e395]: D
+                      - generic [ref=e396]: Result Draw
+                  - listitem [ref=e397]:
+                    - generic [ref=e398]:
+                      - generic [ref=e399]: D
+                      - generic [ref=e400]: Result Draw
+                  - listitem [ref=e401]:
+                    - generic [ref=e402]:
+                      - generic [ref=e403]: L
+                      - generic [ref=e404]: Result Loss
+                  - listitem [ref=e405]:
+                    - generic [ref=e406]:
+                      - generic [ref=e408]: W
+                      - generic [ref=e409]: Result Win
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e410]:
+              - cell "Team" [ref=e411]:
+                - generic [ref=e412]:
+                  - generic [ref=e413]: "6"
+                  - img [ref=e415]
+                  - link "Liverpool" [ref=e416] [cursor=pointer]:
+                    - /url: /sport/football/teams/liverpool
+                    - generic [ref=e417]: Liverpool
+                    - generic [ref=e418]: Liverpool
+              - cell "Played" [ref=e419]: "29"
+              - cell "Won" [ref=e420]: "14"
+              - cell "Drawn" [ref=e421]: "6"
+              - cell "Lost" [ref=e422]: "9"
+              - cell "Goals For" [ref=e423]: "48"
+              - cell "Goals Against" [ref=e424]: "39"
+              - cell "Goal Difference" [ref=e425]: "9"
+              - cell "Points" [ref=e426]: "48"
+              - cell "Form, Last 6 games, Oldest first" [ref=e427]:
+                - list [ref=e428]:
+                  - listitem [ref=e429]:
+                    - generic [ref=e430]:
+                      - generic [ref=e431]: W
+                      - generic [ref=e432]: Result Win
+                  - listitem [ref=e433]:
+                    - generic [ref=e434]:
+                      - generic [ref=e435]: L
+                      - generic [ref=e436]: Result Loss
+                  - listitem [ref=e437]:
+                    - generic [ref=e438]:
+                      - generic [ref=e439]: W
+                      - generic [ref=e440]: Result Win
+                  - listitem [ref=e441]:
+                    - generic [ref=e442]:
+                      - generic [ref=e443]: W
+                      - generic [ref=e444]: Result Win
+                  - listitem [ref=e445]:
+                    - generic [ref=e446]:
+                      - generic [ref=e447]: W
+                      - generic [ref=e448]: Result Win
+                  - listitem [ref=e449]:
+                    - generic [ref=e450]:
+                      - generic [ref=e452]: L
+                      - generic [ref=e453]: Result Loss
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e454]:
+              - cell "Team" [ref=e455]:
+                - generic [ref=e456]:
+                  - generic [ref=e457]: "7"
+                  - img [ref=e459]
+                  - link "Brentford" [ref=e460] [cursor=pointer]:
+                    - /url: /sport/football/teams/brentford
+                    - generic [ref=e461]: Brentford
+                    - generic [ref=e462]: Brentford
+              - cell "Played" [ref=e463]: "29"
+              - cell "Won" [ref=e464]: "13"
+              - cell "Drawn" [ref=e465]: "5"
+              - cell "Lost" [ref=e466]: "11"
+              - cell "Goals For" [ref=e467]: "44"
+              - cell "Goals Against" [ref=e468]: "40"
+              - cell "Goal Difference" [ref=e469]: "4"
+              - cell "Points" [ref=e470]: "44"
+              - cell "Form, Last 6 games, Oldest first" [ref=e471]:
+                - list [ref=e472]:
+                  - listitem [ref=e473]:
+                    - generic [ref=e474]:
+                      - generic [ref=e475]: W
+                      - generic [ref=e476]: Result Win
+                  - listitem [ref=e477]:
+                    - generic [ref=e478]:
+                      - generic [ref=e479]: W
+                      - generic [ref=e480]: Result Win
+                  - listitem [ref=e481]:
+                    - generic [ref=e482]:
+                      - generic [ref=e483]: D
+                      - generic [ref=e484]: Result Draw
+                  - listitem [ref=e485]:
+                    - generic [ref=e486]:
+                      - generic [ref=e487]: L
+                      - generic [ref=e488]: Result Loss
+                  - listitem [ref=e489]:
+                    - generic [ref=e490]:
+                      - generic [ref=e491]: W
+                      - generic [ref=e492]: Result Win
+                  - listitem [ref=e493]:
+                    - generic [ref=e494]:
+                      - generic [ref=e496]: D
+                      - generic [ref=e497]: Result Draw
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e498]:
+              - cell "Team" [ref=e499]:
+                - generic [ref=e500]:
+                  - generic [ref=e501]: "8"
+                  - img [ref=e503]
+                  - link "Everton" [ref=e504] [cursor=pointer]:
+                    - /url: /sport/football/teams/everton
+                    - generic [ref=e505]: Everton
+                    - generic [ref=e506]: Everton
+              - cell "Played" [ref=e507]: "29"
+              - cell "Won" [ref=e508]: "12"
+              - cell "Drawn" [ref=e509]: "7"
+              - cell "Lost" [ref=e510]: "10"
+              - cell "Goals For" [ref=e511]: "34"
+              - cell "Goals Against" [ref=e512]: "33"
+              - cell "Goal Difference" [ref=e513]: "1"
+              - cell "Points" [ref=e514]: "43"
+              - cell "Form, Last 6 games, Oldest first" [ref=e515]:
+                - list [ref=e516]:
+                  - listitem [ref=e517]:
+                    - generic [ref=e518]:
+                      - generic [ref=e519]: D
+                      - generic [ref=e520]: Result Draw
+                  - listitem [ref=e521]:
+                    - generic [ref=e522]:
+                      - generic [ref=e523]: W
+                      - generic [ref=e524]: Result Win
+                  - listitem [ref=e525]:
+                    - generic [ref=e526]:
+                      - generic [ref=e527]: L
+                      - generic [ref=e528]: Result Loss
+                  - listitem [ref=e529]:
+                    - generic [ref=e530]:
+                      - generic [ref=e531]: L
+                      - generic [ref=e532]: Result Loss
+                  - listitem [ref=e533]:
+                    - generic [ref=e534]:
+                      - generic [ref=e535]: W
+                      - generic [ref=e536]: Result Win
+                  - listitem [ref=e537]:
+                    - generic [ref=e538]:
+                      - generic [ref=e540]: W
+                      - generic [ref=e541]: Result Win
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e542]:
+              - cell "Team" [ref=e543]:
+                - generic [ref=e544]:
+                  - generic [ref=e545]: "9"
+                  - img [ref=e547]
+                  - link "AFC Bournemouth" [ref=e548] [cursor=pointer]:
+                    - /url: /sport/football/teams/afc-bournemouth
+                    - generic [ref=e549]: AFC Bournemouth
+                    - generic [ref=e550]: AFC Bournemouth
+              - cell "Played" [ref=e551]: "29"
+              - cell "Won" [ref=e552]: "9"
+              - cell "Drawn" [ref=e553]: "13"
+              - cell "Lost" [ref=e554]: "7"
+              - cell "Goals For" [ref=e555]: "44"
+              - cell "Goals Against" [ref=e556]: "46"
+              - cell "Goal Difference" [ref=e557]: "-2"
+              - cell "Points" [ref=e558]: "40"
+              - cell "Form, Last 6 games, Oldest first" [ref=e559]:
+                - list [ref=e560]:
+                  - listitem [ref=e561]:
+                    - generic [ref=e562]:
+                      - generic [ref=e563]: W
+                      - generic [ref=e564]: Result Win
+                  - listitem [ref=e565]:
+                    - generic [ref=e566]:
+                      - generic [ref=e567]: D
+                      - generic [ref=e568]: Result Draw
+                  - listitem [ref=e569]:
+                    - generic [ref=e570]:
+                      - generic [ref=e571]: W
+                      - generic [ref=e572]: Result Win
+                  - listitem [ref=e573]:
+                    - generic [ref=e574]:
+                      - generic [ref=e575]: D
+                      - generic [ref=e576]: Result Draw
+                  - listitem [ref=e577]:
+                    - generic [ref=e578]:
+                      - generic [ref=e579]: D
+                      - generic [ref=e580]: Result Draw
+                  - listitem [ref=e581]:
+                    - generic [ref=e582]:
+                      - generic [ref=e584]: D
+                      - generic [ref=e585]: Result Draw
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e586]:
+              - cell "Team" [ref=e587]:
+                - generic [ref=e588]:
+                  - generic [ref=e589]: "10"
+                  - img [ref=e591]
+                  - link "Fulham" [ref=e592] [cursor=pointer]:
+                    - /url: /sport/football/teams/fulham
+                    - generic [ref=e593]: Fulham
+                    - generic [ref=e594]: Fulham
+              - cell "Played" [ref=e595]: "29"
+              - cell "Won" [ref=e596]: "12"
+              - cell "Drawn" [ref=e597]: "4"
+              - cell "Lost" [ref=e598]: "13"
+              - cell "Goals For" [ref=e599]: "40"
+              - cell "Goals Against" [ref=e600]: "43"
+              - cell "Goal Difference" [ref=e601]: "-3"
+              - cell "Points" [ref=e602]: "40"
+              - cell "Form, Last 6 games, Oldest first" [ref=e603]:
+                - list [ref=e604]:
+                  - listitem [ref=e605]:
+                    - generic [ref=e606]:
+                      - generic [ref=e607]: L
+                      - generic [ref=e608]: Result Loss
+                  - listitem [ref=e609]:
+                    - generic [ref=e610]:
+                      - generic [ref=e611]: L
+                      - generic [ref=e612]: Result Loss
+                  - listitem [ref=e613]:
+                    - generic [ref=e614]:
+                      - generic [ref=e615]: L
+                      - generic [ref=e616]: Result Loss
+                  - listitem [ref=e617]:
+                    - generic [ref=e618]:
+                      - generic [ref=e619]: W
+                      - generic [ref=e620]: Result Win
+                  - listitem [ref=e621]:
+                    - generic [ref=e622]:
+                      - generic [ref=e623]: W
+                      - generic [ref=e624]: Result Win
+                  - listitem [ref=e625]:
+                    - generic [ref=e626]:
+                      - generic [ref=e628]: L
+                      - generic [ref=e629]: Result Loss
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e630]:
+              - cell "Team" [ref=e631]:
+                - generic [ref=e632]:
+                  - generic [ref=e633]: "11"
+                  - img [ref=e635]
+                  - link "Sunderland" [ref=e636] [cursor=pointer]:
+                    - /url: /sport/football/teams/sunderland
+                    - generic [ref=e637]: Sunderland
+                    - generic [ref=e638]: Sunderland
+              - cell "Played" [ref=e639]: "29"
+              - cell "Won" [ref=e640]: "10"
+              - cell "Drawn" [ref=e641]: "10"
+              - cell "Lost" [ref=e642]: "9"
+              - cell "Goals For" [ref=e643]: "30"
+              - cell "Goals Against" [ref=e644]: "34"
+              - cell "Goal Difference" [ref=e645]: "-4"
+              - cell "Points" [ref=e646]: "40"
+              - cell "Form, Last 6 games, Oldest first" [ref=e647]:
+                - list [ref=e648]:
+                  - listitem [ref=e649]:
+                    - generic [ref=e650]:
+                      - generic [ref=e651]: W
+                      - generic [ref=e652]: Result Win
+                  - listitem [ref=e653]:
+                    - generic [ref=e654]:
+                      - generic [ref=e655]: L
+                      - generic [ref=e656]: Result Loss
+                  - listitem [ref=e657]:
+                    - generic [ref=e658]:
+                      - generic [ref=e659]: L
+                      - generic [ref=e660]: Result Loss
+                  - listitem [ref=e661]:
+                    - generic [ref=e662]:
+                      - generic [ref=e663]: L
+                      - generic [ref=e664]: Result Loss
+                  - listitem [ref=e665]:
+                    - generic [ref=e666]:
+                      - generic [ref=e667]: D
+                      - generic [ref=e668]: Result Draw
+                  - listitem [ref=e669]:
+                    - generic [ref=e670]:
+                      - generic [ref=e672]: W
+                      - generic [ref=e673]: Result Win
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e674]:
+              - cell "Team" [ref=e675]:
+                - generic [ref=e676]:
+                  - generic [ref=e677]: "12"
+                  - img [ref=e679]
+                  - link "Newcastle United" [ref=e680] [cursor=pointer]:
+                    - /url: /sport/football/teams/newcastle-united
+                    - generic [ref=e681]: Newcastle United
+                    - generic [ref=e682]: Newcastle United
+              - cell "Played" [ref=e683]: "29"
+              - cell "Won" [ref=e684]: "11"
+              - cell "Drawn" [ref=e685]: "6"
+              - cell "Lost" [ref=e686]: "12"
+              - cell "Goals For" [ref=e687]: "42"
+              - cell "Goals Against" [ref=e688]: "43"
+              - cell "Goal Difference" [ref=e689]: "-1"
+              - cell "Points" [ref=e690]: "39"
+              - cell "Form, Last 6 games, Oldest first" [ref=e691]:
+                - list [ref=e692]:
+                  - listitem [ref=e693]:
+                    - generic [ref=e694]:
+                      - generic [ref=e695]: L
+                      - generic [ref=e696]: Result Loss
+                  - listitem [ref=e697]:
+                    - generic [ref=e698]:
+                      - generic [ref=e699]: L
+                      - generic [ref=e700]: Result Loss
+                  - listitem [ref=e701]:
+                    - generic [ref=e702]:
+                      - generic [ref=e703]: W
+                      - generic [ref=e704]: Result Win
+                  - listitem [ref=e705]:
+                    - generic [ref=e706]:
+                      - generic [ref=e707]: L
+                      - generic [ref=e708]: Result Loss
+                  - listitem [ref=e709]:
+                    - generic [ref=e710]:
+                      - generic [ref=e711]: L
+                      - generic [ref=e712]: Result Loss
+                  - listitem [ref=e713]:
+                    - generic [ref=e714]:
+                      - generic [ref=e716]: W
+                      - generic [ref=e717]: Result Win
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e718]:
+              - cell "Team" [ref=e719]:
+                - generic [ref=e720]:
+                  - generic [ref=e721]: "13"
+                  - img [ref=e723]
+                  - link "Crystal Palace" [ref=e724] [cursor=pointer]:
+                    - /url: /sport/football/teams/crystal-palace
+                    - generic [ref=e725]: Crystal Palace
+                    - generic [ref=e726]: Crystal Palace
+              - cell "Played" [ref=e727]: "29"
+              - cell "Won" [ref=e728]: "10"
+              - cell "Drawn" [ref=e729]: "8"
+              - cell "Lost" [ref=e730]: "11"
+              - cell "Goals For" [ref=e731]: "33"
+              - cell "Goals Against" [ref=e732]: "35"
+              - cell "Goal Difference" [ref=e733]: "-2"
+              - cell "Points" [ref=e734]: "38"
+              - cell "Form, Last 6 games, Oldest first" [ref=e735]:
+                - list [ref=e736]:
+                  - listitem [ref=e737]:
+                    - generic [ref=e738]:
+                      - generic [ref=e739]: D
+                      - generic [ref=e740]: Result Draw
+                  - listitem [ref=e741]:
+                    - generic [ref=e742]:
+                      - generic [ref=e743]: W
+                      - generic [ref=e744]: Result Win
+                  - listitem [ref=e745]:
+                    - generic [ref=e746]:
+                      - generic [ref=e747]: L
+                      - generic [ref=e748]: Result Loss
+                  - listitem [ref=e749]:
+                    - generic [ref=e750]:
+                      - generic [ref=e751]: W
+                      - generic [ref=e752]: Result Win
+                  - listitem [ref=e753]:
+                    - generic [ref=e754]:
+                      - generic [ref=e755]: L
+                      - generic [ref=e756]: Result Loss
+                  - listitem [ref=e757]:
+                    - generic [ref=e758]:
+                      - generic [ref=e760]: W
+                      - generic [ref=e761]: Result Win
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e762]:
+              - cell "Team" [ref=e763]:
+                - generic [ref=e764]:
+                  - generic [ref=e765]: "14"
+                  - img [ref=e767]
+                  - link "Brighton & Hove Albion" [ref=e768] [cursor=pointer]:
+                    - /url: /sport/football/teams/brighton-and-hove-albion
+                    - generic [ref=e769]: Brighton & Hove Albion
+                    - generic [ref=e770]: Brighton & Hove Albion
+              - cell "Played" [ref=e771]: "29"
+              - cell "Won" [ref=e772]: "9"
+              - cell "Drawn" [ref=e773]: "10"
+              - cell "Lost" [ref=e774]: "10"
+              - cell "Goals For" [ref=e775]: "38"
+              - cell "Goals Against" [ref=e776]: "36"
+              - cell "Goal Difference" [ref=e777]: "2"
+              - cell "Points" [ref=e778]: "37"
+              - cell "Form, Last 6 games, Oldest first" [ref=e779]:
+                - list [ref=e780]:
+                  - listitem [ref=e781]:
+                    - generic [ref=e782]:
+                      - generic [ref=e783]: D
+                      - generic [ref=e784]: Result Draw
+                  - listitem [ref=e785]:
+                    - generic [ref=e786]:
+                      - generic [ref=e787]: L
+                      - generic [ref=e788]: Result Loss
+                  - listitem [ref=e789]:
+                    - generic [ref=e790]:
+                      - generic [ref=e791]: L
+                      - generic [ref=e792]: Result Loss
+                  - listitem [ref=e793]:
+                    - generic [ref=e794]:
+                      - generic [ref=e795]: W
+                      - generic [ref=e796]: Result Win
+                  - listitem [ref=e797]:
+                    - generic [ref=e798]:
+                      - generic [ref=e799]: W
+                      - generic [ref=e800]: Result Win
+                  - listitem [ref=e801]:
+                    - generic [ref=e802]:
+                      - generic [ref=e804]: L
+                      - generic [ref=e805]: Result Loss
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e806]:
+              - cell "Team" [ref=e807]:
+                - generic [ref=e808]:
+                  - generic [ref=e809]: "15"
+                  - img [ref=e811]
+                  - link "Leeds United" [ref=e812] [cursor=pointer]:
+                    - /url: /sport/football/teams/leeds-united
+                    - generic [ref=e813]: Leeds United
+                    - generic [ref=e814]: Leeds United
+              - cell "Played" [ref=e815]: "29"
+              - cell "Won" [ref=e816]: "7"
+              - cell "Drawn" [ref=e817]: "10"
+              - cell "Lost" [ref=e818]: "12"
+              - cell "Goals For" [ref=e819]: "37"
+              - cell "Goals Against" [ref=e820]: "48"
+              - cell "Goal Difference" [ref=e821]: "-11"
+              - cell "Points" [ref=e822]: "31"
+              - cell "Form, Last 6 games, Oldest first" [ref=e823]:
+                - list [ref=e824]:
+                  - listitem [ref=e825]:
+                    - generic [ref=e826]:
+                      - generic [ref=e827]: L
+                      - generic [ref=e828]: Result Loss
+                  - listitem [ref=e829]:
+                    - generic [ref=e830]:
+                      - generic [ref=e831]: W
+                      - generic [ref=e832]: Result Win
+                  - listitem [ref=e833]:
+                    - generic [ref=e834]:
+                      - generic [ref=e835]: D
+                      - generic [ref=e836]: Result Draw
+                  - listitem [ref=e837]:
+                    - generic [ref=e838]:
+                      - generic [ref=e839]: D
+                      - generic [ref=e840]: Result Draw
+                  - listitem [ref=e841]:
+                    - generic [ref=e842]:
+                      - generic [ref=e843]: L
+                      - generic [ref=e844]: Result Loss
+                  - listitem [ref=e845]:
+                    - generic [ref=e846]:
+                      - generic [ref=e848]: L
+                      - generic [ref=e849]: Result Loss
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e850]:
+              - cell "Team" [ref=e851]:
+                - generic [ref=e852]:
+                  - generic [ref=e853]: "16"
+                  - img [ref=e855]
+                  - link "Tottenham Hotspur" [ref=e856] [cursor=pointer]:
+                    - /url: /sport/football/teams/tottenham-hotspur
+                    - generic [ref=e857]: Tottenham Hotspur
+                    - generic [ref=e858]: Tottenham Hotspur
+              - cell "Played" [ref=e859]: "29"
+              - cell "Won" [ref=e860]: "7"
+              - cell "Drawn" [ref=e861]: "8"
+              - cell "Lost" [ref=e862]: "14"
+              - cell "Goals For" [ref=e863]: "39"
+              - cell "Goals Against" [ref=e864]: "46"
+              - cell "Goal Difference" [ref=e865]: "-7"
+              - cell "Points" [ref=e866]: "29"
+              - cell "Form, Last 6 games, Oldest first" [ref=e867]:
+                - list [ref=e868]:
+                  - listitem [ref=e869]:
+                    - generic [ref=e870]:
+                      - generic [ref=e871]: D
+                      - generic [ref=e872]: Result Draw
+                  - listitem [ref=e873]:
+                    - generic [ref=e874]:
+                      - generic [ref=e875]: L
+                      - generic [ref=e876]: Result Loss
+                  - listitem [ref=e877]:
+                    - generic [ref=e878]:
+                      - generic [ref=e879]: L
+                      - generic [ref=e880]: Result Loss
+                  - listitem [ref=e881]:
+                    - generic [ref=e882]:
+                      - generic [ref=e883]: L
+                      - generic [ref=e884]: Result Loss
+                  - listitem [ref=e885]:
+                    - generic [ref=e886]:
+                      - generic [ref=e887]: L
+                      - generic [ref=e888]: Result Loss
+                  - listitem [ref=e889]:
+                    - generic [ref=e890]:
+                      - generic [ref=e892]: L
+                      - generic [ref=e893]: Result Loss
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e894]:
+              - cell "Team" [ref=e895]:
+                - generic [ref=e896]:
+                  - generic [ref=e897]: "17"
+                  - img [ref=e899]
+                  - link "Nottingham Forest" [ref=e900] [cursor=pointer]:
+                    - /url: /sport/football/teams/nottingham-forest
+                    - generic [ref=e901]: Nottingham Forest
+                    - generic [ref=e902]: Nottingham Forest
+              - cell "Played" [ref=e903]: "29"
+              - cell "Won" [ref=e904]: "7"
+              - cell "Drawn" [ref=e905]: "7"
+              - cell "Lost" [ref=e906]: "15"
+              - cell "Goals For" [ref=e907]: "28"
+              - cell "Goals Against" [ref=e908]: "43"
+              - cell "Goal Difference" [ref=e909]: "-15"
+              - cell "Points" [ref=e910]: "28"
+              - cell "Form, Last 6 games, Oldest first" [ref=e911]:
+                - list [ref=e912]:
+                  - listitem [ref=e913]:
+                    - generic [ref=e914]:
+                      - generic [ref=e915]: D
+                      - generic [ref=e916]: Result Draw
+                  - listitem [ref=e917]:
+                    - generic [ref=e918]:
+                      - generic [ref=e919]: L
+                      - generic [ref=e920]: Result Loss
+                  - listitem [ref=e921]:
+                    - generic [ref=e922]:
+                      - generic [ref=e923]: D
+                      - generic [ref=e924]: Result Draw
+                  - listitem [ref=e925]:
+                    - generic [ref=e926]:
+                      - generic [ref=e927]: L
+                      - generic [ref=e928]: Result Loss
+                  - listitem [ref=e929]:
+                    - generic [ref=e930]:
+                      - generic [ref=e931]: L
+                      - generic [ref=e932]: Result Loss
+                  - listitem [ref=e933]:
+                    - generic [ref=e934]:
+                      - generic [ref=e936]: D
+                      - generic [ref=e937]: Result Draw
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e938]:
+              - cell "Team" [ref=e939]:
+                - generic [ref=e940]:
+                  - generic [ref=e941]: "18"
+                  - img [ref=e943]
+                  - link "West Ham United" [ref=e944] [cursor=pointer]:
+                    - /url: /sport/football/teams/west-ham-united
+                    - generic [ref=e945]: West Ham United
+                    - generic [ref=e946]: West Ham United
+              - cell "Played" [ref=e947]: "29"
+              - cell "Won" [ref=e948]: "7"
+              - cell "Drawn" [ref=e949]: "7"
+              - cell "Lost" [ref=e950]: "15"
+              - cell "Goals For" [ref=e951]: "35"
+              - cell "Goals Against" [ref=e952]: "54"
+              - cell "Goal Difference" [ref=e953]: "-19"
+              - cell "Points" [ref=e954]: "28"
+              - cell "Form, Last 6 games, Oldest first" [ref=e955]:
+                - list [ref=e956]:
+                  - listitem [ref=e957]:
+                    - generic [ref=e958]:
+                      - generic [ref=e959]: L
+                      - generic [ref=e960]: Result Loss
+                  - listitem [ref=e961]:
+                    - generic [ref=e962]:
+                      - generic [ref=e963]: W
+                      - generic [ref=e964]: Result Win
+                  - listitem [ref=e965]:
+                    - generic [ref=e966]:
+                      - generic [ref=e967]: D
+                      - generic [ref=e968]: Result Draw
+                  - listitem [ref=e969]:
+                    - generic [ref=e970]:
+                      - generic [ref=e971]: D
+                      - generic [ref=e972]: Result Draw
+                  - listitem [ref=e973]:
+                    - generic [ref=e974]:
+                      - generic [ref=e975]: L
+                      - generic [ref=e976]: Result Loss
+                  - listitem [ref=e977]:
+                    - generic [ref=e978]:
+                      - generic [ref=e980]: W
+                      - generic [ref=e981]: Result Win
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e982]:
+              - cell "Team" [ref=e983]:
+                - generic [ref=e984]:
+                  - generic [ref=e985]: "19"
+                  - img [ref=e987]
+                  - link "Burnley" [ref=e988] [cursor=pointer]:
+                    - /url: /sport/football/teams/burnley
+                    - generic [ref=e989]: Burnley
+                    - generic [ref=e990]: Burnley
+              - cell "Played" [ref=e991]: "29"
+              - cell "Won" [ref=e992]: "4"
+              - cell "Drawn" [ref=e993]: "7"
+              - cell "Lost" [ref=e994]: "18"
+              - cell "Goals For" [ref=e995]: "32"
+              - cell "Goals Against" [ref=e996]: "58"
+              - cell "Goal Difference" [ref=e997]: "-26"
+              - cell "Points" [ref=e998]: "19"
+              - cell "Form, Last 6 games, Oldest first" [ref=e999]:
+                - list [ref=e1000]:
+                  - listitem [ref=e1001]:
+                    - generic [ref=e1002]:
+                      - generic [ref=e1003]: L
+                      - generic [ref=e1004]: Result Loss
+                  - listitem [ref=e1005]:
+                    - generic [ref=e1006]:
+                      - generic [ref=e1007]: L
+                      - generic [ref=e1008]: Result Loss
+                  - listitem [ref=e1009]:
+                    - generic [ref=e1010]:
+                      - generic [ref=e1011]: W
+                      - generic [ref=e1012]: Result Win
+                  - listitem [ref=e1013]:
+                    - generic [ref=e1014]:
+                      - generic [ref=e1015]: D
+                      - generic [ref=e1016]: Result Draw
+                  - listitem [ref=e1017]:
+                    - generic [ref=e1018]:
+                      - generic [ref=e1019]: L
+                      - generic [ref=e1020]: Result Loss
+                  - listitem [ref=e1021]:
+                    - generic [ref=e1022]:
+                      - generic [ref=e1024]: L
+                      - generic [ref=e1025]: Result Loss
+            - row "Team Played Won Drawn Lost Goals For Goals Against Goal Difference Points Form, Last 6 games, Oldest first" [ref=e1026]:
+              - cell "Team" [ref=e1027]:
+                - generic [ref=e1028]:
+                  - generic [ref=e1029]: "20"
+                  - img [ref=e1031]
+                  - link "Wolverhampton Wanderers" [ref=e1032] [cursor=pointer]:
+                    - /url: /sport/football/teams/wolverhampton-wanderers
+                    - generic [ref=e1033]: Wolverhampton Wanderers
+                    - generic [ref=e1034]: Wolverhampton Wanderers
+              - cell "Played" [ref=e1035]: "30"
+              - cell "Won" [ref=e1036]: "3"
+              - cell "Drawn" [ref=e1037]: "7"
+              - cell "Lost" [ref=e1038]: "20"
+              - cell "Goals For" [ref=e1039]: "22"
+              - cell "Goals Against" [ref=e1040]: "52"
+              - cell "Goal Difference" [ref=e1041]: "-30"
+              - cell "Points" [ref=e1042]: "16"
+              - cell "Form, Last 6 games, Oldest first" [ref=e1043]:
+                - list [ref=e1044]:
+                  - listitem [ref=e1045]:
+                    - generic [ref=e1046]:
+                      - generic [ref=e1047]: L
+                      - generic [ref=e1048]: Result Loss
+                  - listitem [ref=e1049]:
+                    - generic [ref=e1050]:
+                      - generic [ref=e1051]: D
+                      - generic [ref=e1052]: Result Draw
+                  - listitem [ref=e1053]:
+                    - generic [ref=e1054]:
+                      - generic [ref=e1055]: D
+                      - generic [ref=e1056]: Result Draw
+                  - listitem [ref=e1057]:
+                    - generic [ref=e1058]:
+                      - generic [ref=e1059]: L
+                      - generic [ref=e1060]: Result Loss
+                  - listitem [ref=e1061]:
+                    - generic [ref=e1062]:
+                      - generic [ref=e1063]: W
+                      - generic [ref=e1064]: Result Win
+                  - listitem [ref=e1065]:
+                    - generic [ref=e1066]:
+                      - generic [ref=e1068]: W
+                      - generic [ref=e1069]: Result Win
+        - generic [ref=e1071]:
+          - generic [ref=e1072]:
+            - heading "Key" [level=2] [ref=e1073]
+            - list [ref=e1074]:
+              - listitem [ref=e1075]:
+                - generic [ref=e1076]:
+                  - text: Position 1, 2, 3, 4
+                  - generic [ref=e1077]: ": UEFA Champions League"
+              - listitem [ref=e1078]:
+                - generic [ref=e1079]:
+                  - text: Position 5
+                  - generic [ref=e1080]: ": UEFA Europa League"
+              - listitem [ref=e1081]:
+                - generic [ref=e1082]:
+                  - text: Position 18, 19, 20
+                  - generic [ref=e1083]: ": Relegation"
+          - paragraph [ref=e1085]: Last Updated 9th March 2026 at 12:25
+      - paragraph [ref=e1087]: "Please Note: All times UK. Tables are subject to change. The BBC is not responsible for any changes that may be made."
+  - contentinfo [ref=e1090]:
+    - generic [ref=e1093]:
+      - list [ref=e1094]:
+        - listitem [ref=e1095]:
+          - link "Home" [ref=e1096] [cursor=pointer]:
+            - /url: https://www.bbc.com
+        - listitem [ref=e1097]:
+          - link "News" [ref=e1098] [cursor=pointer]:
+            - /url: https://www.bbc.com/news
+        - listitem [ref=e1099]:
+          - link "Sport" [ref=e1100] [cursor=pointer]:
+            - /url: https://www.bbc.com/sport
+        - listitem [ref=e1101]:
+          - link "Business" [ref=e1102] [cursor=pointer]:
+            - /url: https://www.bbc.com/business
+        - listitem [ref=e1103]:
+          - link "Innovation" [ref=e1104] [cursor=pointer]:
+            - /url: https://www.bbc.com/innovation
+        - listitem [ref=e1105]:
+          - link "Culture" [ref=e1106] [cursor=pointer]:
+            - /url: https://www.bbc.com/culture
+        - listitem [ref=e1107]:
+          - link "Travel" [ref=e1108] [cursor=pointer]:
+            - /url: https://www.bbc.com/travel
+        - listitem [ref=e1109]:
+          - link "Earth" [ref=e1110] [cursor=pointer]:
+            - /url: https://www.bbc.com/future-planet
+        - listitem [ref=e1111]:
+          - link "Audio" [ref=e1112] [cursor=pointer]:
+            - /url: https://www.bbc.com/audio
+        - listitem [ref=e1113]:
+          - link "Video" [ref=e1114] [cursor=pointer]:
+            - /url: https://www.bbc.com/video
+        - listitem [ref=e1115]:
+          - link "Live" [ref=e1116] [cursor=pointer]:
+            - /url: https://www.bbc.com/live
+      - generic [ref=e1117]:
+        - list [ref=e1119]:
+          - listitem [ref=e1120]:
+            - link "Terms of Use" [ref=e1121] [cursor=pointer]:
+              - /url: https://www.bbc.com/pages/terms-of-use
+          - listitem [ref=e1122]:
+            - link "About the BBC" [ref=e1123] [cursor=pointer]:
+              - /url: https://www.bbc.co.uk/aboutthebbc
+          - listitem [ref=e1124]:
+            - link "Privacy Policy" [ref=e1125] [cursor=pointer]:
+              - /url: https://www.bbc.com/pages/privacy-policy
+          - listitem [ref=e1126]:
+            - link "Cookies" [ref=e1127] [cursor=pointer]:
+              - /url: https://www.bbc.com/usingthebbc/cookies
+          - listitem [ref=e1128]:
+            - link "Accessibility Help" [ref=e1129] [cursor=pointer]:
+              - /url: https://www.bbc.co.uk/accessibility
+          - listitem [ref=e1130]:
+            - link "Parental Guidance" [ref=e1131] [cursor=pointer]:
+              - /url: https://www.bbc.co.uk/iplayer/guidance
+          - listitem [ref=e1132]:
+            - link "Contact the BBC" [ref=e1133] [cursor=pointer]:
+              - /url: https://www.bbc.co.uk/contact
+          - listitem [ref=e1134]:
+            - link "BBC emails for you" [ref=e1135] [cursor=pointer]:
+              - /url: https://www.bbc.co.uk/bbcnewsletter
+          - listitem [ref=e1136]:
+            - link "Advertise with us" [ref=e1137] [cursor=pointer]:
+              - /url: https://www.bbc.com/advertisingcontact/
+          - listitem [ref=e1138]:
+            - button "Do not share or sell my info" [ref=e1139] [cursor=pointer]
+        - paragraph [ref=e1140]:
+          - text: Copyright © 2026 BBC. The BBC is not responsible for the content of external sites.
+          - link "Read about our approach to external linking." [ref=e1141] [cursor=pointer]:
+            - /url: https://www.bbc.co.uk/editorialguidelines/guidance/feeds-and-links

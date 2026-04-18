@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Man Utd News</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <div class="devil-icon">⚽</div>
+        <h1>Manchester United</h1>
+        <p class="tagline">Latest News & Updates</p>
+      </div>
+      <div class="date-time">
+        <span id="current-date"></span>
+        <span id="current-time"></span>
+      </div>
+    </header>
+
+    <main>
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading latest news...</p>
+      </div>
+
+      <div id="error" class="error" style="display: none;">
+        <p>⚠️ Unable to fetch news. Please check your internet connection.</p>
+        <button onclick="fetchAllNews()">Try Again</button>
+      </div>
+
+      <div id="news-grid" class="news-grid"></div>
+    </main>
+
+    <footer>
+      <p>Glory Glory Man United! 🔴</p>
+      <button class="refresh-btn" onclick="fetchAllNews()">🔄 Refresh News</button>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

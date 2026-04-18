@@ -94,6 +94,39 @@
             "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/pre_compact.py"
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git rev-parse --is-inside-work-tree 2>/dev/null && git add -A && git commit -m \"pre-compact checkpoint\" 2>/dev/null || true",
+            "statusMessage": "Saving git checkpoint before compact..."
+          }
+        ]
+      }
+    ],
+    "CwdChanged": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "test -f .envrc && direnv allow . 2>/dev/null; true",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PermissionDenied": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"retry\": true}'"
+          }
+        ]
       }
     ],
     "SessionStart": [
