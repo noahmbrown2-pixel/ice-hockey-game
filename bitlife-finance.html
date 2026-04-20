@@ -109,6 +109,7 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 .act-btn.crypto{border-color:var(--purple)}
 .act-btn.hustle{border-color:#80cbc4}
 .act-btn.edu{border-color:#ef9a9a}
+.act-btn.biz{border-color:#ffb74d}
 .act-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
 
 /* Chart Area */
@@ -125,24 +126,21 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 .tl-age{font-size:10px;color:var(--muted);flex-shrink:0;min-width:22px}
 .tl-text{font-size:11px;line-height:1.4}
 
-/* ── INBOX PANEL ── */
-#inbox-panel{width:240px;display:flex;flex-direction:column;background:var(--bg);border-left:1px solid var(--border);overflow:hidden;flex-shrink:0}
-#inbox-hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg2);border-bottom:1px solid var(--border)}
-.inbox-title{font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.4px}
-#inbox-badge{min-width:20px;height:18px;border-radius:10px;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:0 6px;display:none;align-items:center;justify-content:center}
-#inbox-badge.show{display:flex}
-#inbox-list{flex:1;overflow-y:auto;padding:6px}
-.inbox-item{padding:8px 10px;margin-bottom:5px;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all var(--t);background:var(--bg2)}
-.inbox-item:hover{border-color:var(--gold-dim);transform:translateX(-2px)}
+/* ── INBOX (inside actions area) ── */
+.act-btn.inbox{border-color:var(--gold);color:var(--gold)}
+.act-btn.inbox:hover{background:linear-gradient(135deg,var(--bg3),rgba(255,215,0,.08))}
+.inbox-badge-btn{position:absolute;top:4px;right:6px;min-width:18px;height:16px;border-radius:9px;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:0 5px;display:none;align-items:center;justify-content:center}
+.inbox-badge-btn.show{display:flex}
+.inbox-item{padding:10px 12px;margin-bottom:6px;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all var(--t);background:var(--bg2);text-align:left}
+.inbox-item:hover{border-color:var(--gold-dim)}
 .inbox-item.unread{border-left:3px solid var(--gold)}
 .inbox-item.read{opacity:.55}
 .inbox-item.bill{border-left-color:var(--orange)}
 .inbox-item.news{border-left-color:var(--blue)}
 .ii-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
 .ii-date{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
-.ii-subject{font-size:11.5px;font-weight:600;line-height:1.35}
-.ii-preview{font-size:10px;color:var(--muted);line-height:1.3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:1100px){#inbox-panel{display:none}}
+.ii-subject{font-size:12px;font-weight:600;line-height:1.35}
+.ii-preview{font-size:10.5px;color:var(--muted);line-height:1.3;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* Tab Panels Content */
 .section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:10px}
@@ -337,9 +335,12 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
         <div class="section">
           <h3>Career</h3>
           <div class="info-row"><span class="ir-label">Job</span><span class="ir-value" id="li-job">Unemployed</span></div>
-          <div class="info-row"><span class="ir-label">Salary</span><span class="ir-value pos" id="li-salary">$0/yr</span></div>
+          <div class="info-row"><span class="ir-label">Job Salary</span><span class="ir-value pos" id="li-salary">$0/yr</span></div>
+          <div class="info-row"><span class="ir-label">Side Hustle Income</span><span class="ir-value pos" id="li-side">$0/yr</span></div>
+          <div class="info-row"><span class="ir-label">Total Income</span><span class="ir-value pos" id="li-total-inc">$0/yr</span></div>
           <div class="info-row"><span class="ir-label">Years at Job</span><span class="ir-value" id="li-yrs">0</span></div>
           <div class="info-row"><span class="ir-label">Performance</span><span class="ir-value" id="li-perf">—</span></div>
+          <div class="info-row"><span class="ir-label">Boss Morale</span><span class="ir-value" id="li-morale">—</span></div>
         </div>
         <div class="section">
           <h3>Recent Events</h3>
@@ -454,6 +455,8 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
         <button class="act-btn crypto" id="btn-crypto"><span class="aico">₿</span>Crypto</button>
         <button class="act-btn hustle" id="btn-hustle"><span class="aico">⚡</span>Side Hustle</button>
         <button class="act-btn edu"    id="btn-edu"><span class="aico">🎓</span>Education</button>
+        <button class="act-btn biz"    id="btn-biz"><span class="aico">🏢</span>Business</button>
+        <button class="act-btn inbox"  id="btn-inbox" style="grid-column:1/-1;position:relative"><span class="aico">📬</span>Inbox<span id="inbox-badge" class="inbox-badge-btn">0</span></button>
       </div>
       <div id="chart-area">
         <div id="chart-label">Net Worth History</div>
@@ -465,16 +468,6 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
       </div>
     </div>
 
-    <!-- INBOX PANEL: news & bills -->
-    <div id="inbox-panel">
-      <div id="inbox-hdr">
-        <span class="inbox-title">📬 Inbox</span>
-        <span id="inbox-badge">0</span>
-      </div>
-      <div id="inbox-list">
-        <div style="color:var(--muted);font-size:11px;text-align:center;padding:20px 10px">Age +1 month to receive mail.</div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -522,6 +515,7 @@ const GS = {
   pendingEvents: [],
   scenario: 'middle',
   inbox: [],     // news & bills
+  billAccum: [], // bills accumulated for next 6-month receipt
 };
 
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -554,6 +548,37 @@ const NEWS_HEADLINES = [
   {icon:'🚗',subject:'EV Tax Credits Revised',body:'Federal EV credit rules update eligibility. Income caps and domestic-battery requirements affect 2026 model-year buyers.'},
   {icon:'₿',subject:'Crypto Regulation Advances',body:'Lawmakers advance stablecoin framework. Exchanges brace for new compliance rules. Institutional flows continue rising.'},
 ];
+
+// Random downsides — 3% monthly chance to trigger one
+const DOWNSIDES = [
+  {icon:'🚑', subject:'Medical Emergency', body:'An unexpected ER visit hit you with a surprise bill. Deductibles and out-of-network charges add up fast.', apply:(c)=>{const cost=ri(400,2800); c.checking-=cost; c.health=clamp(c.health-ri(3,10),0,100); return cost;}},
+  {icon:'🔧', subject:'Car Breakdown', body:'Your car broke down on the highway. Tow, diagnostics, and parts — none of it cheap.', apply:(c)=>{const cost=ri(350,1800); c.checking-=cost; return cost;}},
+  {icon:'💻', subject:'Laptop Fried', body:'Coffee spill killed your laptop. You needed a replacement immediately for work.', apply:(c)=>{const cost=ri(600,1600); c.checking-=cost; c.happiness=clamp(c.happiness-5,0,100); return cost;}},
+  {icon:'🦷', subject:'Emergency Dental Work', body:'Cracked molar, root canal, crown. Dental insurance didn\'t cover much.', apply:(c)=>{const cost=ri(800,2400); c.checking-=cost; return cost;}},
+  {icon:'🏠', subject:'Home Repair Disaster', body:'Pipe burst in the wall. Water damage, emergency plumber, drywall repair.', apply:(c)=>{const cost=ri(900,3500); c.checking-=cost; return cost;}},
+  {icon:'📱', subject:'Phone Stolen', body:'Someone lifted your phone at a coffee shop. You had to replace it and change every password.', apply:(c)=>{const cost=ri(300,1200); c.checking-=cost; c.happiness=clamp(c.happiness-4,0,100); return cost;}},
+  {icon:'🐕', subject:'Pet Emergency', body:'Your pet swallowed something it shouldn\'t. Vet bills for surgery and meds stacked up.', apply:(c)=>{const cost=ri(500,3000); c.checking-=cost; c.happiness=clamp(c.happiness-3,0,100); return cost;}},
+  {icon:'🎣', subject:'Identity Theft', body:'Someone opened fraudulent accounts in your name. You\'re fighting to get it cleared, and your credit score took a hit.', apply:(c)=>{const cost=ri(200,1500); c.checking-=cost; c.creditScore=clamp((c.creditScore||650)-ri(15,40),300,850); return cost;}},
+  {icon:'⚡', subject:'Electric Bill Shock', body:'Meter reading adjustment plus a heat wave = a brutal utility bill this month.', apply:(c)=>{const cost=ri(250,900); c.checking-=cost; return cost;}},
+  {icon:'👮', subject:'Traffic Ticket', body:'Caught speeding. The fine plus insurance hike stings.', apply:(c)=>{const cost=ri(150,650); c.checking-=cost; return cost;}},
+  {icon:'🦴', subject:'Minor Injury', body:'Slipped on ice / twisted an ankle. Urgent care, x-ray, and a few days off work.', apply:(c)=>{const cost=ri(200,900); c.checking-=cost; c.health=clamp(c.health-ri(4,12),0,100); c.happiness=clamp(c.happiness-4,0,100); return cost;}},
+  {icon:'🪪', subject:'Wallet Stolen', body:'Pickpocketed in a crowd. Lost cash, had to reissue cards, ID replacement fees.', apply:(c)=>{const cost=ri(180,700); c.checking-=cost; c.happiness=clamp(c.happiness-3,0,100); return cost;}},
+  {icon:'🍔', subject:'Food Poisoning', body:'Bad sushi. Missed two days of work, doctor visit, meds.', apply:(c)=>{const cost=ri(120,500); c.checking-=cost; c.health=clamp(c.health-ri(3,8),0,100); return cost;}},
+  {icon:'🏚️', subject:'Landlord Raised Rent', body:'Lease renewal came with a 15% hike. You paid the deposit increase this month.', apply:(c)=>{const cost=ri(400,1800); c.checking-=cost; c.happiness=clamp(c.happiness-5,0,100); return cost;}},
+  {icon:'📄', subject:'IRS Audit Letter', body:'Routine audit flagged a discrepancy. Back-taxes and penalty owed.', apply:(c)=>{const cost=ri(400,2500); c.checking-=cost; c.happiness=clamp(c.happiness-6,0,100); return cost;}},
+  {icon:'🧯', subject:'Kitchen Fire', body:'Small grease fire. Smoke damage, replaced microwave and cabinets. Renters insurance covered some.', apply:(c)=>{const cost=ri(500,2200); c.checking-=cost; return cost;}},
+];
+
+function triggerDownside(c){
+  const d = pick(DOWNSIDES);
+  const cost = d.apply(c);
+  const date = currentMonthDate(c);
+  addInboxItem({
+    type:'bill', icon:d.icon, subject:`${d.subject} — ${fmt$(cost)}`, date,
+    body:`Amount: ${fmt$(cost)}\nStatus: Paid from checking\n\n${d.body}`,
+  });
+  logEvent(`${d.icon} ${d.subject}: -${fmt$(cost)}`, 'bad');
+}
 
 function currentMonthDate(c){
   const monthsSince = Math.max(0, (c.monthAge||264)-264);
@@ -592,20 +617,52 @@ function generateInboxItems(c, inv){
     type:'news', icon:headline.icon, subject:headline.subject, date,
     body: headline.body + marketPart,
   });
-  // Bills — 2 to 3 random bills per month (auto-paid, informational)
-  const billCount = ri(2,3);
-  const picked = [...BILL_TEMPLATES].sort(()=>Math.random()-0.5).slice(0,billCount);
-  let billTotal=0;
-  for(const b of picked){
+
+  // Bills — accrue monthly silently; consolidated receipt sent in Jun and Jan
+  if(!GS.billAccum) GS.billAccum=[];
+  const monthlyCount = ri(2,3);
+  const monthlyPicked = [...BILL_TEMPLATES].sort(()=>Math.random()-0.5).slice(0,monthlyCount);
+  let monthlyBillTotal=0;
+  const monthName = MONTH_NAMES[Math.max(0,(c.monthAge||264)-264)%12];
+  for(const b of monthlyPicked){
     const amt = ri(b.min,b.max);
-    billTotal += amt;
-    addInboxItem({
-      type:'bill', icon:b.icon, subject:`${b.name} — ${fmt$(amt)}`, date,
-      body:`Amount: ${fmt$(amt)}\nStatus: Auto-paid from checking\n\n${b.copy}`,
-    });
+    monthlyBillTotal += amt;
+    GS.billAccum.push({monthName, icon:b.icon, name:b.name, amt, copy:b.copy});
   }
-  // Deduct bills from checking (on top of existing living expenses — realistic granularity)
-  c.checking -= billTotal;
+  c.checking -= monthlyBillTotal;
+
+  // Receipt in Jun and Jan — consolidated itemized statement
+  if(monthName==='Jun' || monthName==='Jan'){
+    const period = monthName==='Jun' ? 'H1 (Jan–Jun)' : 'H2 (Jul–Dec prior year)';
+    const total = GS.billAccum.reduce((s,e)=>s+e.amt,0);
+    const byMonth = {};
+    for(const e of GS.billAccum){
+      if(!byMonth[e.monthName]) byMonth[e.monthName]=[];
+      byMonth[e.monthName].push(e);
+    }
+    let body = `━━━━━━━━━━━━━━━━━━━━━━━\n   SEMI-ANNUAL BILL SUMMARY\n     ${period}\n━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    const monthOrder = MONTH_NAMES;
+    for(const m of monthOrder){
+      if(!byMonth[m]) continue;
+      body += `── ${m} ──\n`;
+      for(const e of byMonth[m]){
+        body += `  ${e.icon} ${e.name.padEnd(22,' ')} ${fmt$(e.amt)}\n`;
+      }
+      const subtot = byMonth[m].reduce((s,e)=>s+e.amt,0);
+      body += `  ${''.padEnd(24,' ')}------\n`;
+      body += `  ${'Subtotal'.padEnd(24,' ')} ${fmt$(subtot)}\n\n`;
+    }
+    body += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    body += `TOTAL (${GS.billAccum.length} bills):  ${fmt$(total)}\n`;
+    body += `Status: Auto-paid from checking each month\n`;
+    body += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    addInboxItem({
+      type:'bill', icon:'🧾', subject:`Bill Report ${period} — ${fmt$(total)}`, date,
+      body,
+    });
+    GS.billAccum = [];
+  }
+
   // Cap inbox to last 40 items
   if(GS.inbox.length>40) GS.inbox=GS.inbox.slice(0,40);
 }
@@ -616,36 +673,117 @@ function addInboxItem(item){
 }
 
 function renderInbox(){
-  const list=$('inbox-list'); if(!list) return;
   const items=GS.inbox||[];
   const unread=items.filter(i=>!i.read).length;
   const badge=$('inbox-badge');
-  if(badge){ badge.textContent=unread; badge.className=unread>0?'show':''; }
+  if(badge){ badge.textContent=unread; badge.className='inbox-badge-btn'+(unread>0?' show':''); }
+}
+
+function showInboxModal(){
+  const items=GS.inbox||[];
+  $('m-icon').textContent='📬';
+  $('m-tag').textContent='Inbox';
+  $('m-tag').className='modal-tag fla';
+  $('m-title').textContent='Inbox';
+  $('m-body').textContent = items.length ? `${items.length} message${items.length===1?'':'s'} · ${items.filter(i=>!i.read).length} unread` : 'No mail yet. Age +1 month to receive news and bills.';
+  $('m-result').style.display='none';
+  const ch=$('m-choices');
   if(!items.length){
-    list.innerHTML='<div style="color:var(--muted);font-size:11px;text-align:center;padding:20px 10px">Age +1 month to receive mail.</div>';
-    return;
+    ch.innerHTML='<button class="choice-btn" onclick="closeModal()">Close</button>';
+  } else {
+    ch.innerHTML = items.map(i=>{
+      const preview=(i.body||'').split('\n')[0].substring(0,70);
+      return `<div class="inbox-item ${i.read?'read':'unread'} ${i.type}" onclick="openInboxItem('${i.id}')">
+        <div class="ii-hdr"><span class="ii-date">${i.date}</span></div>
+        <div class="ii-subject">${i.icon} ${i.subject}</div>
+        <div class="ii-preview">${preview}</div>
+      </div>`;
+    }).join('') + '<button class="choice-btn" onclick="closeModal()" style="margin-top:8px">Close</button>';
   }
-  list.innerHTML=items.map(i=>{
-    const preview=(i.body||'').split('\n')[0].substring(0,55);
-    return `<div class="inbox-item ${i.read?'read':'unread'} ${i.type}" onclick="openInboxItem('${i.id}')">
-      <div class="ii-hdr"><span class="ii-date">${i.date}</span></div>
-      <div class="ii-subject">${i.icon} ${i.subject}</div>
-      <div class="ii-preview">${preview}</div>
-    </div>`;
+  $('modal-box').classList.add('compact');
+  $('modal-overlay').classList.add('open');
+}
+
+function showManageBusinessesModal(){
+  const bizs=GS.inv.businesses||[];
+  $('m-icon').textContent='🏢';
+  $('m-tag').textContent='Businesses';
+  $('m-tag').className='modal-tag fla';
+  $('m-title').textContent='Your Businesses';
+  $('m-body').textContent='Pick a business to hire or fire staff.';
+  $('m-result').style.display='none';
+  const ch=$('m-choices');
+  if(!bizs.length){ ch.innerHTML='<button class="choice-btn" onclick="closeModal()">Close</button>'; }
+  else {
+    ch.innerHTML = bizs.map((b,i)=>{
+      const emp=(b.employees||[]).length;
+      const wages=(b.employees||[]).reduce((s,e)=>s+(e.wage||0),0);
+      return `<button class="choice-btn" onclick="showHireModal(${i})">${b.name} — 👥 ${emp} staff · ${fmt$(wages)}/mo wages · ${fmt$(b.value)} value</button>`;
+    }).join('') + '<button class="choice-btn" onclick="closeModal()">Close</button>';
+  }
+  $('modal-box').classList.add('compact');
+  $('modal-overlay').classList.add('open');
+}
+
+function showHireModal(bizIdx){
+  const b=GS.inv.businesses[bizIdx]; if(!b) return;
+  if(!b.employees) b.employees=[];
+  $('m-icon').textContent='👥';
+  $('m-tag').textContent='Staffing';
+  $('m-tag').className='modal-tag fla';
+  $('m-title').textContent=`${b.name} — Staff`;
+  const curWages=b.employees.reduce((s,e)=>s+(e.wage||0),0);
+  const curBoost=Math.round(b.employees.reduce((s,e)=>s+(e.boost||0),0)*100);
+  $('m-body').textContent=`Current staff: ${b.employees.length} · Wages: ${fmt$(curWages)}/mo · Revenue boost: +${curBoost}%`;
+  $('m-result').style.display='none';
+  const ch=$('m-choices');
+  const hireBtns = EMPLOYEE_ROLES.map(r=>{
+    return `<button class="choice-btn" onclick="hireEmployee(${bizIdx},'${r.title}')">${r.icon} Hire ${r.title} — ${fmt$(r.wage)}/mo · +${Math.round(r.boost*100)}% rev</button>`;
   }).join('');
+  const fireBtns = b.employees.map((e,ei)=>{
+    return `<button class="choice-btn" onclick="fireEmployee(${bizIdx},${ei})" style="border-color:var(--red);color:var(--red)">✖ Fire ${e.title} (${fmt$(e.wage)}/mo)</button>`;
+  }).join('');
+  ch.innerHTML = hireBtns + (fireBtns?`<div style="height:1px;background:var(--border);margin:6px 0"></div>`+fireBtns:'')
+    + `<button class="choice-btn" onclick="showManageBusinessesModal()">← Back</button>`;
+  $('modal-box').classList.add('compact');
+  $('modal-overlay').classList.add('open');
+}
+
+function hireEmployee(bizIdx, title){
+  const b=GS.inv.businesses[bizIdx]; if(!b) return;
+  const role=EMPLOYEE_ROLES.find(r=>r.title===title); if(!role) return;
+  const signing=role.wage; // one month wage as signing cost
+  if(GS.char.checking < signing){ showToast(`Need ${fmt$(signing)} upfront to hire.`); return; }
+  GS.char.checking -= signing;
+  if(!b.employees) b.employees=[];
+  b.employees.push({title:role.title, wage:role.wage, boost:role.boost, hiredAt:GS.char.monthAge});
+  logEvent(`${role.icon} Hired ${role.title} at ${b.name} — ${fmt$(role.wage)}/mo`, 'info');
+  saveGame();
+  showHireModal(bizIdx);
+}
+
+function fireEmployee(bizIdx, empIdx){
+  const b=GS.inv.businesses[bizIdx]; if(!b||!b.employees) return;
+  const e=b.employees[empIdx]; if(!e) return;
+  const sev=Math.round((e.wage||0)*1.5); // severance = 1.5 months
+  GS.char.checking -= sev;
+  b.employees.splice(empIdx,1);
+  logEvent(`✖ Fired ${e.title} at ${b.name} — severance ${fmt$(sev)}`, 'bad');
+  saveGame();
+  showHireModal(bizIdx);
 }
 
 function openInboxItem(id){
   const item=(GS.inbox||[]).find(i=>i.id===id); if(!item) return;
   item.read=true; renderInbox();
-  $('modal-icon-box'); // no-op fallback if missing
+  $('modal-box').classList.remove('compact');
   $('m-icon').textContent=item.icon||'📬';
   $('m-tag').textContent = item.type==='bill' ? 'Bill' : 'News';
   $('m-tag').className='modal-tag '+(item.type==='bill'?'exp':'fla');
   $('m-title').textContent=item.subject;
   $('m-body').textContent=item.body;
   $('m-result').style.display='none';
-  const ch=$('m-choices'); ch.innerHTML='<button class="choice-btn" onclick="closeModal()">Close</button>';
+  const ch=$('m-choices'); ch.innerHTML='<button class="choice-btn" onclick="showInboxModal()">← Back to Inbox</button><button class="choice-btn" onclick="closeModal()">Close</button>';
   $('modal-overlay').classList.add('open');
 }
 
@@ -727,7 +865,8 @@ function createChar(name, scenario){
     debt:s.debt, salary:0, creditScore:580,
     education: scenario==='broke'?'high_school':'bachelors',
     inSchool:false, schoolType:null, schoolMonthsLeft:0, schoolCostMonthly:0,
-    employed:false, jobTitle:null, careerTierId:'entry', yearsAtJob:0, performance:ri(50,80),
+    employed:false, jobTitle:null, careerTierId:'entry', yearsAtJob:0, monthsAtJob:0, performance:ri(50,80), bossMorale:ri(55,75),
+    sideHustleIncome:0,
     relationship:'single', spouseName:null, spouseIncome:0, yearsTogether:0,
     kids:0, hasCar:(scenario!=='broke'), hasHouse:false, houseValue:0, houseDebt:0,
     retired:false, lifestyle:'normal',
@@ -866,28 +1005,103 @@ function applyForJob(char, job){
   char.jobMax       = job.max;
   char.salary       = Math.round(rf(job.min, job.max) * smartsMod);
   char.yearsAtJob   = 0;
+  char.monthsAtJob  = 0;
   char.careerTierId = 'tier' + job.tier;
+  char.bossName     = pick(['Alex Mercer','Jordan Hayes','Taylor Quinn','Morgan Vance','Dana Rhodes','Sam Whitaker','Casey Lin','Riley Okafor']);
+  char.bossMorale   = ri(55,75);
 }
 
 function tickCareerNew(char, ev){
   if(!char.employed) return;
   char.yearsAtJob++;
-  // Merit raise 1–4% scaled to performance
-  const raisePct = 0.01 + (char.performance/100)*0.03;
+  // Boss morale tracks performance with some lag/noise
+  const prevMorale = char.bossMorale||char.performance;
+  char.bossMorale = clamp(Math.round(prevMorale*0.5 + char.performance*0.5 + ri(-6,6)), 5, 100);
+  const morale = char.bossMorale;
+
+  // Raise logic
+  let raisePct = 0;
+  let raiseNote = '';
+  if(morale >= 75){
+    // Likely raise — 80% chance, 5-12%
+    if(pct(0.80)){ raisePct = rf(0.05,0.12); raiseNote='big raise'; }
+    else { raisePct = rf(0.02,0.05); raiseNote='standard raise'; }
+  } else if(morale >= 50){
+    raisePct = rf(0.01,0.04); raiseNote='standard raise';
+  } else if(morale >= 31){
+    // Safety zone — small raise or flat
+    raisePct = pct(0.5) ? rf(0.005,0.02) : 0;
+    raiseNote = raisePct>0 ? 'small bump' : 'no raise';
+  } else {
+    raisePct = 0; raiseNote='no raise — performance concerns';
+  }
   char.salary = Math.round(char.salary * (1 + raisePct));
-  // Promotion every 4 years if performance > 60
-  if(char.yearsAtJob % 4 === 0 && char.performance > 60 && pct(0.25)){
+
+  // Promotion every 4 years if morale > 65
+  let promoted = false;
+  if(char.yearsAtJob % 4 === 0 && morale > 65 && pct(0.30)){
     const cap = char.jobMax || char.salary * 2;
     char.salary = Math.min(cap, Math.round(char.salary * 1.15));
+    promoted = true;
     ev.push({type:'career',text:`Promoted at ${char.jobTitle}! New salary: ${fmt$(char.salary)}/yr`});
   }
-  // Layoff: 2% base + 8% if low performance
-  const layoffChance = 0.02 + (char.performance < 30 ? 0.08 : 0);
-  if(pct(layoffChance)){
-    char.employed = false; char.salary = 0;
-    char.happiness = clamp(char.happiness - 15, 0, 100);
-    ev.push({type:'career',text:`Laid off from ${char.jobTitle}. Job lost.`});
+
+  // Layoff chances
+  let layoffChance = 0.005; // 0.5% random layoff
+  let layoffReason = 'random restructuring';
+  if(morale <= 30){ layoffChance += 0.35; layoffReason='poor performance'; }
+  else if(morale <= 50){ layoffChance += 0.05; layoffReason='budget cuts'; }
+  const wasLaidOff = pct(layoffChance);
+
+  // Annual boss message — goes to inbox
+  const bossName = char.bossName || (char.bossName = pick(['Alex Mercer','Jordan Hayes','Taylor Quinn','Morgan Vance','Dana Rhodes','Sam Whitaker','Casey Lin','Riley Okafor']));
+  let status = morale>=75?'🟢 Excellent — likely raise':morale>=50?'🟢 Safe':morale>=31?'🟡 Cautious — keep it up':'🔴 At risk — improvement needed';
+  const updates = pick([
+    'We\'re rolling out a new project pipeline next quarter.',
+    'The team hit its targets last year — nice work from everyone involved.',
+    'Leadership is restructuring some reporting lines. Details coming soon.',
+    'Budget reviews finished. Some teams expanding, others consolidating.',
+    'We\'re refreshing the office tech stack; expect some training sessions.',
+    'Customer retention numbers improved — thanks to everyone\'s effort.',
+    'A few senior folks are moving on. Opportunities may open up internally.',
+    'New compliance training rolls out next month. Completion required.',
+    'Q4 goals are ambitious but achievable. Let\'s keep the momentum.',
+  ]);
+  const raiseChance = morale>=75?'HIGH':morale>=50?'Moderate':morale>=31?'Low':'Very Low';
+  const layoffRisk = morale<=30?'HIGH':morale<=50?'Moderate':morale<=74?'Low':'Very Low';
+  const date = currentMonthDate(char);
+  let bodyLines = [
+    `Hey ${char.name.split(' ')[0]||char.name},`,
+    '',
+    `It\'s that time again — year-end check-in.`,
+    '',
+    `Status: ${status}`,
+    `My morale on your work: ${morale}%`,
+    `Raise likelihood: ${raiseChance}`,
+    `Layoff risk: ${layoffRisk}`,
+    '',
+    `Company update: ${updates}`,
+    '',
+  ];
+  if(promoted) bodyLines.push(`🎉 Big news — we\'re moving you up. Salary adjusted to ${fmt$(char.salary)}/yr.`);
+  else if(raisePct>0) bodyLines.push(`Pay bump: +${(raisePct*100).toFixed(1)}% (${raiseNote}). New salary: ${fmt$(char.salary)}/yr.`);
+  else bodyLines.push(`No pay change this year (${raiseNote}). Let\'s talk at next review.`);
+  if(wasLaidOff){
+    bodyLines.push('');
+    bodyLines.push(`Unfortunately — effective today, your position has been eliminated (${layoffReason}). HR will be in touch.`);
   }
+  bodyLines.push('');
+  bodyLines.push(`— ${bossName}, ${char.jobTitle||'Manager'}`);
+  addInboxItem({
+    type:'news', icon:'📧', subject:`Year-end note from ${bossName}`, date, body: bodyLines.join('\n'),
+  });
+
+  if(wasLaidOff){
+    char.employed = false; char.salary = 0; char.monthsAtJob = 0;
+    char.happiness = clamp(char.happiness - 15, 0, 100);
+    ev.push({type:'career',text:`Laid off from ${char.jobTitle} — ${layoffReason}.`});
+  }
+
   // Performance drift
   char.performance = clamp(char.performance + ri(-5,5), 10, 100);
 }
@@ -957,8 +1171,9 @@ function calcTax(income){
 function tickFinances(char, ev){
   // All figures monthly, returned annualized for UI display
   const monthSalary = char.employed ? Math.round(char.salary/12) : 0;
+  const monthSide = Math.round((char.sideHustleIncome||0)/12);
   const monthSpouse = char.relationship==='married' ? Math.round(char.spouseIncome*0.5/12) : 0;
-  const monthGross = monthSalary + monthSpouse;
+  const monthGross = monthSalary + monthSide + monthSpouse;
   const monthTax = Math.round(calcTax(monthGross*12)/12);
   const monthNet = monthGross - monthTax;
   const expTable = {frugal:1500,normal:2333,lavish:3750};
@@ -1188,16 +1403,27 @@ function tickRealEstate(inv, ev){
 
 function tickBusinesses(inv, char, ev){
   for(const b of inv.businesses){
+    if(!b.employees) b.employees=[];
     const cm=CLIMATE_MULT[inv.climate]||CLIMATE_MULT.normal;
     const statF=(char.smarts/100)*0.6+(char.looks/100)*0.2+0.2;
-    const rev=Math.round(b.startCost*b.revMult*statF*(cm.stock)*rf(0.75,1.25)*Math.max(0.5,Math.log(b.age+2)));
-    const exp=Math.round(rev*rf(0.55,0.75)+b.startCost*0.05);
+    const empBoost=1 + b.employees.reduce((s,e)=>s+(e.boost||0),0);
+    const rev=Math.round(b.startCost*b.revMult*statF*(cm.stock)*rf(0.75,1.25)*Math.max(0.5,Math.log(b.age+2))*empBoost);
+    const wages=b.employees.reduce((s,e)=>s+(e.wage||0)*12,0);
+    const exp=Math.round(rev*rf(0.55,0.75)+b.startCost*0.05)+wages;
     b.profit=rev-exp; b.value=Math.max(Math.round(b.startCost*0.3),Math.round(b.profit*rf(2,4)));
     b.age++;
-    if(b.profit>0){char.checking+=b.profit;ev.push({type:'good',text:`${b.name} profit: ${fmt$(b.profit)}`});}
-    else{char.checking+=b.profit;ev.push({type:'bad',text:`${b.name} loss: ${fmt$(Math.abs(b.profit))}`});}
+    if(b.profit>0){char.checking+=b.profit;ev.push({type:'good',text:`${b.name} profit: ${fmt$(b.profit)} (wages ${fmt$(wages)})`});}
+    else{char.checking+=b.profit;ev.push({type:'bad',text:`${b.name} loss: ${fmt$(Math.abs(b.profit))} (wages ${fmt$(wages)})`});}
   }
 }
+
+const EMPLOYEE_ROLES = [
+  {icon:'🧑‍🍳', title:'Part-Time Worker',  wage:1500, boost:0.15},
+  {icon:'👨‍💼', title:'Full-Time Worker',  wage:3000, boost:0.32},
+  {icon:'🧑‍💼', title:'Shift Manager',     wage:4500, boost:0.48},
+  {icon:'👔', title:'Operations Manager', wage:6500, boost:0.70},
+  {icon:'🧠', title:'Specialist / Senior',wage:8000, boost:0.90},
+];
 
 function stockPortfolioValue(inv){
   return Object.entries(inv.portfolio).reduce((s,[id,pos])=>{
@@ -1547,6 +1773,12 @@ function monthlyTick(){
   // Financial tip: roughly every 4-5 months
   if(pct(0.22)) GS.pendingEvents.push(generateTipEvent());
 
+  // Inbox: monthly news + bills
+  generateInboxItems(c, inv);
+
+  // Downside event: 3% monthly chance
+  if(pct(0.03)) triggerDownside(c);
+
   updateUI(fin, prevNW, nw);
   saveGame();
 
@@ -1584,9 +1816,19 @@ function updateUI(fin, prevNW, nw){
   setText('li-kids',c.kids);
   setText('li-job',c.inSchool?'In School':c.employed?c.jobTitle:'Unemployed');
   setText('li-salary',c.employed?fmt$(c.salary)+'/yr':'$0/yr');
+  setText('li-side',fmt$(c.sideHustleIncome||0)+'/yr');
+  setText('li-total-inc',fmt$((c.employed?c.salary:0)+(c.sideHustleIncome||0))+'/yr');
   setText('li-yrs',c.yearsAtJob||0);
   const perfLabels=['','','Struggling','Fair','Good','Very Good','Excellent','Outstanding'];
   setText('li-perf',perfLabels[Math.round(c.performance/14)]||'Good');
+  if(c.employed){
+    const m=c.bossMorale||c.performance||50;
+    let tag='Safe';
+    if(m>=75) tag='Likely Raise';
+    else if(m<=30) tag='At Risk';
+    else if(m<=50) tag='Cautious';
+    setText('li-morale',`${Math.round(m)}% · ${tag}`);
+  } else setText('li-morale','—');
 
   // Finances tab
   setText('fi-check',fmt$(c.checking));
@@ -1645,6 +1887,7 @@ function updateUI(fin, prevNW, nw){
   renderProperties(inv); renderBusinesses(inv);
 
   drawNetWorthChart();
+  renderInbox();
 }
 
 function renderStocksTable(inv){
@@ -1683,7 +1926,11 @@ function renderProperties(inv){
 }
 function renderBusinesses(inv){
   if(!inv.businesses.length){$('biz-list').innerHTML='<p style="color:var(--muted);font-size:12px">No businesses owned.</p>';return;}
-  $('biz-list').innerHTML=inv.businesses.map(b=>`<div class="info-row"><span class="ir-label">${b.name}</span><span class="ir-value ${b.profit>=0?'pos':'neg'}">${fmt$(b.value)} value</span></div>`).join('');
+  $('biz-list').innerHTML=inv.businesses.map(b=>{
+    const emp=(b.employees||[]).length;
+    const empNote=emp>0?` · 👥 ${emp}`:'';
+    return `<div class="info-row"><span class="ir-label">${b.name}${empNote}</span><span class="ir-value ${b.profit>=0?'pos':'neg'}">${fmt$(b.value)} value</span></div>`;
+  }).join('');
 }
 
 function drawCreditDial(score){
@@ -2178,8 +2425,8 @@ function runSideHustle(h){
       const loss=Math.abs(inc);
       return `${h.name} lost money. Down ${fmt$(loss+h.cost)} total.`;
     }
-    c.salary=(c.salary||0)+inc;
-    return `🎉 ${h.name} paying off! +${fmt$(inc)}/yr recurring income.`;
+    c.sideHustleIncome=(c.sideHustleIncome||0)+inc;
+    return `🎉 ${h.name} paying off! +${fmt$(inc)}/yr side-hustle income (tracked separately from job salary).`;
   }
   const loss = h.incMin<0 ? Math.round(Math.abs(h.incMin)*Math.random()) : 0;
   if(loss>0){ c.checking-=loss; return `❌ ${h.name} flopped. Lost ${fmt$(h.cost+loss)} total.`; }
@@ -2237,6 +2484,16 @@ $('btn-edu').onclick=()=>{
   }
   if(!choices.length)choices.push({text:'No education options available at this age/level',fn(){return'Nothing available right now.'}});
   showActionModal('Education','Invest in your future earning potential.',choices);
+};
+
+$('btn-inbox').onclick=()=>{ showInboxModal(); };
+
+$('btn-biz').onclick=()=>{
+  if(!GS.inv.businesses.length){
+    showToast('No businesses yet — start one via Side Hustle → Start a Real Business');
+    return;
+  }
+  showManageBusinessesModal();
 };
 
 $('btn-age').onclick=()=>{
@@ -2297,10 +2554,10 @@ function showGameOver(){
 // ════════════════════════════════════════════════════════════════
 
 function saveGame(){
-  try{localStorage.setItem('finlife_save',JSON.stringify({char:GS.char,inv:GS.inv,nwHistory:GS.nwHistory}));}catch(e){}
+  try{localStorage.setItem('finlife_save',JSON.stringify({char:GS.char,inv:GS.inv,nwHistory:GS.nwHistory,inbox:GS.inbox,billAccum:GS.billAccum}));}catch(e){}
 }
 function loadGame(){
-  try{const d=localStorage.getItem('finlife_save');if(!d)return false;const p=JSON.parse(d);GS.char=p.char;GS.inv=p.inv||createInvState();GS.nwHistory=p.nwHistory||[];return true;}catch(e){return false;}
+  try{const d=localStorage.getItem('finlife_save');if(!d)return false;const p=JSON.parse(d);GS.char=p.char;GS.inv=p.inv||createInvState();GS.nwHistory=p.nwHistory||[];GS.inbox=p.inbox||[];GS.billAccum=p.billAccum||[];return true;}catch(e){return false;}
 }
 
 // ════════════════════════════════════════════════════════════════
