@@ -7,5 +7,14 @@
     "agent_type": "claude-code-guide",
     "hook_event_name": "SubagentStart",
     "logged_at": "2026-04-17T16:02:40.325015"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a8b4be32defb30335",
+    "agent_type": "general-purpose",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-04-19T00:13:44.137018"
   }
 ]

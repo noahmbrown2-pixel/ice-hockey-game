@@ -93,7 +93,7 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 .tab-content.active{display:block}
 
 /* Right Panel - Actions */
-#right-panel{width:240px;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;flex-shrink:0}
+#right-panel{width:220px;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;flex-shrink:0}
 .actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px}
 .act-btn{padding:10px 6px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-sm);
   cursor:pointer;transition:all var(--t);font-size:11px;font-weight:600;text-align:center;
@@ -125,6 +125,25 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 .tl-age{font-size:10px;color:var(--muted);flex-shrink:0;min-width:22px}
 .tl-text{font-size:11px;line-height:1.4}
 
+/* ── INBOX PANEL ── */
+#inbox-panel{width:240px;display:flex;flex-direction:column;background:var(--bg);border-left:1px solid var(--border);overflow:hidden;flex-shrink:0}
+#inbox-hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.inbox-title{font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.4px}
+#inbox-badge{min-width:20px;height:18px;border-radius:10px;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:0 6px;display:none;align-items:center;justify-content:center}
+#inbox-badge.show{display:flex}
+#inbox-list{flex:1;overflow-y:auto;padding:6px}
+.inbox-item{padding:8px 10px;margin-bottom:5px;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all var(--t);background:var(--bg2)}
+.inbox-item:hover{border-color:var(--gold-dim);transform:translateX(-2px)}
+.inbox-item.unread{border-left:3px solid var(--gold)}
+.inbox-item.read{opacity:.55}
+.inbox-item.bill{border-left-color:var(--orange)}
+.inbox-item.news{border-left-color:var(--blue)}
+.ii-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+.ii-date{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.ii-subject{font-size:11.5px;font-weight:600;line-height:1.35}
+.ii-preview{font-size:10px;color:var(--muted);line-height:1.3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:1100px){#inbox-panel{display:none}}
+
 /* Tab Panels Content */
 .section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:10px}
 .section h3{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--gold);margin-bottom:10px;font-weight:700}
@@ -146,26 +165,6 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 .stock-table td{padding:4px 5px;border-bottom:1px solid rgba(255,255,255,.04)}
 .stock-table tr:last-child td{border:none}
 .chg-pos{color:var(--green)}.chg-neg{color:var(--red)}
-
-/* ── ASSET CARD GRID (stock & crypto modals) ── */
-.asset-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.asset-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;display:flex;flex-direction:column;gap:3px}
-.asset-card.owned{border-color:var(--green)}
-.ac-row{display:flex;justify-content:space-between;align-items:baseline}
-.ac-name{font-size:11px;font-weight:700;color:var(--white)}
-.ac-id{font-size:9px;color:var(--muted);margin-left:3px;font-weight:400}
-.ac-since{font-size:10px;font-weight:700}
-.ac-price{font-size:11px;font-weight:700}
-.ac-last{font-size:9px;font-weight:600;color:var(--muted)}
-.ac-owned{font-size:9px;color:var(--green);font-weight:600}
-.ac-chart{width:100%;height:46px;display:block;margin:2px 0}
-.ac-btns{display:flex;gap:4px;margin-top:2px}
-.ac-btn{flex:1;padding:5px 3px;font-size:9px;font-weight:700;border:1px solid;border-radius:4px;cursor:pointer;transition:background .15s;background:var(--bg4);color:var(--white)}
-.ac-btn.buy{border-color:var(--green);color:var(--green)}
-.ac-btn.buy:hover{background:rgba(0,200,83,.18)}
-.ac-btn.sell{border-color:var(--red);color:var(--red)}
-.ac-btn.sell:hover{background:rgba(255,61,61,.18)}
-.ac-btn:disabled{opacity:.3;cursor:not-allowed}
 
 /* Crypto grid */
 .crypto-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -210,6 +209,32 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
   color:var(--white);cursor:pointer;transition:all var(--t);font-size:13px;font-weight:600;text-align:left}
 .choice-btn:hover{border-color:var(--gold);background:var(--bg4);transform:translateX(3px)}
 
+/* ── ASSET GRID MODAL (stocks / crypto) ── */
+#modal-box.wide{max-width:860px}
+#modal-box.compact{max-width:380px;padding:20px 18px}
+#modal-box.compact .modal-body{font-size:12px;margin-bottom:10px}
+#modal-box.compact .modal-choices{max-height:340px;overflow-y:auto;padding-right:4px}
+#modal-box.compact .choice-btn{padding:8px 12px;font-size:11.5px}
+.asset-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-height:62vh;overflow-y:auto;padding-right:4px}
+.asset-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.asset-card:hover{border-color:var(--gold-dim)}
+.ac-hdr{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.ac-name{font-weight:700;font-size:13px}
+.ac-ticker{color:var(--muted);font-size:10px;font-weight:600;letter-spacing:.5px}
+.ac-price{font-size:14px;font-weight:700;color:var(--gold)}
+.ac-chg{font-size:11px;font-weight:700}
+.ac-chg.pos{color:var(--green)} .ac-chg.neg{color:var(--red)}
+.ac-chart{width:100%;height:50px;background:var(--bg);border-radius:4px;display:block}
+.ac-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+.ac-actions{display:flex;gap:6px;margin-top:2px}
+.ac-btn{flex:1;padding:6px 8px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--white);transition:all var(--t)}
+.ac-btn.buy{border-color:rgba(0,200,83,.4);color:var(--green)}
+.ac-btn.buy:hover{background:rgba(0,200,83,.15)}
+.ac-btn.sell{border-color:rgba(255,61,61,.4);color:var(--red)}
+.ac-btn.sell:hover{background:rgba(255,61,61,.15)}
+.ac-btn:disabled{opacity:.3;cursor:not-allowed}
+@media(max-width:700px){.asset-grid{grid-template-columns:1fr}}
+
 /* ── GAME OVER ── */
 #screen-gameover{flex-direction:column;align-items:center;justify-content:center;
   background:radial-gradient(ellipse at 50% 20%,#3a1a1a 0%,var(--bg) 70%);padding:24px;overflow-y:auto}
@@ -241,53 +266,6 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
   #game-body{overflow:auto}
   .tab-btn{font-size:10px;padding:8px 3px}
 }
-
-/* ── INBOX PANEL ── */
-#inbox-panel{width:260px;display:flex;flex-direction:column;background:var(--bg);border-left:1px solid var(--border);overflow:hidden;flex-shrink:0}
-#inbox-hdr{background:var(--bg2);border-bottom:1px solid var(--border-gold);padding:7px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.inbox-title{font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:1px}
-#inbox-badge{background:var(--red);color:#fff;font-size:9px;font-weight:800;padding:1px 6px;border-radius:10px;display:none}
-#inbox-badge.show{display:inline-block}
-#inbox-list{flex:1;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:4px}
-.inbox-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 9px;cursor:pointer;transition:all var(--t)}
-.inbox-item:hover{border-color:var(--gold);background:var(--bg3)}
-.inbox-item.unread{border-left:3px solid var(--gold)}
-.inbox-item.read{border-left:3px solid transparent;opacity:.65}
-.ii-date{font-size:9px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-.ii-subject{font-size:11px;font-weight:700;color:var(--white);margin-top:2px}
-.ii-preview{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nl-section{margin-bottom:10px}
-.nl-stitle{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid rgba(255,255,255,.07)}
-.nl-stitle.pol{color:var(--blue)}.nl-stitle.war{color:var(--red)}.nl-stitle.eco{color:var(--gold)}.nl-stitle.law{color:var(--teal)}.nl-stitle.mkt{color:var(--green)}.nl-stitle.cry{color:var(--purple)}
-.nl-body{font-size:11px;color:var(--muted);line-height:1.55}
-@media(max-width:960px){#inbox-panel{display:none}}
-
-/* ── BLOOMBERG NEWS PANEL ── */
-#news-panel{flex-shrink:0;border-top:1px solid var(--border);padding:0;overflow:hidden}
-#news-header{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--bg2);border-bottom:1px solid var(--border)}
-#news-header .news-logo{font-size:10px;font-weight:800;color:#ff6600;letter-spacing:1px;text-transform:uppercase}
-.live-badge{background:#ff3d3d;color:#fff;font-size:8px;font-weight:800;padding:1px 5px;border-radius:3px;letter-spacing:.5px;animation:livePulse 1.2s ease-in-out infinite}
-@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.5}}
-#news-feed-viewport{height:112px;overflow:hidden;position:relative}
-#news-feed{display:flex;flex-direction:column;gap:0;animation:scrollUp 20s linear infinite}
-#news-feed:hover{animation-play-state:paused}
-@keyframes scrollUp{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
-.news-item{display:flex;align-items:flex-start;gap:6px;padding:5px 10px;border-bottom:1px solid rgba(255,255,255,.04);font-size:10px;line-height:1.35;min-height:28px}
-.news-item .ni-icon{font-size:13px;flex-shrink:0;margin-top:1px}
-.news-item .ni-text{color:var(--white);flex:1}
-.news-item .ni-chg{font-size:9px;font-weight:700;flex-shrink:0;margin-top:2px}
-.ni-chg.up{color:var(--green)}.ni-chg.dn{color:var(--red)}.ni-chg.flat{color:var(--muted)}
-.news-item.stock{border-left:2px solid var(--blue)}
-.news-item.crypto{border-left:2px solid var(--purple)}
-.news-item.macro{border-left:2px solid var(--gold)}
-.news-item.realty{border-left:2px solid var(--orange)}
-#news-ticker-wrap{background:#111;border-top:1px solid var(--border);overflow:hidden;height:18px;display:flex;align-items:center}
-#news-ticker{white-space:nowrap;font-size:9px;font-weight:600;animation:tickerScroll 30s linear infinite}
-@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-.tk-item{display:inline-block;padding:0 14px;color:var(--muted)}
-.tk-item .tk-sym{color:var(--white);font-weight:700}
-.tk-item .tk-val{margin:0 2px}
-.tk-item .tk-up{color:var(--green)}.tk-item .tk-dn{color:var(--red)}
 </style>
 </head>
 <body>
@@ -477,20 +455,6 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
         <button class="act-btn hustle" id="btn-hustle"><span class="aico">⚡</span>Side Hustle</button>
         <button class="act-btn edu"    id="btn-edu"><span class="aico">🎓</span>Education</button>
       </div>
-      <!-- Bloomberg News Channel -->
-      <div id="news-panel">
-        <div id="news-header">
-          <span class="news-logo">&#x1F4C8; FinNews</span>
-          <span class="live-badge">LIVE</span>
-        </div>
-        <div id="news-feed-viewport">
-          <div id="news-feed"></div>
-        </div>
-        <div id="news-ticker-wrap">
-          <div id="news-ticker"></div>
-        </div>
-      </div>
-
       <div id="chart-area">
         <div id="chart-label">Net Worth History</div>
         <canvas id="nw-chart"></canvas>
@@ -501,14 +465,14 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
       </div>
     </div>
 
-    <!-- Inbox Column: monthly political & economic briefings -->
+    <!-- INBOX PANEL: news & bills -->
     <div id="inbox-panel">
       <div id="inbox-hdr">
-        <span class="inbox-title">📬 Political Inbox</span>
-        <span id="inbox-badge"></span>
+        <span class="inbox-title">📬 Inbox</span>
+        <span id="inbox-badge">0</span>
       </div>
       <div id="inbox-list">
-        <div style="color:var(--muted);font-size:11px;text-align:center;padding:20px 10px">Age +1 month to receive your first briefing.</div>
+        <div style="color:var(--muted);font-size:11px;text-align:center;padding:20px 10px">Age +1 month to receive mail.</div>
       </div>
     </div>
   </div>
@@ -557,9 +521,133 @@ const GS = {
   nwHistory: [], // net worth over time
   pendingEvents: [],
   scenario: 'middle',
-  newsletters: [],
-  activeWars: [],
+  inbox: [],     // news & bills
 };
+
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const GAME_START_YEAR = 2026;
+
+const BILL_TEMPLATES = [
+  {icon:'⚡',name:'Electric Bill',min:60,max:220,copy:'Utility company reports rates up slightly this cycle. Total due automatically deducted.'},
+  {icon:'💧',name:'Water Bill',min:30,max:90,copy:'Quarterly water & sewer. Normal consumption range.'},
+  {icon:'📡',name:'Internet / Wi-Fi',min:50,max:110,copy:'Your ISP billed the monthly fiber plan. No service interruptions.'},
+  {icon:'📱',name:'Phone Bill',min:45,max:130,copy:'Mobile carrier charged your unlimited plan. Data usage within limits.'},
+  {icon:'📺',name:'Streaming Subscriptions',min:30,max:90,copy:'Netflix, Hulu, Disney+, Max — yes, you still have all of them.'},
+  {icon:'🛡️',name:'Auto / Renter Insurance',min:80,max:260,copy:'Policy renewed. Rates vary by credit and driving history.'},
+  {icon:'💪',name:'Gym Membership',min:20,max:120,copy:'Monthly membership charge. Go more to feel better about it.'},
+  {icon:'☁️',name:'Cloud / Software',min:10,max:50,copy:'iCloud, Dropbox, Notion, etc. Small charges that add up.'},
+];
+
+const NEWS_HEADLINES = [
+  {icon:'🏛️',subject:'Fed Signals Policy Shift',body:'The Federal Reserve hints at adjusting rates in response to inflation data. Borrowing costs and mortgage rates may respond in the coming months. Expect ripples across equity markets.'},
+  {icon:'⚖️',subject:'New Consumer Finance Law Passed',body:'Congress approves legislation reshaping credit card disclosures and overdraft fees. Banks have 90 days to comply. Consumers may see smaller fees on minor overages.'},
+  {icon:'🛢️',subject:'Oil Prices Swing on Supply News',body:'Crude markets react to OPEC supply signals. Gas prices at the pump could move 10-15% over the next month depending on refinery output.'},
+  {icon:'🏠',subject:'Housing Market Report',body:'Inventory tightens in major metros. Mortgage applications are mixed — first-time buyers remain priced out while cash buyers dominate competitive bids.'},
+  {icon:'💼',subject:'Jobs Report Released',body:'Labor Department posts non-farm payrolls. Wage growth steady, unemployment rate holds. Tech and healthcare lead hiring; retail softens.'},
+  {icon:'📊',subject:'Inflation Data Comes In',body:'CPI prints in line with expectations. Shelter and services remain sticky; goods deflation continues. Core measures diverge from headline.'},
+  {icon:'🚀',subject:'Tech IPO Makes Waves',body:'A highly-anticipated tech company goes public. Underwriters pop the opening price; insider lockup expires in six months.'},
+  {icon:'💔',subject:'Bank Loses Deposits',body:'A regional bank reports an outflow spike. Regulators monitor the situation. Depositors under FDIC limits remain protected.'},
+  {icon:'🌍',subject:'Trade Deal Progress',body:'Negotiators announce preliminary agreement on tariffs. Affected sectors include autos, steel, agriculture. Full ratification still pending.'},
+  {icon:'🔒',subject:'Cybersecurity Breach Reported',body:'Large retailer confirms customer data exposure. Consumers urged to check credit reports and enable alerts on card accounts.'},
+  {icon:'🎓',subject:'Student Loan Update',body:'Department of Education adjusts repayment plans for income-driven borrowers. Eligible balances may see reduced monthly minimums.'},
+  {icon:'⚕️',subject:'Healthcare Premiums Shift',body:'Employer-sponsored plans announce next year\'s rate schedules. HDHP options gain ground; HSA eligibility expands slightly.'},
+  {icon:'🚗',subject:'EV Tax Credits Revised',body:'Federal EV credit rules update eligibility. Income caps and domestic-battery requirements affect 2026 model-year buyers.'},
+  {icon:'₿',subject:'Crypto Regulation Advances',body:'Lawmakers advance stablecoin framework. Exchanges brace for new compliance rules. Institutional flows continue rising.'},
+];
+
+function currentMonthDate(c){
+  const monthsSince = Math.max(0, (c.monthAge||264)-264);
+  const gameYear = GAME_START_YEAR + Math.floor(monthsSince/12);
+  const monthName = MONTH_NAMES[monthsSince%12];
+  return `${monthName} ${gameYear}`;
+}
+
+function generateInboxItems(c, inv){
+  const date = currentMonthDate(c);
+  // News / briefing — always 1 per month
+  const headline = pick(NEWS_HEADLINES);
+  const climate = inv.climate || 'normal';
+  const moodBlurb = {
+    bull:'Markets trending higher. Bulls in control — momentum trades working.',
+    bear:'Broad selling pressure. Defensive sectors outperform; cash levels rising.',
+    bubble:'Euphoric conditions — valuations extended far above historical norms.',
+    recession:'Recessionary signals strengthen. Utilities and bonds catching bids.',
+    normal:'Mixed tape. Rotation between sectors continues; no clear trend.',
+  }[climate];
+  // Top stock & crypto movers
+  const stockMovers=(inv.stocks||[]).map(s=>{
+    const h=s.history;const prev=h&&h.length>1?h[h.length-2]:s.price;
+    const chg=prev>0?((s.price-prev)/prev)*100:0;
+    return {name:s.name,id:s.id,chg};
+  }).sort((a,b)=>b.chg-a.chg);
+  const topStk = stockMovers[0]; const botStk = stockMovers[stockMovers.length-1];
+  const cryptoMovers=(inv.cryptos||[]).map(cx=>{
+    const h=cx.history;const prev=h&&h.length>1?h[h.length-2]:cx.price;
+    const chg=prev>0?((cx.price-prev)/prev)*100:0;
+    return {name:cx.name,id:cx.id,chg};
+  }).sort((a,b)=>b.chg-a.chg);
+  const topCr = cryptoMovers[0]; const botCr = cryptoMovers[cryptoMovers.length-1];
+  const marketPart = `\n\n── Markets ──\n${moodBlurb}\n• 📈 Top stock: ${topStk?.name||'—'} ${topStk?(topStk.chg>=0?'+':'')+topStk.chg.toFixed(1)+'%':''}\n• 📉 Worst stock: ${botStk?.name||'—'} ${botStk?(botStk.chg>=0?'+':'')+botStk.chg.toFixed(1)+'%':''}\n• ₿ Top crypto: ${topCr?.name||'—'} ${topCr?(topCr.chg>=0?'+':'')+topCr.chg.toFixed(1)+'%':''}\n• ₿ Worst crypto: ${botCr?.name||'—'} ${botCr?(botCr.chg>=0?'+':'')+botCr.chg.toFixed(1)+'%':''}`;
+  addInboxItem({
+    type:'news', icon:headline.icon, subject:headline.subject, date,
+    body: headline.body + marketPart,
+  });
+  // Bills — 2 to 3 random bills per month (auto-paid, informational)
+  const billCount = ri(2,3);
+  const picked = [...BILL_TEMPLATES].sort(()=>Math.random()-0.5).slice(0,billCount);
+  let billTotal=0;
+  for(const b of picked){
+    const amt = ri(b.min,b.max);
+    billTotal += amt;
+    addInboxItem({
+      type:'bill', icon:b.icon, subject:`${b.name} — ${fmt$(amt)}`, date,
+      body:`Amount: ${fmt$(amt)}\nStatus: Auto-paid from checking\n\n${b.copy}`,
+    });
+  }
+  // Deduct bills from checking (on top of existing living expenses — realistic granularity)
+  c.checking -= billTotal;
+  // Cap inbox to last 40 items
+  if(GS.inbox.length>40) GS.inbox=GS.inbox.slice(0,40);
+}
+
+function addInboxItem(item){
+  if(!GS.inbox) GS.inbox=[];
+  GS.inbox.unshift({id:`ib_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, read:false, ...item});
+}
+
+function renderInbox(){
+  const list=$('inbox-list'); if(!list) return;
+  const items=GS.inbox||[];
+  const unread=items.filter(i=>!i.read).length;
+  const badge=$('inbox-badge');
+  if(badge){ badge.textContent=unread; badge.className=unread>0?'show':''; }
+  if(!items.length){
+    list.innerHTML='<div style="color:var(--muted);font-size:11px;text-align:center;padding:20px 10px">Age +1 month to receive mail.</div>';
+    return;
+  }
+  list.innerHTML=items.map(i=>{
+    const preview=(i.body||'').split('\n')[0].substring(0,55);
+    return `<div class="inbox-item ${i.read?'read':'unread'} ${i.type}" onclick="openInboxItem('${i.id}')">
+      <div class="ii-hdr"><span class="ii-date">${i.date}</span></div>
+      <div class="ii-subject">${i.icon} ${i.subject}</div>
+      <div class="ii-preview">${preview}</div>
+    </div>`;
+  }).join('');
+}
+
+function openInboxItem(id){
+  const item=(GS.inbox||[]).find(i=>i.id===id); if(!item) return;
+  item.read=true; renderInbox();
+  $('modal-icon-box'); // no-op fallback if missing
+  $('m-icon').textContent=item.icon||'📬';
+  $('m-tag').textContent = item.type==='bill' ? 'Bill' : 'News';
+  $('m-tag').className='modal-tag '+(item.type==='bill'?'exp':'fla');
+  $('m-title').textContent=item.subject;
+  $('m-body').textContent=item.body;
+  $('m-result').style.display='none';
+  const ch=$('m-choices'); ch.innerHTML='<button class="choice-btn" onclick="closeModal()">Close</button>';
+  $('modal-overlay').classList.add('open');
+}
 
 // ════════════════════════════════════════════════════════════════
 //  UTILITIES
@@ -874,7 +962,11 @@ function tickFinances(char, ev){
   const monthTax = Math.round(calcTax(monthGross*12)/12);
   const monthNet = monthGross - monthTax;
   const expTable = {frugal:1500,normal:2333,lavish:3750};
-  const monthLiving = (expTable[char.lifestyle]||2333) + Math.round(char.kids*15000/12) + (char.hasHouse?300:0);
+  const livedInProp = (GS.inv&&GS.inv.properties||[]).find(p=>p.livedIn);
+  // If living in own property: pay mortgage instead of rent-equivalent (~$1200 of exp), plus upkeep
+  const housingAdj = livedInProp ? (livedInProp.monthlyPayment + 300 - 1200) : 0;
+  const vehicleCost = vehicleMonthlyCost(GS.inv||{vehicles:[]});
+  const monthLiving = (expTable[char.lifestyle]||2333) + Math.round(char.kids*15000/12) + housingAdj + vehicleCost;
   // Monthly debt interest + minimum payment
   if(char.debt>0){
     const interest = Math.round(char.debt*0.05/12);
@@ -958,9 +1050,65 @@ function createInvState(){
     k401:0, ira:0, roth:0,
     properties:[],
     businesses:[],
+    vehicles:[],     // [{name,type,price,value,monthlyCost,isElectric,age,depRate}]
     climate:'normal',
     climateYearsLeft:0,
   };
+}
+
+// ── VEHICLE CATALOG ──
+// type: car | motorcycle | boat | plane ; depRate is yearly depreciation
+const VEHICLE_CATALOG = [
+  // ── CARS (gas) ──
+  {icon:'🚗',name:'Honda Civic',type:'car',price:26000,monthlyCost:450,isElectric:false,depRate:0.12},
+  {icon:'🚗',name:'Toyota Camry',type:'car',price:32000,monthlyCost:500,isElectric:false,depRate:0.11},
+  {icon:'🚙',name:'Jeep Wrangler',type:'car',price:42000,monthlyCost:650,isElectric:false,depRate:0.10},
+  {icon:'🚐',name:'Ford F-150',type:'car',price:48000,monthlyCost:700,isElectric:false,depRate:0.11},
+  {icon:'🏎️',name:'BMW M3',type:'car',price:78000,monthlyCost:1100,isElectric:false,depRate:0.14},
+  {icon:'🏎️',name:'Porsche 911',type:'car',price:145000,monthlyCost:1800,isElectric:false,depRate:0.10},
+  {icon:'🏎️',name:'Lamborghini Huracán',type:'car',price:260000,monthlyCost:3200,isElectric:false,depRate:0.13},
+  {icon:'🏎️',name:'Ferrari 488',type:'car',price:330000,monthlyCost:3500,isElectric:false,depRate:0.12},
+  // ── CARS (electric) ──
+  {icon:'⚡',name:'Tesla Model 3',type:'car',price:42000,monthlyCost:250,isElectric:true,depRate:0.09},
+  {icon:'⚡',name:'Tesla Model Y',type:'car',price:52000,monthlyCost:290,isElectric:true,depRate:0.08},
+  {icon:'⚡',name:'Rivian R1T Truck',type:'car',price:78000,monthlyCost:380,isElectric:true,depRate:0.10},
+  {icon:'⚡',name:'Ford Mustang Mach-E',type:'car',price:48000,monthlyCost:280,isElectric:true,depRate:0.10},
+  {icon:'⚡',name:'Tesla Model S Plaid',type:'car',price:95000,monthlyCost:450,isElectric:true,depRate:0.09},
+  {icon:'⚡',name:'Lucid Air',type:'car',price:115000,monthlyCost:500,isElectric:true,depRate:0.08},
+  {icon:'⚡',name:'Rimac Nevera',type:'car',price:2400000,monthlyCost:4500,isElectric:true,depRate:0.08},
+  // ── MOTORCYCLES ──
+  {icon:'🏍️',name:'Honda CBR Sport Bike',type:'motorcycle',price:12000,monthlyCost:180,isElectric:false,depRate:0.10},
+  {icon:'🏍️',name:'Harley-Davidson Cruiser',type:'motorcycle',price:22000,monthlyCost:260,isElectric:false,depRate:0.08},
+  {icon:'🏍️',name:'Ducati Panigale V4',type:'motorcycle',price:28000,monthlyCost:320,isElectric:false,depRate:0.11},
+  {icon:'🏍️',name:'BMW R 1250 GS',type:'motorcycle',price:19000,monthlyCost:220,isElectric:false,depRate:0.09},
+  {icon:'⚡',name:'Zero SR/F (EV)',type:'motorcycle',price:23000,monthlyCost:110,isElectric:true,depRate:0.09},
+  {icon:'⚡',name:'LiveWire ONE (EV)',type:'motorcycle',price:24000,monthlyCost:120,isElectric:true,depRate:0.10},
+  // ── BOATS ──
+  {icon:'⛵',name:'Sailboat',type:'boat',price:45000,monthlyCost:500,isElectric:false,depRate:0.06},
+  {icon:'🚤',name:'Speedboat',type:'boat',price:85000,monthlyCost:700,isElectric:false,depRate:0.08},
+  {icon:'🛥️',name:'Cabin Cruiser',type:'boat',price:180000,monthlyCost:1400,isElectric:false,depRate:0.07},
+  {icon:'⚡',name:'Candela C-8 (Electric Boat)',type:'boat',price:390000,monthlyCost:800,isElectric:true,depRate:0.06},
+  {icon:'🛥️',name:'Luxury Yacht',type:'boat',price:1800000,monthlyCost:12000,isElectric:false,depRate:0.05},
+  {icon:'🛥️',name:'Mega Yacht',type:'boat',price:15000000,monthlyCost:85000,isElectric:false,depRate:0.04},
+  // ── PLANES ──
+  {icon:'✈️',name:'Cessna 172 (Single-Engine)',type:'plane',price:400000,monthlyCost:1800,isElectric:false,depRate:0.04},
+  {icon:'✈️',name:'Cirrus SR22',type:'plane',price:900000,monthlyCost:3000,isElectric:false,depRate:0.04},
+  {icon:'⚡',name:'Pipistrel Velis (Electric)',type:'plane',price:220000,monthlyCost:900,isElectric:true,depRate:0.05},
+  {icon:'🛩️',name:'Cirrus Vision Jet',type:'plane',price:3200000,monthlyCost:12000,isElectric:false,depRate:0.05},
+  {icon:'🛩️',name:'Gulfstream G550 (Private Jet)',type:'plane',price:22000000,monthlyCost:55000,isElectric:false,depRate:0.05},
+  {icon:'🛩️',name:'Bombardier Global 7500',type:'plane',price:78000000,monthlyCost:180000,isElectric:false,depRate:0.04},
+];
+
+function totalVehicleValue(inv){return (inv.vehicles||[]).reduce((s,v)=>s+v.value,0);}
+function vehicleMonthlyCost(inv){return (inv.vehicles||[]).reduce((s,v)=>s+v.monthlyCost,0);}
+
+function tickVehicles(inv){
+  if(!inv.vehicles) inv.vehicles=[];
+  for(const v of inv.vehicles){
+    // Monthly depreciation = yearly rate / 12
+    v.value = Math.max(Math.round(v.price*0.15), Math.round(v.value * (1 - v.depRate/12)));
+    v.age = (v.age||0) + 1;
+  }
 }
 
 function tickMarket(inv){
@@ -985,20 +1133,26 @@ const CLIMATE_MULT = {
 
 function tickStocks(inv){
   const m=CLIMATE_MULT[inv.climate]||CLIMATE_MULT.normal;
+  const SQRT12=Math.sqrt(12);
   for(const s of inv.stocks){
     const cm=s.sector==='tech'?m.tech:s.id==='SPY'?m.stock:m.stock;
-    const drift=(s.avgReturn||0.08)*cm-1;
+    const annDrift=(s.avgReturn||0.08)*cm-1;
+    const monthlyDrift=annDrift/12;
+    const monthlyVol=s.vol/SQRT12;
     const z=randn();
-    s.price=Math.max(0.01,+(s.price*(1+drift+s.vol*z)).toFixed(2));
+    s.price=Math.max(0.01,+(s.price*(1+monthlyDrift+monthlyVol*z)).toFixed(2));
     s.history.push(s.price);if(s.history.length>50)s.history.shift();
   }
 }
 
 function tickCrypto(inv){
   const m=CLIMATE_MULT[inv.climate]||CLIMATE_MULT.normal;
+  const SQRT12=Math.sqrt(12);
   for(const c of inv.cryptos){
     const z=randn();
-    const ret=rf(-0.3,0.5)*m.crypto+c.vol*z*0.3;
+    const monthlyDrift=rf(-0.3,0.5)*m.crypto/12;
+    const monthlyVol=c.vol*0.3/SQRT12;
+    const ret=monthlyDrift+monthlyVol*z;
     c.price=Math.max(0.00001,+(c.price*(1+ret)).toPrecision(5));
     c.history.push(c.price);if(c.history.length>50)c.history.shift();
   }
@@ -1060,7 +1214,7 @@ function totalBizValue(inv){return inv.businesses.reduce((s,b)=>s+b.value,0);}
 
 function calcNetWorth(char, inv){
   const liquid=char.checking+char.savings+char.highYield;
-  const invested=stockPortfolioValue(inv)+cryptoPortfolioValue(inv)+totalRetirement(inv)+totalPropertyEquity(inv)+totalBizValue(inv);
+  const invested=stockPortfolioValue(inv)+cryptoPortfolioValue(inv)+totalRetirement(inv)+totalPropertyEquity(inv)+totalBizValue(inv)+totalVehicleValue(inv);
   const debt=char.debt+(inv.properties.reduce((s,p)=>s+p.debt,0));
   return liquid+invested-debt;
 }
@@ -1317,33 +1471,6 @@ function generateMonthlyExpenseEvent(char){
   };
 }
 
-function buildJobChangeEvent(c){
-  const smarts=Math.round(c.smarts);
-  const allJobs=getAvailableJobs(c);
-  // Prefer jobs that pay more than current; fallback to best available if already at top
-  let candidates=allJobs.filter(j=>j.min>(c.salary||0)*0.85);
-  if(!candidates.length) candidates=allJobs.slice(0,3);
-  const jobs=candidates.slice(0,4);
-  const desc=`Your annual career window is open. Your Smarts score is ${smarts} — that's your ${smarts}% success rate per application.${c.jobTitle?` You're currently a ${c.jobTitle} earning ${fmt$(c.salary)}/yr.`:''} This window closes after you decide.`;
-  return {
-    id:'career_window',
-    title:'Annual Career Opportunity',
-    cat:'milestone',
-    icon:'💼',
-    desc,
-    choices:[
-      ...jobs.map(job=>({
-        text:`${job.name} (${job.sector}) — ${fmt$(job.min)}–${fmt$(job.max)}/yr  [${smarts}% success]`,
-        fn(ch){
-          if(Math.random()*100<smarts){applyForJob(ch,job);return`🎉 Hired as ${job.name}! Starting salary: ${fmt$(ch.salary)}/yr`;}
-          return`❌ Rejected for ${job.name}. Raise your Smarts for better odds next year.`;
-        }
-      })),
-      {text:`Stay at ${c.jobTitle||'current position'} (${fmt$(c.salary||0)}/yr)`,fn(){return'Staying put. Next career window opens in 1 year.'}},
-    ],
-  };
-}
-
 function annualTick(){ monthlyTick(); } // alias kept for compatibility
 
 function monthlyTick(){
@@ -1370,13 +1497,16 @@ function monthlyTick(){
     if(avail.length){const j=avail[ri(0,Math.min(2,avail.length-1))];applyForJob(c,j);ev.push({type:'good',text:`Got job: ${c.jobTitle} — ${fmt$(c.salary)}/yr`});}
   }
 
+  // Monthly markets: prices update every month
+  tickStocks(inv);
+  tickCrypto(inv);
+  tickVehicles(inv);
+
   // Annual systems: fire once per year
   if(isNewYear){
     tickCareerNew(c, ev);
     tickRelationship(c, ev);
     tickMarket(inv);
-    tickStocks(inv);
-    tickCrypto(inv);
     tickRetirement(inv, c);
     tickRealEstate(inv, ev);
     tickBusinesses(inv, c, ev);
@@ -1406,9 +1536,8 @@ function monthlyTick(){
     return;
   }
 
-  // Build event queue: career window first (new year), then expense, life event, tip
+  // Build event queue: monthly expense first, then life event, then occasional tip
   GS.pendingEvents=[];
-  if(isNewYear&&!c.inSchool&&!c.retired&&c.employed) GS.pendingEvents.push(buildJobChangeEvent(c));
   const expEvent = generateMonthlyExpenseEvent(c);
   if(expEvent) GS.pendingEvents.push(expEvent);
   if(pct(0.30)){
@@ -1418,7 +1547,6 @@ function monthlyTick(){
   // Financial tip: roughly every 4-5 months
   if(pct(0.22)) GS.pendingEvents.push(generateTipEvent());
 
-  generateNewsletter();
   updateUI(fin, prevNW, nw);
   saveGame();
 
@@ -1517,8 +1645,6 @@ function updateUI(fin, prevNW, nw){
   renderProperties(inv); renderBusinesses(inv);
 
   drawNetWorthChart();
-  updateNewsChannel();
-  renderInbox();
 }
 
 function renderStocksTable(inv){
@@ -1550,7 +1676,10 @@ function renderCryptoGrid(inv){
 
 function renderProperties(inv){
   if(!inv.properties.length){$('prop-list').innerHTML='<p style="color:var(--muted);font-size:12px">No properties owned.</p>';return;}
-  $('prop-list').innerHTML=inv.properties.map(p=>`<div class="info-row"><span class="ir-label">${p.name}</span><span class="ir-value pos">${fmt$(p.value-p.debt)} equity</span></div>`).join('');
+  $('prop-list').innerHTML=inv.properties.map(p=>{
+    const tag=p.livedIn?' 🏡':p.rented?' 💰':'';
+    return `<div class="info-row"><span class="ir-label">${p.name}${tag}</span><span class="ir-value pos">${fmt$(p.value-p.debt)} equity</span></div>`;
+  }).join('');
 }
 function renderBusinesses(inv){
   if(!inv.businesses.length){$('biz-list').innerHTML='<p style="color:var(--muted);font-size:12px">No businesses owned.</p>';return;}
@@ -1666,6 +1795,8 @@ function resolveChoice(ev, idx){
 
 function closeModal(){
   $('modal-overlay').classList.remove('open');
+  $('modal-box').classList.remove('wide');
+  $('modal-box').classList.remove('compact');
   if(GS.pendingEvents.length>0) setTimeout(showNextEvent,200);
 }
 
@@ -1698,12 +1829,173 @@ function showActionModal(title, desc, choices){
   overlay.classList.add('open');
 }
 
+// ── Mini sparkline chart for asset cards ──
+function drawMiniChart(canvas, history, up){
+  if(!canvas) return;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.clientWidth||220, H=50;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,W,H);
+  if(!history||history.length<2){
+    ctx.strokeStyle='#4a6a4a'; ctx.lineWidth=1; ctx.beginPath();
+    ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+    ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--muted');
+    ctx.font='10px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('No history yet',W/2,H/2+14);
+    return;
+  }
+  const mn=Math.min(...history), mx=Math.max(...history);
+  const range=mx-mn||Math.abs(mn)*0.01||1;
+  const pad=4;
+  const pts=history.map((v,i)=>[i/(history.length-1)*W, H-pad-((v-mn)/range)*(H-pad*2)]);
+  const col=up?'#00c853':'#ff3d3d';
+  // fill gradient
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0, up?'rgba(0,200,83,.35)':'rgba(255,61,61,.35)');
+  grad.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+  ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
+  // line
+  ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+  ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.stroke();
+  // end dot
+  const last=pts[pts.length-1];
+  ctx.beginPath(); ctx.arc(last[0],last[1],2.5,0,Math.PI*2);
+  ctx.fillStyle=col; ctx.fill();
+}
+
+// ── Asset-grid modal for stocks ──
+function showStockModal(){
+  const inv=GS.inv, c=GS.char;
+  const overlay=$('modal-overlay');
+  $('modal-box').classList.add('wide');
+  $('m-icon').textContent='📈';
+  $('m-tag').textContent='Market'; $('m-tag').className='modal-tag fla';
+  $('m-title').textContent='Stock Market';
+  $('m-body').textContent=`Climate: ${inv.climate.toUpperCase()} · Cash: ${fmt$(c.checking)} · Prices update monthly.`;
+  $('m-result').style.display='none';
+  const ch=$('m-choices'); ch.innerHTML='';
+  const grid=document.createElement('div'); grid.className='asset-grid';
+  const cards=[];
+  inv.stocks.forEach((s,idx)=>{
+    const h=s.history||[s.price]; const prev=h.length>1?h[h.length-2]:s.price;
+    const chg=prev>0?((s.price-prev)/prev*100):0;
+    const pos=inv.portfolio[s.id];
+    const owned=pos?pos.shares:0;
+    const canAfford=c.checking>=s.price*10;
+    const card=document.createElement('div'); card.className='asset-card';
+    card.innerHTML=`
+      <div class="ac-hdr"><div><div class="ac-name">${s.name}</div><div class="ac-ticker">${s.id} · ${s.sector||'stocks'}</div></div>
+      <div style="text-align:right"><div class="ac-price">$${s.price.toFixed(2)}</div><div class="ac-chg ${chg>=0?'pos':'neg'}">${chg>=0?'+':''}${chg.toFixed(1)}%</div></div></div>
+      <canvas class="ac-chart" id="ch-stk-${idx}"></canvas>
+      <div class="ac-meta"><span>${owned?`Owned: ${owned} sh · ${fmt$(s.price*owned)}`:'Not held'}</span><span>10sh = ${fmt$(s.price*10)}</span></div>
+      <div class="ac-actions">
+        <button class="ac-btn buy" ${canAfford?'':'disabled'} data-buy="${s.id}">Buy 10</button>
+        <button class="ac-btn sell" ${owned?'':'disabled'} data-sell="${s.id}">Sell All</button>
+      </div>`;
+    grid.appendChild(card); cards.push({canvas:'ch-stk-'+idx, history:h, up:chg>=0});
+  });
+  ch.appendChild(grid);
+  const closeBtn=document.createElement('button'); closeBtn.className='choice-btn'; closeBtn.textContent='Close';
+  closeBtn.onclick=()=>{$('modal-box').classList.remove('wide'); closeModal();};
+  ch.appendChild(closeBtn);
+  grid.onclick=(e)=>{
+    const buyId=e.target.getAttribute('data-buy');
+    const sellId=e.target.getAttribute('data-sell');
+    if(buyId){
+      const s=inv.stocks.find(x=>x.id===buyId); const cost=Math.round(s.price*10);
+      if(c.checking<cost){showToast('Not enough cash.');return;}
+      c.checking-=cost;
+      if(!inv.portfolio[s.id]) inv.portfolio[s.id]={shares:0,avgCost:0};
+      const p=inv.portfolio[s.id]; p.avgCost=(p.avgCost*p.shares+cost)/(p.shares+10); p.shares+=10;
+      showToast(`Bought 10 ${s.id} for ${fmt$(cost)}`);
+      showStockModal();
+    }else if(sellId){
+      const s=inv.stocks.find(x=>x.id===sellId); const p=inv.portfolio[sellId]; if(!p) return;
+      const proceeds=Math.round(s.price*p.shares);
+      const cg=Math.round((s.price-p.avgCost)*p.shares);
+      const tax=cg>0?Math.round(cg*0.15):0;
+      c.checking+=proceeds-tax;
+      delete inv.portfolio[sellId];
+      showToast(`Sold ${sellId} for ${fmt$(proceeds-tax)}`);
+      showStockModal();
+    }
+  };
+  overlay.classList.add('open');
+  requestAnimationFrame(()=>cards.forEach(cd=>drawMiniChart($(cd.canvas), cd.history, cd.up)));
+}
+
+// ── Asset-grid modal for crypto ──
+function showCryptoModal(){
+  const inv=GS.inv, c=GS.char;
+  const overlay=$('modal-overlay');
+  $('modal-box').classList.add('wide');
+  $('m-icon').textContent='₿';
+  $('m-tag').textContent='Market'; $('m-tag').className='modal-tag fla';
+  $('m-title').textContent='Crypto Market';
+  $('m-body').textContent=`Climate: ${inv.climate.toUpperCase()} · Cash: ${fmt$(c.checking)} · Extremely volatile. Prices update monthly.`;
+  $('m-result').style.display='none';
+  const ch=$('m-choices'); ch.innerHTML='';
+  const grid=document.createElement('div'); grid.className='asset-grid';
+  const cards=[];
+  inv.cryptos.forEach((coin,idx)=>{
+    const h=coin.history||[coin.price]; const prev=h.length>1?h[h.length-2]:coin.price;
+    const chg=prev>0?((coin.price-prev)/prev*100):0;
+    const pos=inv.cryptoHeld[coin.id];
+    const owned=pos?pos.coins:0;
+    const canAfford=c.checking>=1000;
+    const priceLbl=coin.price>=1000?'$'+(coin.price/1000).toFixed(2)+'k':coin.price>=1?'$'+coin.price.toFixed(2):'$'+coin.price.toFixed(5);
+    const card=document.createElement('div'); card.className='asset-card';
+    card.innerHTML=`
+      <div class="ac-hdr"><div><div class="ac-name">${coin.name}</div><div class="ac-ticker">${coin.id}</div></div>
+      <div style="text-align:right"><div class="ac-price">${priceLbl}</div><div class="ac-chg ${chg>=0?'pos':'neg'}">${chg>=0?'+':''}${chg.toFixed(1)}%</div></div></div>
+      <canvas class="ac-chart" id="ch-cry-${idx}"></canvas>
+      <div class="ac-meta"><span>${owned?`Owned: ${owned.toFixed(4)} · ${fmt$(coin.price*owned)}`:'Not held'}</span><span>Buy = $1,000</span></div>
+      <div class="ac-actions">
+        <button class="ac-btn buy" ${canAfford?'':'disabled'} data-buy="${coin.id}">Buy $1k</button>
+        <button class="ac-btn sell" ${owned?'':'disabled'} data-sell="${coin.id}">Sell All</button>
+      </div>`;
+    grid.appendChild(card); cards.push({canvas:'ch-cry-'+idx, history:h, up:chg>=0});
+  });
+  ch.appendChild(grid);
+  const closeBtn=document.createElement('button'); closeBtn.className='choice-btn'; closeBtn.textContent='Close';
+  closeBtn.onclick=()=>{$('modal-box').classList.remove('wide'); closeModal();};
+  ch.appendChild(closeBtn);
+  grid.onclick=(e)=>{
+    const buyId=e.target.getAttribute('data-buy');
+    const sellId=e.target.getAttribute('data-sell');
+    if(buyId){
+      const coin=inv.cryptos.find(x=>x.id===buyId);
+      if(c.checking<1000){showToast('Not enough cash.');return;}
+      const coins=1000/coin.price;
+      c.checking-=1000;
+      if(!inv.cryptoHeld[coin.id]) inv.cryptoHeld[coin.id]={coins:0,avgCost:0};
+      const p=inv.cryptoHeld[coin.id]; p.avgCost=(p.avgCost*p.coins+1000)/(p.coins+coins); p.coins+=coins;
+      showToast(`Bought ${coins.toFixed(4)} ${coin.id}`);
+      showCryptoModal();
+    }else if(sellId){
+      const coin=inv.cryptos.find(x=>x.id===sellId); const p=inv.cryptoHeld[sellId]; if(!p) return;
+      const proceeds=coin.price*p.coins;
+      const tax=proceeds>p.avgCost*p.coins?Math.round((proceeds-p.avgCost*p.coins)*0.15):0;
+      c.checking+=proceeds-tax;
+      delete inv.cryptoHeld[sellId];
+      showToast(`Sold ${sellId} for ${fmt$(proceeds-tax)}`);
+      showCryptoModal();
+    }
+  };
+  overlay.classList.add('open');
+  requestAnimationFrame(()=>cards.forEach(cd=>drawMiniChart($(cd.canvas), cd.history, cd.up)));
+}
+
 $('btn-job').onclick=()=>{
   const c=GS.char;
   if(c.inSchool){showToast('Finish school first!');return;}
   if(c.retired){showToast('You\'re retired!');return;}
-  if(c.employed){showToast('Career window opens every year — keep aging to unlock it!');return;}
-  showActionModal('Find a Job','You\'re unemployed — browse available positions to get back to work.',buildJobChoices(c));
+  showActionModal('Find a Job','Browse available positions based on your education and skills.',buildJobChoices(c));
 };
 
 $('btn-bank').onclick=()=>{
@@ -1716,7 +2008,7 @@ $('btn-bank').onclick=()=>{
   ]);
 };
 
-$('btn-invest').onclick=()=>{ showStockModal(); };
+$('btn-invest').onclick=()=>showStockModal();
 
 $('btn-realty').onclick=()=>{
   const inv=GS.inv,c=GS.char;
@@ -1733,37 +2025,197 @@ $('btn-realty').onclick=()=>{
     return{text:`Buy ${t.name}: ${fmt$(t.price)} (${fmt$(down)} down, ${fmt$(mp)}/mo mortgage)`,fn(){
       if(c.checking<down)return`Need ${fmt$(down)} for down payment.`;
       c.checking-=down;
-      inv.properties.push({name:t.name,value:t.price,debt,monthlyPayment:mp,rented:false,rent:Math.round(t.price*0.006),age:0});
-      c.hasHouse=true;return`Bought ${t.name}! Equity: ${fmt$(down)}`;
+      const isFirst = !inv.properties.some(p=>p.livedIn);
+      inv.properties.push({name:t.name,value:t.price,debt,monthlyPayment:mp,rented:false,rent:Math.round(t.price*0.006),age:0,livedIn:isFirst});
+      c.hasHouse=inv.properties.some(p=>p.livedIn);
+      return`Bought ${t.name}! Equity: ${fmt$(down)}${isFirst?' · Moved in.':''}`;
     }};
   });
-  // Sell options
+  // Per-property options: move in/out, rent toggle, sell
   for(let i=0;i<inv.properties.length;i++){
     const p=inv.properties[i];
-    choices.push({text:`Sell ${p.name} (equity: ${fmt$(p.value-p.debt)})`,fn(){const eq=p.value-p.debt;c.checking+=eq;inv.properties.splice(i,1);if(!inv.properties.length)c.hasHouse=false;return`Sold for ${fmt$(eq)} net equity.`}});
-    if(!p.rented)choices.push({text:`Rent out ${p.name} (~${fmt$(p.rent)}/mo)`,fn(){p.rented=true;return`Now renting for ${fmt$(p.rent)}/mo!`}});
-    else choices.push({text:`Stop renting ${p.name}`,fn(){p.rented=false;return'Stopped renting.'}});
+    const tag=p.livedIn?' 🏡 (living here)':p.rented?' 💰 (renting out)':' (vacant)';
+    if(!p.livedIn){
+      choices.push({text:`Move into ${p.name}${tag}`,fn(){
+        inv.properties.forEach(x=>x.livedIn=false);
+        p.livedIn=true; p.rented=false;
+        c.hasHouse=true;
+        return`Moved into ${p.name}. Your new home!`;
+      }});
+    } else {
+      choices.push({text:`Move out of ${p.name}${tag}`,fn(){
+        p.livedIn=false;
+        c.hasHouse=inv.properties.some(x=>x.livedIn);
+        return`Moved out of ${p.name}. Now paying rent elsewhere.`;
+      }});
+    }
+    if(!p.livedIn){
+      if(!p.rented) choices.push({text:`Rent out ${p.name} (~${fmt$(p.rent)}/mo)`,fn(){p.rented=true;return`Now renting for ${fmt$(p.rent)}/mo!`}});
+      else choices.push({text:`Stop renting ${p.name}`,fn(){p.rented=false;return'Stopped renting.'}});
+    }
+    choices.push({text:`Sell ${p.name} (equity: ${fmt$(p.value-p.debt)})${tag}`,fn(){
+      const eq=p.value-p.debt; c.checking+=eq;
+      inv.properties.splice(i,1);
+      c.hasHouse=inv.properties.some(x=>x.livedIn);
+      return`Sold for ${fmt$(eq)} net equity.${!c.hasHouse?' Back to renting.':''}`;
+    }});
   }
-  showActionModal('Real Estate','Buy, sell, or rent properties.',choices);
+  choices.unshift({text:'🚗 Browse Vehicles (cars, bikes, boats, planes)',fn(){setTimeout(()=>showVehiclesModal(),50);return'Opening vehicles...';}});
+  showActionModal('Real Estate','Buy properties to live in, rent out, or flip. Also browse vehicles from here.',choices);
 };
 
-$('btn-crypto').onclick=()=>{ showCryptoModal(); };
+// ── Vehicles modal — cars, motorcycles, boats, planes (with EVs) ──
+function showVehiclesModal(){
+  const inv=GS.inv, c=GS.char;
+  if(!inv.vehicles) inv.vehicles=[];
+  const choices=[];
+  // Group catalog by type for readability
+  const order=['car','motorcycle','boat','plane'];
+  const labels={car:'🚗 CARS',motorcycle:'🏍️ MOTORCYCLES',boat:'⛵ BOATS',plane:'✈️ PLANES'};
+  for(const type of order){
+    const items=VEHICLE_CATALOG.filter(v=>v.type===type);
+    for(const v of items){
+      const evTag = v.isElectric ? ' ⚡EV' : '';
+      const canAfford = c.checking>=v.price;
+      choices.push({
+        text:`${v.icon} ${v.name}${evTag} — ${fmt$(v.price)} · ${fmt$(v.monthlyCost)}/mo`,
+        fn(){
+          if(c.checking<v.price) return`Need ${fmt$(v.price)}.`;
+          c.checking-=v.price;
+          inv.vehicles.push({...v, value:v.price, age:0});
+          return`Bought ${v.name}! Current fleet value: ${fmt$(totalVehicleValue(inv))}.`;
+        }
+      });
+    }
+  }
+  // Sell options
+  if(inv.vehicles.length){
+    for(let i=0;i<inv.vehicles.length;i++){
+      const v=inv.vehicles[i];
+      const ageYrs=((v.age||0)/12).toFixed(1);
+      choices.unshift({
+        text:`💸 Sell ${v.icon} ${v.name} — value: ${fmt$(v.value)} (${ageYrs}yr old)`,
+        fn(){
+          // Private sale takes ~5% loss vs market value
+          const proceeds=Math.round(v.value*0.95);
+          c.checking+=proceeds;
+          inv.vehicles.splice(i,1);
+          return`Sold for ${fmt$(proceeds)}.`;
+        }
+      });
+    }
+  }
+  choices.unshift({text:'🏠 Back to Properties',fn(){setTimeout(()=>$('btn-realty').click(),50);return'Back to real estate...';}});
+  showActionModal('Vehicles','Cars, bikes, boats, planes. ⚡ = Electric.',choices);
+  $('modal-box').classList.add('compact');
+}
+
+$('btn-crypto').onclick=()=>showCryptoModal();
+
+// ── Side Hustle Catalog ──
+// Each hustle: low-cost side-income (adds to salary) OR higher-risk business (goes into inv.businesses).
+// Success chance scales with smarts/looks where noted.
+const SIDE_HUSTLES = [
+  // ── GIG / LABOR ──
+  {icon:'🍔',name:'DoorDash / Uber Eats',desc:'Drive nights & weekends for food delivery apps.',cost:0,incMin:3500,incMax:8500,success:1.0,stat:null},
+  {icon:'🚗',name:'Rideshare (Uber/Lyft)',desc:'Drive people around on evenings and weekends.',cost:0,incMin:5000,incMax:12000,success:1.0,stat:null},
+  {icon:'🐕',name:'Dog Walking / Pet Sitting',desc:'Rover or Wag — walk and board neighborhood pets.',cost:100,incMin:2000,incMax:6000,success:0.9,stat:null},
+  {icon:'🌿',name:'Lawn Care / Landscaping',desc:'Mow lawns and trim hedges in your area.',cost:400,incMin:3000,incMax:10000,success:0.85,stat:null},
+  {icon:'🧹',name:'House Cleaning',desc:'Clean apartments and homes on weekends.',cost:150,incMin:3500,incMax:9000,success:0.9,stat:null},
+  {icon:'🔧',name:'Handyman Services',desc:'Fix stuff for neighbors — TaskRabbit style.',cost:500,incMin:4000,incMax:14000,success:0.8,stat:null},
+
+  // ── CREATIVE / CREATOR ──
+  {icon:'🎥',name:'YouTube Channel',desc:'Build an audience around a niche — monetize via ads & sponsors.',cost:800,incMin:0,incMax:60000,success:0.35,stat:'smarts'},
+  {icon:'🎮',name:'Twitch Streamer',desc:'Stream games nightly. Hit-or-miss chasing the algorithm.',cost:1500,incMin:0,incMax:40000,success:0.28,stat:'smarts'},
+  {icon:'📱',name:'TikTok Creator',desc:'Post daily viral content, chase brand deals.',cost:200,incMin:0,incMax:35000,success:0.32,stat:'looks'},
+  {icon:'🎙️',name:'Podcast Host',desc:'Record a weekly podcast on a topic you know well.',cost:600,incMin:0,incMax:18000,success:0.40,stat:'smarts'},
+  {icon:'✍️',name:'Substack Newsletter',desc:'Write a paid weekly newsletter in your area of expertise.',cost:0,incMin:0,incMax:25000,success:0.45,stat:'smarts'},
+  {icon:'📸',name:'Freelance Photographer',desc:'Shoot weddings, portraits, events on weekends.',cost:3000,incMin:2000,incMax:22000,success:0.55,stat:'looks'},
+  {icon:'🎨',name:'Etsy Art Shop',desc:'Sell prints, stickers, and digital art.',cost:300,incMin:1000,incMax:14000,success:0.55,stat:'smarts'},
+  {icon:'🎵',name:'Sell Music / Beats',desc:'Produce beats on BeatStars, sell instrumentals.',cost:500,incMin:500,incMax:18000,success:0.40,stat:'smarts'},
+
+  // ── TECH ──
+  {icon:'💻',name:'Freelance Web Dev',desc:'Build websites for small businesses on Upwork.',cost:0,incMin:8000,incMax:35000,success:0.70,stat:'smarts'},
+  {icon:'📲',name:'Mobile App Developer',desc:'Ship a paid app or monetize a free one with ads.',cost:500,incMin:0,incMax:45000,success:0.35,stat:'smarts'},
+  {icon:'🤖',name:'AI Prompt Consultant',desc:'Help businesses integrate AI workflows.',cost:200,incMin:5000,incMax:40000,success:0.55,stat:'smarts'},
+  {icon:'🛡️',name:'Cybersecurity Consulting',desc:'Pen-test small business networks.',cost:1000,incMin:10000,incMax:50000,success:0.50,stat:'smarts'},
+
+  // ── TEACHING / SERVICE ──
+  {icon:'📚',name:'Online Tutoring',desc:'Tutor students in math, writing, or test prep.',cost:0,incMin:4000,incMax:16000,success:0.75,stat:'smarts'},
+  {icon:'🏋️',name:'Personal Trainer',desc:'Get certified, train clients at the gym or online.',cost:800,incMin:4000,incMax:20000,success:0.65,stat:'looks'},
+  {icon:'🧘',name:'Yoga Instructor',desc:'Teach evening classes at a local studio.',cost:1500,incMin:3000,incMax:12000,success:0.60,stat:'looks'},
+  {icon:'🎓',name:'Test Prep Coach',desc:'Coach students on SAT/GRE/LSAT.',cost:400,incMin:6000,incMax:22000,success:0.60,stat:'smarts'},
+
+  // ── RESALE / E-COM ──
+  {icon:'👟',name:'Sneaker Reselling',desc:'Cop limited drops, flip on StockX.',cost:2000,incMin:-2000,incMax:18000,success:0.50,stat:null},
+  {icon:'📦',name:'Amazon FBA',desc:'Private-label products via Amazon fulfillment.',cost:5000,incMin:-5000,incMax:45000,success:0.40,stat:'smarts'},
+  {icon:'🛍️',name:'Dropshipping Store',desc:'Shopify store selling trending products.',cost:2500,incMin:-2500,incMax:35000,success:0.35,stat:'smarts'},
+  {icon:'♻️',name:'Thrift Store Flipping',desc:'Buy cheap at thrift stores, resell on eBay/Poshmark.',cost:500,incMin:1500,incMax:12000,success:0.65,stat:null},
+  {icon:'🪑',name:'Furniture Flipping',desc:'Restore and resell vintage furniture.',cost:800,incMin:2000,incMax:14000,success:0.55,stat:null},
+  {icon:'🚲',name:'Garage Sale Flipper',desc:'Scour garage sales for undervalued finds.',cost:200,incMin:500,incMax:6000,success:0.60,stat:null},
+
+  // ── REAL ESTATE / PASSIVE ──
+  {icon:'🏡',name:'Airbnb Co-Host',desc:'Manage listings for other owners (no property needed).',cost:300,incMin:3000,incMax:16000,success:0.70,stat:'smarts'},
+  {icon:'🖨️',name:'Print-on-Demand',desc:'Upload designs to Redbubble / Printify — fully passive.',cost:200,incMin:500,incMax:9000,success:0.45,stat:null},
+  {icon:'🔗',name:'Affiliate Blog',desc:'Write SEO content, earn affiliate commissions.',cost:400,incMin:0,incMax:22000,success:0.40,stat:'smarts'},
+
+  // ── HIGH RISK ──
+  {icon:'📈',name:'Day Trading',desc:'Trade stocks intraday. Most lose money.',cost:3000,incMin:-5000,incMax:50000,success:0.25,stat:'smarts'},
+  {icon:'🎰',name:'Sports Betting Arbitrage',desc:'Cross-book bets exploiting line differences.',cost:2000,incMin:-3000,incMax:15000,success:0.35,stat:'smarts'},
+];
+
+function runSideHustle(h){
+  const c=GS.char;
+  if(c.checking<h.cost) return `Need ${fmt$(h.cost)} startup capital.`;
+  c.checking-=h.cost;
+  let successRate=h.success;
+  if(h.stat==='smarts') successRate=clamp(successRate*(0.5+c.smarts/100),0,0.95);
+  else if(h.stat==='looks') successRate=clamp(successRate*(0.5+c.looks/100),0,0.95);
+  if(pct(successRate)){
+    const statMult = h.stat==='smarts'?(0.6+c.smarts/120):h.stat==='looks'?(0.6+c.looks/120):1.0;
+    const inc = Math.round((h.incMin + Math.random()*(h.incMax-h.incMin)) * statMult);
+    if(inc<=0){
+      const loss=Math.abs(inc);
+      return `${h.name} lost money. Down ${fmt$(loss+h.cost)} total.`;
+    }
+    c.salary=(c.salary||0)+inc;
+    return `🎉 ${h.name} paying off! +${fmt$(inc)}/yr recurring income.`;
+  }
+  const loss = h.incMin<0 ? Math.round(Math.abs(h.incMin)*Math.random()) : 0;
+  if(loss>0){ c.checking-=loss; return `❌ ${h.name} flopped. Lost ${fmt$(h.cost+loss)} total.`; }
+  return `❌ ${h.name} didn't gain traction. Lost ${fmt$(h.cost)} startup.`;
+}
 
 $('btn-hustle').onclick=()=>{
   const c=GS.char;
-  showActionModal('Side Hustle','Start a side income stream alongside your main job.',[
-    {text:'Freelance Design/Writing (~$800-2k/mo)',fn(){if(pct(0.65)){const inc=ri(5000,20000);c.salary=(c.salary||0)+inc;return`Side hustle successful! +${fmt$(inc)}/yr extra income.`}c.checking-=ri(200,1000);return'Flopped. Lost some startup costs.'}},
-    {text:'Gig Economy (DoorDash, Uber ~$400-800/mo)',fn(){const inc=ri(4000,9000);c.salary=(c.salary||0)+inc;return`Gig income: +${fmt$(inc)}/yr`}},
-    {text:'Start Online Store (~1-5k to start)',fn(){const cost=ri(1000,5000);if(c.checking<cost)return`Need ${fmt$(cost)} to start.`;c.checking-=cost;if(pct(0.55)){const inc=ri(8000,40000);c.salary=(c.salary||0)+inc;return`Store took off! +${fmt$(inc)}/yr`}return`Store struggling. ${fmt$(cost)} invested.`}},
-    {text:'Start a Business',fn(){
-      const bzTypes=[{name:'Food Truck',cost:20000,revMult:1.5},{name:'Retail Store',cost:80000,revMult:1.3},{name:'Tech Startup',cost:30000,revMult:3.0}];
-      const bz=pick(bzTypes);
-      if(c.checking<bz.cost)return`Need ${fmt$(bz.cost)} to start ${bz.name}.`;
-      c.checking-=bz.cost;
-      GS.inv.businesses.push({name:bz.name,startCost:bz.cost,value:bz.cost,revMult:bz.revMult,profit:0,age:0});
-      return`Started ${bz.name}! Costs ${fmt$(bz.cost)}, results next year.`;
-    }},
-  ]);
+  // Shuffle and show 6 random hustles each time + persistent "Start a Business" option
+  const shuffled=[...SIDE_HUSTLES].sort(()=>Math.random()-0.5).slice(0,6);
+  const choices=shuffled.map(h=>{
+    const statNote = h.stat==='smarts'?` · smarts-based`:h.stat==='looks'?` · looks-based`:'';
+    const costNote = h.cost>0?`$${(h.cost/1000).toFixed(1)}k start`:'free';
+    return {text:`${h.icon} ${h.name} — ${costNote}${statNote}`, fn(){return runSideHustle(h);}};
+  });
+  choices.push({text:'🔄 Refresh hustle list',fn(){setTimeout(()=>$('btn-hustle').click(),100);return'Looking at other options...';}});
+  choices.push({text:'🏪 Start a Real Business',fn(){
+    const bzTypes=[
+      {name:'Food Truck',cost:20000,revMult:1.5},
+      {name:'Coffee Shop',cost:60000,revMult:1.3},
+      {name:'Retail Store',cost:80000,revMult:1.3},
+      {name:'Tech Startup',cost:30000,revMult:3.0},
+      {name:'Restaurant',cost:120000,revMult:1.4},
+      {name:'Gym / Studio',cost:75000,revMult:1.6},
+      {name:'Bar / Lounge',cost:90000,revMult:1.5},
+      {name:'Car Wash',cost:45000,revMult:1.2},
+      {name:'Laundromat',cost:55000,revMult:1.2},
+      {name:'SaaS Company',cost:40000,revMult:3.5},
+    ];
+    const bz=pick(bzTypes);
+    if(c.checking<bz.cost)return`Need ${fmt$(bz.cost)} to start ${bz.name}.`;
+    c.checking-=bz.cost;
+    GS.inv.businesses.push({name:bz.name,startCost:bz.cost,value:bz.cost,revMult:bz.revMult,profit:0,age:0});
+    return`Started ${bz.name}! Invested ${fmt$(bz.cost)}, results every year.`;
+  }});
+  showActionModal('Side Hustle','Pick one — results roll immediately. Smarts/looks can boost your odds.',choices);
 };
 
 $('btn-edu').onclick=()=>{
@@ -1845,10 +2297,10 @@ function showGameOver(){
 // ════════════════════════════════════════════════════════════════
 
 function saveGame(){
-  try{localStorage.setItem('finlife_save',JSON.stringify({char:GS.char,inv:GS.inv,nwHistory:GS.nwHistory,newsletters:GS.newsletters,activeWars:GS.activeWars}));}catch(e){}
+  try{localStorage.setItem('finlife_save',JSON.stringify({char:GS.char,inv:GS.inv,nwHistory:GS.nwHistory}));}catch(e){}
 }
 function loadGame(){
-  try{const d=localStorage.getItem('finlife_save');if(!d)return false;const p=JSON.parse(d);GS.char=p.char;GS.inv=p.inv||createInvState();GS.nwHistory=p.nwHistory||[];GS.newsletters=p.newsletters||[];GS.activeWars=p.activeWars||[];return true;}catch(e){return false;}
+  try{const d=localStorage.getItem('finlife_save');if(!d)return false;const p=JSON.parse(d);GS.char=p.char;GS.inv=p.inv||createInvState();GS.nwHistory=p.nwHistory||[];return true;}catch(e){return false;}
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1879,567 +2331,18 @@ $('btn-start').onclick=()=>{
   GS.scenario=pick(scenarios);
   GS.char=createChar(name, GS.scenario);
   GS.inv=createInvState();
-  const _sj=pick(getAvailableJobs(GS.char));
-  if(_sj) applyForJob(GS.char, _sj);
   GS.nwHistory=[];
   GS.pendingEvents=[];
-  GS.newsletters=[];
-  GS.activeWars=[];
   const nw=calcNetWorth(GS.char,GS.inv);
   GS.nwHistory.push(nw);
   showScreen('game');
   updateUI({gross:GS.char.salary,taxes:0,livingCost:28000,debtPay:0,annSavings:0},0,nw);
-  initNewsChannel();
   const scLabels={broke:'💸 You started Broke — student debt and minimum wage.',middle:'🏡 You started Middle Class — college grad with some savings.',rich:'💰 You started Wealthy — trust fund and a head start!'};
   showToast(scLabels[GS.scenario]||'Welcome!');
 };
 
-// Auto-load save on page refresh
-if(loadGame()){
-  showScreen('game');
-  const nw=calcNetWorth(GS.char,GS.inv);
-  updateUI({gross:GS.char.salary||0,taxes:0,livingCost:28000,debtPay:0,annSavings:0},nw,nw);
-}
-
-// ════════════════════════════════════════════════════════════════
-//  BLOOMBERG-STYLE NEWS CHANNEL
-// ════════════════════════════════════════════════════════════════
-
-const ECONOMIC_FLAVOR_POOL = [
-  {icon:'🏦',text:'Fed holds rates steady amid mixed inflation data'},
-  {icon:'📊',text:'Consumer confidence index rises for 3rd straight month'},
-  {icon:'💵',text:'Dollar strengthens as Treasury yields climb'},
-  {icon:'🛢️',text:'Oil prices volatile on supply chain uncertainty'},
-  {icon:'🏭',text:'Manufacturing PMI beats estimates, jobs data mixed'},
-  {icon:'📉',text:'Recession fears resurface as yield curve inverts'},
-  {icon:'💹',text:'Wall Street opens higher on strong earnings reports'},
-  {icon:'🌐',text:'Global markets rally on trade deal optimism'},
-  {icon:'🏠',text:'Housing starts fall as mortgage rates stay elevated'},
-  {icon:'💳',text:'Consumer debt reaches record levels, defaults rising'},
-  {icon:'📈',text:'S&P 500 hits new all-time high on tech rally'},
-  {icon:'⚠️',text:'Inflation ticks up 0.3% — core CPI above expectations'},
-  {icon:'🏢',text:'Corporate layoffs accelerate in finance sector'},
-  {icon:'🌱',text:'Green energy stocks surge on new policy incentives'},
-  {icon:'🤖',text:'AI sector drives tech valuations to historic highs'},
-  {icon:'🛒',text:'Retail sales disappoint — holiday spending soft'},
-  {icon:'📦',text:'Supply chain disruptions ease, freight costs down'},
-  {icon:'💰',text:'Billionaire wealth up 15% YTD, middle class stagnates'},
-  {icon:'🏛️',text:'Congress debates debt ceiling — markets uneasy'},
-  {icon:'📱',text:'Big Tech reports beat — ad revenue rebounds strongly'},
-  {icon:'✈️',text:'Travel sector surges as bookings hit 5-year highs'},
-  {icon:'🏥',text:'Healthcare costs rise 8% — sector stocks outperform'},
-  {icon:'🚗',text:'Auto sales dip; EV transition costs squeeze margins'},
-  {icon:'🌍',text:'Emerging markets selloff as dollar index rises'},
-  {icon:'🔋',text:'Battery metals boom drives mining stocks higher'},
-  {icon:'📡',text:'Telecom consolidation wave sweeps sector'},
-  {icon:'🎮',text:'Gaming revenue hits $200B milestone globally'},
-  {icon:'🍔',text:'Restaurant chains report margin pressure from wages'},
-];
-
-const REAL_ESTATE_POOL = [
-  {icon:'🏘️',text:'Home prices up 4.2% YoY in top 20 metro areas'},
-  {icon:'🔑',text:'Rental vacancy rates hit 15-year low nationwide'},
-  {icon:'🏗️',text:'New construction permits fall 12% — inventory tight'},
-  {icon:'🏡',text:'Suburban demand cools as remote work policies shift'},
-  {icon:'🏙️',text:'Commercial real estate faces $500B debt maturity wall'},
-  {icon:'📐',text:'Multifamily REITs outperform as rents climb 6% YoY'},
-];
-
-const CLIMATE_HEADLINES = {
-  clear: {icon:'☀️', text:'Markets steady as weather outlook remains favorable'},
-  cloudy: {icon:'⛅', text:'Agricultural commodities mixed amid uncertain forecasts'},
-  storm: {icon:'⛈️', text:'Severe weather disrupts energy grid — utilities spike'},
-};
-
-function stockHeadline(stock){
-  const h = stock.history;
-  if(!h || h.length < 2) return null;
-  const prev = h[h.length-2], cur = h[h.length-1];
-  const chgPct = prev > 0 ? ((cur-prev)/prev*100) : 0;
-  const dir = chgPct > 0 ? '▲' : chgPct < 0 ? '▼' : '—';
-  const cls = chgPct > 0 ? 'up' : chgPct < 0 ? 'dn' : 'flat';
-  return {icon:'📊', text:`${stock.name} ${dir} ${Math.abs(chgPct).toFixed(1)}% — ${chgPct>2?'beats estimates':chgPct<-2?'misses guidance':'in line with forecasts'}`, chg:chgPct, cls, type:'stock'};
-}
-
-function cryptoHeadline(coin){
-  const h = coin.history;
-  if(!h || h.length < 2) return null;
-  const prev = h[h.length-2], cur = h[h.length-1];
-  const chgPct = prev > 0 ? ((cur-prev)/prev*100) : 0;
-  const dir = chgPct > 0 ? '▲' : chgPct < 0 ? '▼' : '—';
-  return {icon:'₿', text:`${coin.name} ${dir} ${Math.abs(chgPct).toFixed(1)}% — ${chgPct>5?'bulls return':chgPct<-5?'selloff accelerates':'range-bound trading'}`, chg:chgPct, cls:chgPct>0?'up':'dn', type:'crypto'};
-}
-
-function generateNewsHeadlines(inv){
-  const headlines = [];
-  if(inv && inv.stocks){
-    for(const s of inv.stocks){
-      const h = stockHeadline(s);
-      if(h) headlines.push(h);
-    }
-  }
-  if(inv && inv.cryptos){
-    for(const c of inv.cryptos){
-      const h = cryptoHeadline(c);
-      if(h) headlines.push(h);
-    }
-  }
-  const macroItem = pick(ECONOMIC_FLAVOR_POOL);
-  headlines.push({icon:macroItem.icon, text:macroItem.text, chg:null, cls:'flat', type:'macro'});
-  const reItem = pick(REAL_ESTATE_POOL);
-  headlines.push({icon:reItem.icon, text:reItem.text, chg:null, cls:'flat', type:'realty'});
-  while(headlines.length < 8){
-    const m = pick(ECONOMIC_FLAVOR_POOL);
-    headlines.push({icon:m.icon, text:m.text, chg:null, cls:'flat', type:'macro'});
-  }
-  return headlines;
-}
-
-function renderNewsFeed(headlines){
-  const feed = document.getElementById('news-feed');
-  if(!feed) return;
-  const items = [...headlines, ...headlines];
-  feed.innerHTML = items.map(h=>`<div class="news-item ${h.type||'macro'}"><span class="ni-icon">${h.icon}</span><span class="ni-text">${h.text}</span>${h.chg!==null?`<span class="ni-chg ${h.cls||'flat'}">${h.chg>=0?'+':''}${h.chg.toFixed(1)}%</span>`:''}</div>`).join('');
-  feed.style.animation='none';
-  void feed.offsetWidth;
-  feed.style.animation='scrollUp 20s linear infinite';
-}
-
-function renderNewsTicker(inv){
-  const ticker = document.getElementById('news-ticker');
-  if(!ticker || !inv) return;
-  let items = [];
-  for(const s of (inv.stocks||[])){
-    const h = s.history;
-    const prev = h&&h.length>1?h[h.length-2]:s.price;
-    const chg = prev>0?(s.price-prev)/prev*100:0;
-    const cls = chg>0?'tk-up':chg<0?'tk-dn':'';
-    items.push(`<span class="tk-item"><span class="tk-sym">${s.id}</span> <span class="tk-val">$${s.price.toFixed(0)}</span> <span class="${cls}">${chg>=0?'+':''}${chg.toFixed(1)}%</span></span>`);
-  }
-  for(const c of (inv.cryptos||[])){
-    const h = c.history;
-    const prev = h&&h.length>1?h[h.length-2]:c.price;
-    const chg = prev>0?(c.price-prev)/prev*100:0;
-    const cls = chg>0?'tk-up':chg<0?'tk-dn':'';
-    const fmtP = c.price>=1000?'$'+(c.price/1000).toFixed(1)+'k':c.price>=1?'$'+c.price.toFixed(0):'$'+c.price.toFixed(4);
-    items.push(`<span class="tk-item"><span class="tk-sym">${c.id}</span> <span class="tk-val">${fmtP}</span> <span class="${cls}">${chg>=0?'+':''}${chg.toFixed(1)}%</span></span>`);
-  }
-  if(!items.length) items.push(`<span class="tk-item"><span class="tk-sym">FINNEWS</span> <span class="tk-val">Markets are open</span></span>`);
-  ticker.innerHTML = [...items,...items].join(' · ');
-  ticker.style.animation='none';
-  void ticker.offsetWidth;
-  ticker.style.animation='tickerScroll 30s linear infinite';
-}
-
-function updateNewsChannel(){
-  const inv = GS.inv;
-  if(!inv) return;
-  const headlines = generateNewsHeadlines(inv);
-  renderNewsFeed(headlines);
-  renderNewsTicker(inv);
-}
-
-function initNewsChannel(){
-  updateNewsChannel();
-}
-
-// ════════════════════════════════════════════════════════════════
-//  POLITICAL INBOX
-// ════════════════════════════════════════════════════════════════
-
-const GAME_START_YEAR = 2025;
-const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
-const PRESIDENTS = [
-  {name:'Marcus Holt',     party:'National Unity Party', style:'moderate',     terms:[0,47]},
-  {name:'Diana Reeves',    party:'Progressive Alliance', style:'progressive',  terms:[48,95]},
-  {name:'Robert Caldwell', party:'Liberty Coalition',    style:'conservative', terms:[96,143]},
-  {name:'Sophia Chen',     party:'Reform Party',         style:'centrist',     terms:[144,191]},
-  {name:'James Thornton',  party:'National Front',       style:'nationalist',  terms:[192,999]},
-];
-
-const PRESIDENT_ACTIONS = {
-  moderate:[
-    'signed a bipartisan infrastructure compromise, allocating $480B to roads, bridges, and broadband.',
-    'convened an emergency G7 economic summit, pledging coordinated monetary policy response.',
-    'announced a public-private job creation partnership targeting 500,000 positions over 3 years.',
-    'called for "steady and measured" monetary policy in testimony before the Senate Banking Committee.',
-    'issued executive orders expanding access to community college for low-income families.',
-    'proposed a deficit reduction plan that raises taxes on corporations while protecting middle-class deductions.',
-  ],
-  progressive:[
-    'unveiled a $2.1T green energy investment package, projected to create 800,000 clean energy jobs.',
-    'proposed taxing unrealized capital gains above $10M annually — Wall Street furious.',
-    'signed sweeping student loan forgiveness legislation covering borrowers earning under $75k.',
-    'introduced a universal basic income pilot in 8 states, handing out $1,200/month to enrolled households.',
-    'pushed through the Clean Air and Climate Accountability Act, targeting net-zero emissions by 2040.',
-    'called for a 35% wealth tax on billionaires to fund universal healthcare expansion.',
-  ],
-  conservative:[
-    'signed sweeping energy sector deregulation, opening federal lands to drilling and fracking.',
-    'pushed corporate tax rates from 21% to 18%, claiming "the largest economic stimulus in decades."',
-    'ordered a 12% across-the-board cut to discretionary federal agency budgets.',
-    'vetoed a minimum wage increase bill, calling it "a job-killer for small businesses and startups."',
-    'signed the Border Security and Economic Protection Act, tightening both immigration and trade policy.',
-    'announced plans to eliminate capital gains taxes on domestic manufacturing investments.',
-  ],
-  centrist:[
-    'brokered a last-minute debt ceiling deal, averting a government shutdown and global credit scare.',
-    'proposed balanced reforms to Social Security solvency, gradually raising the retirement age to 68.',
-    'signed a modest AI regulation framework focused on transparency and safety testing — not prohibition.',
-    'called for a bipartisan "grand bargain" on healthcare costs, drawing interest from both parties.',
-    'issued executive orders on government efficiency, merging 14 duplicate federal agencies.',
-    'launched a task force on housing affordability — targeting 500,000 new units in 5 years.',
-  ],
-  nationalist:[
-    'announced sweeping new tariffs on 400 categories of imports from rival trading nations.',
-    'signed an executive order restricting foreign ownership of US farmland above 100 acres.',
-    'proposed ending three major trade agreements, citing "decades of economic betrayal by globalist elites."',
-    'called for 50% tariffs on semiconductor imports from Drakonia and its trade allies.',
-    'declared a national energy emergency, fast-tracking domestic oil and gas permits on federal land.',
-    'launched "Buy American 2.0" mandating that 80% of all federal contracts go to domestic suppliers.',
-  ],
-};
-
-const WAR_POOL = [
-  {name:'Caspian Sea Conflict',         parties:'Novaria vs. Azurestan',       effect:'oil',      icon:'🛢️', desc:'Naval skirmishes over disputed Caspian oil fields continue. OPEC allies warn of supply disruptions; Brent crude up $8/bbl this month.'},
-  {name:'Pacific Trade Standoff',       parties:'US vs. Drakonia',             effect:'inflation',icon:'📦', desc:'Tariff escalation between the two superpowers continues. Consumer goods costs up 8–12%. Supply chains rerouting through Southeast Asia at great expense.'},
-  {name:'Gulfara Insurgency',           parties:'Coalition forces in Gulfara', effect:'oil',      icon:'🔥', desc:'Western air campaign against Gulfaran insurgents enters its third month. Regional oil shipments disrupted; energy markets on edge ahead of winter.'},
-  {name:'Borovian Border Crisis',       parties:'NATO vs. Borovia',            effect:'energy',   icon:'⚔️', desc:'Sanctions on Borovia bite deep. Natural gas prices up 22%, wheat exports halted — food inflation accelerating across Europe and Asia.'},
-  {name:'Red Sea Shipping Crisis',      parties:'Multilateral naval coalition', effect:'shipping', icon:'🚢', desc:'Militia attacks on Red Sea shipping routes drive freight costs 35% higher. Container delays of 3–5 weeks ripple through global supply chains.'},
-  {name:'Khorvian Cyber Campaign',      parties:'US, EU vs. Khorvian actors',  effect:'tech',     icon:'💻', desc:'State-sponsored cyber attacks target US financial infrastructure. DHS raises threat level to orange; tech and banking stocks volatile.'},
-  {name:'South Meridian Trade Dispute', parties:'US, UK vs. Meridia',          effect:'metals',   icon:'⛏️', desc:'Meridia restricts rare earth metal exports in retaliation for sanctions. EV and semiconductor sectors face critical supply shortages.'},
-  {name:'Arctic Sovereignty Crisis',    parties:'US, Canada vs. Arctova',      effect:'energy',   icon:'🧊', desc:'Contested Arctic drilling rights escalate. UN emergency sessions called. Energy sector stocks soar on supply uncertainty.'},
-];
-
-const GAS_INFLATION = {
-  recession:'⛽ Gas falls to $2.75/gal as demand collapses. Core CPI drops to 1.2% — deflation risk now real. The Fed signals emergency rate cuts. Economists warn of prolonged contraction; consumer spending frozen.',
-  bear:'⛽ Gas slips to $3.10/gal amid economic slowdown. Inflation cools to 2.1% but consumer confidence sits at a 3-year low. The Fed holds rates steady while eyeing the labor market nervously.',
-  normal:'⛽ Gas holds at $3.45/gal. Core CPI at 2.9%, slightly above the 2% target. Fed signals rates stay "higher for longer." Job market remains resilient; wage growth at 3.8% YoY.',
-  bull:'⛽ Strong growth pushes gas to $4.10/gal. Core CPI at 3.6% — Fed discusses further rate hikes. Consumer spending is robust and wages are rising 4.2% YoY, but affordability strains are showing.',
-  bubble:'⛽ Gas spikes to $5.30/gal on speculation and supply tightening. CPI surges to 6.1% — the Fed calls an emergency session. Analysts warn of a speculative bubble forming across all asset classes.',
-};
-
-const LAW_POOL = [
-  {title:'Consumer Credit Protection Act',desc:'APR on consumer credit cards capped at 15%. Banks warn of tighter lending; consumer debt relief projected at $32B annually.'},
-  {title:'Capital Gains Tax Modernization Act',desc:'Capital gains rate cut to 12% for middle-income investors. Markets rally 2.4% on the day of passage.'},
-  {title:'Digital Asset Framework Act',desc:'Crypto exchanges must register with the SEC within 18 months. Short-term dampens speculation; analysts say long-term legitimizes the sector.'},
-  {title:'Federal Minimum Wage Increase ($18/hr)',desc:'Minimum wage rises to $18/hr effective next quarter. Small business groups warn of 200k job losses; consumer spending boost of $90B projected.'},
-  {title:'Housing Supply Acceleration Act',desc:'Fast-track permits for new residential construction. Analysts project 250,000 new units over 24 months — could ease rent inflation in top-50 metro areas.'},
-  {title:'Corporate Tax Fairness Act',desc:'Corporate rate raised from 21% to 24%. S&P 500 earnings estimates trimmed 5–7%; share buyback programs expected to slow sharply.'},
-  {title:'Domestic Energy Independence Act',desc:'$180B investment in domestic oil, gas, and nuclear. Analysts project gas prices falling 20–30¢/gal by year-end.'},
-  {title:'Student Debt Restructuring Package',desc:'Up to $20,000 forgiven for borrowers earning under $75k. Consumer spending boost of ~$120B annually projected; college enrollment rises.'},
-  {title:'Retirement Savings Expansion Act',desc:'All employers with 5+ workers must auto-enroll in 401(k). IRA limits raised to $9,000. Retirement savings projected to jump 45% over 10 years.'},
-  {title:'Anti-Price Gouging Enforcement Act',desc:'Federal price controls on essential goods during emergencies. Retailers warn of shortages; consumer advocates cheer projected household savings of $2,400/yr.'},
-  {title:'Infrastructure Revitalization Act',desc:'$650B over 10 years for roads, bridges, transit, and broadband. Construction and materials stocks surge 4–8% on signing day.'},
-  {title:'Tech Antitrust Modernization Act',desc:'DOJ empowered to break up platforms with >$500B market cap. Big Tech falls 5–9%; smaller competitors and open-source projects rally.'},
-  {title:'Prescription Drug Negotiation Act',desc:'Medicare negotiates prices on 50 top drugs annually. Pharma ETF drops 7%; patient groups celebrate projected $300B in savings over 10 years.'},
-  {title:'Free Trade Expansion Treaty',desc:'Tariff reductions across 14 partner nations ratified. Import costs projected to fall 9%; domestic manufacturers press Congress for carve-outs.'},
-  {title:'National Rent Stabilization Act',desc:'Annual rent increases capped at CPI+2% nationwide. Real estate investor appetite cools; rental REIT index falls 6% on the week.'},
-  {title:'Small Business Tax Credit Act',desc:'Tax credits up to $25,000 for new hires at small businesses. 180,000 new jobs expected in first year; main street businesses applaud.'},
-  {title:'Wealth Tax on Ultra-High Net Worth',desc:'1.5% annual tax on net worth above $50M. Estimated to raise $400B over 10 years. Billionaires announce relocation strategies; markets shrug.'},
-  {title:'Universal Pre-K and Child Care Act',desc:'$80B in subsidized childcare. Women\'s labor force participation projected to rise 3.2%; long-term productivity benefit cited by economists.'},
-];
-
-function getPresident(monthsSince){
-  for(const p of PRESIDENTS) if(monthsSince>=p.terms[0]&&monthsSince<=p.terms[1]) return p;
-  return PRESIDENTS[PRESIDENTS.length-1];
-}
-
-function generateNewsletter(){
-  const c=GS.char, inv=GS.inv;
-  if(!c||!inv) return;
-
-  const monthsSince = Math.max(0, c.monthAge-264);
-  const gameYear    = GAME_START_YEAR + Math.floor(monthsSince/12);
-  const monthName   = MONTH_NAMES[monthsSince%12];
-
-  // President
-  const pres   = getPresident(monthsSince);
-  const action = pick(PRESIDENT_ACTIONS[pres.style]||PRESIDENT_ACTIONS.moderate);
-  const politics = `President ${pres.name} (${pres.party}) ${action}`;
-
-  // Wars: tick existing, randomly start/end
-  if(!GS.activeWars) GS.activeWars=[];
-  GS.activeWars.forEach(w=>{ w.monthsActive=(w.monthsActive||0)+1; });
-  GS.activeWars=GS.activeWars.filter(w=>w.monthsActive<ri(18,42));
-  if(GS.activeWars.length===0&&pct(0.45)){
-    GS.activeWars.push({...pick(WAR_POOL),monthsActive:0});
-  } else if(GS.activeWars.length>0&&GS.activeWars.length<2&&pct(0.08)){
-    const avail=WAR_POOL.filter(w=>!GS.activeWars.find(a=>a.name===w.name));
-    if(avail.length) GS.activeWars.push({...pick(avail),monthsActive:0});
-  }
-  const warsText = GS.activeWars.length
-    ? GS.activeWars.map(w=>`${w.icon} <b>${w.name}</b> (${w.parties}): ${w.desc}`).join('<br><br>')
-    : '🕊️ No major active conflicts this month. Global tensions remain elevated but diplomacy is holding. Markets breathe a cautious sigh of relief.';
-
-  // Gas & Inflation
-  const gasText = GAS_INFLATION[inv.climate]||GAS_INFLATION.normal;
-
-  // Laws (1–2 per month)
-  const shuffledLaws=[...LAW_POOL].sort(()=>Math.random()-0.5);
-  const laws=shuffledLaws.slice(0, pct(0.35)?2:1);
-  const lawsText=laws.map(l=>`<b>${l.title}:</b> ${l.desc}`).join('<br><br>');
-
-  // Stock summary
-  const stockChanges=inv.stocks.map(s=>{
-    const h=s.history; const prev=h&&h.length>1?h[h.length-2]:s.price;
-    const chg=prev>0?(s.price-prev)/prev*100:0;
-    return {name:s.name,id:s.id,price:s.price,chg};
-  }).sort((a,b)=>b.chg-a.chg);
-  const gainers=stockChanges.slice(0,3);
-  const losers=stockChanges.slice(-2).reverse();
-  const moodMap={bull:'Bulls dominate — momentum traders piling in, valuations stretched.',bear:'Bears in control — defensive sectors outperform, cash hoarding rises.',bubble:'Euphoria stage — valuation metrics stretched beyond historical norms.',recession:'Recession trade active — utilities and bonds sought, growth stocks punished.',normal:'Mixed signals — sector rotation ongoing, no clear directional trend.'};
-  const stocksText=`<b>Market: ${inv.climate.toUpperCase()}</b> — ${moodMap[inv.climate]||'Cautious sentiment.'}<br><br>`
-    +`📈 <b>Top Gainers:</b> ${gainers.map(s=>`${s.name} <span style="color:var(--green)">${s.chg>=0?'+':''}${s.chg.toFixed(1)}%</span>`).join(' · ')}<br>`
-    +`📉 <b>Decliners:</b> ${losers.map(s=>`${s.name} <span style="color:var(--red)">${s.chg>=0?'+':''}${s.chg.toFixed(1)}%</span>`).join(' · ')}`;
-
-  // Crypto summary
-  const cryptoChanges=inv.cryptos.map(cx=>{
-    const h=cx.history; const prev=h&&h.length>1?h[h.length-2]:cx.price;
-    const chg=prev>0?(cx.price-prev)/prev*100:0;
-    const fmtP=cx.price>=1000?'$'+(cx.price/1000).toFixed(1)+'k':cx.price>=1?'$'+cx.price.toFixed(0):'$'+cx.price.toFixed(4);
-    return {name:cx.name,id:cx.id,price:cx.price,fmtP,chg};
-  }).sort((a,b)=>b.chg-a.chg);
-  let cryptoText=cryptoChanges.map(cx=>{
-    const arrow=cx.chg>0?'▲':'▼';
-    const col=cx.chg>0?'var(--green)':'var(--red)';
-    const note=cx.chg>25?'parabolic — FOMO buying':cx.chg>8?'bullish momentum':cx.chg>0?'modest gain':cx.chg<-25?'severe crash — stop losses triggered':cx.chg<-8?'bears pressing':'slight dip';
-    return `<b>${cx.name}</b> (${cx.fmtP}) <span style="color:${col}">${arrow}${Math.abs(cx.chg).toFixed(1)}%</span> — ${note}`;
-  }).join('<br>');
-  const bigMove=cryptoChanges.find(cx=>Math.abs(cx.chg)>30);
-  if(bigMove) cryptoText+=`<br><br>⚡ <b>ALERT:</b> ${bigMove.name} ${bigMove.chg>0?'surged':'crashed'} ${Math.abs(bigMove.chg).toFixed(0)}% — ${bigMove.chg>0?'whale accumulation detected, retail following':'major holder liquidation, cascading margin calls reported'}`;
-
-  const nl={
-    id:`nl_${c.monthAge}`,
-    date:`${monthName} ${gameYear}`,
-    subject:`${monthName} ${gameYear} Monthly Briefing`,
-    read:false,
-    politics, wars:warsText, gasInflation:gasText, laws:lawsText, stocks:stocksText, crypto:cryptoText,
-  };
-
-  if(!GS.newsletters) GS.newsletters=[];
-  GS.newsletters.unshift(nl);
-  if(GS.newsletters.length>24) GS.newsletters.pop();
-}
-
-function renderInbox(){
-  const list=document.getElementById('inbox-list');
-  const badge=document.getElementById('inbox-badge');
-  if(!list) return;
-  const newsletters=GS.newsletters||[];
-  const unread=newsletters.filter(n=>!n.read).length;
-  if(badge){badge.textContent=unread;badge.className=unread>0?'show':'';}
-  if(!newsletters.length){
-    list.innerHTML='<div style="color:var(--muted);font-size:11px;text-align:center;padding:20px 10px">Age +1 month to receive your first briefing.</div>';
-    return;
-  }
-  list.innerHTML=newsletters.map(n=>`<div class="inbox-item ${n.read?'read':'unread'}" onclick="openNewsletter('${n.id}')"><div class="ii-date">${n.date}</div><div class="ii-subject">${!n.read?'● ':''} ${n.subject}</div><div class="ii-preview">${n.politics.replace(/<[^>]+>/g,'').substring(0,58)}…</div></div>`).join('');
-}
-
-function openNewsletter(id){
-  const n=(GS.newsletters||[]).find(x=>x.id===id);
-  if(!n) return;
-  n.read=true;
-  renderInbox();
-  const overlay=$('modal-overlay');
-  $('m-icon').textContent='📬';
-  $('m-tag').textContent='Monthly Briefing';
-  $('m-tag').className='modal-tag fla';
-  $('m-title').textContent=n.subject;
-  $('m-result').style.display='none';
-  $('m-body').innerHTML=`<div style="text-align:left;max-height:52vh;overflow-y:auto;padding-right:6px">
-<div class="nl-section"><div class="nl-stitle pol">🗳️ White House Update</div><div class="nl-body">${n.politics}</div></div>
-<div class="nl-section"><div class="nl-stitle war">⚔️ Global Conflicts</div><div class="nl-body">${n.wars}</div></div>
-<div class="nl-section"><div class="nl-stitle eco">⛽ Gas & Inflation</div><div class="nl-body">${n.gasInflation}</div></div>
-<div class="nl-section"><div class="nl-stitle law">📜 Laws Passed This Month</div><div class="nl-body">${n.laws}</div></div>
-<div class="nl-section"><div class="nl-stitle mkt">📈 Market Summary</div><div class="nl-body">${n.stocks}</div></div>
-<div class="nl-section"><div class="nl-stitle cry">₿ Crypto Digest</div><div class="nl-body">${n.crypto}</div></div>
-</div>`;
-  $('m-choices').innerHTML='<button class="choice-btn" onclick="closeModal()">Close Briefing ✕</button>';
-  overlay.classList.add('open');
-}
-
-// ════════════════════════════════════════════════════════════════
-//  STOCK & CRYPTO CHART MODALS
-// ════════════════════════════════════════════════════════════════
-
-function drawMiniChart(canvasId, history, currentPrice){
-  const canvas=document.getElementById(canvasId);
-  if(!canvas) return;
-  const dpr=window.devicePixelRatio||1;
-  const W=Math.max(10, canvas.parentElement.clientWidth-16);
-  const H=46;
-  canvas.width=W*dpr; canvas.height=H*dpr;
-  canvas.style.width=W+'px'; canvas.style.height=H+'px';
-  const ctx=canvas.getContext('2d');
-  ctx.scale(dpr,dpr);
-  if(!history||history.length<2){
-    ctx.strokeStyle='#2e4a2e'; ctx.lineWidth=1.5;
-    ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
-    return;
-  }
-  const mn=Math.min(...history), mx=Math.max(...history);
-  const range=mx-mn||Math.abs(currentPrice)*0.01||1;
-  const pad=4;
-  const pts=history.map((v,i)=>[i/(history.length-1)*(W-pad*2)+pad, H-pad-((v-mn)/range)*(H-pad*2)]);
-  const isUp=history[history.length-1]>=history[0];
-  const col=isUp?'#00c853':'#ff3d3d';
-  // Gradient fill
-  const grad=ctx.createLinearGradient(0,0,0,H);
-  grad.addColorStop(0, isUp?'rgba(0,200,83,.28)':'rgba(255,61,61,.28)');
-  grad.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
-  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
-  ctx.lineTo(pts[pts.length-1][0],H); ctx.lineTo(pts[0][0],H); ctx.closePath();
-  ctx.fillStyle=grad; ctx.fill();
-  // Line
-  ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
-  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
-  ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.lineJoin='round'; ctx.stroke();
-  // End dot
-  const ep=pts[pts.length-1];
-  ctx.beginPath(); ctx.arc(ep[0],ep[1],3,0,Math.PI*2);
-  ctx.fillStyle=col; ctx.fill();
-  // Start dot (faint)
-  ctx.beginPath(); ctx.arc(pts[0][0],pts[0][1],2,0,Math.PI*2);
-  ctx.fillStyle='rgba(255,255,255,.3)'; ctx.fill();
-}
-
-function buildAssetCardHTML(id, name, idLabel, price, fmtPrice, history, ownedLine, buyBtn, sellBtn, sinceChgPct, lastChgPct){
-  const sc=sinceChgPct>=0?'chg-pos':'chg-neg';
-  const lc=lastChgPct>=0?'chg-pos':'chg-neg';
-  return `<div class="asset-card${ownedLine?' owned':''}" id="card-${id}">
-    <div class="ac-row"><span class="ac-name">${name}<span class="ac-id">${idLabel}</span></span><span class="ac-since ${sc}">${sinceChgPct>=0?'+':''}${sinceChgPct.toFixed(1)}% all-time</span></div>
-    <div class="ac-row"><span class="ac-price">${fmtPrice}</span><span class="ac-last ${lc}">${lastChgPct>=0?'+':''}${lastChgPct.toFixed(1)}% last yr</span></div>
-    ${ownedLine?`<div class="ac-owned">✓ ${ownedLine}</div>`:''}
-    <canvas id="ac-${id}" class="ac-chart"></canvas>
-    <div class="ac-btns">${buyBtn}${sellBtn}</div>
-  </div>`;
-}
-
-function showStockModal(){
-  const inv=GS.inv, c=GS.char;
-  $('m-icon').textContent='📈';
-  $('m-tag').textContent='Stocks'; $('m-tag').className='modal-tag fla';
-  $('m-title').textContent='Stock Market — Price History';
-  $('m-result').style.display='none';
-
-  let html='<div class="asset-grid">';
-  for(const s of inv.stocks){
-    const h=s.history;
-    const start=h[0]||s.price;
-    const prev=h.length>1?h[h.length-2]:s.price;
-    const sincePct=start>0?(s.price-start)/start*100:0;
-    const lastPct=prev>0?(s.price-prev)/prev*100:0;
-    const pos=inv.portfolio[s.id];
-    const ownedLine=pos?`${pos.shares} shares · ${fmt$(s.price*pos.shares)} (avg $${pos.avgCost.toFixed(2)})`:null;
-    const cost=Math.round(s.price*10);
-    const buyBtn=`<button class="ac-btn buy" onclick="buyStockInline('${s.id}')">Buy 10 · ${fmt$(cost)}</button>`;
-    const sellBtn=pos
-      ?`<button class="ac-btn sell" onclick="sellStockInline('${s.id}')">Sell All</button>`
-      :`<button class="ac-btn sell" disabled>Sell</button>`;
-    html+=buildAssetCardHTML(s.id, s.name, s.id, s.price, '$'+s.price.toFixed(2), h, ownedLine, buyBtn, sellBtn, sincePct, lastPct);
-  }
-  html+='</div>';
-  $('m-body').innerHTML=`<div style="text-align:left;max-height:54vh;overflow-y:auto;padding-right:4px">${html}</div>`;
-  $('m-choices').innerHTML='<button class="choice-btn" onclick="closeModal()">Close ✕</button>';
-  $('modal-overlay').classList.add('open');
-  requestAnimationFrame(()=>{ for(const s of inv.stocks) drawMiniChart('ac-'+s.id, s.history, s.price); });
-}
-
-function showCryptoModal(){
-  const inv=GS.inv, c=GS.char;
-  $('m-icon').textContent='₿';
-  $('m-tag').textContent='Crypto'; $('m-tag').className='modal-tag fla';
-  $('m-title').textContent='Crypto Market — Price History';
-  $('m-result').style.display='none';
-
-  let html='<div class="asset-grid">';
-  for(const cx of inv.cryptos){
-    const h=cx.history;
-    const start=h[0]||cx.price;
-    const prev=h.length>1?h[h.length-2]:cx.price;
-    const sincePct=start>0?(cx.price-start)/start*100:0;
-    const lastPct=prev>0?(cx.price-prev)/prev*100:0;
-    const pos=inv.cryptoHeld[cx.id];
-    const fmtP=cx.price>=1000?'$'+(cx.price/1000).toFixed(2)+'k':cx.price>=1?'$'+cx.price.toFixed(2):'$'+cx.price.toFixed(5);
-    const ownedLine=pos?`${pos.coins.toFixed(4)} coins · ${fmt$(cx.price*pos.coins)}`:null;
-    const buyBtn=`<button class="ac-btn buy" onclick="buyCryptoInline('${cx.id}')">Buy $1,000</button>`;
-    const sellBtn=pos
-      ?`<button class="ac-btn sell" onclick="sellCryptoInline('${cx.id}')">Sell All</button>`
-      :`<button class="ac-btn sell" disabled>Sell</button>`;
-    html+=buildAssetCardHTML(cx.id, cx.name, cx.id, cx.price, fmtP, h, ownedLine, buyBtn, sellBtn, sincePct, lastPct);
-  }
-  html+='</div>';
-  $('m-body').innerHTML=`<div style="text-align:left;max-height:54vh;overflow-y:auto;padding-right:4px">${html}</div>`;
-  $('m-choices').innerHTML='<button class="choice-btn" onclick="closeModal()">Close ✕</button>';
-  $('modal-overlay').classList.add('open');
-  requestAnimationFrame(()=>{ for(const cx of inv.cryptos) drawMiniChart('ac-'+cx.id, cx.history, cx.price); });
-}
-
-function _refreshInvModal(type){
-  const nw=calcNetWorth(GS.char,GS.inv);
-  if(GS.nwHistory.length) GS.nwHistory[GS.nwHistory.length-1]=nw;
-  updateUI(null,nw,nw); saveGame();
-  if(type==='stock') showStockModal(); else showCryptoModal();
-}
-
-function buyStockInline(id){
-  const inv=GS.inv,c=GS.char;
-  const s=inv.stocks.find(x=>x.id===id);
-  const cost=Math.round(s.price*10);
-  if(c.checking<cost){showToast('Not enough cash!');return;}
-  c.checking-=cost;
-  if(!inv.portfolio[id]) inv.portfolio[id]={shares:0,avgCost:0};
-  const pos=inv.portfolio[id];
-  pos.avgCost=(pos.avgCost*pos.shares+cost)/(pos.shares+10);
-  pos.shares+=10;
-  showToast(`Bought 10 ${id} · ${fmt$(cost)}`);
-  _refreshInvModal('stock');
-}
-
-function sellStockInline(id){
-  const inv=GS.inv,c=GS.char;
-  const pos=inv.portfolio[id];
-  const s=inv.stocks.find(x=>x.id===id);
-  if(!pos){showToast('Nothing to sell');return;}
-  const val=Math.round(s.price*pos.shares);
-  const cg=Math.round((s.price-pos.avgCost)*pos.shares);
-  const tax=cg>0?Math.round(cg*0.15):0;
-  c.checking+=val-tax;
-  delete inv.portfolio[id];
-  showToast(`Sold ${id}: ${fmt$(val-tax)} after tax`);
-  _refreshInvModal('stock');
-}
-
-function buyCryptoInline(id){
-  const inv=GS.inv,c=GS.char;
-  const coin=inv.cryptos.find(x=>x.id===id);
-  if(c.checking<1000){showToast('Need $1,000 to buy');return;}
-  const coins=1000/coin.price;
-  c.checking-=1000;
-  if(!inv.cryptoHeld[id]) inv.cryptoHeld[id]={coins:0,avgCost:0};
-  const pos=inv.cryptoHeld[id];
-  pos.avgCost=(pos.avgCost*pos.coins+1000)/(pos.coins+coins);
-  pos.coins+=coins;
-  showToast(`Bought $1,000 of ${id}`);
-  _refreshInvModal('crypto');
-}
-
-function sellCryptoInline(id){
-  const inv=GS.inv,c=GS.char;
-  const pos=inv.cryptoHeld[id];
-  const coin=inv.cryptos.find(x=>x.id===id);
-  if(!pos){showToast('Nothing to sell');return;}
-  const val=coin.price*pos.coins;
-  const cg=val-pos.avgCost*pos.coins;
-  const tax=cg>0?Math.round(cg*0.15):0;
-  c.checking+=val-tax;
-  delete inv.cryptoHeld[id];
-  showToast(`Sold ${id}: ${fmt$(val-tax)} after tax`);
-  _refreshInvModal('crypto');
-}
+// Load save on page open (optional — commented out to always start fresh)
+// if(loadGame()){ showScreen('game'); updateUI(null, 0, calcNetWorth(GS.char, GS.inv)); }
 
 window.addEventListener('resize', drawNetWorthChart);
 </script>

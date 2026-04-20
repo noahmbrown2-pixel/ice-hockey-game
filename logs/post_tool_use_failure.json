@@ -207,5 +207,36 @@
       "is_interrupt": false,
       "logged_at": "2026-04-17T19:45:33.540174"
     }
+  },
+  {
+    "timestamp": "2026-04-20T14:36:46.050382",
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01ErPM3ts4mJ8toTyu2Grn45",
+    "tool_input": {
+      "command": "del \"C:\\Users\\noahm\\Project\\bitlife-finance-remote.html\"",
+      "description": "Remove temp remote copy"
+    },
+    "error": "Exit code 127\n/usr/bin/bash: line 1: del: command not found",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "raw_input": {
+      "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "del \"C:\\Users\\noahm\\Project\\bitlife-finance-remote.html\"",
+        "description": "Remove temp remote copy"
+      },
+      "tool_use_id": "toolu_01ErPM3ts4mJ8toTyu2Grn45",
+      "error": "Exit code 127\n/usr/bin/bash: line 1: del: command not found",
+      "is_interrupt": false,
+      "logged_at": "2026-04-20T14:36:46.050382"
+    }
   }
 ]

@@ -97,5 +97,158 @@
     "hook_event_name": "Stop",
     "stop_hook_active": false,
     "last_assistant_message": "The career window was being pushed to `GS.pendingEvents` inside the `isNewYear` block, then `GS.pendingEvents=[]` wiped it 35 lines later before it could ever show. Moved the push to **after** the reset so it's the first event queued each new year \u00e2\u20ac\u201d career window now shows every 12 months as intended."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Done. Career window now triggers every 12 months at your current job instead of every calendar year. The `monthsAtJob` counter increments each month while employed and resets to 0 when you change jobs or become unemployed \u00e2\u20ac\u201d so if you take a new job, the clock restarts and you wait another 12 months before the next window."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Now click \"Age +1 Month\" and if there's a hidden JS error it'll show as a toast. The two most likely causes:\n\n1. **`GS.char` is null** \u00e2\u20ac\u201d auto-load failed silently but the game screen is showing. The toast will say \"No character loaded.\"\n2. **A JS exception** somewhere inside `monthlyTick` \u00e2\u20ac\u201d the toast will show the error message.\n\nTry clicking the button and tell me what (if anything) shows up as a toast or if the age now increments visually."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Done \u00e2\u20ac\u201d `bitlife-finance.html` is restored to the last committed state. All my changes (monthsAtJob counter, career window trigger, error handling) are gone."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Game is open at `http://localhost:3000/bitlife-finance.html` with live reload active."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Now the button will re-enable even if an error occurs, and you'll see a toast showing the error message. Click \"Age +1 Month\" again \u00e2\u20ac\u201d the button should no longer get stuck, and tell me what the toast says (if any) so I can fix the underlying bug."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Opened `http://localhost:3000/bitlife-finance.html`. Click \"Age +1 Month\" and tell me what the red error toast says at the bottom of the screen."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "12-month lock is verified working. Refresh your browser and start a new game \u00e2\u20ac\u201d you'll now be locked into your starting job for 12 months, then get the career window every year.\n\n**Top realism gaps the audit found (quick-hit priorities):**\n\n1. **No rent** \u00e2\u20ac\u201d biggest miss. 22-yos aren't paying $300 to live.\n2. **Student loans lumped into generic debt** at 5% \u00e2\u20ac\u201d real federal loans are ~6.5% with 10-yr fixed payment.\n3. **Middle scenario only has $8k debt** \u00e2\u20ac\u201d average grad carries ~$30k.\n4. **Bachelor's salary cap is $110k** \u00e2\u20ac\u201d way too high for entry-level; should be $75k max.\n5. **No health insurance** premium/deductible line.\n6. **No 401k employer match** (typical 3-4%).\n7. **Job-hopping doesn't guarantee a raise** \u00e2\u20ac\u201d real hops are 10-20% bumps.\n8. **No standard deduction** in tax calc.\n9. **Missing early-20s events** \u00e2\u20ac\u201d first apartment, roommate drama, credit card offers, grad school decision.\n10. **Credit score** ignores utilization and inquiries.\n\nWant me to tackle these? I'd suggest starting with #1 (rent) + #3/4 (realistic debt/salary at char creation) + #9 (add 5-6 early-20s events) \u00e2\u20ac\u201d those three shift the feel the most. Say the word and I'll implement."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Opened. If you want a fresh character (not the auto-loaded save), open DevTools console (F12) and run `localStorage.removeItem('finlife_save')` then refresh."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Opened `http://localhost:3000/bitlife-finance.html` in your browser."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "The monthly newsletter column is fully built and live on the right side of the screen. Every sub-feature you described is already there:\n\n- **\u00f0\u0178\u201c\u00ac Political Inbox panel** \u00e2\u20ac\u201d rightmost column next to Education (line 505)\n- **Monthly generation** \u00e2\u20ac\u201d `generateNewsletter()` runs every `monthlyTick` (line 1426)\n- **President & politics** \u00e2\u20ac\u201d dynamic president + their actions each month\n- **Wars** \u00e2\u20ac\u201d active war tracker, starts/ends with 18-42 month durations\n- **Gas & inflation** \u00e2\u20ac\u201d tied to market climate (bull/bear/bubble/recession/normal)\n- **Laws** \u00e2\u20ac\u201d 1-2 random laws passed per month from `LAW_POOL`\n- **Stocks summary** \u00e2\u20ac\u201d Market mood + Top 3 Gainers + Top 2 Decliners with % changes\n- **Crypto summary** \u00e2\u20ac\u201d all cryptos ranked with contextual notes (\"parabolic \u00e2\u20ac\u201d FOMO buying\", \"severe crash \u00e2\u20ac\u201d stop losses triggered\") + \u00e2\u0161\u00a1 ALERT line for >30% moves\n\nClick any newsletter in the inbox to open the full briefing. Unread items show a red badge count.\n\nIf you want me to expand something specific \u00e2\u20ac\u201d e.g., add IPO/earnings events to the stocks section, or \"what's new\" crypto launches \u00e2\u20ac\u201d let me know which piece."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Done. `bitlife-finance.html` has been reset to match the deployed version at that URL (1,796 lines). Refresh your browser to see the reverted game. All the changes we made in this session (12-month job lock, inbox column, newsletters, stock/crypto grids, auto-save/load) are gone \u00e2\u20ac\u201d this is the earlier version."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Done. Stocks and crypto now tick every month instead of yearly:\n\n- **Stocks**: drift divided by 12 (monthly), volatility divided by \u00e2\u02c6\u016112 (standard finance scaling) \u00e2\u20ac\u201d so an 8% annual return still compounds to ~8%/yr, but you see the bumps every month.\n- **Crypto**: same monthly scaling applied; big \u00c2\u00b130% swings can still happen but no longer all in one jump.\n- **Market climate** (bull/bear/recession/bubble) still shifts annually \u00e2\u20ac\u201d keeps regimes lasting years instead of flipping monthly.\n\nRefresh the browser and hit \"Age +1 Month\" \u00e2\u20ac\u201d every click now updates the price charts."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Done. Click the **Stocks** or **Crypto** button in-game and you'll now see a 2-column grid with:\n\n- Name, ticker, current price, month-over-month % change (green/red)\n- **Mini sparkline chart** of price history (fills with green or red gradient based on direction)\n- Your current holdings\n- Inline **Buy 10 / Buy $1k** and **Sell All** buttons (disabled when unaffordable or not held)\n\nEach trade refreshes the grid in place so you see the updated holdings and cash immediately. Prices update every month, and the charts grow as months pass.\n\nRefresh your browser and age a few months to see the history build up."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Done. Click **Real Estate** to manage housing:\n\n- **Buy** a property \u00e2\u2020\u2019 if it's your first, you automatically move in (\u00f0\u0178\udc8f\u00a1 tag)\n- **Move into** any property you own \u00e2\u20ac\u201d vacates your current home, cancels the rental if active\n- **Move out of** the one you live in \u00e2\u2020\u2019 back to paying rent, frees the property to be rented out\n- **Rent out** only appears for vacant properties (can't rent out the one you live in)\n- **Sell** works regardless; if you sell the one you live in, `hasHouse` flips to false\n\n**Financial impact:** Living in your own place replaces the ~$1,200/mo rent portion of expenses with your actual mortgage payment plus $300/mo upkeep. Properties you don't live in still generate rental income when rented.\n\nProperty list in the sidebar now shows \u00f0\u0178\udc8f\u00a1 (living here) or \u00f0\u0178\u2019\u00b0 (renting out) tags next to each property."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Done. The Side Hustle button now draws from **33 different hustles** across 7 categories:\n\n- **Gig / Labor** (6): DoorDash, Uber, dog walking, lawn care, cleaning, handyman\n- **Creator Economy** (8): YouTube, Twitch, TikTok, Podcast, Substack, photography, Etsy, beat-making\n- **Tech** (4): Web dev, app dev, AI prompt consulting, cybersecurity\n- **Teaching / Service** (4): Tutoring, personal trainer, yoga, test prep\n- **Resale / E-com** (6): Sneakers, Amazon FBA, dropshipping, thrift flipping, furniture, garage sales\n- **Real Estate / Passive** (3): Airbnb co-host, print-on-demand, affiliate blog\n- **High Risk** (2): Day trading, sports arbitrage\n\nPlus the expanded **Start a Real Business** option (now 10 types: food truck, coffee shop, retail, tech startup, restaurant, gym, bar, car wash, laundromat, SaaS).\n\n**Mechanics:**\n- Each hustle shows a random 6 per visit \u00e2\u20ac\u201d hit **\u00f0\u0178\u201d\u201e Refresh** to re-shuffle\n- Cost is deducted immediately\n- Smarts-based hustles (YouTube, dev, consulting) scale success with your smarts stat\n- Looks-based hustles (TikTok, trainer, photographer) scale with looks\n- Success adds to annual salary recurring; some hustles can lose money on failure (resale, trading)"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Done. Click **Real Estate** and you'll now see **\u00f0\u0178\u0161\u2014 Browse Vehicles** at the top, which opens a separate modal with **32 vehicles across 4 categories**:\n\n- **Cars** (15): Honda Civic \u00e2\u2020\u2019 Ferrari 488, plus 7 EVs (Tesla M3/MY/MS Plaid, Rivian R1T, Mustang Mach-E, Lucid Air, Rimac Nevera at $2.4M)\n- **Motorcycles** (6): Honda CBR, Harley, Ducati, BMW R1250 + 2 EVs (Zero SR/F, LiveWire ONE)\n- **Boats** (6): Sailboat \u00e2\u2020\u2019 Mega Yacht, plus electric Candela C-8 hydrofoil\n- **Planes** (6): Cessna 172 \u00e2\u2020\u2019 Bombardier Global 7500 at $78M, plus electric Pipistrel\n\n**Mechanics:**\n- Each vehicle has a **monthly cost** (gas/electricity + insurance + maintenance) \u00e2\u20ac\u201d EVs cost 40-50% less to run\n- Values **depreciate monthly** (4-14% annual rate depending on type \u00e2\u20ac\u201d EVs depreciate slower)\n- Vehicle values count toward net worth\n- Selling takes a 5% private-sale hit vs current market value\n- Depreciation floors at 15% of original price (no vehicle goes fully to zero)\n\nYour monthly cash flow will now also reflect all vehicle running costs \u00e2\u20ac\u201d buy a jet and you'll pay $55k/mo. Refresh to see it."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Done. The Vehicles modal is now compact (380px wide) with a 340px-tall scrollable list inside, giving it a near-square shape. Font and button padding are also slightly smaller to fit more options without scrolling too far. Refresh to see it."
   }
 ]

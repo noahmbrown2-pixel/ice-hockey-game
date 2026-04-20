@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>FinLife — Financial Life Simulator</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1f0f;--bg2:#1a2e1a;--bg3:#243824;--bg4:#2e4a2e;
+  --gold:#ffd700;--gold-dim:#b89b00;--gold-glow:rgba(255,215,0,.18);
+  --green:#00c853;--green-dim:#00843a;--red:#ff3d3d;--red-dim:#a01010;
+  --blue:#4fc3f7;--purple:#ce93d8;--orange:#ffa726;--teal:#26c6da;
+  --white:#f0f4f0;--muted:#7a9a7a;--border:#2e4a2e;--border-gold:rgba(255,215,0,.35);
+  --radius:10px;--radius-sm:6px;--shadow:0 4px 24px rgba(0,0,0,.6);--t:.18s ease;
+}
+html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;line-height:1.5;overflow:hidden}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* ── SCREENS ── */
+.screen{display:none;position:fixed;inset:0;z-index:10}
+.screen.active{display:flex}
+
+/* ── NEW GAME ── */
+#screen-new{flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 30%,#1e3a1e 0%,var(--bg) 70%);padding:24px;overflow-y:auto}
+.ng-card{width:100%;max-width:460px;background:var(--bg2);border:1px solid var(--border-gold);
+  border-radius:18px;padding:32px 28px;box-shadow:var(--shadow),0 0 60px rgba(255,215,0,.06);
+  display:flex;flex-direction:column;gap:20px}
+.ng-logo{text-align:center}
+.ng-logo .logo-ico{font-size:48px;display:block;margin-bottom:4px}
+.ng-logo h1{font-size:26px;font-weight:800;color:var(--gold);letter-spacing:1px;text-shadow:0 0 24px rgba(255,215,0,.4)}
+.ng-logo p{color:var(--muted);font-size:12px;margin-top:3px}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fg label{font-size:11px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.8px}
+.fg input,.fg select{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);
+  color:var(--white);padding:9px 13px;font-size:14px;outline:none;transition:border-color var(--t);width:100%}
+.fg input:focus,.fg select:focus{border-color:var(--gold)}
+.fg select option{background:var(--bg3)}
+.sc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sc-card{background:var(--bg3);border:2px solid var(--border);border-radius:var(--radius);padding:12px 8px;
+  text-align:center;cursor:pointer;transition:all var(--t);user-select:none}
+.sc-card:hover{background:var(--bg4);transform:translateY(-2px)}
+.sc-card.sel{border-color:var(--gold);background:linear-gradient(135deg,var(--bg3),rgba(255,215,0,.08))}
+.sc-card .ico{font-size:24px;display:block;margin-bottom:4px}
+.sc-card .nm{font-weight:700;font-size:12px}
+.sc-card .dc{color:var(--muted);font-size:10px;margin-top:2px}
+.sc-card .mn{color:var(--green);font-size:10px;font-weight:600;margin-top:3px}
+.btn-start{background:linear-gradient(135deg,#2a5a2a,#3d8c3d);border:1.5px solid var(--gold);
+  border-radius:var(--radius);color:var(--gold);font-size:15px;font-weight:700;padding:13px;
+  cursor:pointer;letter-spacing:.5px;transition:all var(--t);box-shadow:0 0 20px rgba(255,215,0,.1)}
+.btn-start:hover{background:linear-gradient(135deg,#3d8c3d,#4fa04f);box-shadow:0 0 30px rgba(255,215,0,.2);transform:translateY(-1px)}
+
+/* ── GAME SCREEN ── */
+#screen-game{flex-direction:column;background:var(--bg);overflow:hidden}
+
+/* Stats Bar */
+#stats-bar{background:var(--bg2);border-bottom:1px solid var(--border-gold);padding:8px 14px;
+  display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+#char-summary{min-width:100px}
+#char-name{font-size:13px;font-weight:700;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+#char-age-job{font-size:10px;color:var(--muted)}
+.sdiv{width:1px;height:32px;background:var(--border);flex-shrink:0}
+#stat-bars{display:flex;gap:12px;flex:1;flex-wrap:wrap;align-items:center}
+.si{display:flex;flex-direction:column;gap:2px;min-width:72px}
+.sl{display:flex;align-items:center;gap:3px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.sb{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.sbf{height:100%;border-radius:3px;transition:width .4s}
+.sbf.health{background:linear-gradient(90deg,var(--green-dim),var(--green))}
+.sbf.happy{background:linear-gradient(90deg,#f5720a,var(--orange))}
+.sbf.smarts{background:linear-gradient(90deg,#1976d2,var(--blue))}
+.sv{font-size:10px;font-weight:700}
+#nw-display{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0}
+#nw-label{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600}
+#nw-value{font-size:20px;font-weight:800;letter-spacing:-.5px;transition:color .3s}
+#nw-value.pos{color:var(--green)}
+#nw-value.neg{color:var(--red)}
+#nw-delta{font-size:10px;font-weight:600}
+#nw-delta.pos{color:var(--green)}
+#nw-delta.neg{color:var(--red)}
+
+/* Game Body */
+#game-body{display:flex;flex:1;overflow:hidden}
+
+/* Left Panel - Tabs */
+#left-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border)}
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.tab-btn{flex:1;padding:9px 6px;background:none;border:none;color:var(--muted);font-size:12px;
+  font-weight:600;cursor:pointer;transition:all var(--t);border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.4px}
+.tab-btn:hover{color:var(--white);background:var(--bg3)}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab-content{display:none;flex:1;overflow-y:auto;padding:12px}
+.tab-content.active{display:block}
+
+/* Right Panel - Actions */
+#right-panel{width:220px;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;flex-shrink:0}
+.actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px}
+.act-btn{padding:10px 6px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  cursor:pointer;transition:all var(--t);font-size:11px;font-weight:600;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--white);user-select:none}
+.act-btn .aico{font-size:18px}
+.act-btn:hover{transform:translateY(-1px);box-shadow:0 3px 12px rgba(0,0,0,.4)}
+.act-btn.age{border-color:var(--gold);color:var(--gold);grid-column:1/-1;padding:12px}
+.act-btn.age:hover{background:linear-gradient(135deg,var(--bg3),rgba(255,215,0,.1));box-shadow:0 0 20px rgba(255,215,0,.15)}
+.act-btn.job{border-color:var(--blue)}
+.act-btn.bank{border-color:var(--teal)}
+.act-btn.invest{border-color:var(--green)}
+.act-btn.realty{border-color:var(--orange)}
+.act-btn.crypto{border-color:var(--purple)}
+.act-btn.hustle{border-color:#80cbc4}
+.act-btn.edu{border-color:#ef9a9a}
+.act-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* Chart Area */
+#chart-area{flex-shrink:0;padding:8px 10px;border-top:1px solid var(--border)}
+#chart-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;font-weight:600}
+#nw-chart{width:100%;height:80px;display:block}
+
+/* Timeline */
+#timeline{flex:1;overflow-y:auto;padding:8px 10px;border-top:1px solid var(--border)}
+#timeline-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:600}
+.tl-item{display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.tl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.tl-dot.good{background:var(--green)}.tl-dot.bad{background:var(--red)}.tl-dot.info{background:var(--blue)}.tl-dot.gold{background:var(--gold)}
+.tl-age{font-size:10px;color:var(--muted);flex-shrink:0;min-width:22px}
+.tl-text{font-size:11px;line-height:1.4}
+
+/* Tab Panels Content */
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:10px}
+.section h3{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--gold);margin-bottom:10px;font-weight:700}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.info-row:last-child{border-bottom:none}
+.ir-label{font-size:12px;color:var(--muted)}
+.ir-value{font-size:12px;font-weight:600}
+.ir-value.pos{color:var(--green)}.ir-value.neg{color:var(--red)}.ir-value.gold{color:var(--gold)}
+
+/* Credit Score Arc */
+.cs-wrap{text-align:center}
+#credit-canvas{width:120px;height:70px}
+.cs-score{font-size:22px;font-weight:800}
+.cs-grade{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* Stock Table */
+.stock-table{width:100%;border-collapse:collapse;font-size:11px}
+.stock-table th{color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:3px 5px;text-align:left;border-bottom:1px solid var(--border)}
+.stock-table td{padding:4px 5px;border-bottom:1px solid rgba(255,255,255,.04)}
+.stock-table tr:last-child td{border:none}
+.chg-pos{color:var(--green)}.chg-neg{color:var(--red)}
+
+/* Crypto grid */
+.crypto-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.crypto-card{background:var(--bg3);border-radius:var(--radius-sm);padding:8px}
+.cc-name{font-size:11px;font-weight:600;color:var(--purple)}
+.cc-price{font-size:13px;font-weight:700;margin-top:2px}
+.cc-hold{font-size:10px;color:var(--muted)}
+
+/* Progress bars */
+.prog-wrap{background:var(--bg4);border-radius:3px;height:8px;overflow:hidden;margin-top:4px}
+.prog-fill{height:100%;border-radius:3px;transition:width .4s}
+.prog-fill.green{background:var(--green)}.prog-fill.blue{background:var(--blue)}.prog-fill.gold{background:var(--gold)}.prog-fill.purple{background:var(--purple)}
+
+/* Cash flow bar */
+.cf-bar-wrap{height:12px;background:var(--bg4);border-radius:6px;overflow:hidden;margin:6px 0;position:relative}
+.cf-fill{height:100%;border-radius:6px;transition:width .4s;position:absolute;left:0}
+.cf-fill.pos{background:linear-gradient(90deg,var(--green-dim),var(--green))}
+.cf-fill.neg{background:linear-gradient(90deg,var(--red-dim),var(--red))}
+
+/* ── MODAL ── */
+#modal-overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.75);
+  align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+#modal-overlay.open{display:flex}
+#modal-box{background:var(--bg2);border:1px solid var(--border-gold);border-radius:18px;
+  max-width:460px;width:100%;padding:28px 24px;box-shadow:var(--shadow),0 0 40px rgba(255,215,0,.08);
+  animation:scaleIn .2s ease}
+@keyframes scaleIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-icon{font-size:36px;text-align:center;display:block;margin-bottom:8px}
+.modal-tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.modal-tag.opp{background:rgba(0,200,83,.2);color:var(--green)}
+.modal-tag.dis{background:rgba(255,61,61,.2);color:var(--red)}
+.modal-tag.mil{background:rgba(255,215,0,.2);color:var(--gold)}
+.modal-tag.fla{background:rgba(79,195,247,.2);color:var(--blue)}
+.modal-tag.exp{background:rgba(255,167,38,.2);color:var(--orange)}
+.modal-tag.tip{background:rgba(206,147,216,.2);color:var(--purple)}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:6px;text-align:center}
+.modal-body{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:16px;text-align:center}
+.modal-result{background:var(--bg3);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:600;text-align:center;border-left:3px solid var(--gold)}
+.modal-choices{display:flex;flex-direction:column;gap:8px}
+.choice-btn{padding:11px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  color:var(--white);cursor:pointer;transition:all var(--t);font-size:13px;font-weight:600;text-align:left}
+.choice-btn:hover{border-color:var(--gold);background:var(--bg4);transform:translateX(3px)}
+
+/* ── GAME OVER ── */
+#screen-gameover{flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 20%,#3a1a1a 0%,var(--bg) 70%);padding:24px;overflow-y:auto}
+.go-card{width:100%;max-width:500px;background:var(--bg2);border:1px solid rgba(255,61,61,.3);
+  border-radius:18px;padding:32px 28px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:18px;text-align:center}
+.go-card h1{font-size:32px;font-weight:800;color:var(--red)}
+.go-card .go-sub{color:var(--muted);font-size:13px}
+.go-nw{font-size:40px;font-weight:800;margin:8px 0}
+.go-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left}
+.go-stat{background:var(--bg3);border-radius:var(--radius-sm);padding:10px}
+.go-stat .gs-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.go-stat .gs-val{font-size:16px;font-weight:700;margin-top:2px}
+.go-achieve{background:var(--bg3);border-radius:var(--radius);padding:12px;text-align:left}
+.go-achieve h3{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--gold);margin-bottom:8px;font-weight:700}
+.ach-item{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:12px}
+.btn-retry{background:linear-gradient(135deg,var(--red-dim),#c62828);border:1.5px solid var(--red);
+  border-radius:var(--radius);color:var(--white);font-size:14px;font-weight:700;padding:12px;cursor:pointer;transition:all var(--t)}
+.btn-retry:hover{opacity:.85;transform:translateY(-1px)}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--bg2);border:1px solid var(--border-gold);border-radius:30px;padding:8px 20px;
+  font-size:12px;font-weight:600;z-index:200;transition:transform .3s ease,opacity .3s;opacity:0;white-space:nowrap}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* Mobile */
+@media(max-width:680px){
+  #right-panel{display:none}
+  #game-body{overflow:auto}
+  .tab-btn{font-size:10px;padding:8px 3px}
+}
+</style>
+</head>
+<body>
+
+<!-- NEW GAME SCREEN -->
+<div id="screen-new" class="screen active">
+  <div class="ng-card">
+    <div class="ng-logo">
+      <span class="logo-ico">💰</span>
+      <h1>FinLife</h1>
+      <p>A Financial Life Simulator</p>
+    </div>
+    <div class="fg">
+      <label>Your Name</label>
+      <input type="text" id="inp-name" placeholder="Enter your name" maxlength="24" value="Alex Johnson">
+    </div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;text-align:center">
+      <div style="font-size:22px;margin-bottom:4px">🎲</div>
+      <div style="font-size:12px;font-weight:700;color:var(--gold)">Your starting wealth is randomized</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px">Broke, Middle Class, or Wealthy — you won't know until you begin.</div>
+    </div>
+    <button class="btn-start" id="btn-start">Begin Life →</button>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="screen-game" class="screen">
+  <!-- Stats Bar -->
+  <div id="stats-bar">
+    <div id="char-summary">
+      <div id="char-name">—</div>
+      <div id="char-age-job">Age 0</div>
+    </div>
+    <div class="sdiv"></div>
+    <div id="stat-bars">
+      <div class="si"><div class="sl"><span>❤️</span>Health</div><div class="sb"><div class="sbf health" id="bar-health" style="width:80%"></div></div><div class="sv" id="val-health">80</div></div>
+      <div class="si"><div class="sl"><span>😊</span>Happy</div><div class="sb"><div class="sbf happy" id="bar-happy" style="width:70%"></div></div><div class="sv" id="val-happy">70</div></div>
+      <div class="si"><div class="sl"><span>🧠</span>Smarts</div><div class="sb"><div class="sbf smarts" id="bar-smarts" style="width:60%"></div></div><div class="sv" id="val-smarts">60</div></div>
+    </div>
+    <div class="sdiv"></div>
+    <div id="nw-display">
+      <div id="nw-label">Net Worth</div>
+      <div id="nw-value" class="pos">$0</div>
+      <div id="nw-delta" class="pos">+$0 this year</div>
+    </div>
+  </div>
+
+  <!-- Game Body -->
+  <div id="game-body">
+    <!-- Left: Tabbed panels -->
+    <div id="left-panel">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="life">Life</button>
+        <button class="tab-btn" data-tab="finances">Finances</button>
+        <button class="tab-btn" data-tab="invest">Invest</button>
+        <button class="tab-btn" data-tab="assets">Assets</button>
+      </div>
+
+      <!-- LIFE TAB -->
+      <div id="tab-life" class="tab-content active">
+        <div class="section">
+          <h3>Character</h3>
+          <div class="info-row"><span class="ir-label">Name</span><span class="ir-value gold" id="li-name">—</span></div>
+          <div class="info-row"><span class="ir-label">Age</span><span class="ir-value" id="li-age">0</span></div>
+          <div class="info-row"><span class="ir-label">Education</span><span class="ir-value" id="li-edu">None</span></div>
+          <div class="info-row"><span class="ir-label">Relationship</span><span class="ir-value" id="li-rel">Single</span></div>
+          <div class="info-row"><span class="ir-label">Children</span><span class="ir-value" id="li-kids">0</span></div>
+        </div>
+        <div class="section">
+          <h3>Career</h3>
+          <div class="info-row"><span class="ir-label">Job</span><span class="ir-value" id="li-job">Unemployed</span></div>
+          <div class="info-row"><span class="ir-label">Salary</span><span class="ir-value pos" id="li-salary">$0/yr</span></div>
+          <div class="info-row"><span class="ir-label">Years at Job</span><span class="ir-value" id="li-yrs">0</span></div>
+          <div class="info-row"><span class="ir-label">Performance</span><span class="ir-value" id="li-perf">—</span></div>
+        </div>
+        <div class="section">
+          <h3>Recent Events</h3>
+          <div id="events-feed" style="display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto"></div>
+        </div>
+      </div>
+
+      <!-- FINANCES TAB -->
+      <div id="tab-finances" class="tab-content">
+        <div class="section">
+          <h3>Bank Accounts</h3>
+          <div class="info-row"><span class="ir-label">Checking</span><span class="ir-value pos" id="fi-check">$0</span></div>
+          <div class="info-row"><span class="ir-label">Savings (2%)</span><span class="ir-value pos" id="fi-save">$0</span></div>
+          <div class="info-row"><span class="ir-label">High-Yield (4%)</span><span class="ir-value pos" id="fi-hy">$0</span></div>
+          <div class="info-row"><span class="ir-label">Total Liquid</span><span class="ir-value gold" id="fi-liq">$0</span></div>
+        </div>
+        <div class="section">
+          <h3>Credit Score</h3>
+          <div class="cs-wrap">
+            <canvas id="credit-canvas" width="240" height="140"></canvas>
+            <div class="cs-score" id="cs-score">580</div>
+            <div class="cs-grade" id="cs-grade">Fair</div>
+          </div>
+        </div>
+        <div class="section">
+          <h3>Annual Cash Flow</h3>
+          <div class="info-row"><span class="ir-label">Gross Income</span><span class="ir-value pos" id="cf-gross">$0</span></div>
+          <div class="info-row"><span class="ir-label">Taxes</span><span class="ir-value neg" id="cf-tax">-$0</span></div>
+          <div class="info-row"><span class="ir-label">Living Expenses</span><span class="ir-value neg" id="cf-exp">-$0</span></div>
+          <div class="info-row"><span class="ir-label">Debt Payments</span><span class="ir-value neg" id="cf-debt">-$0</span></div>
+          <div class="info-row"><span class="ir-label"><b>Net Savings</b></span><span class="ir-value" id="cf-net">$0</span></div>
+          <div class="cf-bar-wrap"><div class="cf-fill pos" id="cf-bar" style="width:50%"></div></div>
+        </div>
+        <div class="section">
+          <h3>Debt</h3>
+          <div class="info-row"><span class="ir-label">Student Loans</span><span class="ir-value neg" id="d-student">$0</span></div>
+          <div class="info-row"><span class="ir-label">Credit Cards</span><span class="ir-value neg" id="d-cc">$0</span></div>
+          <div class="info-row"><span class="ir-label">Other Loans</span><span class="ir-value neg" id="d-loans">$0</span></div>
+          <div class="info-row"><span class="ir-label"><b>Total Debt</b></span><span class="ir-value neg" id="d-total">$0</span></div>
+        </div>
+        <div class="section">
+          <h3>🛍️ Deferred Expenses</h3>
+          <div id="d-deferred"><p style="color:var(--muted);font-size:11px">No deferred expenses.</p></div>
+        </div>
+      </div>
+
+      <!-- INVEST TAB -->
+      <div id="tab-invest" class="tab-content">
+        <div class="section">
+          <h3>Portfolio Overview</h3>
+          <div class="info-row"><span class="ir-label">Stocks</span><span class="ir-value pos" id="pf-stocks">$0</span></div>
+          <div class="info-row"><span class="ir-label">Index Funds (ETFs)</span><span class="ir-value pos" id="pf-etfs">$0</span></div>
+          <div class="info-row"><span class="ir-label">Crypto</span><span class="ir-value" id="pf-crypto">$0</span></div>
+          <div class="info-row"><span class="ir-label">Retirement (401k+IRA)</span><span class="ir-value pos" id="pf-retire">$0</span></div>
+          <div class="info-row"><span class="ir-label"><b>Total Invested</b></span><span class="ir-value gold" id="pf-total">$0</span></div>
+        </div>
+        <div class="section">
+          <h3>Stocks <span id="mkt-badge" style="font-size:10px;color:var(--muted);font-weight:400;text-transform:none"></span></h3>
+          <div id="stocks-table-wrap">
+            <p style="color:var(--muted);font-size:12px">No stocks owned. Use the Invest button to buy.</p>
+          </div>
+        </div>
+        <div class="section">
+          <h3>Crypto</h3>
+          <div id="crypto-grid" class="crypto-grid">
+            <p style="color:var(--muted);font-size:12px;grid-column:1/-1">No crypto owned. Use the Crypto button to buy.</p>
+          </div>
+        </div>
+        <div class="section">
+          <h3>Retirement Accounts</h3>
+          <div class="info-row"><span class="ir-label">401(k)</span><span class="ir-value pos" id="ret-401k">$0</span></div>
+          <div class="info-row"><span class="ir-label">Traditional IRA</span><span class="ir-value pos" id="ret-ira">$0</span></div>
+          <div class="info-row"><span class="ir-label">Roth IRA</span><span class="ir-value pos" id="ret-roth">$0</span></div>
+          <div style="margin-top:6px">
+            <div class="prog-wrap"><div class="prog-fill blue" id="ret-bar" style="width:0%"></div></div>
+            <div style="font-size:10px;color:var(--muted);margin-top:3px">Progress to retirement ($1M goal)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ASSETS TAB -->
+      <div id="tab-assets" class="tab-content">
+        <div class="section">
+          <h3>Net Worth Summary</h3>
+          <div class="info-row"><span class="ir-label">Liquid Cash</span><span class="ir-value pos" id="as-liquid">$0</span></div>
+          <div class="info-row"><span class="ir-label">Investments</span><span class="ir-value pos" id="as-invest">$0</span></div>
+          <div class="info-row"><span class="ir-label">Real Estate Equity</span><span class="ir-value pos" id="as-re-eq">$0</span></div>
+          <div class="info-row"><span class="ir-label">Businesses</span><span class="ir-value pos" id="as-biz">$0</span></div>
+          <div class="info-row"><span class="ir-label">Total Assets</span><span class="ir-value gold" id="as-assets">$0</span></div>
+          <div class="info-row"><span class="ir-label">Total Liabilities</span><span class="ir-value neg" id="as-liab">$0</span></div>
+          <div class="info-row"><span class="ir-label"><b>Net Worth</b></span><span class="ir-value gold" id="as-nw">$0</span></div>
+        </div>
+        <div class="section">
+          <h3>Properties</h3>
+          <div id="prop-list"><p style="color:var(--muted);font-size:12px">No properties owned.</p></div>
+        </div>
+        <div class="section">
+          <h3>Businesses</h3>
+          <div id="biz-list"><p style="color:var(--muted);font-size:12px">No businesses owned.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Actions + Chart + Timeline -->
+    <div id="right-panel">
+      <div class="actions-grid">
+        <button class="act-btn age" id="btn-age"><span class="aico">⏩</span>Age +1 Month</button>
+        <button class="act-btn job"    id="btn-job"><span class="aico">💼</span>Find Job</button>
+        <button class="act-btn bank"   id="btn-bank"><span class="aico">🏦</span>Banking</button>
+        <button class="act-btn invest" id="btn-invest"><span class="aico">📈</span>Stocks</button>
+        <button class="act-btn realty" id="btn-realty"><span class="aico">🏠</span>Real Estate</button>
+        <button class="act-btn crypto" id="btn-crypto"><span class="aico">₿</span>Crypto</button>
+        <button class="act-btn hustle" id="btn-hustle"><span class="aico">⚡</span>Side Hustle</button>
+        <button class="act-btn edu"    id="btn-edu"><span class="aico">🎓</span>Education</button>
+      </div>
+      <div id="chart-area">
+        <div id="chart-label">Net Worth History</div>
+        <canvas id="nw-chart"></canvas>
+      </div>
+      <div id="timeline">
+        <div id="timeline-label">Life Timeline</div>
+        <div id="tl-feed"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME OVER SCREEN -->
+<div id="screen-gameover" class="screen">
+  <div class="go-card">
+    <div>
+      <h1>💀 You Died</h1>
+      <div class="go-sub" id="go-cause">Natural causes</div>
+    </div>
+    <div class="go-nw" id="go-nw">$0</div>
+    <div class="go-stats" id="go-stats"></div>
+    <div class="go-achieve" id="go-achieve">
+      <h3>Achievements</h3>
+      <div id="go-ach-list"></div>
+    </div>
+    <button class="btn-retry" onclick="location.reload()">Play Again</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <span class="modal-icon" id="m-icon">💰</span>
+    <div style="text-align:center"><span class="modal-tag" id="m-tag">Event</span></div>
+    <div class="modal-title" id="m-title">Event</div>
+    <div class="modal-body" id="m-body"></div>
+    <div class="modal-result" id="m-result" style="display:none"></div>
+    <div class="modal-choices" id="m-choices"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+//  UNIFIED GAME STATE
+// ════════════════════════════════════════════════════════════════
+
+const GS = {
+  char: null,    // core character
+  inv: null,     // investment state
+  nwHistory: [], // net worth over time
+  pendingEvents: [],
+  scenario: 'middle',
+};
+
+// ════════════════════════════════════════════════════════════════
+//  UTILITIES
+// ════════════════════════════════════════════════════════════════
+
+const ri = (lo,hi) => Math.floor(Math.random()*(hi-lo+1))+lo;
+const rf = (lo,hi) => Math.random()*(hi-lo)+lo;
+const clamp = (v,lo,hi) => Math.max(lo,Math.min(hi,v));
+const fmt$ = n => {
+  if(n===undefined||n===null) return '$0';
+  const abs = Math.abs(n);
+  const sign = n<0?'-':'';
+  if(abs>=1e9) return sign+'$'+(abs/1e9).toFixed(1)+'B';
+  if(abs>=1e6) return sign+'$'+(abs/1e6).toFixed(1)+'M';
+  if(abs>=1e3) return sign+'$'+Math.round(abs/100)/10+'k';
+  return sign+'$'+Math.round(abs).toLocaleString();
+};
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+const pct = p => Math.random()<p;
+function randn(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+
+// ════════════════════════════════════════════════════════════════
+//  CHARACTER & CORE ENGINE
+// ════════════════════════════════════════════════════════════════
+
+const EDU_LEVELS = ['none','high_school','associates','bachelors','masters','doctoral','professional'];
+const EDU_LABELS = {none:'No Diploma',high_school:'High School',associates:"Associate's",bachelors:"Bachelor's",masters:"Master's",doctoral:'PhD',professional:'JD/MD'};
+const EDU_SALARY = {none:[18000,32000],high_school:[28000,55000],associates:[35000,65000],bachelors:[45000,110000],masters:[60000,160000],doctoral:[75000,220000],professional:[90000,350000]};
+const SCHOOL_DEFS = {
+  high_school:{dur:4,cost:0,result:'high_school',minAge:14,maxAge:20,req:null},
+  associates:{dur:2,cost:6000,result:'associates',minAge:18,maxAge:30,req:'high_school'},
+  bachelors:{dur:4,cost:18000,result:'bachelors',minAge:18,maxAge:35,req:'high_school'},
+  masters:{dur:2,cost:25000,result:'masters',minAge:22,maxAge:45,req:'bachelors'},
+  doctoral:{dur:4,cost:15000,result:'doctoral',minAge:24,maxAge:50,req:'bachelors'},
+  professional:{dur:3,cost:45000,result:'professional',minAge:22,maxAge:45,req:'bachelors'},
+};
+const CAREER_TIERS = [
+  {id:'entry',title:['Cashier','Warehouse Worker','Server','Call Center Rep'],salScale:1.0,promYrs:4},
+  {id:'skilled',title:['Technician','Office Manager','Sales Rep','Supervisor'],salScale:1.4,promYrs:5},
+  {id:'professional',title:['Engineer','Accountant','Financial Analyst','IT Manager'],salScale:2.0,promYrs:6},
+  {id:'executive',title:['Director','VP of Finance','General Manager','Senior VP'],salScale:3.5,promYrs:7},
+  {id:'ceo',title:['CEO','CFO','COO','CTO'],salScale:8.0,promYrs:999},
+];
+const DEATH_CAUSES = ['Heart Attack','Cancer','Stroke','Old Age','Pneumonia','Liver Failure','Accident'];
+
+// ── Monthly Expense Items ─────────────────────────────────────────
+const MONTHLY_EXPENSES = [
+  {name:'New Shoes',          icon:'👟', min:80,   max:180},
+  {name:'Brand New TV',       icon:'📺', min:300,  max:900},
+  {name:'New Smartphone',     icon:'📱', min:400,  max:1100},
+  {name:'Designer Jacket',    icon:'🧥', min:120,  max:400},
+  {name:'New Laptop',         icon:'💻', min:600,  max:1500},
+  {name:'Gaming Console',     icon:'🎮', min:300,  max:600},
+  {name:'Headphones',         icon:'🎧', min:50,   max:350},
+  {name:'Smart Watch',        icon:'⌚', min:150,  max:500},
+  {name:'New Couch',          icon:'🛋️', min:400,  max:1200},
+  {name:'Coffee Maker',       icon:'☕', min:40,   max:200},
+  {name:'Gym Equipment',      icon:'🏋️', min:100,  max:600},
+  {name:'Kitchen Appliance',  icon:'🍳', min:80,   max:400},
+  {name:'Car Accessories',    icon:'🚗', min:60,   max:300},
+  {name:'New Outfit',         icon:'👔', min:80,   max:250},
+  {name:'Sunglasses',         icon:'🕶️', min:30,   max:300},
+  {name:'Power Tool',         icon:'🔧', min:80,   max:350},
+  {name:'Backpack',           icon:'🎒', min:40,   max:200},
+  {name:'Home Decor Set',     icon:'🪴', min:60,   max:250},
+  {name:'Bluetooth Speaker',  icon:'🔊', min:50,   max:300},
+  {name:'Air Purifier',       icon:'💨', min:80,   max:350},
+];
+
+function createChar(name, scenario){
+  const sc = {broke:{cash:500,savings:0,debt:25000,salaryMult:0.7},middle:{cash:5000,savings:2000,debt:8000,salaryMult:1.0},rich:{cash:50000,savings:100000,debt:0,salaryMult:1.5}};
+  const s = sc[scenario]||sc.middle;
+  return {
+    name, monthAge:264, age:22, alive:true, deathCause:null,
+    health:ri(65,95), happiness:ri(55,85), smarts:ri(40,90), looks:ri(40,85),
+    checking:s.cash, savings:s.savings, highYield:0,
+    debt:s.debt, salary:0, creditScore:580,
+    education: scenario==='broke'?'high_school':'bachelors',
+    inSchool:false, schoolType:null, schoolMonthsLeft:0, schoolCostMonthly:0,
+    employed:false, jobTitle:null, careerTierId:'entry', yearsAtJob:0, performance:ri(50,80),
+    relationship:'single', spouseName:null, spouseIncome:0, yearsTogether:0,
+    kids:0, hasCar:(scenario!=='broke'), hasHouse:false, houseValue:0, houseDebt:0,
+    retired:false, lifestyle:'normal',
+    creditCards:0, studentDebt:s.debt,
+    _graduated:scenario!=='broke', _hadFirstJob:false, _everMarried:false,
+    events:[],
+    pendingExpenses:[],  // [{name, icon, cost, monthsLeft}]
+  };
+}
+
+function ageDisplay(char){
+  const m = char.monthAge % 12;
+  return m===0 ? `${char.age}` : `${char.age}y ${m}m`;
+}
+
+function eduIdx(e){return EDU_LEVELS.indexOf(e)}
+
+function computeSalary(char, tier){
+  const [mn,mx] = EDU_SALARY[char.education]||[28000,55000];
+  const base = rf(mn,mx);
+  const sm = 0.5+(char.smarts/100);
+  return Math.round(base*tier.salScale*sm);
+}
+
+function getJobTier(char){
+  const eidx = eduIdx(char.education);
+  if(eidx>=5) return CAREER_TIERS[3]; // doctoral+
+  if(eidx>=3) return CAREER_TIERS[2]; // bachelors
+  if(eidx>=2) return CAREER_TIERS[1]; // associates
+  return CAREER_TIERS[0];
+}
+
+function tickCareer(char, ev){
+  if(char.inSchool||!char.employed) return;
+  char.yearsAtJob++;
+  const raise = 0.01+(char.smarts/100)*0.02+(char.performance/100)*0.02;
+  char.salary = Math.round(char.salary*(1+raise));
+  // Promotion check
+  const tIdx = CAREER_TIERS.findIndex(t=>t.id===char.careerTierId);
+  const tier = CAREER_TIERS[tIdx];
+  if(tIdx<CAREER_TIERS.length-1 && char.yearsAtJob>=tier.promYrs){
+    if(pct(0.15+(char.performance/100)*0.35)){
+      const next = CAREER_TIERS[tIdx+1];
+      char.careerTierId = next.id;
+      char.jobTitle = pick(next.title);
+      char.salary = computeSalary(char, next);
+      char.yearsAtJob = 0;
+      ev.push({type:'career',text:`Promoted to ${char.jobTitle}! Salary: ${fmt$(char.salary)}/yr`});
+    }
+  }
+  char.performance = clamp(char.performance+ri(-5,5),10,100);
+  if(pct(0.03+(char.performance<30?0.1:0))){
+    char.employed=false; char.salary=0; char.happiness=clamp(char.happiness-15,0,100);
+    ev.push({type:'career',text:'Laid off. Job lost.'});
+  }
+}
+
+// ── 50-Job System ─────────────────────────────────────────────────
+const ALL_JOBS = [
+  // Healthcare
+  {id:'doctor',              name:'Doctor',              sector:'healthcare', min:180000, max:300000, edu:'professional', tier:4},
+  {id:'nurse',               name:'Nurse',               sector:'healthcare', min:75000,  max:100000, edu:'bachelors',    tier:3},
+  {id:'surgeon',             name:'Surgeon',             sector:'healthcare', min:250000, max:400000, edu:'professional', tier:5},
+  {id:'dentist',             name:'Dentist',             sector:'healthcare', min:150000, max:220000, edu:'professional', tier:4},
+  {id:'pharmacist',          name:'Pharmacist',          sector:'healthcare', min:120000, max:140000, edu:'professional', tier:4},
+  {id:'physical_therapist',  name:'Physical Therapist',  sector:'healthcare', min:85000,  max:110000, edu:'masters',      tier:3},
+  {id:'emt',                 name:'EMT',                 sector:'healthcare', min:35000,  max:50000,  edu:'high_school',  tier:1},
+  {id:'paramedic',           name:'Paramedic',           sector:'healthcare', min:40000,  max:60000,  edu:'associates',   tier:2},
+  // Business & Finance
+  {id:'accountant',          name:'Accountant',          sector:'finance',    min:60000,  max:90000,  edu:'bachelors',    tier:3},
+  {id:'financial_advisor',   name:'Financial Advisor',   sector:'finance',    min:70000,  max:120000, edu:'bachelors',    tier:3},
+  {id:'banker',              name:'Banker',              sector:'finance',    min:50000,  max:90000,  edu:'bachelors',    tier:2},
+  {id:'stockbroker',         name:'Stockbroker',         sector:'finance',    min:70000,  max:150000, edu:'bachelors',    tier:3},
+  {id:'real_estate_agent',   name:'Real Estate Agent',   sector:'finance',    min:50000,  max:120000, edu:'high_school',  tier:2},
+  {id:'marketing_manager',   name:'Marketing Manager',   sector:'finance',    min:80000,  max:140000, edu:'bachelors',    tier:3},
+  // Technology
+  {id:'software_developer',  name:'Software Developer',  sector:'tech',       min:90000,  max:150000, edu:'bachelors',    tier:3},
+  {id:'web_developer',       name:'Web Developer',       sector:'tech',       min:70000,  max:110000, edu:'associates',   tier:3},
+  {id:'data_scientist',      name:'Data Scientist',      sector:'tech',       min:100000, max:160000, edu:'masters',      tier:4},
+  {id:'cybersecurity_analyst',name:'Cybersecurity Analyst',sector:'tech',     min:95000,  max:140000, edu:'bachelors',    tier:3},
+  {id:'it_support',          name:'IT Support',          sector:'tech',       min:45000,  max:70000,  edu:'high_school',  tier:2},
+  {id:'game_developer',      name:'Game Developer',      sector:'tech',       min:70000,  max:120000, edu:'bachelors',    tier:3},
+  // Education
+  {id:'teacher',             name:'Teacher',             sector:'education',  min:50000,  max:80000,  edu:'bachelors',    tier:2},
+  {id:'professor',           name:'Professor',           sector:'education',  min:70000,  max:150000, edu:'doctoral',     tier:4},
+  {id:'tutor',               name:'Tutor',               sector:'education',  min:30000,  max:60000,  edu:'high_school',  tier:1},
+  {id:'school_counselor',    name:'School Counselor',    sector:'education',  min:60000,  max:90000,  edu:'masters',      tier:3},
+  // Law & Government
+  {id:'lawyer',              name:'Lawyer',              sector:'law',        min:80000,  max:200000, edu:'professional', tier:4},
+  {id:'police_officer',      name:'Police Officer',      sector:'law',        min:50000,  max:90000,  edu:'high_school',  tier:2},
+  {id:'firefighter',         name:'Firefighter',         sector:'law',        min:50000,  max:85000,  edu:'high_school',  tier:2},
+  {id:'fbi_agent',           name:'FBI Agent',           sector:'law',        min:70000,  max:130000, edu:'bachelors',    tier:3},
+  // Creative
+  {id:'actor',               name:'Actor',               sector:'creative',   min:30000,  max:100000, edu:'none',         tier:2},
+  {id:'photographer',        name:'Photographer',        sector:'creative',   min:40000,  max:80000,  edu:'none',         tier:2},
+  {id:'graphic_designer',    name:'Graphic Designer',    sector:'creative',   min:50000,  max:85000,  edu:'associates',   tier:2},
+  {id:'video_editor',        name:'Video Editor',        sector:'creative',   min:45000,  max:75000,  edu:'associates',   tier:2},
+  // Trades
+  {id:'electrician',         name:'Electrician',         sector:'trades',     min:55000,  max:90000,  edu:'high_school',  tier:2},
+  {id:'plumber',             name:'Plumber',             sector:'trades',     min:50000,  max:85000,  edu:'high_school',  tier:2},
+  {id:'mechanic',            name:'Mechanic',            sector:'trades',     min:40000,  max:70000,  edu:'high_school',  tier:2},
+  {id:'carpenter',           name:'Carpenter',           sector:'trades',     min:45000,  max:75000,  edu:'high_school',  tier:2},
+  {id:'construction_worker', name:'Construction Worker', sector:'trades',     min:40000,  max:65000,  edu:'none',         tier:1},
+  // Service
+  {id:'chef',                name:'Chef',                sector:'service',    min:45000,  max:80000,  edu:'high_school',  tier:2},
+  {id:'waiter',              name:'Waiter',              sector:'service',    min:25000,  max:50000,  edu:'none',         tier:1},
+  {id:'barber',              name:'Barber',              sector:'service',    min:30000,  max:70000,  edu:'none',         tier:1},
+  {id:'personal_trainer',    name:'Personal Trainer',    sector:'service',    min:40000,  max:75000,  edu:'high_school',  tier:2},
+  // Transportation
+  {id:'truck_driver',        name:'Truck Driver',        sector:'transport',  min:50000,  max:80000,  edu:'high_school',  tier:2},
+  {id:'pilot',               name:'Pilot',               sector:'transport',  min:100000, max:250000, edu:'bachelors',    tier:4},
+  {id:'bus_driver',          name:'Bus Driver',          sector:'transport',  min:40000,  max:65000,  edu:'high_school',  tier:1},
+  // Other
+  {id:'architect',           name:'Architect',           sector:'other',      min:70000,  max:120000, edu:'bachelors',    tier:3},
+  {id:'civil_engineer',      name:'Civil Engineer',      sector:'other',      min:75000,  max:110000, edu:'bachelors',    tier:3},
+  {id:'scientist',           name:'Scientist',           sector:'other',      min:70000,  max:130000, edu:'doctoral',     tier:4},
+  {id:'veterinarian',        name:'Veterinarian',        sector:'other',      min:90000,  max:140000, edu:'professional', tier:4},
+  {id:'social_worker',       name:'Social Worker',       sector:'other',      min:45000,  max:70000,  edu:'bachelors',    tier:2},
+  {id:'fitness_coach',       name:'Fitness Coach',       sector:'other',      min:35000,  max:65000,  edu:'none',         tier:1},
+];
+
+function getAvailableJobs(char){
+  const charEdu = eduIdx(char.education);
+  return ALL_JOBS
+    .filter(j => charEdu >= eduIdx(j.edu))
+    .sort((a,b) => b.min - a.min)
+    .slice(0,8);
+}
+
+function applyForJob(char, job){
+  const smartsMod = 0.7 + (char.smarts/100)*0.6;
+  char.employed     = true;
+  char.jobTitle     = job.name;
+  char.jobSector    = job.sector;
+  char.jobMin       = job.min;
+  char.jobMax       = job.max;
+  char.salary       = Math.round(rf(job.min, job.max) * smartsMod);
+  char.yearsAtJob   = 0;
+  char.careerTierId = 'tier' + job.tier;
+}
+
+function tickCareerNew(char, ev){
+  if(!char.employed) return;
+  char.yearsAtJob++;
+  // Merit raise 1–4% scaled to performance
+  const raisePct = 0.01 + (char.performance/100)*0.03;
+  char.salary = Math.round(char.salary * (1 + raisePct));
+  // Promotion every 4 years if performance > 60
+  if(char.yearsAtJob % 4 === 0 && char.performance > 60 && pct(0.25)){
+    const cap = char.jobMax || char.salary * 2;
+    char.salary = Math.min(cap, Math.round(char.salary * 1.15));
+    ev.push({type:'career',text:`Promoted at ${char.jobTitle}! New salary: ${fmt$(char.salary)}/yr`});
+  }
+  // Layoff: 2% base + 8% if low performance
+  const layoffChance = 0.02 + (char.performance < 30 ? 0.08 : 0);
+  if(pct(layoffChance)){
+    char.employed = false; char.salary = 0;
+    char.happiness = clamp(char.happiness - 15, 0, 100);
+    ev.push({type:'career',text:`Laid off from ${char.jobTitle}. Job lost.`});
+  }
+  // Performance drift
+  char.performance = clamp(char.performance + ri(-5,5), 10, 100);
+}
+
+function buildJobChoices(char){
+  const jobs = getAvailableJobs(char).slice(0,6);
+  if(!jobs.length){
+    return [{text:'No jobs available — get more education',fn(){return'No qualifying jobs found. Consider furthering your education.'}}];
+  }
+  return jobs.map(job => ({
+    text:`${job.name} (${job.sector}) — ${fmt$(job.min)}–${fmt$(job.max)}/yr`,
+    fn(){
+      applyForJob(char, job);
+      return `Hired as ${job.name} in ${job.sector}! Starting salary: ${fmt$(char.salary)}/yr`;
+    }
+  }));
+}
+// ── End 50-Job System ────────────────────────────────────────────
+
+function tickRelationship(char, ev){
+  const r = char.relationship;
+  if(r==='single'&&char.age>=18){
+    if(pct(0.12+(char.looks/100)*0.12)){
+      char.relationship='dating'; char.spouseName=genName(); char.yearsTogether=0;
+      char.spouseIncome=ri(25000,90000);
+      ev.push({type:'good',text:`Started dating ${char.spouseName}.`});
+    }
+  } else if(r==='dating'){
+    char.yearsTogether++;
+    if(char.age>=21&&pct(Math.min(0.05+char.yearsTogether*0.07,0.5))){
+      char.relationship='married';
+      ev.push({type:'gold',text:`Married ${char.spouseName}!`});
+    } else if(pct(Math.max(0.08-char.yearsTogether*0.01,0.02))){
+      const n=char.spouseName; char.relationship='single'; char.spouseName=null; char.spouseIncome=0; char.yearsTogether=0;
+      char.happiness=clamp(char.happiness-10,0,100);
+      ev.push({type:'bad',text:`Broke up with ${n}.`});
+    }
+  } else if(r==='married'){
+    char.yearsTogether++;
+    char.spouseIncome=Math.round(char.spouseIncome*(1+rf(0.01,0.03)));
+    const dChance = char.yearsTogether<5?0.04:char.yearsTogether<15?0.02:0.01;
+    if(pct(dChance+(50-char.happiness)/500)){
+      const n=char.spouseName; const settle=Math.round(char.checking*0.3);
+      char.checking=Math.max(0,char.checking-settle); char.relationship='divorced';
+      char.spouseName=null; char.spouseIncome=0; char.yearsTogether=0;
+      char.happiness=clamp(char.happiness-20,0,100);
+      ev.push({type:'bad',text:`Divorced ${n}. Settlement: ${fmt$(settle)}`});
+    }
+  } else if(r==='divorced'&&char.age<75){
+    if(pct(0.1)){char.relationship='dating';char.spouseName=genName();char.yearsTogether=0;char.spouseIncome=ri(20000,80000);}
+  }
+}
+
+function genName(){
+  const f=['Alex','Jordan','Taylor','Morgan','Casey','Riley','Jamie','Avery','Drew','Quinn','Sage','Blake','Harper','Skyler'];
+  const l=['Smith','Johnson','Williams','Brown','Jones','Garcia','Martinez','Davis','Wilson','Anderson'];
+  return pick(f)+' '+pick(l);
+}
+
+function calcTax(income){
+  const brackets=[[11600,0.10],[47150,0.12],[100525,0.22],[191950,0.24],[243725,0.32],[609350,0.35],[Infinity,0.37]];
+  let tax=0,prev=0;
+  for(const[lim,rate]of brackets){const s=Math.min(income,lim)-prev;if(s<=0)break;tax+=s*rate;prev=lim;}
+  return Math.round(tax+income*0.05+Math.min(income,168600)*0.0765);
+}
+
+function tickFinances(char, ev){
+  // All figures monthly, returned annualized for UI display
+  const monthSalary = char.employed ? Math.round(char.salary/12) : 0;
+  const monthSpouse = char.relationship==='married' ? Math.round(char.spouseIncome*0.5/12) : 0;
+  const monthGross = monthSalary + monthSpouse;
+  const monthTax = Math.round(calcTax(monthGross*12)/12);
+  const monthNet = monthGross - monthTax;
+  const expTable = {frugal:1500,normal:2333,lavish:3750};
+  const monthLiving = (expTable[char.lifestyle]||2333) + Math.round(char.kids*15000/12) + (char.hasHouse?300:0);
+  // Monthly debt interest + minimum payment
+  if(char.debt>0){
+    const interest = Math.round(char.debt*0.05/12);
+    const pay = Math.max(50, Math.min(char.debt, Math.round(char.debt*0.01)+interest));
+    char.debt = Math.max(0, char.debt+interest-pay);
+  }
+  const monthSavings = monthNet - monthLiving;
+  char.checking += monthSavings;
+  // Monthly compound interest on savings
+  char.savings = Math.round(char.savings*(1+0.02/12));
+  char.highYield = Math.round(char.highYield*(1+0.04/12));
+  // Credit score: drift quarterly
+  if(char.monthAge%3===0){
+    if(char.debt>0&&char.checking>0) char.creditScore=clamp(char.creditScore+ri(-1,2),300,850);
+    else if(char.debt===0) char.creditScore=clamp(char.creditScore+ri(0,2),300,850);
+  }
+  return {gross:monthGross*12, taxes:monthTax*12, livingCost:monthLiving*12, debtPay:char.debt>0?Math.round(char.debt*0.12):0, annSavings:monthSavings*12};
+}
+
+function tickDeath(char){
+  // Annual probabilities divided by 12 for monthly check
+  let base;
+  if(char.age<40)base=0.003/12;
+  else if(char.age<50)base=0.007/12;
+  else if(char.age<60)base=0.015/12;
+  else if(char.age<70)base=0.03/12;
+  else if(char.age<80)base=0.07/12;
+  else if(char.age<90)base=0.15/12;
+  else base=0.30/12;
+  const hm=1.0+(50-char.health)/100;
+  if(pct(Math.min(base*hm,0.95))){
+    char.alive=false;
+    char.deathCause=char.age>=75?'Old Age':pick(DEATH_CAUSES);
+    return true;
+  }
+  return false;
+}
+
+function tickSchool(char, ev){
+  if(!char.inSchool)return;
+  char.checking-=char.schoolCostMonthly;
+  char.debt+=char.schoolCostMonthly;
+  char.schoolMonthsLeft--;
+  if(char.schoolMonthsLeft<=0){
+    const def=SCHOOL_DEFS[char.schoolType];
+    char.inSchool=false; char.education=def.result;
+    char.smarts=clamp(char.smarts+ri(5,15),0,100);
+    ev.push({type:'gold',text:`Graduated with ${EDU_LABELS[def.result]}!`});
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  INVESTMENT SYSTEMS
+// ════════════════════════════════════════════════════════════════
+
+const STOCKS = [
+  {id:'APPL',name:'Applex',sector:'tech',price:180,vol:0.28},
+  {id:'MSOF',name:'Microsafe',sector:'tech',price:340,vol:0.24},
+  {id:'NVID',name:'NvidiaX',sector:'tech',price:620,vol:0.45},
+  {id:'TSLA',name:'Teslon',sector:'auto',price:250,vol:0.55},
+  {id:'EXXO',name:'ExxoMobile',sector:'energy',price:110,vol:0.22},
+  {id:'WLMT',name:'Wallmart',sector:'retail',price:58,vol:0.18},
+  {id:'JPMG',name:'JP Morgen',sector:'finance',price:200,vol:0.20},
+  {id:'PFIZ',name:'Pfaizer',sector:'pharma',price:28,vol:0.19},
+  {id:'COKE',name:'Cola-Cola',sector:'consumer',price:62,vol:0.13},
+  {id:'SPY',name:'S&P 500 ETF',sector:'etf',price:450,vol:0.15,avgReturn:0.07},
+];
+const CRYPTOS = [
+  {id:'BTC',name:'Bitcoin',price:45000,vol:0.80},
+  {id:'ETH',name:'Ethereum',price:2500,vol:0.85},
+  {id:'SOL',name:'Solana',price:100,vol:0.95},
+  {id:'DOGE',name:'Dogecoin',price:0.12,vol:1.20},
+];
+
+function createInvState(){
+  return {
+    stocks:STOCKS.map(s=>({...s,history:[s.price]})),
+    cryptos:CRYPTOS.map(c=>({...c,history:[c.price]})),
+    portfolio:{},    // {stockId:{shares,avgCost}}
+    cryptoHeld:{},   // {cryptoId:{coins,avgCost}}
+    k401:0, ira:0, roth:0,
+    properties:[],
+    businesses:[],
+    climate:'normal',
+    climateYearsLeft:0,
+  };
+}
+
+function tickMarket(inv){
+  if(inv.climateYearsLeft>0){inv.climateYearsLeft--;if(inv.climateYearsLeft===0)inv.climate='normal';}
+  else{
+    const r=Math.random();
+    if(r<0.07){inv.climate='recession';inv.climateYearsLeft=ri(1,3);}
+    else if(r<0.13){inv.climate='bear';inv.climateYearsLeft=ri(1,2);}
+    else if(r<0.21){inv.climate='bull';inv.climateYearsLeft=ri(1,3);}
+    else if(r<0.25){inv.climate='bubble';inv.climateYearsLeft=ri(1,2);}
+    else inv.climate='normal';
+  }
+}
+
+const CLIMATE_MULT = {
+  normal:{stock:1.0,tech:1.0,crypto:1.0,re:1.0},
+  bull:{stock:1.4,tech:1.5,crypto:1.3,re:1.15},
+  bear:{stock:0.75,tech:0.70,crypto:0.65,re:0.90},
+  bubble:{stock:1.1,tech:2.0,crypto:1.5,re:1.0},
+  recession:{stock:0.70,tech:0.65,crypto:0.50,re:0.85},
+};
+
+function tickStocks(inv){
+  const m=CLIMATE_MULT[inv.climate]||CLIMATE_MULT.normal;
+  for(const s of inv.stocks){
+    const cm=s.sector==='tech'?m.tech:s.id==='SPY'?m.stock:m.stock;
+    const drift=(s.avgReturn||0.08)*cm-1;
+    const z=randn();
+    s.price=Math.max(0.01,+(s.price*(1+drift+s.vol*z)).toFixed(2));
+    s.history.push(s.price);if(s.history.length>50)s.history.shift();
+  }
+}
+
+function tickCrypto(inv){
+  const m=CLIMATE_MULT[inv.climate]||CLIMATE_MULT.normal;
+  for(const c of inv.cryptos){
+    const z=randn();
+    const ret=rf(-0.3,0.5)*m.crypto+c.vol*z*0.3;
+    c.price=Math.max(0.00001,+(c.price*(1+ret)).toPrecision(5));
+    c.history.push(c.price);if(c.history.length>50)c.history.shift();
+  }
+}
+
+function tickRetirement(inv, char){
+  const baseRet={normal:0.07,bull:0.12,bear:0.02,bubble:0.09,recession:-0.05}[inv.climate]||0.07;
+  const z=randn(); const r=baseRet+0.10*z;
+  inv.k401=Math.max(0,Math.round(inv.k401*(1+r)));
+  inv.ira=Math.max(0,Math.round(inv.ira*(1+r)));
+  inv.roth=Math.max(0,Math.round(inv.roth*(1+r)));
+  // Auto 401k contribution if employed
+  if(char.employed&&char.salary>0){
+    const contrib=Math.round(char.salary*0.05);
+    const match=Math.round(char.salary*0.03);
+    inv.k401+=contrib+match;
+    char.checking-=contrib;
+  }
+}
+
+function tickRealEstate(inv, ev){
+  const m=CLIMATE_MULT[inv.climate]||CLIMATE_MULT.normal;
+  let rentInc=0, mortPaid=0;
+  for(const p of inv.properties){
+    const z=randn(); const app=(0.03+0.06*z)*m.re;
+    p.value=Math.max(10000,Math.round(p.value*(1+app)));
+    if(p.debt>0){const pay=p.monthlyPayment*12;const int=p.debt*0.065;const prin=Math.min(p.debt,pay-int);p.debt=Math.max(0,p.debt-prin);mortPaid+=pay;}
+    if(p.rented){p.rent=Math.round(p.rent*1.03);rentInc+=p.rent*12;}
+    p.age++;
+  }
+  if(rentInc>0) ev.push({type:'good',text:`Rental income: ${fmt$(rentInc)}/yr`});
+}
+
+function tickBusinesses(inv, char, ev){
+  for(const b of inv.businesses){
+    const cm=CLIMATE_MULT[inv.climate]||CLIMATE_MULT.normal;
+    const statF=(char.smarts/100)*0.6+(char.looks/100)*0.2+0.2;
+    const rev=Math.round(b.startCost*b.revMult*statF*(cm.stock)*rf(0.75,1.25)*Math.max(0.5,Math.log(b.age+2)));
+    const exp=Math.round(rev*rf(0.55,0.75)+b.startCost*0.05);
+    b.profit=rev-exp; b.value=Math.max(Math.round(b.startCost*0.3),Math.round(b.profit*rf(2,4)));
+    b.age++;
+    if(b.profit>0){char.checking+=b.profit;ev.push({type:'good',text:`${b.name} profit: ${fmt$(b.profit)}`});}
+    else{char.checking+=b.profit;ev.push({type:'bad',text:`${b.name} loss: ${fmt$(Math.abs(b.profit))}`});}
+  }
+}
+
+function stockPortfolioValue(inv){
+  return Object.entries(inv.portfolio).reduce((s,[id,pos])=>{
+    const st=inv.stocks.find(x=>x.id===id);return s+(st?st.price*pos.shares:0);},0);
+}
+function cryptoPortfolioValue(inv){
+  return Object.entries(inv.cryptoHeld).reduce((s,[id,pos])=>{
+    const c=inv.cryptos.find(x=>x.id===id);return s+(c?c.price*pos.coins:0);},0);
+}
+function totalRetirement(inv){return inv.k401+inv.ira+inv.roth;}
+function totalPropertyValue(inv){return inv.properties.reduce((s,p)=>s+p.value,0);}
+function totalPropertyEquity(inv){return inv.properties.reduce((s,p)=>s+(p.value-p.debt),0);}
+function totalBizValue(inv){return inv.businesses.reduce((s,b)=>s+b.value,0);}
+
+function calcNetWorth(char, inv){
+  const liquid=char.checking+char.savings+char.highYield;
+  const invested=stockPortfolioValue(inv)+cryptoPortfolioValue(inv)+totalRetirement(inv)+totalPropertyEquity(inv)+totalBizValue(inv);
+  const debt=char.debt+(inv.properties.reduce((s,p)=>s+p.debt,0));
+  return liquid+invested-debt;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  EVENTS SYSTEM
+// ════════════════════════════════════════════════════════════════
+
+const EVENTS_POOL = [
+  {id:'lottery',title:'Lucky Scratch Ticket',cat:'opportunity',icon:'🎟️',
+   cond:c=>c.age>=18,
+   desc:'A $5 scratch ticket at the gas station is calling your name.',
+   choices:[
+    {text:'Buy it ($5)',fn(c){const r=Math.random();if(r<0.005){const p=ri(10000,200000);c.checking+=p-5;return`JACKPOT! Won ${fmt$(p)}!`;}if(r<0.08){const p=pick([10,20,50,100]);c.checking+=p-5;return`Won ${fmt$(p)}! (Net ${fmt$(p-5)})`;}c.checking-=5;return'Lost $5. As expected.'}},
+    {text:'Pass',fn(c){return'Kept your $5. Fiscally responsible.'}},
+  ]},
+  {id:'stock_tip',title:'Hot Stock Tip',cat:'opportunity',icon:'📊',
+   cond:c=>c.age>=21&&c.checking>=500,
+   desc:'Your friend whispers: "MOOV is going to the moon." His last tip tripled. His one before that? Down 80%.',
+   choices:[
+    {text:'Invest $500',fn(c){if(Math.random()<0.35){const g=ri(400,2000);c.checking+=g;return`Moon! +${fmt$(g)}`}c.checking-=500;return'Crashed. -$500. Your friend is unavailable.'}},
+    {text:'Invest $2,000',fn(c){if(c.checking<2000)return'Not enough cash.';if(Math.random()<0.3){const g=ri(2000,10000);c.checking+=g;return`Big win! +${fmt$(g)}`}c.checking-=2000;return'Wiped. -$2,000.'}},
+    {text:'Ignore',fn(c){return'Passed. No regrets. Probably.'}},
+  ]},
+  {id:'medical',title:'Medical Emergency',cat:'disaster',icon:'🏥',
+   cond:c=>c.age>=18,
+   desc:'Something alarming came up at your check-up. Hospital time.',
+   choices:[
+    {text:'Get treated',fn(c){const b=ri(5000,60000);c.checking-=b;c.health=clamp(c.health+10,0,100);return`Medical bill: ${fmt$(b)}. At least you're alive.`}},
+    {text:'Use insurance',fn(c){const b=ri(5000,60000);const cov=Math.round(b*rf(0.4,0.8));c.checking-=b-cov;c.health=clamp(c.health+8,0,100);return`Insurance covered ${fmt$(cov)}. You paid ${fmt$(b-cov)}.`}},
+    {text:'Delay (risky)',fn(c){if(pct(0.4)){c.health=clamp(c.health-25,0,100);const b=ri(10000,100000);c.checking-=b;return`Got worse. ${fmt$(b)} and declining health.`}c.health=clamp(c.health-8,0,100);return'Resolved itself. Lucky.'}},
+  ]},
+  {id:'car_break',title:'Car Breakdown',cat:'disaster',icon:'🚗',
+   cond:c=>c.hasCar,
+   desc:'It made a sound. Then smoke. Then silence.',
+   choices:[
+    {text:'Repair it',fn(c){const cost=pick([800,1400,2500,4000]);c.checking-=cost;return`Fixed for ${fmt$(cost)}.`}},
+    {text:'Sell for scrap',fn(c){const net=ri(500,2000)-ri(6000,14000);c.checking+=net;return`Net cost: ${fmt$(Math.abs(net))}`}},
+    {text:'Go without',fn(c){c.hasCar=false;c.happiness=clamp(c.happiness-15,0,100);return'No car. Bus pass acquired.'}},
+  ]},
+  {id:'house_repair',title:'Major Home Repair',cat:'disaster',icon:'🔧',
+   cond:c=>c.hasHouse,
+   desc:'The roof, the HVAC, the plumbing — something expensive just failed.',
+   choices:[
+    {text:'Fix properly',fn(c){const cost=pick([3000,6500,10000,18000]);c.checking-=cost;return`Fixed for ${fmt$(cost)}.`}},
+    {text:'DIY it',fn(c){if(pct(0.5)){c.checking-=ri(500,2000);return'DIY success! Saved thousands.'}const cost=ri(8000,30000);c.checking-=cost;return`Made it worse. Pro cost ${fmt$(cost)}.`}},
+  ]},
+  {id:'inheritance',title:'Unexpected Inheritance',cat:'opportunity',icon:'📜',
+   cond:c=>c.age>=28,
+   desc:'A distant relative you barely remember has passed. You\'re in the will.',
+   choices:[
+    {text:'Accept',fn(c){const a=pick([10000,25000,50000,80000,120000,250000]);c.checking+=a;return`Inherited ${fmt$(a)}.`}},
+    {text:'Donate to charity',fn(c){c.happiness=clamp(c.happiness+20,0,100);return'Donated it. Net worth: 0. Self-worth: +100.'}},
+  ]},
+  {id:'promotion',title:'Promotion Offer',cat:'opportunity',icon:'💼',
+   cond:c=>c.employed&&c.age>=24&&c.salary>=30000,
+   desc:'Your boss calls you in. There\'s a senior role opening. More pay. More meetings.',
+   choices:[
+    {text:'Accept',fn(c){const r=ri(8000,25000);c.salary+=r;c.happiness=clamp(c.happiness+12,0,100);return`Promoted! +${fmt$(r)}/yr raise.`}},
+    {text:'Counter-offer',fn(c){if(pct(0.55)){const r=ri(15000,35000);c.salary+=r;return`Counter accepted! +${fmt$(r)}/yr`}const r=ri(3000,10000);c.salary+=r;return`Counter failed. Base raise: +${fmt$(r)}/yr`}},
+    {text:'Decline',fn(c){c.happiness=clamp(c.happiness+8,0,100);return'Work-life balance chosen.'}},
+  ]},
+  {id:'signing_bonus',title:'Job Offer with Signing Bonus',cat:'opportunity',icon:'✉️',
+   cond:c=>c.age>=22&&c.age<=55,
+   desc:'A recruiter reached out. New company, better pay, signing bonus.',
+   choices:[
+    {text:'Accept',fn(c){const b=ri(5000,40000);const r=ri(5000,20000);c.checking+=b;c.salary=(c.salary||40000)+r;return`Bonus: ${fmt$(b)}, +${fmt$(r)}/yr`}},
+    {text:'Use as leverage',fn(c){if(pct(0.6)){const r=ri(6000,18000);c.salary=(c.salary||40000)+r;return`Counter accepted! +${fmt$(r)}/yr`}return'Bluff called. Staying at same salary.'}},
+    {text:'Decline',fn(c){return'Stayed put. Stability chosen.'}},
+  ]},
+  {id:'lawsuit',title:"You're Being Sued",cat:'disaster',icon:'⚖️',
+   cond:c=>c.age>=22,
+   desc:'Someone slipped. Something broke. There\'s a summons on your doorstep.',
+   choices:[
+    {text:'Settle',fn(c){const cost=ri(10000,75000);c.checking-=cost;return`Settled for ${fmt$(cost)}.`}},
+    {text:'Fight it',fn(c){const legal=ri(20000,60000);if(pct(0.5)){c.checking-=legal;return`Won! But legal fees: ${fmt$(legal)}.`}const j=ri(25000,200000);c.checking-=(legal+j);return`Lost. Total damage: ${fmt$(legal+j)}.`}},
+  ]},
+  {id:'casino',title:'Casino Night',cat:'flavor',icon:'🎰',
+   cond:c=>c.age>=21,
+   desc:'Bachelor party. Office trip. Either way you\'re at the casino.',
+   choices:[
+    {text:'$100 limit',fn(c){if(pct(0.35)){const w=ri(50,400);c.checking+=w;return`Won ${fmt$(w)}!`}c.checking-=100;return'Lost $100. Still fun.'}},
+    {text:'Go big $1,000',fn(c){if(c.checking<1000)return'Not enough cash.';if(pct(0.25)){const w=ri(500,5000);c.checking+=w;return`BIG WIN: +${fmt$(w)}!`}c.checking-=1000;return'Lost $1,000. The house always wins.'}},
+    {text:'Just watch',fn(c){c.checking-=ri(30,80);return'Watched others lose. Smug and slightly drunk.'}},
+  ]},
+  {id:'work_bonus',title:'Surprise Work Bonus',cat:'flavor',icon:'🎁',
+   cond:c=>c.employed&&c.salary>0,
+   desc:'The company hit its targets. There\'s something extra in your paycheck.',
+   choices:[
+    {text:'Deposit it',fn(c){const b=Math.round((c.salary||50000)*rf(0.03,0.15));c.checking+=b;return`Bonus: ${fmt$(b)}!`}},
+    {text:'Splurge',fn(c){const b=Math.round((c.salary||50000)*rf(0.03,0.15));const s=Math.round(b*rf(0.5,1));c.checking+=b-s;c.happiness=clamp(c.happiness+15,0,100);return`Bonus ${fmt$(b)}, splurged ${fmt$(s)}.`}},
+  ]},
+  {id:'side_hustle',title:'Side Hustle Opportunity',cat:'flavor',icon:'⚡',
+   cond:c=>c.age>=20&&c.age<=55,
+   desc:'Freelance gig, reselling, YouTube channel — opportunity knocked.',
+   choices:[
+    {text:'Start it',fn(c){const cost=ri(200,1500);const up=ri(3000,18000);if(pct(0.6)){c.checking+=up-cost;c.salary=Math.round((c.salary||0)+up*0.3);return`Side hustle paying off! ${fmt$(up-cost)} + recurring income.`}c.checking-=cost;return`Flopped. Lost ${fmt$(cost)}.`}},
+    {text:'Too busy',fn(c){c.happiness=clamp(c.happiness+3,0,100);return'Weekend saved. Sanity retained.'}},
+  ]},
+  {id:'market_crash',title:'Market Crash Warning',cat:'disaster',icon:'📉',
+   cond:c=>stockPortfolioValue(GS.inv)>5000,
+   desc:'Your portfolio is exposed. Everyone\'s saying crash. Even the barista.',
+   choices:[
+    {text:'Sell everything',fn(c){const v=Math.round(stockPortfolioValue(GS.inv));const tax=Math.round(v*0.15);Object.keys(GS.inv.portfolio).forEach(k=>delete GS.inv.portfolio[k]);c.checking+=v-tax;return`Sold all stocks. Net: ${fmt$(v-tax)} after capital gains tax.`}},
+    {text:'Hold — it recovers',fn(c){if(pct(0.55)){const loss=Math.round(stockPortfolioValue(GS.inv)*rf(0.2,0.5));Object.entries(GS.inv.portfolio).forEach(([k,p])=>{const s=GS.inv.stocks.find(x=>x.id===k);if(s)s.price=Math.round(s.price*rf(0.5,0.8));});return`Crash hit. Portfolio down ~${fmt$(loss)}. Holding.`}return'False alarm. Still invested.'}},
+  ]},
+  {id:'marriage',title:'Ready to Propose?',cat:'milestone',icon:'💍',
+   cond:c=>c.relationship==='dating'&&c.age>=24&&!c._everMarried&&c.checking>=3000,
+   desc:'You\'ve been together for a while. The ring is calling.',
+   choices:[
+    {text:'Propose! (full wedding)',fn(c){const w=ri(8000,45000);c.checking-=w;c.relationship='married';c._everMarried=true;c.happiness=clamp(c.happiness+30,0,100);return`Married! Wedding: ${fmt$(w)}. Love is worth it.`}},
+    {text:'Elope',fn(c){const cost=ri(500,3000);c.checking-=cost;c.relationship='married';c._everMarried=true;c.happiness=clamp(c.happiness+25,0,100);return`Eloped! ${fmt$(cost)} total. Practical and romantic.`}},
+    {text:'Not yet',fn(c){return'The ring stays in the drawer.'}},
+  ]},
+  {id:'baby',title:'Bundle of Joy',cat:'milestone',icon:'👶',
+   cond:c=>c.relationship==='married'&&c.age>=24&&c.age<=42&&c.kids<4,
+   desc:'There\'s a pregnancy test on the counter. The plus sign is very clear.',
+   choices:[
+    {text:'Welcome the baby',fn(c){c.kids++;const setup=ri(3000,8000);c.checking-=setup;c.happiness=clamp(c.happiness+20,0,100);return`Baby #${c.kids}! Setup cost ${fmt$(setup)}, +$15k/yr expenses.`}},
+    {text:'Not right now',fn(c){c.happiness=clamp(c.happiness-5,0,100);return'Decided to wait.'}},
+  ]},
+  {id:'retirement_trig',title:'Time to Retire?',cat:'milestone',icon:'🌅',
+   cond:c=>c.age>=65&&!c.retired,
+   desc:'You\'re 65. The office door is still there. So is the exit.',
+   choices:[
+    {text:'Retire now',fn(c){c.retired=true;c.employed=false;c.salary=0;c.happiness=clamp(c.happiness+25,0,100);const draw=Math.round(totalRetirement(GS.inv)*0.04);c.checking+=draw;return`Retired! Annual draw: ${fmt$(draw)} (4% rule).`}},
+    {text:'Work more years',fn(c){const b=ri(5000,20000);c.checking+=b;return`Worked another year. Retirement fund grows. Bonus: ${fmt$(b)}`}},
+    {text:'Semi-retire',fn(c){c.salary=Math.round((c.salary||60000)*0.4);c.jobTitle='Consultant';c.happiness=clamp(c.happiness+15,0,100);return`Semi-retired. Part-time: ${fmt$(c.salary)}/yr`}},
+  ]},
+];
+
+function selectEvents(char){
+  const rw={opportunity:60,disaster:40,milestone:50,flavor:30};
+  const elig=EVENTS_POOL.filter(e=>{try{return e.cond(char)}catch{return false}});
+  if(!elig.length)return[];
+  const pool=elig.map(e=>({e,w:rw[e.cat]||20}));
+  const total=pool.reduce((s,x)=>s+x.w,0);
+  const count=ri(1,3); const sel=[]; const used=new Set();
+  for(let i=0;i<count;i++){
+    const rem=pool.filter(x=>!used.has(x.e.id));
+    if(!rem.length)break;
+    let r=Math.random()*rem.reduce((s,x)=>s+x.w,0);
+    for(const{e,w}of rem){r-=w;if(r<=0){sel.push(e);used.add(e.id);break;}}
+  }
+  return sel;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  ANNUAL TICK
+// ════════════════════════════════════════════════════════════════
+
+// ── Financial Tips ───────────────────────────────────────────────
+const FINANCIAL_TIPS = [
+  {icon:'💳', tip:'Pay your credit card balance in full every month. Carrying a balance at 20%+ APR costs you far more than any reward points you earn.'},
+  {icon:'🏦', tip:'Move your savings to a high-yield account. A 4% high-yield account earns 20× more interest than a standard 0.2% savings account.'},
+  {icon:'📊', tip:'Max out your 401(k) match before investing anywhere else. That employer match is an instant 50–100% return — nothing beats free money.'},
+  {icon:'💰', tip:'Follow the 50/30/20 rule: 50% of take-home pay on needs, 30% on wants, 20% on savings and debt. It\'s a simple framework that works.'},
+  {icon:'📈', tip:'Time in the market beats timing the market. Investing $500/month starting at 25 grows to ~$1.7M by 65 at 7% average returns.'},
+  {icon:'🎯', tip:'Build a 3–6 month emergency fund before investing. Without it, one unexpected expense forces you to sell investments at the worst time.'},
+  {icon:'🏠', tip:'Your home is a place to live, not your retirement plan. Don\'t neglect stocks and retirement accounts just because you own property.'},
+  {icon:'📉', tip:'Don\'t panic sell during market crashes. Every major crash in history has recovered. Selling locks in your losses permanently.'},
+  {icon:'🔄', tip:'Automate your savings. Set up automatic transfers on payday. Money you never see in checking is money you never spend.'},
+  {icon:'💸', tip:'Avoid lifestyle inflation. When you get a raise, save at least 50% of it before upgrading your lifestyle. Future you will thank you.'},
+  {icon:'🎓', tip:'Higher education pays off — but only if you earn more than your loan cost. Calculate your expected salary before taking on student debt.'},
+  {icon:'🚗', tip:'Buy used cars, not new. A new car loses 20% of its value the moment you drive it off the lot. A 2-year-old car is often half the price.'},
+  {icon:'📱', tip:'Audit your subscriptions. The average person pays for 4–5 services they barely use. That\'s $100–200/month of invisible spending.'},
+  {icon:'🏋️', tip:'Investing in your health now saves massive medical bills later. Poor health is one of the biggest unexpected financial disasters.'},
+  {icon:'📋', tip:'Track every dollar you spend for one month. Most people are shocked — the small daily purchases add up to thousands per year.'},
+  {icon:'🤝', tip:'Negotiate your salary. Workers who negotiate earn $5,000–$20,000 more per year on average. That gap compounds over an entire career.'},
+  {icon:'🔑', tip:'Real estate builds wealth through equity and appreciation. If you can afford a down payment, owning often beats renting long-term.'},
+  {icon:'💎', tip:'Index funds beat most active fund managers over 10+ years. A simple S&P 500 ETF with low fees outperforms 90% of professional stock pickers.'},
+  {icon:'📅', tip:'Pay yourself first. Treat your savings contribution like a bill due on payday. It\'s not optional — it\'s the rent you pay to your future self.'},
+  {icon:'⚠️', tip:'Credit card debt is the most expensive debt you can carry. At 20% APR, a $5,000 balance costs you $1,000/year just in interest.'},
+  {icon:'🌱', tip:'Compound interest is the 8th wonder of the world. $10,000 invested at 25 becomes $150,000 by 65 at 7% — without adding another cent.'},
+  {icon:'🛡️', tip:'Get term life insurance if anyone depends on your income. A $500k policy can cost as little as $20/month in your 20s and 30s.'},
+  {icon:'🎰', tip:'Gambling, crypto, and "hot stock tips" are entertainment budgets — not investment strategies. Never bet money you can\'t afford to lose.'},
+  {icon:'👴', tip:'Start contributing to a Roth IRA as soon as you have earned income. Tax-free growth for 40+ years is one of the best deals in personal finance.'},
+  {icon:'🏷️', tip:'Buy quality items once instead of cheap items repeatedly. A good pair of boots lasting 10 years is cheaper than buying $30 boots every year.'},
+  {icon:'🔮', tip:'Diversify your investments. Don\'t put all your money in one stock, one sector, or one asset class. Diversification is the only free lunch in finance.'},
+  {icon:'📞', tip:'Call and negotiate your bills annually — internet, insurance, phone. Companies offer retention deals. Most people save $50–200/month just by asking.'},
+  {icon:'🏪', tip:'Cook at home. The average American spends $3,000–5,000/year dining out. Cutting that in half and investing the difference adds up to real wealth.'},
+  {icon:'🧾', tip:'Keep your housing cost under 30% of gross income. Going higher squeezes out savings, investments, and financial flexibility.'},
+  {icon:'💡', tip:'Side income is the fastest way to accelerate savings. Even an extra $500/month invested for 20 years at 7% grows to over $260,000.'},
+];
+
+let _lastTipIndex = -1;
+
+function generateTipEvent(){
+  let idx;
+  do { idx = ri(0, FINANCIAL_TIPS.length-1); } while(idx === _lastTipIndex);
+  _lastTipIndex = idx;
+  const t = FINANCIAL_TIPS[idx];
+  return {
+    id:'financial_tip',
+    title:'Financial Tip',
+    cat:'tip',
+    icon:'💡',
+    desc: t.tip,
+    choices:[{text:'Got it, thanks!', fn(c){ return ''; }}],
+  };
+}
+
+// ── Pending Expense Tick ──────────────────────────────────────────
+function tickPendingExpenses(char, ev){
+  if(!char.pendingExpenses) char.pendingExpenses=[];
+  const stillPending=[];
+  for(const exp of char.pendingExpenses){
+    exp.monthsLeft--;
+    if(exp.monthsLeft<=0){
+      // Time's up — force-pay regardless of balance
+      const hadFunds = char.checking >= exp.cost;
+      char.checking -= exp.cost;
+      // Credit score hit: -15 to -25, worse if it pushed balance negative
+      const scoreDrop = hadFunds ? ri(15,25) : ri(30,50);
+      char.creditScore = clamp(char.creditScore - scoreDrop, 300, 850);
+      const balanceNote = !hadFunds ? ` Account went negative!` : '';
+      ev.push({type:'bad', text:`⚠️ Forced payment: ${exp.icon} ${exp.name} — ${fmt$(exp.cost)} auto-deducted. Credit score -${scoreDrop}.${balanceNote}`});
+    } else {
+      stillPending.push(exp);
+    }
+  }
+  char.pendingExpenses = stillPending;
+}
+
+// ── Monthly Expense Generator ─────────────────────────────────────
+function generateMonthlyExpenseEvent(char){
+  if(char.age < 16) return null;
+  const item = pick(MONTHLY_EXPENSES);
+  const cost = ri(item.min, item.max);
+  return {
+    id: 'monthly_expense_'+Date.now(),
+    title: item.name,
+    cat: 'expense',
+    icon: item.icon,
+    desc: `You spotted a ${item.name.toLowerCase()} you want. It costs ${fmt$(cost)}. Pay now or defer up to 10 months — but miss the deadline and it auto-deducts with a credit penalty.`,
+    _cost: cost,
+    _item: item,
+    choices:[
+      {text:`Buy Now — ${fmt$(cost)} from checking`,
+       fn(c){
+         c.checking -= cost;
+         c.creditScore = clamp(c.creditScore + ri(1,3), 300, 850);
+         return `Paid ${fmt$(cost)} for ${item.name}. Credit score +${ri(1,3)} (on-time).`;
+       }
+      },
+      {text:`Defer — pay within 10 months or auto-deducted`,
+       fn(c){
+         if(!c.pendingExpenses) c.pendingExpenses=[];
+         c.pendingExpenses.push({name:item.name, icon:item.icon, cost, monthsLeft:10});
+         return `Deferred. ${fmt$(cost)} due in 10 months. Miss it and your credit takes a hit.`;
+       }
+      },
+    ],
+  };
+}
+
+function annualTick(){ monthlyTick(); } // alias kept for compatibility
+
+function monthlyTick(){
+  const c=GS.char, inv=GS.inv;
+  const ev=[];
+
+  c.monthAge++;
+  const prevAge = c.age;
+  c.age = Math.floor(c.monthAge / 12);
+  const isNewYear = c.age > prevAge; // a full year just completed
+
+  // Auto high school at 14
+  if(c.age===14&&isNewYear&&c.education==='none'&&!c.inSchool){
+    c.inSchool=true;c.schoolType='high_school';c.schoolMonthsLeft=48;c.schoolCostMonthly=0;
+    ev.push({type:'info',text:'Started high school.'});
+  }
+
+  // School progress (monthly)
+  tickSchool(c, ev);
+
+  // Auto seek job
+  if(!c.inSchool&&!c.employed&&!c.retired&&c.age>=16&&pct(0.065)){
+    const avail=getAvailableJobs(c);
+    if(avail.length){const j=avail[ri(0,Math.min(2,avail.length-1))];applyForJob(c,j);ev.push({type:'good',text:`Got job: ${c.jobTitle} — ${fmt$(c.salary)}/yr`});}
+  }
+
+  // Annual systems: fire once per year
+  if(isNewYear){
+    tickCareerNew(c, ev);
+    tickRelationship(c, ev);
+    tickMarket(inv);
+    tickStocks(inv);
+    tickCrypto(inv);
+    tickRetirement(inv, c);
+    tickRealEstate(inv, ev);
+    tickBusinesses(inv, c, ev);
+    if(c.age>40) c.health=clamp(c.health-rf(0.5,1.5),0,100);
+  }
+
+  // Tick deferred expenses (auto-pay overdue ones)
+  tickPendingExpenses(c, ev);
+
+  // Monthly finances
+  const fin=tickFinances(c, ev);
+
+  // Happiness drifts slowly each month
+  c.happiness=clamp(Math.round(c.happiness+(55-c.happiness)*0.004),0,100);
+
+  // Net worth
+  const prevNW = GS.nwHistory.length?GS.nwHistory[GS.nwHistory.length-1]:0;
+  const nw=calcNetWorth(c,inv);
+  GS.nwHistory.push(nw);
+
+  // Log background events
+  for(const e of ev) logEvent(e.text, e.type||'info');
+
+  // Death check (monthly probability)
+  if(tickDeath(c)){
+    setTimeout(()=>showGameOver(),500);
+    return;
+  }
+
+  // Build event queue: monthly expense first, then life event, then occasional tip
+  GS.pendingEvents=[];
+  const expEvent = generateMonthlyExpenseEvent(c);
+  if(expEvent) GS.pendingEvents.push(expEvent);
+  if(pct(0.30)){
+    const events=selectEvents(c);
+    if(events.length) GS.pendingEvents.push(events[0]);
+  }
+  // Financial tip: roughly every 4-5 months
+  if(pct(0.22)) GS.pendingEvents.push(generateTipEvent());
+
+  updateUI(fin, prevNW, nw);
+  saveGame();
+
+  if(GS.pendingEvents.length>0) showNextEvent();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  UI RENDERING
+// ════════════════════════════════════════════════════════════════
+
+function $(id){return document.getElementById(id)}
+function setText(id,v){const el=$(id);if(el)el.textContent=v}
+
+function updateUI(fin, prevNW, nw){
+  const c=GS.char, inv=GS.inv;
+
+  // Stats bar
+  setText('char-name',c.name);
+  setText('char-age-job',`Age ${ageDisplay(c)}${c.employed?` · ${c.jobTitle}`:c.inSchool?' · Student':' · Unemployed'}`);
+  $('bar-health').style.width=c.health+'%';$('val-health').textContent=Math.round(c.health);
+  $('bar-happy').style.width=c.happiness+'%';$('val-happy').textContent=Math.round(c.happiness);
+  $('bar-smarts').style.width=c.smarts+'%';$('val-smarts').textContent=Math.round(c.smarts);
+
+  const nwEl=$('nw-value'); nwEl.textContent=fmt$(nw);
+  nwEl.className='pos '+(nw>=0?'pos':'neg');
+  const delta=nw-prevNW;
+  const dEl=$('nw-delta'); dEl.textContent=(delta>=0?'+':'')+fmt$(delta)+' this year';
+  dEl.className=delta>=0?'pos':'neg';
+
+  // Life tab
+  setText('li-name',c.name); setText('li-age',ageDisplay(c));
+  setText('li-edu',EDU_LABELS[c.education]||(c.inSchool?`Studying ${EDU_LABELS[c.schoolType]||''}`:'-'));
+  const relLabels={single:'Single',dating:`Dating ${c.spouseName||''}`,married:`Married to ${c.spouseName||''}`,divorced:'Divorced',widowed:'Widowed'};
+  setText('li-rel',relLabels[c.relationship]||c.relationship);
+  setText('li-kids',c.kids);
+  setText('li-job',c.inSchool?'In School':c.employed?c.jobTitle:'Unemployed');
+  setText('li-salary',c.employed?fmt$(c.salary)+'/yr':'$0/yr');
+  setText('li-yrs',c.yearsAtJob||0);
+  const perfLabels=['','','Struggling','Fair','Good','Very Good','Excellent','Outstanding'];
+  setText('li-perf',perfLabels[Math.round(c.performance/14)]||'Good');
+
+  // Finances tab
+  setText('fi-check',fmt$(c.checking));
+  setText('fi-save',fmt$(c.savings));
+  setText('fi-hy',fmt$(c.highYield));
+  setText('fi-liq',fmt$(c.checking+c.savings+c.highYield));
+  if(fin){
+    setText('cf-gross',fmt$(fin.gross));
+    setText('cf-tax','-'+fmt$(fin.taxes));
+    setText('cf-exp','-'+fmt$(fin.livingCost));
+    setText('cf-debt','-'+fmt$(fin.debtPay));
+    const netEl=$('cf-net'); netEl.textContent=fmt$(fin.annSavings); netEl.className='ir-value '+(fin.annSavings>=0?'pos':'neg');
+    const gross=fin.gross||1; const savePct=Math.max(0,Math.min(100,((fin.annSavings/gross)*100)));
+    $('cf-bar').style.width=savePct+'%';
+    $('cf-bar').className='cf-fill '+(fin.annSavings>=0?'pos':'neg');
+  }
+  setText('d-student',fmt$(c.studentDebt||0));
+  setText('d-cc',fmt$(c.creditCards||0));
+  setText('d-loans',fmt$(Math.max(0,c.debt-(c.studentDebt||0)-(c.creditCards||0))));
+  setText('d-total',fmt$(c.debt));
+  // Deferred expenses
+  const defEl=$('d-deferred');
+  if(defEl){
+    const pending=c.pendingExpenses||[];
+    if(!pending.length){defEl.innerHTML='<p style="color:var(--muted);font-size:11px">No deferred expenses.</p>';}
+    else{defEl.innerHTML=pending.map(e=>`<div class="info-row"><span class="ir-label">${e.icon} ${e.name}</span><span class="ir-value neg">${fmt$(e.cost)} <span style="color:var(--muted);font-size:10px">(${e.monthsLeft}mo left)</span></span></div>`).join('');}
+  }
+  drawCreditDial(c.creditScore);
+
+  // Invest tab
+  const stVal=stockPortfolioValue(inv); const crVal=cryptoPortfolioValue(inv);
+  const retVal=totalRetirement(inv);
+  setText('pf-stocks',fmt$(stVal));
+  setText('pf-etfs','$0'); // merged into stocks
+  setText('pf-crypto',fmt$(crVal));
+  setText('pf-retire',fmt$(retVal));
+  setText('pf-total',fmt$(stVal+crVal+retVal));
+  $('mkt-badge').textContent='· Market: '+inv.climate.toUpperCase();
+  renderStocksTable(inv);
+  renderCryptoGrid(inv);
+  setText('ret-401k',fmt$(inv.k401));
+  setText('ret-ira',fmt$(inv.ira));
+  setText('ret-roth',fmt$(inv.roth));
+  $('ret-bar').style.width=Math.min(100,(retVal/1000000)*100)+'%';
+
+  // Assets tab
+  const liquid=c.checking+c.savings+c.highYield;
+  const investTotal=stVal+crVal+retVal;
+  const reEq=totalPropertyEquity(inv); const bizVal=totalBizValue(inv);
+  const totalAssets=liquid+investTotal+reEq+bizVal;
+  const totalDebt=c.debt+inv.properties.reduce((s,p)=>s+p.debt,0);
+  setText('as-liquid',fmt$(liquid)); setText('as-invest',fmt$(investTotal));
+  setText('as-re-eq',fmt$(reEq)); setText('as-biz',fmt$(bizVal));
+  setText('as-assets',fmt$(totalAssets)); setText('as-liab',fmt$(totalDebt));
+  setText('as-nw',fmt$(nw));
+  renderProperties(inv); renderBusinesses(inv);
+
+  drawNetWorthChart();
+}
+
+function renderStocksTable(inv){
+  const held=Object.entries(inv.portfolio);
+  if(!held.length){$('stocks-table-wrap').innerHTML='<p style="color:var(--muted);font-size:12px">No stocks owned.</p>';return;}
+  let h='<table class="stock-table"><thead><tr><th>Ticker</th><th>Shares</th><th>Price</th><th>Change</th><th>Value</th></tr></thead><tbody>';
+  for(const[id,pos]of held){
+    const s=inv.stocks.find(x=>x.id===id);if(!s)continue;
+    const hist=s.history;const prev=hist.length>1?hist[hist.length-2]:s.price;
+    const chg=((s.price-prev)/prev*100).toFixed(1);
+    const val=s.price*pos.shares;
+    const cls=parseFloat(chg)>=0?'chg-pos':'chg-neg';
+    h+=`<tr><td>${id}</td><td>${pos.shares}</td><td>$${s.price.toFixed(2)}</td><td class="${cls}">${parseFloat(chg)>=0?'+':''}${chg}%</td><td>${fmt$(val)}</td></tr>`;
+  }
+  $('stocks-table-wrap').innerHTML=h+'</tbody></table>';
+}
+
+function renderCryptoGrid(inv){
+  const held=Object.entries(inv.cryptoHeld);
+  if(!held.length){$('crypto-grid').innerHTML='<p style="color:var(--muted);font-size:12px;grid-column:1/-1">No crypto owned.</p>';return;}
+  let h='';
+  for(const[id,pos]of held){
+    const c=inv.cryptos.find(x=>x.id===id);if(!c)continue;
+    const val=c.price*pos.coins;
+    h+=`<div class="crypto-card"><div class="cc-name">${c.name}</div><div class="cc-price">${fmt$(val)}</div><div class="cc-hold">${pos.coins.toFixed(4)} coins @ $${c.price.toFixed(2)}</div></div>`;
+  }
+  $('crypto-grid').innerHTML=h;
+}
+
+function renderProperties(inv){
+  if(!inv.properties.length){$('prop-list').innerHTML='<p style="color:var(--muted);font-size:12px">No properties owned.</p>';return;}
+  $('prop-list').innerHTML=inv.properties.map(p=>`<div class="info-row"><span class="ir-label">${p.name}</span><span class="ir-value pos">${fmt$(p.value-p.debt)} equity</span></div>`).join('');
+}
+function renderBusinesses(inv){
+  if(!inv.businesses.length){$('biz-list').innerHTML='<p style="color:var(--muted);font-size:12px">No businesses owned.</p>';return;}
+  $('biz-list').innerHTML=inv.businesses.map(b=>`<div class="info-row"><span class="ir-label">${b.name}</span><span class="ir-value ${b.profit>=0?'pos':'neg'}">${fmt$(b.value)} value</span></div>`).join('');
+}
+
+function drawCreditDial(score){
+  const canvas=$('credit-canvas'); if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2,cy=H-10,r=H-20;
+  // Background arc
+  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI,0);ctx.strokeStyle='#2e4a2e';ctx.lineWidth=12;ctx.stroke();
+  // Score arc
+  const pct=(score-300)/550;
+  const col=score>=750?'#00c853':score>=670?'#ffd700':score>=580?'#ffa726':'#ff3d3d';
+  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI,Math.PI+(pct*Math.PI));ctx.strokeStyle=col;ctx.lineWidth=12;ctx.lineCap='round';ctx.stroke();
+  // Score label
+  const el=$('cs-score'); if(el){el.textContent=score;el.style.color=col;}
+  const gradeEl=$('cs-grade'); if(gradeEl){
+    gradeEl.textContent=score>=800?'Exceptional':score>=740?'Very Good':score>=670?'Good':score>=580?'Fair':'Poor';
+  }
+}
+
+function drawNetWorthChart(){
+  const canvas=$('nw-chart'); if(!canvas)return;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.parentElement.offsetWidth;const H=80;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const hist=GS.nwHistory;if(hist.length<2)return;
+  const mn=Math.min(...hist),mx=Math.max(...hist);
+  const range=mx-mn||1;
+  const pts=hist.map((v,i)=>[i/(hist.length-1)*W,H-10-((v-mn)/range)*(H-20)]);
+  ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);
+  const last=hist[hist.length-1];
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  const col=last>=0?'rgba(0,200,83,.3)':'rgba(255,61,61,.3)';
+  grad.addColorStop(0,col);grad.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);
+  ctx.strokeStyle=last>=0?'#00c853':'#ff3d3d';ctx.lineWidth=2;ctx.stroke();
+  // Current dot
+  ctx.beginPath();ctx.arc(pts[pts.length-1][0],pts[pts.length-1][1],4,0,Math.PI*2);
+  ctx.fillStyle=last>=0?'#00c853':'#ff3d3d';ctx.fill();
+}
+
+function logEvent(text, type='info'){
+  // Events feed
+  const feed=$('events-feed');
+  if(feed){
+    const item=document.createElement('div');
+    item.style.cssText='padding:4px 6px;background:var(--bg3);border-radius:4px;font-size:11px;border-left:3px solid '+(type==='good'?'var(--green)':type==='bad'||type==='career'?'var(--red)':type==='gold'?'var(--gold)':'var(--blue)');
+    item.textContent=text;
+    feed.prepend(item);
+    while(feed.children.length>15)feed.removeChild(feed.lastChild);
+  }
+  // Timeline
+  addTimeline(text,type);
+}
+
+function addTimeline(text, type='info'){
+  const feed=$('tl-feed'); if(!feed)return;
+  const item=document.createElement('div');item.className='tl-item';
+  const dotClass=type==='good'||type==='gold'?'good':type==='bad'||type==='career'?'bad':type==='gold'?'gold':'info';
+  item.innerHTML=`<div class="tl-dot ${dotClass}"></div><div class="tl-age">${ageDisplay(GS.char)}</div><div class="tl-text">${text}</div>`;
+  feed.prepend(item);
+  while(feed.children.length>50)feed.removeChild(feed.lastChild);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  MODAL / EVENTS
+// ════════════════════════════════════════════════════════════════
+
+function showNextEvent(){
+  if(!GS.pendingEvents.length)return;
+  const ev=GS.pendingEvents.shift();
+  showEventModal(ev);
+}
+
+function showEventModal(ev){
+  const overlay=$('modal-overlay');
+  $('m-icon').textContent=ev.icon||'💬';
+  const tagEl=$('m-tag');
+  tagEl.textContent=ev.cat||'Event';
+  tagEl.className='modal-tag '+(ev.cat==='opportunity'?'opp':ev.cat==='disaster'?'dis':ev.cat==='milestone'?'mil':ev.cat==='expense'?'exp':ev.cat==='tip'?'tip':'fla');
+  $('m-title').textContent=ev.title;
+  $('m-body').textContent=ev.desc;
+  $('m-result').style.display='none';
+  const choices=$('m-choices');choices.innerHTML='';
+  for(let i=0;i<ev.choices.length;i++){
+    const btn=document.createElement('button');btn.className='choice-btn';
+    btn.textContent=ev.choices[i].text;
+    btn.onclick=()=>resolveChoice(ev,i);
+    choices.appendChild(btn);
+  }
+  overlay.classList.add('open');
+}
+
+function resolveChoice(ev, idx){
+  const result=ev.choices[idx].fn(GS.char);
+  const rEl=$('m-result');rEl.style.display='block';rEl.textContent=result;
+  $('m-choices').innerHTML='<button class="choice-btn" onclick="closeModal()">Continue →</button>';
+  logEvent(`${ev.title}: ${result}`, ev.cat==='disaster'?'bad':ev.cat==='opportunity'?'good':'info');
+  const nw=calcNetWorth(GS.char,GS.inv);
+  if(GS.nwHistory.length)GS.nwHistory[GS.nwHistory.length-1]=nw;
+  updateUI(null, nw, nw);
+}
+
+function closeModal(){
+  $('modal-overlay').classList.remove('open');
+  if(GS.pendingEvents.length>0) setTimeout(showNextEvent,200);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  ACTION BUTTONS
+// ════════════════════════════════════════════════════════════════
+
+function showActionModal(title, desc, choices){
+  const overlay=$('modal-overlay');
+  $('m-icon').textContent='⚙️';
+  $('m-tag').textContent='Action';$('m-tag').className='modal-tag fla';
+  $('m-title').textContent=title;
+  $('m-body').textContent=desc;
+  $('m-result').style.display='none';
+  const ch=$('m-choices');ch.innerHTML='';
+  for(const c of choices){
+    const btn=document.createElement('button');btn.className='choice-btn';btn.textContent=c.text;
+    btn.onclick=()=>{
+      const res=c.fn();
+      const rEl=$('m-result');rEl.style.display='block';rEl.textContent=res||'Done.';
+      ch.innerHTML='<button class="choice-btn" onclick="closeModal()">OK</button>';
+      const nw=calcNetWorth(GS.char,GS.inv);
+      if(GS.nwHistory.length)GS.nwHistory[GS.nwHistory.length-1]=nw;
+      updateUI(null,nw,nw);
+    };
+    ch.appendChild(btn);
+  }
+  const cancel=document.createElement('button');cancel.className='choice-btn';cancel.textContent='Cancel';
+  cancel.onclick=closeModal;ch.appendChild(cancel);
+  overlay.classList.add('open');
+}
+
+$('btn-job').onclick=()=>{
+  const c=GS.char;
+  if(c.inSchool){showToast('Finish school first!');return;}
+  if(c.retired){showToast('You\'re retired!');return;}
+  showActionModal('Find a Job','Browse available positions based on your education and skills.',buildJobChoices(c));
+};
+
+$('btn-bank').onclick=()=>{
+  const c=GS.char;
+  showActionModal('Banking','Move money between accounts or take out a loan.',[
+    {text:`Move $5k to Savings (2% interest)`,fn(){if(c.checking<5000)return'Not enough in checking.';c.checking-=5000;c.savings+=5000;return`Moved $5,000 to savings.`}},
+    {text:`Move $5k to High-Yield (4% interest)`,fn(){if(c.checking<5000)return'Not enough in checking.';c.checking-=5000;c.highYield+=5000;return`Moved $5,000 to high-yield savings.`}},
+    {text:`Personal Loan $10k (11.5% APR)`,fn(){c.checking+=10000;c.debt+=10000;return`Loan approved. +$10,000 cash, +$10,000 debt.`}},
+    {text:`Pay off $5k debt`,fn(){if(c.checking<5000)return'Not enough.';if(c.debt<5000)return`Debt is only ${fmt$(c.debt)}.`;c.checking-=5000;c.debt-=5000;return`Paid $5,000 debt. Remaining: ${fmt$(c.debt)}`}},
+  ]);
+};
+
+$('btn-invest').onclick=()=>{
+  const inv=GS.inv,c=GS.char;
+  const choices=inv.stocks.slice(0,6).map(s=>({
+    text:`Buy 10 shares of ${s.name} (${s.id}) @ $${s.price.toFixed(2)} = ${fmt$(s.price*10)}`,
+    fn(){const cost=Math.round(s.price*10);if(c.checking<cost)return'Not enough cash.';c.checking-=cost;if(!inv.portfolio[s.id])inv.portfolio[s.id]={shares:0,avgCost:0};const pos=inv.portfolio[s.id];pos.avgCost=(pos.avgCost*pos.shares+cost)/(pos.shares+10);pos.shares+=10;return`Bought 10 ${s.id} for ${fmt$(cost)}.`}
+  }));
+  // Add sell options
+  for(const[id,pos]of Object.entries(inv.portfolio)){
+    const s=inv.stocks.find(x=>x.id===id);if(!s)continue;
+    choices.push({text:`Sell all ${id} (${pos.shares} shares = ${fmt$(s.price*pos.shares)})`,fn(){const p=Math.round(s.price*pos.shares);const cg=Math.round((s.price-pos.avgCost)*pos.shares);const tax=cg>0?Math.round(cg*0.15):0;c.checking+=p-tax;delete inv.portfolio[id];return`Sold ${id} for ${fmt$(p)}. Cap gains tax: ${fmt$(tax)}.`}});
+  }
+  showActionModal('Stock Market','Buy or sell stocks. Prices change annually.',choices);
+};
+
+$('btn-realty').onclick=()=>{
+  const inv=GS.inv,c=GS.char;
+  const m=CLIMATE_MULT[inv.climate]||CLIMATE_MULT.normal;
+  const tiers=[
+    {name:'Starter Condo',price:Math.round(ri(150000,280000)*m.re)},
+    {name:'2BR House',price:Math.round(ri(280000,500000)*m.re)},
+    {name:'3BR House',price:Math.round(ri(450000,750000)*m.re)},
+    {name:'Luxury Home',price:Math.round(ri(800000,2000000)*m.re)},
+  ];
+  const choices=tiers.map(t=>{
+    const down=Math.round(t.price*0.2); const debt=t.price-down;
+    const mp=Math.round(debt*(0.065/12)*Math.pow(1+0.065/12,360)/(Math.pow(1+0.065/12,360)-1));
+    return{text:`Buy ${t.name}: ${fmt$(t.price)} (${fmt$(down)} down, ${fmt$(mp)}/mo mortgage)`,fn(){
+      if(c.checking<down)return`Need ${fmt$(down)} for down payment.`;
+      c.checking-=down;
+      inv.properties.push({name:t.name,value:t.price,debt,monthlyPayment:mp,rented:false,rent:Math.round(t.price*0.006),age:0});
+      c.hasHouse=true;return`Bought ${t.name}! Equity: ${fmt$(down)}`;
+    }};
+  });
+  // Sell options
+  for(let i=0;i<inv.properties.length;i++){
+    const p=inv.properties[i];
+    choices.push({text:`Sell ${p.name} (equity: ${fmt$(p.value-p.debt)})`,fn(){const eq=p.value-p.debt;c.checking+=eq;inv.properties.splice(i,1);if(!inv.properties.length)c.hasHouse=false;return`Sold for ${fmt$(eq)} net equity.`}});
+    if(!p.rented)choices.push({text:`Rent out ${p.name} (~${fmt$(p.rent)}/mo)`,fn(){p.rented=true;return`Now renting for ${fmt$(p.rent)}/mo!`}});
+    else choices.push({text:`Stop renting ${p.name}`,fn(){p.rented=false;return'Stopped renting.'}});
+  }
+  showActionModal('Real Estate','Buy, sell, or rent properties.',choices);
+};
+
+$('btn-crypto').onclick=()=>{
+  const inv=GS.inv,c=GS.char;
+  const choices=inv.cryptos.map(coin=>({
+    text:`Buy $1,000 of ${coin.name} (${coin.id}) @ $${coin.price.toFixed(2)}`,
+    fn(){if(c.checking<1000)return'Not enough cash.';const coins=1000/coin.price;c.checking-=1000;if(!inv.cryptoHeld[coin.id])inv.cryptoHeld[coin.id]={coins:0,avgCost:0};const pos=inv.cryptoHeld[coin.id];pos.avgCost=(pos.avgCost*pos.coins+1000)/(pos.coins+coins);pos.coins+=coins;return`Bought ${coins.toFixed(4)} ${coin.id}.`}
+  }));
+  for(const[id,pos]of Object.entries(inv.cryptoHeld)){
+    const coin=inv.cryptos.find(x=>x.id===id);if(!coin)continue;
+    const val=coin.price*pos.coins;
+    choices.push({text:`Sell all ${id} (${fmt$(val)})`,fn(){const tax=val>pos.avgCost*pos.coins?Math.round((val-pos.avgCost*pos.coins)*0.15):0;c.checking+=val-tax;delete inv.cryptoHeld[id];return`Sold ${id} for ${fmt$(val)}. Tax: ${fmt$(tax)}.`}});
+  }
+  showActionModal('Crypto Market','Extremely volatile. High risk, high reward.',choices);
+};
+
+$('btn-hustle').onclick=()=>{
+  const c=GS.char;
+  showActionModal('Side Hustle','Start a side income stream alongside your main job.',[
+    {text:'Freelance Design/Writing (~$800-2k/mo)',fn(){if(pct(0.65)){const inc=ri(5000,20000);c.salary=(c.salary||0)+inc;return`Side hustle successful! +${fmt$(inc)}/yr extra income.`}c.checking-=ri(200,1000);return'Flopped. Lost some startup costs.'}},
+    {text:'Gig Economy (DoorDash, Uber ~$400-800/mo)',fn(){const inc=ri(4000,9000);c.salary=(c.salary||0)+inc;return`Gig income: +${fmt$(inc)}/yr`}},
+    {text:'Start Online Store (~1-5k to start)',fn(){const cost=ri(1000,5000);if(c.checking<cost)return`Need ${fmt$(cost)} to start.`;c.checking-=cost;if(pct(0.55)){const inc=ri(8000,40000);c.salary=(c.salary||0)+inc;return`Store took off! +${fmt$(inc)}/yr`}return`Store struggling. ${fmt$(cost)} invested.`}},
+    {text:'Start a Business',fn(){
+      const bzTypes=[{name:'Food Truck',cost:20000,revMult:1.5},{name:'Retail Store',cost:80000,revMult:1.3},{name:'Tech Startup',cost:30000,revMult:3.0}];
+      const bz=pick(bzTypes);
+      if(c.checking<bz.cost)return`Need ${fmt$(bz.cost)} to start ${bz.name}.`;
+      c.checking-=bz.cost;
+      GS.inv.businesses.push({name:bz.name,startCost:bz.cost,value:bz.cost,revMult:bz.revMult,profit:0,age:0});
+      return`Started ${bz.name}! Costs ${fmt$(bz.cost)}, results next year.`;
+    }},
+  ]);
+};
+
+$('btn-edu').onclick=()=>{
+  const c=GS.char;
+  const choices=[];
+  for(const[key,def]of Object.entries(SCHOOL_DEFS)){
+    if(c.inSchool){const mLeft=c.schoolMonthsLeft;choices.push({text:`In school — ${mLeft} month${mLeft!==1?'s':''} left`,fn(){return'Still studying!'}});break;}
+    const reqOk=!def.req||eduIdx(c.education)>=eduIdx(def.req);
+    const notDone=eduIdx(c.education)<eduIdx(def.result);
+    const ageOk=c.age>=def.minAge&&c.age<=def.maxAge;
+    if(reqOk&&notDone&&ageOk){
+      const months=def.dur*12; const totalCost=def.cost*def.dur;
+      choices.push({text:`${EDU_LABELS[def.result]} (${months} months, ${fmt$(totalCost)} total in loans)`,fn(){
+        c.inSchool=true;c.schoolType=key;c.schoolMonthsLeft=months;c.schoolCostMonthly=Math.round(def.cost/12);
+        c.employed=false;c.salary=0;
+        return`Enrolled in ${EDU_LABELS[def.result]}! Graduating in ${months} months.`;
+      }});
+    }
+  }
+  if(!choices.length)choices.push({text:'No education options available at this age/level',fn(){return'Nothing available right now.'}});
+  showActionModal('Education','Invest in your future earning potential.',choices);
+};
+
+$('btn-age').onclick=()=>{
+  if(!GS.char||!GS.char.alive)return;
+  $('btn-age').disabled=true;
+  annualTick();
+  setTimeout(()=>{$('btn-age').disabled=false;},300);
+};
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    $('tab-'+btn.dataset.tab).classList.add('active');
+  };
+});
+
+
+// ════════════════════════════════════════════════════════════════
+//  GAME OVER
+// ════════════════════════════════════════════════════════════════
+
+function showGameOver(){
+  const c=GS.char,inv=GS.inv;
+  const nw=calcNetWorth(c,inv);
+  $('go-cause').textContent=`Died at age ${c.death_age||c.age} — ${c.deathCause}`;
+  const nwEl=$('go-nw');nwEl.textContent=fmt$(nw);nwEl.style.color=nw>=0?'var(--green)':'var(--red)';
+  const stats=[
+    {l:'Peak Net Worth',v:fmt$(Math.max(...GS.nwHistory))},
+    {l:'Age at Death',v:c.age},
+    {l:'Education',v:EDU_LABELS[c.education]||'None'},
+    {l:'Relationship',v:c.relationship},
+    {l:'Children',v:c.kids},
+    {l:'Retirement',v:fmt$(totalRetirement(inv))},
+    {l:'Properties Owned',v:inv.properties.length},
+    {l:'Businesses',v:inv.businesses.length},
+  ];
+  $('go-stats').innerHTML=stats.map(s=>`<div class="go-stat"><div class="gs-label">${s.l}</div><div class="gs-val">${s.v}</div></div>`).join('');
+  const achs=[];
+  const peak=Math.max(...GS.nwHistory);
+  if(peak>=1000000)achs.push('💰 Millionaire');
+  if(peak>=10000000)achs.push('💎 10 Million Club');
+  if(peak>=100000000)achs.push('🚀 Centimillionaire');
+  if(inv.properties.length>=3)achs.push('🏠 Real Estate Mogul');
+  if(totalRetirement(inv)>=500000)achs.push('🌅 Retirement Secured');
+  if(c.creditScore>=750)achs.push('📊 Excellent Credit');
+  if(c.age>=80)achs.push('🎂 Long Life (80+)');
+  if(c.kids>=3)achs.push('👨‍👩‍👧‍👦 Big Family');
+  if(!achs.length)achs.push('🕯️ A life lived.');
+  $('go-ach-list').innerHTML=achs.map(a=>`<div class="ach-item">✦ ${a}</div>`).join('');
+  showScreen('gameover');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  SAVE / LOAD
+// ════════════════════════════════════════════════════════════════
+
+function saveGame(){
+  try{localStorage.setItem('finlife_save',JSON.stringify({char:GS.char,inv:GS.inv,nwHistory:GS.nwHistory}));}catch(e){}
+}
+function loadGame(){
+  try{const d=localStorage.getItem('finlife_save');if(!d)return false;const p=JSON.parse(d);GS.char=p.char;GS.inv=p.inv||createInvState();GS.nwHistory=p.nwHistory||[];return true;}catch(e){return false;}
+}
+
+// ════════════════════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════════════════════
+
+function showToast(msg){
+  const t=$('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  SCREEN MANAGEMENT
+// ════════════════════════════════════════════════════════════════
+
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $('screen-'+name).classList.add('active');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  START GAME
+// ════════════════════════════════════════════════════════════════
+
+$('btn-start').onclick=()=>{
+  const name=$('inp-name').value.trim()||'Player';
+  const scenarios=['broke','broke','middle','middle','middle','rich'];
+  GS.scenario=pick(scenarios);
+  GS.char=createChar(name, GS.scenario);
+  GS.inv=createInvState();
+  GS.nwHistory=[];
+  GS.pendingEvents=[];
+  const nw=calcNetWorth(GS.char,GS.inv);
+  GS.nwHistory.push(nw);
+  showScreen('game');
+  updateUI({gross:GS.char.salary,taxes:0,livingCost:28000,debtPay:0,annSavings:0},0,nw);
+  const scLabels={broke:'💸 You started Broke — student debt and minimum wage.',middle:'🏡 You started Middle Class — college grad with some savings.',rich:'💰 You started Wealthy — trust fund and a head start!'};
+  showToast(scLabels[GS.scenario]||'Welcome!');
+};
+
+// Load save on page open (optional — commented out to always start fresh)
+// if(loadGame()){ showScreen('game'); updateUI(null, 0, calcNetWorth(GS.char, GS.inv)); }
+
+window.addEventListener('resize', drawNetWorthChart);
+</script>
+</body>
+</html>
