@@ -554,34 +554,184 @@ const NEWS_HEADLINES = [
 ];
 
 // Random downsides — 3% monthly chance to trigger one
+// Each has a `cat` (insurance category) used to match bank insurance coverage.
+// `apply` returns the RAW cost before insurance; insurance refund is applied in triggerDownside.
 const DOWNSIDES = [
-  {icon:'🚑', subject:'Medical Emergency', body:'An unexpected ER visit hit you with a surprise bill. Deductibles and out-of-network charges add up fast.', apply:(c)=>{const cost=ri(400,2800); c.checking-=cost; c.health=clamp(c.health-ri(3,10),0,100); return cost;}},
-  {icon:'🔧', subject:'Car Breakdown', body:'Your car broke down on the highway. Tow, diagnostics, and parts — none of it cheap.', apply:(c)=>{const cost=ri(350,1800); c.checking-=cost; return cost;}},
-  {icon:'💻', subject:'Laptop Fried', body:'Coffee spill killed your laptop. You needed a replacement immediately for work.', apply:(c)=>{const cost=ri(600,1600); c.checking-=cost; c.happiness=clamp(c.happiness-5,0,100); return cost;}},
-  {icon:'🦷', subject:'Emergency Dental Work', body:'Cracked molar, root canal, crown. Dental insurance didn\'t cover much.', apply:(c)=>{const cost=ri(800,2400); c.checking-=cost; return cost;}},
-  {icon:'🏠', subject:'Home Repair Disaster', body:'Pipe burst in the wall. Water damage, emergency plumber, drywall repair.', apply:(c)=>{const cost=ri(900,3500); c.checking-=cost; return cost;}},
-  {icon:'📱', subject:'Phone Stolen', body:'Someone lifted your phone at a coffee shop. You had to replace it and change every password.', apply:(c)=>{const cost=ri(300,1200); c.checking-=cost; c.happiness=clamp(c.happiness-4,0,100); return cost;}},
-  {icon:'🐕', subject:'Pet Emergency', body:'Your pet swallowed something it shouldn\'t. Vet bills for surgery and meds stacked up.', apply:(c)=>{const cost=ri(500,3000); c.checking-=cost; c.happiness=clamp(c.happiness-3,0,100); return cost;}},
-  {icon:'🎣', subject:'Identity Theft', body:'Someone opened fraudulent accounts in your name. You\'re fighting to get it cleared, and your credit score took a hit.', apply:(c)=>{const cost=ri(200,1500); c.checking-=cost; c.creditScore=clamp((c.creditScore||650)-ri(15,40),300,850); return cost;}},
-  {icon:'⚡', subject:'Electric Bill Shock', body:'Meter reading adjustment plus a heat wave = a brutal utility bill this month.', apply:(c)=>{const cost=ri(250,900); c.checking-=cost; return cost;}},
-  {icon:'👮', subject:'Traffic Ticket', body:'Caught speeding. The fine plus insurance hike stings.', apply:(c)=>{const cost=ri(150,650); c.checking-=cost; return cost;}},
-  {icon:'🦴', subject:'Minor Injury', body:'Slipped on ice / twisted an ankle. Urgent care, x-ray, and a few days off work.', apply:(c)=>{const cost=ri(200,900); c.checking-=cost; c.health=clamp(c.health-ri(4,12),0,100); c.happiness=clamp(c.happiness-4,0,100); return cost;}},
-  {icon:'🪪', subject:'Wallet Stolen', body:'Pickpocketed in a crowd. Lost cash, had to reissue cards, ID replacement fees.', apply:(c)=>{const cost=ri(180,700); c.checking-=cost; c.happiness=clamp(c.happiness-3,0,100); return cost;}},
-  {icon:'🍔', subject:'Food Poisoning', body:'Bad sushi. Missed two days of work, doctor visit, meds.', apply:(c)=>{const cost=ri(120,500); c.checking-=cost; c.health=clamp(c.health-ri(3,8),0,100); return cost;}},
-  {icon:'🏚️', subject:'Landlord Raised Rent', body:'Lease renewal came with a 15% hike. You paid the deposit increase this month.', apply:(c)=>{const cost=ri(400,1800); c.checking-=cost; c.happiness=clamp(c.happiness-5,0,100); return cost;}},
-  {icon:'📄', subject:'IRS Audit Letter', body:'Routine audit flagged a discrepancy. Back-taxes and penalty owed.', apply:(c)=>{const cost=ri(400,2500); c.checking-=cost; c.happiness=clamp(c.happiness-6,0,100); return cost;}},
-  {icon:'🧯', subject:'Kitchen Fire', body:'Small grease fire. Smoke damage, replaced microwave and cabinets. Renters insurance covered some.', apply:(c)=>{const cost=ri(500,2200); c.checking-=cost; return cost;}},
+  {icon:'🚑', cat:'medical', subject:'Medical Emergency', body:'An unexpected ER visit hit you with a surprise bill. Deductibles and out-of-network charges add up fast.', apply:(c)=>{const cost=ri(400,2800); c.health=clamp(c.health-ri(3,10),0,100); return cost;}},
+  {icon:'🔧', cat:'auto', subject:'Car Breakdown', body:'Your car broke down on the highway. Tow, diagnostics, and parts — none of it cheap.', apply:(c)=>{return ri(350,1800);}},
+  {icon:'💻', cat:'tech', subject:'Laptop Fried', body:'Coffee spill killed your laptop. You needed a replacement immediately for work.', apply:(c)=>{c.happiness=clamp(c.happiness-5,0,100); return ri(600,1600);}},
+  {icon:'🦷', cat:'medical', subject:'Emergency Dental Work', body:'Cracked molar, root canal, crown. Dental insurance didn\'t cover much.', apply:(c)=>{return ri(800,2400);}},
+  {icon:'🏠', cat:'home', subject:'Home Repair Disaster', body:'Pipe burst in the wall. Water damage, emergency plumber, drywall repair.', apply:(c)=>{return ri(900,3500);}},
+  {icon:'📱', cat:'tech', subject:'Phone Stolen', body:'Someone lifted your phone at a coffee shop. You had to replace it and change every password.', apply:(c)=>{c.happiness=clamp(c.happiness-4,0,100); return ri(300,1200);}},
+  {icon:'🐕', cat:'pet', subject:'Pet Emergency', body:'Your pet swallowed something it shouldn\'t. Vet bills for surgery and meds stacked up.', apply:(c)=>{c.happiness=clamp(c.happiness-3,0,100); return ri(500,3000);}},
+  {icon:'🎣', cat:'identity', subject:'Identity Theft', body:'Someone opened fraudulent accounts in your name. You\'re fighting to get it cleared, and your credit score took a hit.', apply:(c)=>{c.creditScore=clamp((c.creditScore||650)-ri(15,40),300,850); return ri(200,1500);}},
+  {icon:'⚡', cat:'home', subject:'Electric Bill Shock', body:'Meter reading adjustment plus a heat wave = a brutal utility bill this month.', apply:(c)=>{return ri(250,900);}},
+  {icon:'👮', cat:'auto', subject:'Traffic Ticket', body:'Caught speeding. The fine plus insurance hike stings.', apply:(c)=>{return ri(150,650);}},
+  {icon:'🦴', cat:'medical', subject:'Minor Injury', body:'Slipped on ice / twisted an ankle. Urgent care, x-ray, and a few days off work.', apply:(c)=>{c.health=clamp(c.health-ri(4,12),0,100); c.happiness=clamp(c.happiness-4,0,100); return ri(200,900);}},
+  {icon:'🪪', cat:'identity', subject:'Wallet Stolen', body:'Pickpocketed in a crowd. Lost cash, had to reissue cards, ID replacement fees.', apply:(c)=>{c.happiness=clamp(c.happiness-3,0,100); return ri(180,700);}},
+  {icon:'🍔', cat:'medical', subject:'Food Poisoning', body:'Bad sushi. Missed two days of work, doctor visit, meds.', apply:(c)=>{c.health=clamp(c.health-ri(3,8),0,100); return ri(120,500);}},
+  {icon:'🏚️', cat:'home', subject:'Landlord Raised Rent', body:'Lease renewal came with a 15% hike. You paid the deposit increase this month.', apply:(c)=>{c.happiness=clamp(c.happiness-5,0,100); return ri(400,1800);}},
+  {icon:'📄', cat:'legal', subject:'IRS Audit Letter', body:'Routine audit flagged a discrepancy. Back-taxes and penalty owed.', apply:(c)=>{c.happiness=clamp(c.happiness-6,0,100); return ri(400,2500);}},
+  {icon:'🧯', cat:'fire', subject:'Kitchen Fire', body:'Small grease fire. Smoke damage, replaced microwave and cabinets. Renters insurance covered some.', apply:(c)=>{return ri(500,2200);}},
 ];
 
 function triggerDownside(c){
   const d = pick(DOWNSIDES);
-  const cost = d.apply(c);
+  const rawCost = d.apply(c);
+  const bank = c.bankId ? BANKS.find(b=>b.id===c.bankId) : null;
+  const covFrac = bank ? (bank.covers[d.cat] || 0) : 0;
+  const refund = Math.round(rawCost * covFrac);
+  const netCost = rawCost - refund;
+  c.checking -= netCost;
   const date = currentMonthDate(c);
+  let body = `Amount: ${fmt$(rawCost)}\n`;
+  if(refund > 0){
+    body += `${bank.icon} ${bank.name} insurance covered ${fmt$(refund)} (${Math.round(covFrac*100)}%)\n`;
+    body += `Out of pocket: ${fmt$(netCost)}\nStatus: Paid from checking\n\n${d.body}`;
+  } else {
+    if(bank) body += `${bank.icon} ${bank.name}: no coverage for ${d.cat} on your plan.\n`;
+    body += `Status: Paid from checking\n\n${d.body}`;
+  }
   addInboxItem({
-    type:'bill', icon:d.icon, subject:`${d.subject} — ${fmt$(cost)}`, date,
-    body:`Amount: ${fmt$(cost)}\nStatus: Paid from checking\n\n${d.body}`,
+    type:'bill', icon:d.icon, subject:`${d.subject} — ${fmt$(netCost)}`, date, body,
   });
-  logEvent(`${d.icon} ${d.subject}: -${fmt$(cost)}`, 'bad');
+  logEvent(`${d.icon} ${d.subject}: -${fmt$(netCost)}${refund>0?` (insurance -${fmt$(refund)})`:''}`, 'bad');
+}
+
+// ── Banks ──────────────────────────────────────────────────────────
+// Each bank offers an insurance bundle that reduces specific downside costs.
+// `covers` = fraction refunded on that category. `suits` = job sectors it fits best.
+// `fee` = monthly maintenance fee. `signupBonus` = one-time cash on opening.
+// `apyBonus` = percentage-point bonus on savings rate (applied to highYield).
+const BANKS = [
+  {id:'fnt',   icon:'🏛️', name:'First National Trust',       fee:5,  signupBonus:100,  apyBonus:0.0,  suits:['finance','education','other'],
+    covers:{medical:0.25, auto:0.15, home:0.20, tech:0.10, identity:0.15},
+    blurb:'Reliable nationwide bank. Light general coverage, suits most career paths.'},
+  {id:'phcu',  icon:'⚕️', name:'Provident Health Credit Union', fee:18, signupBonus:150, apyBonus:0.3, suits:['healthcare','service','trades','transport','law'],
+    covers:{medical:0.70, pet:0.25},
+    blurb:'Deep health coverage + HSA. Excellent for frontline & high-risk jobs.'},
+  {id:'bgb',   icon:'🔨', name:'Builder\'s Guild Bank',        fee:10, signupBonus:200, apyBonus:0.1, suits:['trades','transport'],
+    covers:{home:0.45, tech:0.40, auto:0.25, medical:0.15},
+    blurb:'Tool + workers\'-comp supplement for the trades. Workshop-friendly.'},
+  {id:'aab',   icon:'🚗', name:'Atlas Auto Bank',              fee:12, signupBonus:180, apyBonus:0.1, suits:['transport','trades','service'],
+    covers:{auto:0.75, legal:0.20},
+    blurb:'Bundled auto + roadside. Built for drivers, mechanics, delivery pros.'},
+  {id:'mlb',   icon:'⚖️', name:'Metropolitan Legal Bank',      fee:22, signupBonus:100, apyBonus:0.2, suits:['law','finance'],
+    covers:{legal:0.70, identity:0.30},
+    blurb:'Legal defense + audit-response retainer. Designed for litigious careers.'},
+  {id:'tsb',   icon:'🛡️', name:'TechShield Bank',             fee:14, signupBonus:150, apyBonus:0.2, suits:['tech','finance','creative'],
+    covers:{identity:0.80, tech:0.55, legal:0.10},
+    blurb:'Cyber + identity-theft shield. Best-in-class digital defense.'},
+  {id:'cfu',   icon:'🎨', name:'Creators Federal',             fee:9,  signupBonus:120, apyBonus:0.1, suits:['creative','tech'],
+    covers:{tech:0.70, identity:0.25, home:0.15},
+    blurb:'Gear coverage for artists, photographers, editors. Replaces lost tools.'},
+  {id:'ecu',   icon:'🎓', name:'Educator\'s Credit Union',     fee:4,  signupBonus:250, apyBonus:0.2, suits:['education'],
+    covers:{medical:0.30, tech:0.20, identity:0.15},
+    blurb:'Teacher-friendly. Lower fees, small bonuses. Ideal for school staff.'},
+  {id:'spb',   icon:'✈️', name:'Skyway Pilot\'s Bank',         fee:16, signupBonus:200, apyBonus:0.2, suits:['transport'],
+    covers:{auto:0.50, medical:0.35, tech:0.25},
+    blurb:'Travel accident + medevac rider. Built for pilots, crews, long-haul.'},
+  {id:'frt',   icon:'🌾', name:'Farm & Rural Trust',           fee:6,  signupBonus:120, apyBonus:0.1, suits:['trades','service','other'],
+    covers:{home:0.65, fire:0.40, auto:0.20},
+    blurb:'Home, flood, and outbuilding coverage. A rural staple.'},
+  {id:'mub',   icon:'🏙️', name:'Midtown Urban Bank',           fee:8,  signupBonus:150, apyBonus:0.1, suits:['service','creative','tech'],
+    covers:{home:0.45, identity:0.45, tech:0.15},
+    blurb:'Renter\'s insurance + city-life identity protection. Urban essentials.'},
+  {id:'pof',   icon:'🐾', name:'Pet Owner\'s Federal',         fee:7,  signupBonus:100, apyBonus:0.1, suits:['healthcare','service','other'],
+    covers:{pet:0.85, medical:0.10},
+    blurb:'Best-in-class pet insurance. Vet bills rarely hurt.'},
+  {id:'vhb',   icon:'🎖️', name:'Veterans Heritage Bank',       fee:3,  signupBonus:250, apyBonus:0.3, suits:['law','trades'],
+    covers:{medical:0.55, legal:0.25, home:0.20, auto:0.20},
+    blurb:'Service-member focus. Low fees, broad disability & medical coverage.'},
+  {id:'ghs',   icon:'🌅', name:'Golden Horizon Seniors',       fee:5,  signupBonus:200, apyBonus:0.4, suits:['retired','other'],
+    covers:{medical:0.60, home:0.25},
+    blurb:'Medicare supplement + life insurance. Retiree-friendly rates.'},
+  {id:'pwb',   icon:'💎', name:'Prosperity Wealth Bank',       fee:45, signupBonus:500, apyBonus:0.8, suits:['finance','tech','law','healthcare'],
+    covers:{medical:0.35, auto:0.30, home:0.30, tech:0.30, identity:0.30, legal:0.30, pet:0.20, fire:0.30},
+    blurb:'Premium fee, broad umbrella coverage. For high earners only.'},
+  {id:'ssa',   icon:'📚', name:'Student Savings Alliance',     fee:0,  signupBonus:50,  apyBonus:0.0, suits:['education','creative','other'],
+    covers:{identity:0.35, tech:0.20},
+    blurb:'No fees, no bonuses. Thin coverage. Good while you\'re broke.'},
+  {id:'cfh',   icon:'🔥', name:'Coastal Fire & Home Bank',     fee:11, signupBonus:150, apyBonus:0.1, suits:['law','trades','service'],
+    covers:{fire:0.85, home:0.55, medical:0.15},
+    blurb:'Fire + flood + coastal damage. For firefighters & high-risk housing.'},
+  {id:'cgb',   icon:'🍳', name:'Culinary Guild Bank',          fee:8,  signupBonus:120, apyBonus:0.1, suits:['service'],
+    covers:{fire:0.65, medical:0.35, tech:0.15},
+    blurb:'Burn + knife + slip coverage. Chefs and kitchen staff favorite.'},
+  {id:'gpc',   icon:'🌱', name:'Green Planet Credit Union',    fee:6,  signupBonus:150, apyBonus:0.2, suits:['transport','tech','other'],
+    covers:{auto:0.50, identity:0.40, home:0.15},
+    blurb:'EV + solar discounts. Identity protection. Eco-friendly portfolios.'},
+  {id:'dnb',   icon:'🌍', name:'Digital Nomad Bank',           fee:10, signupBonus:180, apyBonus:0.2, suits:['tech','creative','transport'],
+    covers:{identity:0.60, tech:0.35, home:0.25, medical:0.20},
+    blurb:'Travel + cyber. Works anywhere; no foreign-transaction fees.'},
+];
+
+// Bank update events — sent to inbox for player's active bank ~monthly.
+const BANK_UPDATES = [
+  {kind:'rate_up',   icon:'📈', tmpl:(b)=>`${b.name}: APY raised to ${(2.0+b.apyBonus+0.2).toFixed(2)}%`,
+    body:(b)=>`Your high-yield account just earned a bump. New APY reflected in next statement.`},
+  {kind:'rate_down', icon:'📉', tmpl:(b)=>`${b.name}: APY trimmed this quarter`,
+    body:(b)=>`Rates dropped across the industry. Your savings return dips slightly.`},
+  {kind:'fee_inc',   icon:'💸', tmpl:(b)=>`${b.name}: Monthly fee reviewed`,
+    body:(b)=>`Your monthly maintenance fee (${fmt$(b.fee)}) is being reviewed after Q2 earnings miss. Expect a notice.`},
+  {kind:'fee_waiver',icon:'🎁', tmpl:(b)=>`${b.name}: Fee waived this month`,
+    body:(b)=>`Loyalty reward — monthly fee waived. Thank you for being a member.`},
+  {kind:'branch',    icon:'🏢', tmpl:(b)=>`${b.name}: New branch opening`,
+    body:(b)=>`A new local branch opens next quarter with extended hours and notary services.`},
+  {kind:'merger',    icon:'🤝', tmpl:(b)=>`${b.name}: Strategic merger announced`,
+    body:(b)=>`${b.name} is merging with a regional partner. No action needed — all accounts migrate automatically.`},
+  {kind:'breach',    icon:'🚨', tmpl:(b)=>`${b.name}: Security incident notice`,
+    body:(b)=>`A minor data incident has been contained. Review statements. Identity theft protection remains active.`},
+  {kind:'coverage',  icon:'🛡️', tmpl:(b)=>`${b.name}: Insurance coverage expanded`,
+    body:(b)=>`Policy terms updated — some deductibles reduced on existing riders. Full details in your packet.`},
+  {kind:'loyalty',   icon:'💰', tmpl:(b)=>`${b.name}: Loyalty bonus deposited`,
+    body:(b)=>`A small loyalty credit has been added to your checking. Thanks for banking with us.`},
+  {kind:'fraud_alert',icon:'⚠️',tmpl:(b)=>`${b.name}: Fraud alert on card`,
+    body:(b)=>`Suspicious activity declined. A replacement card ships in 3–5 business days.`},
+  {kind:'quarterly', icon:'📊', tmpl:(b)=>`${b.name}: Quarterly performance summary`,
+    body:(b)=>`Your statement period closed. Balances, interest, and insurance claim activity summarized.`},
+  {kind:'app_update',icon:'📱', tmpl:(b)=>`${b.name}: Mobile app update`,
+    body:(b)=>`New app version adds mobile deposit, budgeting, and fraud alerts. Update on your phone.`},
+];
+
+function bankById(id){ return BANKS.find(b=>b.id===id) || null; }
+
+function joinBank(c, bankId){
+  const b = bankById(bankId);
+  if(!b) return 'Bank not found.';
+  const prev = c.bankId ? bankById(c.bankId) : null;
+  // Switching fee
+  if(prev && prev.id !== b.id){
+    const fee = 50;
+    if(c.checking < fee) return `Need ${fmt$(fee)} to close your ${prev.name} account.`;
+    c.checking -= fee;
+  }
+  c.bankId = b.id;
+  c.bankTenureMonths = 0;
+  c.checking += b.signupBonus;
+  const date = currentMonthDate(c);
+  const covList = Object.entries(b.covers).map(([k,v])=>`  • ${k.padEnd(10,' ')} ${Math.round(v*100)}% coverage`).join('\n');
+  addInboxItem({
+    type:'news', icon:b.icon, subject:`Welcome to ${b.name}`, date,
+    body:`${b.blurb}\n\nSignup bonus: +${fmt$(b.signupBonus)}\nMonthly fee: ${fmt$(b.fee)}\nAPY bonus on high-yield: +${b.apyBonus.toFixed(1)}%\n\n── Insurance Coverage ──\n${covList||'  (none)'}\n\n${prev?`Previous bank (${prev.name}) closed. -${fmt$(50)} closing fee.`:'Welcome aboard.'}`
+  });
+  return `Joined ${b.name}. +${fmt$(b.signupBonus)} signup bonus credited.`;
+}
+
+function maybeEmitBankUpdate(c){
+  if(!c.bankId) return;
+  if(!pct(0.09)) return;
+  const b = bankById(c.bankId);
+  if(!b) return;
+  const u = pick(BANK_UPDATES);
+  const date = currentMonthDate(c);
+  // Side effects for certain kinds
+  if(u.kind==='loyalty'){ const bonus = ri(25,150); c.checking += bonus; }
+  if(u.kind==='fee_waiver'){ c._bankFeeWaivedMonth = (c.monthAge||0); }
+  addInboxItem({
+    type:'news', icon:u.icon, subject:u.tmpl(b), date,
+    body:`From: ${b.name}\n\n${u.body(b)}\n\n— Member Services, ${b.name}`
+  });
 }
 
 function currentMonthDate(c){
@@ -879,6 +1029,7 @@ function createChar(name, scenario){
     events:[],
     pendingExpenses:[],  // [{name, icon, cost, monthsLeft}]
     belongings:[],       // [{id, name, icon, cost, purchasedAt}]
+    bankId:null, bankTenureMonths:0, _bankFeeWaivedMonth:-1,
   };
 }
 
@@ -1193,11 +1344,22 @@ function tickFinances(char, ev){
     const pay = Math.max(50, Math.min(char.debt, Math.round(char.debt*0.01)+interest));
     char.debt = Math.max(0, char.debt+interest-pay);
   }
+  // Bank monthly maintenance fee (after fee waiver check)
+  if(char.bankId){
+    const bk = bankById(char.bankId);
+    const waivedThisMonth = char._bankFeeWaivedMonth === char.monthAge;
+    if(bk && !waivedThisMonth){
+      char.checking -= bk.fee;
+    }
+    char.bankTenureMonths = (char.bankTenureMonths||0) + 1;
+  }
   const monthSavings = monthNet - monthLiving;
   char.checking += monthSavings;
   // Monthly compound interest on savings
   char.savings = Math.round(char.savings*(1+0.02/12));
-  char.highYield = Math.round(char.highYield*(1+0.04/12));
+  // High-yield: base 4% + optional bank APY bonus
+  const apyBonus = char.bankId ? (bankById(char.bankId)?.apyBonus || 0) : 0;
+  char.highYield = Math.round(char.highYield*(1+(0.04+apyBonus/100)/12));
   // Credit score: drift quarterly
   if(char.monthAge%3===0){
     if(char.debt>0&&char.checking>0) char.creditScore=clamp(char.creditScore+ri(-1,2),300,850);
@@ -1936,6 +2098,9 @@ function monthlyTick(){
   // Downside event: 3% monthly chance
   if(pct(0.03)) triggerDownside(c);
 
+  // Bank update message: ~9% monthly chance (about 1/year per bank feature)
+  maybeEmitBankUpdate(c);
+
   updateUI(fin, prevNW, nw);
   saveGame();
 
@@ -2445,12 +2610,46 @@ $('btn-job').onclick=()=>{
 
 $('btn-bank').onclick=()=>{
   const c=GS.char;
-  showActionModal('Banking','Move money between accounts or take out a loan.',[
-    {text:`Move $5k to Savings (2% interest)`,fn(){if(c.checking<5000)return'Not enough in checking.';c.checking-=5000;c.savings+=5000;return`Moved $5,000 to savings.`}},
-    {text:`Move $5k to High-Yield (4% interest)`,fn(){if(c.checking<5000)return'Not enough in checking.';c.checking-=5000;c.highYield+=5000;return`Moved $5,000 to high-yield savings.`}},
+  const cur = c.bankId ? bankById(c.bankId) : null;
+  const sector = c.jobSector;
+  const headline = cur
+    ? `Bank: ${cur.icon} ${cur.name} · Fee ${fmt$(cur.fee)}/mo · APY +${cur.apyBonus.toFixed(1)}%`
+    : 'No bank yet. Pick one to unlock insurance, bonuses, and APY perks.';
+  const choices = [
+    {text:`Move $5k to Savings (2% APY)`,fn(){if(c.checking<5000)return'Not enough in checking.';c.checking-=5000;c.savings+=5000;return`Moved $5,000 to savings.`}},
+    {text:`Move $5k to High-Yield (4%${cur?` +${cur.apyBonus.toFixed(1)}%`:''})`,fn(){if(c.checking<5000)return'Not enough in checking.';c.checking-=5000;c.highYield+=5000;return`Moved $5,000 to high-yield savings.`}},
     {text:`Personal Loan $10k (11.5% APR)`,fn(){c.checking+=10000;c.debt+=10000;return`Loan approved. +$10,000 cash, +$10,000 debt.`}},
     {text:`Pay off $5k debt`,fn(){if(c.checking<5000)return'Not enough.';if(c.debt<5000)return`Debt is only ${fmt$(c.debt)}.`;c.checking-=5000;c.debt-=5000;return`Paid $5,000 debt. Remaining: ${fmt$(c.debt)}`}},
-  ]);
+  ];
+  // If player has a bank, show current coverage first
+  if(cur){
+    const covTxt = Object.entries(cur.covers).map(([k,v])=>`${k}:${Math.round(v*100)}%`).join(' · ');
+    choices.push({text:`🛡️ View my coverage (${covTxt||'none'})`, fn(){
+      return `${cur.icon} ${cur.name}\n${cur.blurb}\nFee: ${fmt$(cur.fee)}/mo · Signup: ${fmt$(cur.signupBonus)} · APY +${cur.apyBonus.toFixed(1)}%\n\nCoverage: ${covTxt||'—'}`;
+    }});
+  }
+  // Browse all 20 banks — sector-matched banks sort first
+  const rankedBanks = [...BANKS].sort((a,b)=>{
+    const as = sector && a.suits.includes(sector) ? 1 : 0;
+    const bs = sector && b.suits.includes(sector) ? 1 : 0;
+    return bs - as;
+  });
+  for(const b of rankedBanks){
+    const isMine = cur && cur.id===b.id;
+    const fit = sector && b.suits.includes(sector) ? ' ⭐FIT' : '';
+    const mineTag = isMine ? ' ✅ CURRENT' : '';
+    const covTop = Object.entries(b.covers).sort((x,y)=>y[1]-x[1]).slice(0,2)
+      .map(([k,v])=>`${k} ${Math.round(v*100)}%`).join(', ');
+    choices.push({
+      text:`${b.icon} ${b.name}${fit}${mineTag} — ${fmt$(b.fee)}/mo · ${covTop||'basic'}`,
+      fn(){
+        if(isMine) return `Already a member at ${b.name}.`;
+        return joinBank(c, b.id);
+      }
+    });
+  }
+  showActionModal('Banking', headline, choices);
+  $('modal-box').classList.add('compact');
 };
 
 $('btn-invest').onclick=()=>showStockModal();
