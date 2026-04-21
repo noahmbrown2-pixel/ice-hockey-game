@@ -6,5 +6,13 @@
     "hook_event_name": "PreCompact",
     "trigger": "auto",
     "custom_instructions": null
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "PreCompact",
+    "trigger": "auto",
+    "custom_instructions": null
   }
 ]

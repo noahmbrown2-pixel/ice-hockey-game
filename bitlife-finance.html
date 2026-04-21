@@ -441,6 +441,10 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
           <h3>Businesses</h3>
           <div id="biz-list"><p style="color:var(--muted);font-size:12px">No businesses owned.</p></div>
         </div>
+        <div class="section">
+          <h3>Belongings</h3>
+          <div id="belongings-list"><p style="color:var(--muted);font-size:12px">Nothing to sell. Monthly expense items you buy will show up here.</p></div>
+        </div>
       </div>
     </div>
 
@@ -874,6 +878,7 @@ function createChar(name, scenario){
     _graduated:scenario!=='broke', _hadFirstJob:false, _everMarried:false,
     events:[],
     pendingExpenses:[],  // [{name, icon, cost, monthsLeft}]
+    belongings:[],       // [{id, name, icon, cost, purchasedAt}]
   };
 }
 
@@ -1238,22 +1243,170 @@ function tickSchool(char, ev){
 // ════════════════════════════════════════════════════════════════
 
 const STOCKS = [
-  {id:'APPL',name:'Applex',sector:'tech',price:180,vol:0.28},
-  {id:'MSOF',name:'Microsafe',sector:'tech',price:340,vol:0.24},
-  {id:'NVID',name:'NvidiaX',sector:'tech',price:620,vol:0.45},
-  {id:'TSLA',name:'Teslon',sector:'auto',price:250,vol:0.55},
-  {id:'EXXO',name:'ExxoMobile',sector:'energy',price:110,vol:0.22},
-  {id:'WLMT',name:'Wallmart',sector:'retail',price:58,vol:0.18},
-  {id:'JPMG',name:'JP Morgen',sector:'finance',price:200,vol:0.20},
-  {id:'PFIZ',name:'Pfaizer',sector:'pharma',price:28,vol:0.19},
-  {id:'COKE',name:'Cola-Cola',sector:'consumer',price:62,vol:0.13},
-  {id:'SPY',name:'S&P 500 ETF',sector:'etf',price:450,vol:0.15,avgReturn:0.07},
+  // Tech / semiconductors
+  {id:'APPL',name:'Applex',        sector:'tech',      price:180, vol:0.28},
+  {id:'MSOF',name:'Microsafe',     sector:'tech',      price:340, vol:0.24},
+  {id:'NVID',name:'NvidiaX',       sector:'tech',      price:620, vol:0.45},
+  {id:'GOOG',name:'Googol',        sector:'tech',      price:145, vol:0.26},
+  {id:'META',name:'Metabook',      sector:'tech',      price:420, vol:0.35},
+  {id:'AMZN',name:'Amazone',       sector:'tech',      price:185, vol:0.30},
+  {id:'NFLX',name:'Netflex',       sector:'tech',      price:560, vol:0.38},
+  {id:'ADBE',name:'Adobex',        sector:'tech',      price:520, vol:0.27},
+  {id:'CRM', name:'Salesfarm',     sector:'tech',      price:270, vol:0.32},
+  {id:'ORCL',name:'Oraqle',        sector:'tech',      price:125, vol:0.22},
+  {id:'AMD', name:'AMDx',          sector:'tech',      price:155, vol:0.48},
+  {id:'INTC',name:'Inteel',        sector:'tech',      price:38,  vol:0.35},
+  {id:'AVGO',name:'Broadcomb',     sector:'tech',      price:1450,vol:0.30},
+  {id:'QCOM',name:'Qualcume',      sector:'tech',      price:165, vol:0.30},
+  {id:'TSMC',name:'Taiwan Semix',  sector:'tech',      price:170, vol:0.32},
+  {id:'PLTR',name:'Palantear',     sector:'tech',      price:28,  vol:0.60},
+  {id:'SNOW',name:'Snowfall',      sector:'tech',      price:175, vol:0.45},
+  {id:'ZM',  name:'Zume',          sector:'tech',      price:65,  vol:0.40},
+
+  // Auto / EV
+  {id:'TSLA',name:'Teslon',        sector:'auto',      price:250, vol:0.55},
+  {id:'F',   name:'Ford-o',        sector:'auto',      price:12,  vol:0.28},
+  {id:'GM',  name:'Generall Motor',sector:'auto',      price:44,  vol:0.30},
+  {id:'RIVN',name:'Rivyne',        sector:'auto',      price:14,  vol:0.70},
+  {id:'NIO', name:'Niox',          sector:'auto',      price:7,   vol:0.75},
+
+  // Energy
+  {id:'EXXO',name:'ExxoMobile',    sector:'energy',    price:110, vol:0.22},
+  {id:'CVX', name:'Chevrox',       sector:'energy',    price:150, vol:0.22},
+  {id:'SLB', name:'Schlumbergo',   sector:'energy',    price:48,  vol:0.30},
+  {id:'COP', name:'ConocoPhillup', sector:'energy',    price:115, vol:0.25},
+  {id:'ENPH',name:'Enphaze Solar', sector:'energy',    price:95,  vol:0.60},
+  {id:'NEE', name:'NextEra Power', sector:'energy',    price:62,  vol:0.20},
+
+  // Retail / consumer
+  {id:'WLMT',name:'Wallmart',      sector:'retail',    price:58,  vol:0.18},
+  {id:'COST',name:'Costcow',       sector:'retail',    price:720, vol:0.22},
+  {id:'HD',  name:'Home Deposit',  sector:'retail',    price:380, vol:0.24},
+  {id:'TGT', name:'Targit',        sector:'retail',    price:145, vol:0.28},
+  {id:'NKE', name:'Nikey',         sector:'retail',    price:85,  vol:0.28},
+  {id:'LULU',name:'Lulalemon',     sector:'retail',    price:340, vol:0.35},
+  {id:'SBUX',name:'Starbuckz',     sector:'retail',    price:95,  vol:0.24},
+  {id:'MCD', name:'McDoodle\'s',   sector:'retail',    price:290, vol:0.18},
+  {id:'CMG', name:'Chipotler',     sector:'retail',    price:60,  vol:0.30},
+
+  // Finance
+  {id:'JPMG',name:'JP Morgen',     sector:'finance',   price:200, vol:0.20},
+  {id:'BAC', name:'Bankz of Am.',  sector:'finance',   price:38,  vol:0.28},
+  {id:'WFC', name:'Wellz Fargo',   sector:'finance',   price:55,  vol:0.27},
+  {id:'GS',  name:'Goldmun Sachs', sector:'finance',   price:445, vol:0.27},
+  {id:'MS',  name:'Morgun Stanley',sector:'finance',   price:92,  vol:0.28},
+  {id:'V',   name:'Visaa',         sector:'finance',   price:270, vol:0.19},
+  {id:'MA',  name:'Mastercash',    sector:'finance',   price:460, vol:0.20},
+  {id:'PYPL',name:'PayPali',       sector:'finance',   price:65,  vol:0.40},
+  {id:'SCHW',name:'Charlez Schwob',sector:'finance',   price:72,  vol:0.28},
+  {id:'BRK', name:'Berkshore Hath.',sector:'finance',  price:420, vol:0.15},
+
+  // Pharma / health
+  {id:'PFIZ',name:'Pfaizer',       sector:'pharma',    price:28,  vol:0.19},
+  {id:'JNJ', name:'Johnzon&Johnson',sector:'pharma',   price:160, vol:0.16},
+  {id:'MRNA',name:'Moderno',       sector:'pharma',    price:88,  vol:0.70},
+  {id:'LLY', name:'Eli Lilly-x',   sector:'pharma',    price:780, vol:0.32},
+  {id:'UNH', name:'UnitedHelth',   sector:'pharma',    price:520, vol:0.22},
+  {id:'ABBV',name:'AbbyVye',       sector:'pharma',    price:175, vol:0.18},
+  {id:'CVS', name:'CVSdrug',       sector:'pharma',    price:66,  vol:0.22},
+
+  // Consumer staples
+  {id:'COKE',name:'Cola-Cola',     sector:'consumer',  price:62,  vol:0.13},
+  {id:'PEP', name:'Pepsix',        sector:'consumer',  price:175, vol:0.15},
+  {id:'PG',  name:'Proctor&Gambol',sector:'consumer',  price:155, vol:0.14},
+  {id:'KO',  name:'Keuriq Drinks', sector:'consumer',  price:34,  vol:0.18},
+  {id:'MO',  name:'Altrium',       sector:'consumer',  price:45,  vol:0.18},
+
+  // Industrials / airlines
+  {id:'BA',  name:'Boing',         sector:'industrial',price:180, vol:0.40},
+  {id:'CAT', name:'Catawpillar',   sector:'industrial',price:360, vol:0.30},
+  {id:'GE',  name:'Generall Elect',sector:'industrial',price:170, vol:0.28},
+  {id:'UPS', name:'Unit. Parcel',  sector:'industrial',price:135, vol:0.22},
+  {id:'DAL', name:'Deltax Air',    sector:'industrial',price:42,  vol:0.40},
+  {id:'UAL', name:'Unitd Airs',    sector:'industrial',price:48,  vol:0.45},
+
+  // Media / entertainment
+  {id:'DIS', name:'Walt Disnee',   sector:'media',     price:95,  vol:0.30},
+  {id:'WBD', name:'WarnerBrosz',   sector:'media',     price:9,   vol:0.55},
+  {id:'SPOT',name:'Spotifye',      sector:'media',     price:340, vol:0.45},
+  {id:'RBLX',name:'Robloxx',       sector:'media',     price:45,  vol:0.55},
+
+  // Real estate / REITs
+  {id:'AMT', name:'Amer. Towar',   sector:'reit',      price:210, vol:0.22},
+  {id:'O',   name:'Realtee Income',sector:'reit',      price:55,  vol:0.18},
+  {id:'SPG', name:'Simon Propz',   sector:'reit',      price:160, vol:0.28},
+
+  // Speculative / meme / volatile
+  {id:'GME', name:'GameStart',     sector:'meme',      price:14,  vol:1.10},
+  {id:'AMC', name:'AMCx Theatres', sector:'meme',      price:4,   vol:1.20},
+  {id:'COIN',name:'Coinbasa',      sector:'crypto',    price:195, vol:0.85},
+  {id:'MSTR',name:'MicroStratify', sector:'crypto',    price:1400,vol:0.95},
+  {id:'HOOD',name:'Robinwood',     sector:'finance',   price:28,  vol:0.75},
+  {id:'SOFI',name:'Sofigh',        sector:'finance',   price:8,   vol:0.70},
+  {id:'LCID',name:'Lucidd Motors', sector:'auto',      price:3,   vol:1.05},
+
+  // ETFs (steady, index-like)
+  {id:'SPY', name:'S&P 500 ETF',   sector:'etf',       price:450, vol:0.15, avgReturn:0.07},
+  {id:'QQQ', name:'Nasdaq 100 ETF',sector:'etf',       price:440, vol:0.20, avgReturn:0.09},
+  {id:'VTI', name:'Total Market ETF',sector:'etf',     price:245, vol:0.15, avgReturn:0.07},
+  {id:'VOO', name:'Vanguaard S&P', sector:'etf',       price:415, vol:0.15, avgReturn:0.07},
+  {id:'IWM', name:'Russell 2K ETF',sector:'etf',       price:200, vol:0.22, avgReturn:0.06},
+  {id:'DIA', name:'Dow Jones ETF', sector:'etf',       price:375, vol:0.14, avgReturn:0.06},
+  {id:'GLD', name:'Gold ETF',      sector:'etf',       price:215, vol:0.15, avgReturn:0.04},
+  {id:'TLT', name:'20-yr Bond ETF',sector:'etf',       price:92,  vol:0.18, avgReturn:0.03},
 ];
 const CRYPTOS = [
-  {id:'BTC',name:'Bitcoin',price:45000,vol:0.80},
-  {id:'ETH',name:'Ethereum',price:2500,vol:0.85},
-  {id:'SOL',name:'Solana',price:100,vol:0.95},
-  {id:'DOGE',name:'Dogecoin',price:0.12,vol:1.20},
+  // Majors
+  {id:'BTC', name:'Bitcoin',     price:45000,  vol:0.80},
+  {id:'ETH', name:'Ethereum',    price:2500,   vol:0.85},
+  {id:'BNB', name:'BNB',         price:310,    vol:0.90},
+  {id:'XRP', name:'XRP',         price:0.58,   vol:0.95},
+  // L1s / smart contract platforms
+  {id:'SOL', name:'Solana',      price:100,    vol:0.95},
+  {id:'ADA', name:'Cardano',     price:0.42,   vol:1.00},
+  {id:'AVAX',name:'Avalanche',   price:28,     vol:1.10},
+  {id:'DOT', name:'Polkadot',    price:6.80,   vol:1.05},
+  {id:'ATOM',name:'Cosmos',      price:8.20,   vol:1.10},
+  {id:'NEAR',name:'Near Protocol',price:3.40,  vol:1.15},
+  // L2s & scaling
+  {id:'MATIC',name:'Polygon',    price:0.85,   vol:1.10},
+  {id:'ARB', name:'Arbitrum',    price:1.15,   vol:1.25},
+  {id:'OP',  name:'Optimism',    price:2.10,   vol:1.25},
+  // DeFi
+  {id:'LINK',name:'Chainlink',   price:14.50,  vol:1.00},
+  {id:'UNI', name:'Uniswap',     price:6.50,   vol:1.15},
+  {id:'AAVE',name:'Aave',        price:88,     vol:1.20},
+  {id:'MKR', name:'Maker',       price:1850,   vol:1.05},
+  // Memecoins (high vol)
+  {id:'DOGE',name:'Dogecoin',    price:0.12,   vol:1.20},
+  {id:'SHIB',name:'Shiba Inu',   price:0.0000095,vol:1.45},
+  {id:'PEPE',name:'Pepe',        price:0.0000012,vol:1.70},
+  {id:'WIF', name:'Dogwifhat',   price:2.30,   vol:1.80},
+  {id:'BONK',name:'Bonk',        price:0.0000185,vol:1.75},
+  {id:'FLOKI',name:'Floki',      price:0.00017,vol:1.60},
+  // Tokens / utility
+  {id:'LTC', name:'Litecoin',    price:68,     vol:0.90},
+  {id:'BCH', name:'Bitcoin Cash',price:240,    vol:1.00},
+  {id:'XLM', name:'Stellar',     price:0.11,   vol:0.95},
+  {id:'ALGO',name:'Algorand',    price:0.18,   vol:1.10},
+  {id:'ICP', name:'Internet Computer',price:11,vol:1.25},
+  {id:'FIL', name:'Filecoin',    price:4.60,   vol:1.15},
+  {id:'VET', name:'VeChain',     price:0.028,  vol:1.10},
+  // AI / compute narrative
+  {id:'FET', name:'Fetch.ai',    price:1.90,   vol:1.40},
+  {id:'RNDR',name:'Render',      price:7.80,   vol:1.35},
+  {id:'AKT', name:'Akash',       price:3.40,   vol:1.45},
+  // Gaming / metaverse
+  {id:'SAND',name:'The Sandbox', price:0.50,   vol:1.25},
+  {id:'MANA',name:'Decentraland',price:0.42,   vol:1.25},
+  {id:'AXS', name:'Axie Infinity',price:7.10,  vol:1.35},
+  {id:'IMX', name:'Immutable',   price:1.80,   vol:1.30},
+  // Privacy
+  {id:'XMR', name:'Monero',      price:168,    vol:0.95},
+  {id:'ZEC', name:'Zcash',       price:28,     vol:1.15},
+  // Stable-ish large caps
+  {id:'TRX', name:'Tron',        price:0.16,   vol:0.85},
+  {id:'HBAR',name:'Hedera',      price:0.085,  vol:1.10},
 ];
 
 function createInvState(){
@@ -1657,6 +1810,8 @@ function tickPendingExpenses(char, ev){
       const scoreDrop = hadFunds ? ri(15,25) : ri(30,50);
       char.creditScore = clamp(char.creditScore - scoreDrop, 300, 850);
       const balanceNote = !hadFunds ? ` Account went negative!` : '';
+      if(!char.belongings) char.belongings=[];
+      char.belongings.push({id:`b_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, name:exp.name, icon:exp.icon, cost:exp.cost, purchasedAt:char.monthAge});
       ev.push({type:'bad', text:`⚠️ Forced payment: ${exp.icon} ${exp.name} — ${fmt$(exp.cost)} auto-deducted. Credit score -${scoreDrop}.${balanceNote}`});
     } else {
       stillPending.push(exp);
@@ -1683,7 +1838,9 @@ function generateMonthlyExpenseEvent(char){
        fn(c){
          c.checking -= cost;
          c.creditScore = clamp(c.creditScore + ri(1,3), 300, 850);
-         return `Paid ${fmt$(cost)} for ${item.name}. Credit score +${ri(1,3)} (on-time).`;
+         if(!c.belongings) c.belongings=[];
+         c.belongings.push({id:`b_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, name:item.name, icon:item.icon, cost, purchasedAt:c.monthAge});
+         return `Paid ${fmt$(cost)} for ${item.name}. Added to belongings — sell anytime from Assets tab. Credit score +${ri(1,3)} (on-time).`;
        }
       },
       {text:`Defer — pay within 10 months or auto-deducted`,
@@ -1884,10 +2041,51 @@ function updateUI(fin, prevNW, nw){
   setText('as-re-eq',fmt$(reEq)); setText('as-biz',fmt$(bizVal));
   setText('as-assets',fmt$(totalAssets)); setText('as-liab',fmt$(totalDebt));
   setText('as-nw',fmt$(nw));
-  renderProperties(inv); renderBusinesses(inv);
+  renderProperties(inv); renderBusinesses(inv); renderBelongings(c);
 
   drawNetWorthChart();
   renderInbox();
+}
+
+function resaleValue(item, c){
+  const ageMonths = Math.max(0, (c.monthAge||0) - (item.purchasedAt||0));
+  // First month: 70% resale; drop 3% per month; floor at 15% of cost
+  const factor = Math.max(0.15, 0.70 - ageMonths*0.03);
+  return Math.max(1, Math.round(item.cost * factor));
+}
+
+function renderBelongings(c){
+  const el=$('belongings-list'); if(!el) return;
+  const items=c.belongings||[];
+  if(!items.length){
+    el.innerHTML='<p style="color:var(--muted);font-size:12px">Nothing to sell. Monthly expense items you buy will show up here.</p>';
+    return;
+  }
+  el.innerHTML = items.map((b,i)=>{
+    const resale = resaleValue(b, c);
+    const ageM = Math.max(0, (c.monthAge||0) - (b.purchasedAt||0));
+    return `<div class="info-row" style="align-items:center">
+      <span class="ir-label">${b.icon} ${b.name} <span style="color:var(--muted);font-size:10px">· ${ageM}mo old · paid ${fmt$(b.cost)}</span></span>
+      <span style="display:flex;gap:6px;align-items:center">
+        <span class="ir-value pos">${fmt$(resale)}</span>
+        <button class="choice-btn" style="padding:4px 10px;font-size:11px;margin:0" onclick="sellBelonging('${b.id}')">Sell</button>
+      </span>
+    </div>`;
+  }).join('');
+}
+
+function sellBelonging(id){
+  const c=GS.char; if(!c||!c.belongings) return;
+  const idx=c.belongings.findIndex(b=>b.id===id); if(idx<0) return;
+  const item=c.belongings[idx];
+  const resale=resaleValue(item, c);
+  c.checking += resale;
+  c.belongings.splice(idx,1);
+  logEvent(`Sold ${item.icon} ${item.name} for ${fmt$(resale)} (paid ${fmt$(item.cost)}).`, 'info');
+  showToast(`Sold ${item.name} for ${fmt$(resale)}`);
+  saveGame();
+  renderBelongings(c);
+  setText('fi-check',fmt$(c.checking));
 }
 
 function renderStocksTable(inv){

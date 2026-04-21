@@ -1,0 +1,66 @@
+[
+  {
+    "timestamp": "2026-04-20T21:21:52.252068",
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01D1LEpKuC3N6wc7sRSBvXH7",
+    "tool_input": {
+      "command": "cd .playwright-cli && node audit.js 2>&1 | tail -300",
+      "timeout": 300000,
+      "description": "Run audit script"
+    },
+    "error": "Exit code 1\n/usr/bin/bash: line 1: cd: .playwright-cli: No such file or directory",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "raw_input": {
+      "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "cd .playwright-cli && node audit.js 2>&1 | tail -300",
+        "timeout": 300000,
+        "description": "Run audit script"
+      },
+      "tool_use_id": "toolu_01D1LEpKuC3N6wc7sRSBvXH7",
+      "error": "Exit code 1\n/usr/bin/bash: line 1: cd: .playwright-cli: No such file or directory",
+      "is_interrupt": false,
+      "logged_at": "2026-04-20T21:21:52.252068"
+    }
+  },
+  {
+    "timestamp": "2026-04-20T21:21:55.573000",
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01QVmu8wootRNqCQqzEUYND2",
+    "tool_input": {
+      "command": "pwd && ls -d .playwright-cli 2>&1",
+      "description": "Check current dir and playwright-cli folder"
+    },
+    "error": "Exit code 2\n/c/Users/noahm/Project/.playwright-cli\nls: cannot access '.playwright-cli': No such file or directory",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "raw_input": {
+      "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "pwd && ls -d .playwright-cli 2>&1",
+        "description": "Check current dir and playwright-cli folder"
+      },
+      "tool_use_id": "toolu_01QVmu8wootRNqCQqzEUYND2",
+      "error": "Exit code 2\n/c/Users/noahm/Project/.playwright-cli\nls: cannot access '.playwright-cli': No such file or directory",
+      "is_interrupt": false,
+      "logged_at": "2026-04-20T21:21:55.573000"
+    }
+  }
+]

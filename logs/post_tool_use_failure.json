@@ -238,5 +238,133 @@
       "is_interrupt": false,
       "logged_at": "2026-04-20T14:36:46.050382"
     }
+  },
+  {
+    "timestamp": "2026-04-20T19:53:52.861006",
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01GGit5BzspLr1Ny2cVUnD5a",
+    "tool_input": {
+      "command": "git push origin master",
+      "description": "Push to origin/master (ice-hockey-game repo)"
+    },
+    "error": "Exit code 1\nerror: unable to rewind rpc post data - try increasing http.postBuffer\nerror: RPC failed; curl 65 schannel: failed to read data from server: SEC_E_MESSAGE_ALTERED (0x8009030f) - The message or signature supplied for verification has been altered\nsend-pack: unexpected disconnect while reading sideband packet\nfatal: the remote end hung up unexpectedly\nEverything up-to-date",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "raw_input": {
+      "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "git push origin master",
+        "description": "Push to origin/master (ice-hockey-game repo)"
+      },
+      "tool_use_id": "toolu_01GGit5BzspLr1Ny2cVUnD5a",
+      "error": "Exit code 1\nerror: unable to rewind rpc post data - try increasing http.postBuffer\nerror: RPC failed; curl 65 schannel: failed to read data from server: SEC_E_MESSAGE_ALTERED (0x8009030f) - The message or signature supplied for verification has been altered\nsend-pack: unexpected disconnect while reading sideband packet\nfatal: the remote end hung up unexpectedly\nEverything up-to-date",
+      "is_interrupt": false,
+      "logged_at": "2026-04-20T19:53:52.861006"
+    }
+  },
+  {
+    "timestamp": "2026-04-20T19:54:24.808281",
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01KfxymADTQAdVd4fykWZ9TL",
+    "tool_input": {
+      "command": "git -c http.postBuffer=524288000 push origin master",
+      "timeout": 180000,
+      "description": "Retry push with larger post buffer"
+    },
+    "error": "Exit code 1\nerror: RPC failed; curl 56 schannel: failed to read data from server: SEC_E_MESSAGE_ALTERED (0x8009030f) - The message or signature supplied for verification has been altered\nsend-pack: unexpected disconnect while reading sideband packet\nfatal: the remote end hung up unexpectedly\nEverything up-to-date",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "raw_input": {
+      "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "git -c http.postBuffer=524288000 push origin master",
+        "timeout": 180000,
+        "description": "Retry push with larger post buffer"
+      },
+      "tool_use_id": "toolu_01KfxymADTQAdVd4fykWZ9TL",
+      "error": "Exit code 1\nerror: RPC failed; curl 56 schannel: failed to read data from server: SEC_E_MESSAGE_ALTERED (0x8009030f) - The message or signature supplied for verification has been altered\nsend-pack: unexpected disconnect while reading sideband packet\nfatal: the remote end hung up unexpectedly\nEverything up-to-date",
+      "is_interrupt": false,
+      "logged_at": "2026-04-20T19:54:24.808281"
+    }
+  },
+  {
+    "timestamp": "2026-04-20T21:19:44.530442",
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_016dZAQFuvuikj3JbN1SwUqw",
+    "tool_input": {
+      "command": "ls .playwright-cli 2>/dev/null && echo '---' && which playwright 2>/dev/null && echo '---' && npx playwright --version 2>&1 | head -3",
+      "description": "Check for Playwright installation"
+    },
+    "error": "Exit code 1\nconsole-2026-03-10T01-11-22-989Z.log\npage-2026-03-10T01-11-15-931Z.yml\npage-2026-03-10T01-11-25-743Z.yml\npage-2026-03-10T01-11-31-001Z.yml\n---",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "raw_input": {
+      "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "ls .playwright-cli 2>/dev/null && echo '---' && which playwright 2>/dev/null && echo '---' && npx playwright --version 2>&1 | head -3",
+        "description": "Check for Playwright installation"
+      },
+      "tool_use_id": "toolu_016dZAQFuvuikj3JbN1SwUqw",
+      "error": "Exit code 1\nconsole-2026-03-10T01-11-22-989Z.log\npage-2026-03-10T01-11-15-931Z.yml\npage-2026-03-10T01-11-25-743Z.yml\npage-2026-03-10T01-11-31-001Z.yml\n---",
+      "is_interrupt": false,
+      "logged_at": "2026-04-20T21:19:44.530442"
+    }
+  },
+  {
+    "timestamp": "2026-04-20T21:21:30.398699",
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01U7PdkzB88NmunFFXc2LXtx",
+    "tool_input": {
+      "command": "cd .playwright-cli && npm init -y >/dev/null && npm install playwright --no-save 2>&1 | tail -5",
+      "timeout": 180000,
+      "description": "Install playwright as local dep"
+    },
+    "error": "Exit code 1\nnpm error Invalid name: \".playwright-cli\"\nnpm error A complete log of this run can be found in: C:\\Users\\noahm\\AppData\\Local\\npm-cache\\_logs\\2026-04-21T01_21_28_830Z-debug-0.log",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "raw_input": {
+      "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "cd .playwright-cli && npm init -y >/dev/null && npm install playwright --no-save 2>&1 | tail -5",
+        "timeout": 180000,
+        "description": "Install playwright as local dep"
+      },
+      "tool_use_id": "toolu_01U7PdkzB88NmunFFXc2LXtx",
+      "error": "Exit code 1\nnpm error Invalid name: \".playwright-cli\"\nnpm error A complete log of this run can be found in: C:\\Users\\noahm\\AppData\\Local\\npm-cache\\_logs\\2026-04-21T01_21_28_830Z-debug-0.log",
+      "is_interrupt": false,
+      "logged_at": "2026-04-20T21:21:30.398699"
+    }
   }
 ]
