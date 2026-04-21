@@ -888,14 +888,19 @@ function showHireModal(bizIdx){
   $('m-title').textContent=`${b.name} — Staff`;
   const curWages=b.employees.reduce((s,e)=>s+(e.wage||0),0);
   const curBoost=Math.round(b.employees.reduce((s,e)=>s+(e.boost||0),0)*100);
-  $('m-body').textContent=`Current staff: ${b.employees.length} · Wages: ${fmt$(curWages)}/mo · Revenue boost: +${curBoost}%`;
+  const avgMorale=b.employees.length ? Math.round(b.employees.reduce((s,e)=>s+(e.morale||75),0)/b.employees.length) : 0;
+  const moraleTag = b.employees.length ? ` · Morale ${avgMorale}%` : '';
+  $('m-body').textContent=`Current staff: ${b.employees.length} · Wages: ${fmt$(curWages)}/mo · Revenue boost: +${curBoost}%${moraleTag}`;
   $('m-result').style.display='none';
   const ch=$('m-choices');
   const hireBtns = EMPLOYEE_ROLES.map(r=>{
     return `<button class="choice-btn" onclick="hireEmployee(${bizIdx},'${r.title}')">${r.icon} Hire ${r.title} — ${fmt$(r.wage)}/mo · +${Math.round(r.boost*100)}% rev</button>`;
   }).join('');
   const fireBtns = b.employees.map((e,ei)=>{
-    return `<button class="choice-btn" onclick="fireEmployee(${bizIdx},${ei})" style="border-color:var(--red);color:var(--red)">✖ Fire ${e.title} (${fmt$(e.wage)}/mo)</button>`;
+    const m = e.morale||75;
+    const moodIco = m>=80?'😄':m>=55?'🙂':m>=30?'😟':'😠';
+    const nameTag = e.name ? ` — ${e.name}` : '';
+    return `<button class="choice-btn" onclick="fireEmployee(${bizIdx},${ei})" style="border-color:var(--red);color:var(--red)">${moodIco} ${m}% · ✖ Fire ${e.title}${nameTag} (${fmt$(e.wage)}/mo)</button>`;
   }).join('');
   ch.innerHTML = hireBtns + (fireBtns?`<div style="height:1px;background:var(--border);margin:6px 0"></div>`+fireBtns:'')
     + `<button class="choice-btn" onclick="showManageBusinessesModal()">← Back</button>`;
@@ -910,8 +915,18 @@ function hireEmployee(bizIdx, title){
   if(GS.char.checking < signing){ showToast(`Need ${fmt$(signing)} upfront to hire.`); return; }
   GS.char.checking -= signing;
   if(!b.employees) b.employees=[];
-  b.employees.push({title:role.title, wage:role.wage, boost:role.boost, hiredAt:GS.char.monthAge});
-  logEvent(`${role.icon} Hired ${role.title} at ${b.name} — ${fmt$(role.wage)}/mo`, 'info');
+  const firstNames=['Alex','Jordan','Taylor','Sam','Morgan','Casey','Riley','Jamie','Quinn','Dakota','Robin','Drew','Kai','Reese','Avery','Skylar','Parker','Rowan','Sage','Emerson','Hayden','Frankie','Blake','Marley','Cameron','Harper','Ellis','Sasha','Charlie','Lennon'];
+  const lastNames=['Chen','Patel','Nguyen','Kim','Reyes','Cruz','Khan','Singh','Diaz','Lopez','Brooks','Hayes','Miller','Carter','Bennett','Murphy','Walsh','Russo','Cole','Price','Kelly','Shaw','Long','Vega','Ward','Ortiz','Stone','Adams','Sanchez','Burke'];
+  const name=`${pick(firstNames)} ${pick(lastNames)}`;
+  b.employees.push({title:role.title, wage:role.wage, boost:role.boost, hiredAt:GS.char.monthAge, name, morale:ri(70,85), tenure:0});
+  logEvent(`${role.icon} Hired ${name} (${role.title}) at ${b.name} — ${fmt$(role.wage)}/mo`, 'info');
+  // Welcome note from the new hire
+  addInboxItem({
+    type:'news', icon:role.icon,
+    subject:`Hi from ${name} — new ${role.title} at ${b.name}`,
+    date: currentMonthDate(GS.char),
+    body:`Hey boss,\n\nJust wanted to introduce myself. I'm ${name}, your new ${role.title} at ${b.name}. Starting at ${fmt$(role.wage)}/mo. I'll send updates about how things are going, the team vibe, and anything that comes up.\n\nExcited to get started!\n\n— ${name}`
+  });
   saveGame();
   showHireModal(bizIdx);
 }
@@ -1721,14 +1736,101 @@ function tickBusinesses(inv, char, ev){
     if(!b.employees) b.employees=[];
     const cm=CLIMATE_MULT[inv.climate]||CLIMATE_MULT.normal;
     const statF=(char.smarts/100)*0.6+(char.looks/100)*0.2+0.2;
-    const empBoost=1 + b.employees.reduce((s,e)=>s+(e.boost||0),0);
+    // Employee morale dampens boost: avg morale < 50 cuts effectiveness
+    const avgMorale=b.employees.length ? b.employees.reduce((s,e)=>s+(e.morale||75),0)/b.employees.length : 75;
+    const moraleF=0.4 + (avgMorale/100)*0.7;  // ~0.75 at 50 morale, ~1.05 at 90
+    const empBoost=1 + b.employees.reduce((s,e)=>s+((e.boost||0)*((e.morale||75)/75)),0);
     const rev=Math.round(b.startCost*b.revMult*statF*(cm.stock)*rf(0.75,1.25)*Math.max(0.5,Math.log(b.age+2))*empBoost);
     const wages=b.employees.reduce((s,e)=>s+(e.wage||0)*12,0);
     const exp=Math.round(rev*rf(0.55,0.75)+b.startCost*0.05)+wages;
     b.profit=rev-exp; b.value=Math.max(Math.round(b.startCost*0.3),Math.round(b.profit*rf(2,4)));
     b.age++;
-    if(b.profit>0){char.checking+=b.profit;ev.push({type:'good',text:`${b.name} profit: ${fmt$(b.profit)} (wages ${fmt$(wages)})`});}
-    else{char.checking+=b.profit;ev.push({type:'bad',text:`${b.name} loss: ${fmt$(Math.abs(b.profit))} (wages ${fmt$(wages)})`});}
+    if(b.profit>0){char.checking+=b.profit;ev.push({type:'good',text:`${b.name} profit: ${fmt$(b.profit)} (wages ${fmt$(wages)}, morale ${Math.round(avgMorale)}%)`});}
+    else{char.checking+=b.profit;ev.push({type:'bad',text:`${b.name} loss: ${fmt$(Math.abs(b.profit))} (wages ${fmt$(wages)}, morale ${Math.round(avgMorale)}%)`});}
+  }
+}
+
+// ── Employee check-in messages — monthly morale drift + inbox updates ──
+const WORKPLACE_PROBLEMS = [
+  'The espresso machine is on its last legs — we might need a new one soon.',
+  'Supplier raised prices again. Margins getting tight on the bestsellers.',
+  'A couple of customers complained about long wait times last weekend.',
+  'One of the part-timers has been late three times this week.',
+  'POS system keeps freezing during the rush. Losing us maybe 10 mins/day.',
+  'We ran out of napkins/supplies twice this month. Inventory needs attention.',
+  'A competitor opened down the street. Noticed some of our regulars went over.',
+  'The walk-in freezer is running warm — fridge guy says it\'s the compressor.',
+  'Slip-and-fall in the back last Tuesday — nobody hurt, but we should fix that mat.',
+  'Small argument between staff. Sorted it out, but the vibe was off for a day.',
+  'Rent hike rumor going around for next year — landlord hinted at it.',
+  'Wi-Fi keeps dropping during peak hours. Customers notice.',
+  'Online reviews dipped a bit — one bad one is getting a lot of attention.',
+  'Health inspector came through, minor notes — nothing cited but a heads-up.',
+  'Nobody wants the weekend shifts. Scheduling is getting painful.',
+];
+
+const EMPLOYEE_POSITIVES = [
+  'Had a record day yesterday — busiest Saturday in months.',
+  'Team pulled together on the rush last weekend. Really solid work.',
+  'Got a regular customer who\'s been recommending us all over town.',
+  'Knocked out the monthly inventory two days early — everything checks out.',
+  'New menu/product idea I\'ve been testing is getting great reactions.',
+  'Trained the new part-timer. Quick learner, fits right in.',
+  'We hit our target for the week — first time in a while. Team\'s feeling it.',
+  'Got a small write-up in a local blog. Traffic bumped the next day.',
+  'Everyone stayed late to help close out inventory. Good crew.',
+];
+
+function tickEmployeeMessages(c, inv){
+  const bizs=inv.businesses||[];
+  for(const b of bizs){
+    if(!b.employees) continue;
+    // Compute biz health for morale drift
+    const profitPerEmp = (b.profit||0) / Math.max(1, b.employees.length);
+    for(const e of b.employees){
+      e.tenure = (e.tenure||0)+1;
+      if(e.morale===undefined) e.morale=75;
+      // Monthly morale drift
+      let drift = ri(-2,2);
+      if(profitPerEmp > 5000) drift += 2;
+      else if(profitPerEmp < -2000) drift -= 4;
+      else if(profitPerEmp < 0) drift -= 2;
+      // Long tenure without pay bump → slight decay
+      if(e.tenure > 24 && e.tenure % 12 === 0) drift -= 1;
+      e.morale = clamp(e.morale + drift, 0, 100);
+      // Message chance: ~12% per employee per month
+      if(!pct(0.12)) continue;
+      const date = currentMonthDate(c);
+      const name = e.name || e.title;
+      const roleIcon = (EMPLOYEE_ROLES.find(r=>r.title===e.title)?.icon) || '👥';
+      let subject, body, moodLabel;
+      if(e.morale >= 80){
+        moodLabel='High';
+        const positive = pick(EMPLOYEE_POSITIVES);
+        subject = `Good week at ${b.name} — ${name}`;
+        body = `Hey boss,\n\n${positive}\n\nTeam morale feels strong — I'd say we're around ${e.morale}%. No real problems right now.\n\n— ${name}, ${e.title}`;
+      } else if(e.morale >= 55){
+        moodLabel='Steady';
+        const maybeProblem = pct(0.5) ? pick(WORKPLACE_PROBLEMS) : 'Nothing major going on — things are steady.';
+        subject = `${b.name} check-in — ${name}`;
+        body = `Hey boss,\n\nJust a quick update. Workplace morale's around ${e.morale}% — people show up, do the work, go home.\n\n${maybeProblem}\n\nLet me know if you want me to look into anything.\n\n— ${name}, ${e.title}`;
+      } else if(e.morale >= 30){
+        moodLabel='Low';
+        const prob1 = pick(WORKPLACE_PROBLEMS);
+        const prob2 = pick(WORKPLACE_PROBLEMS.filter(p=>p!==prob1));
+        subject = `${b.name}: morale is slipping — ${name}`;
+        body = `Hey boss,\n\nWanted to flag that morale here has been dropping. I'd put it around ${e.morale}% honestly.\n\nTwo things on my mind:\n• ${prob1}\n• ${prob2}\n\nI think a pay review or small team gesture would go a long way. Otherwise I'm worried about turnover.\n\n— ${name}, ${e.title}`;
+      } else {
+        moodLabel='Critical';
+        const prob = pick(WORKPLACE_PROBLEMS);
+        subject = `${b.name}: considering my options — ${name}`;
+        body = `Hey boss,\n\nI've got to be honest — morale at ${e.morale}% is rough. Multiple issues stacking up:\n\n• ${prob}\n• Wages haven't kept up with the workload.\n• Long stretches without real recognition.\n\nI'm looking around. Happy to talk before I decide anything, but you should know.\n\n— ${name}, ${e.title}`;
+      }
+      addInboxItem({
+        type:'news', icon:roleIcon, subject, date,
+        body: `${body}\n\n── Snapshot ──\nBusiness: ${b.name}\nMorale: ${e.morale}% (${moodLabel})\nTenure: ${e.tenure} months\nWage: ${fmt$(e.wage)}/mo`
+      });
+    }
   }
 }
 
@@ -2100,6 +2202,9 @@ function monthlyTick(){
 
   // Bank update message: ~9% monthly chance (about 1/year per bank feature)
   maybeEmitBankUpdate(c);
+
+  // Employee check-ins: monthly morale drift + inbox messages from staff
+  tickEmployeeMessages(c, inv);
 
   updateUI(fin, prevNW, nw);
   saveGame();
