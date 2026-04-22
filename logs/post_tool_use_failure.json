@@ -366,5 +366,67 @@
       "is_interrupt": false,
       "logged_at": "2026-04-20T21:21:30.398699"
     }
+  },
+  {
+    "timestamp": "2026-04-21T19:36:21.340440",
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01JiTJhYEUi2yjoaBmU2FDWu",
+    "tool_input": {
+      "command": "jq '.summary, .consoleErrors[0:5], .pageErrors[0:5], .stateAnomalies[0:10]' /c/Users/noahm/Project/.playwright-cli/stress-output.json",
+      "description": "Extract summary and error slices from stress output"
+    },
+    "error": "Exit code 127\n/usr/bin/bash: line 1: jq: command not found",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "raw_input": {
+      "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "jq '.summary, .consoleErrors[0:5], .pageErrors[0:5], .stateAnomalies[0:10]' /c/Users/noahm/Project/.playwright-cli/stress-output.json",
+        "description": "Extract summary and error slices from stress output"
+      },
+      "tool_use_id": "toolu_01JiTJhYEUi2yjoaBmU2FDWu",
+      "error": "Exit code 127\n/usr/bin/bash: line 1: jq: command not found",
+      "is_interrupt": false,
+      "logged_at": "2026-04-21T19:36:21.340440"
+    }
+  },
+  {
+    "timestamp": "2026-04-21T19:36:26.400294",
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01LEeZrNUWETxvMRKuhMfZ2d",
+    "tool_input": {
+      "command": "node -e \"const j=JSON.parse(require('fs').readFileSync('/c/Users/noahm/Project/.playwright-cli/stress-output.json','utf8')); console.log('SUMMARY:',JSON.stringify(j.summary,null,2)); console.log('\\\\nCONSOLE ERRORS:',j.consoleErrors.slice(0,8)); console.log('\\\\nPAGE ERRORS:',j.pageErrors.slice(0,8)); console.log('\\\\nANOMALIES:',j.stateAnomalies.slice(0,15));\"",
+      "description": "Print stress test summary via node"
+    },
+    "error": "Exit code 1\nnode:fs:440\r\n    return binding.readFileUtf8(path, stringToFlags(options.flag));\r\n                   ^\r\n\r\nError: ENOENT: no such file or directory, open 'C:\\c\\Users\\noahm\\Project\\.playwright-cli\\stress-output.json'\r\n    at Object.readFileSync (node:fs:440:20)\r\n    at [eval]:1:34\r\n    at runScriptInThisContext (node:internal/vm:219:10)\r\n    at node:internal/process/execution:451:12\r\n    at [eval]-wrapper:6:24\r\n    at runScriptInContext (node:internal/process/execution:449:60)\r\n    at evalFunction (node:internal/process/execution:283:30)\r\n    at evalTypeScript (node:internal/process/execution:295:3)\r\n    at node:internal/main/eval_string:71:3 {\r\n  errno: -4058,\r\n  code: 'ENOENT',\r\n  syscall: 'open',\r\n  path: 'C:\\\\c\\\\Users\\\\noahm\\\\Project\\\\.playwright-cli\\\\stress-output.json'\r\n}\r\n\r\nNode.js v24.12.0",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "raw_input": {
+      "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "node -e \"const j=JSON.parse(require('fs').readFileSync('/c/Users/noahm/Project/.playwright-cli/stress-output.json','utf8')); console.log('SUMMARY:',JSON.stringify(j.summary,null,2)); console.log('\\\\nCONSOLE ERRORS:',j.consoleErrors.slice(0,8)); console.log('\\\\nPAGE ERRORS:',j.pageErrors.slice(0,8)); console.log('\\\\nANOMALIES:',j.stateAnomalies.slice(0,15));\"",
+        "description": "Print stress test summary via node"
+      },
+      "tool_use_id": "toolu_01LEeZrNUWETxvMRKuhMfZ2d",
+      "error": "Exit code 1\nnode:fs:440\r\n    return binding.readFileUtf8(path, stringToFlags(options.flag));\r\n                   ^\r\n\r\nError: ENOENT: no such file or directory, open 'C:\\c\\Users\\noahm\\Project\\.playwright-cli\\stress-output.json'\r\n    at Object.readFileSync (node:fs:440:20)\r\n    at [eval]:1:34\r\n    at runScriptInThisContext (node:internal/vm:219:10)\r\n    at node:internal/process/execution:451:12\r\n    at [eval]-wrapper:6:24\r\n    at runScriptInContext (node:internal/process/execution:449:60)\r\n    at evalFunction (node:internal/process/execution:283:30)\r\n    at evalTypeScript (node:internal/process/execution:295:3)\r\n    at node:internal/main/eval_string:71:3 {\r\n  errno: -4058,\r\n  code: 'ENOENT',\r\n  syscall: 'open',\r\n  path: 'C:\\\\c\\\\Users\\\\noahm\\\\Project\\\\.playwright-cli\\\\stress-output.json'\r\n}\r\n\r\nNode.js v24.12.0",
+      "is_interrupt": false,
+      "logged_at": "2026-04-21T19:36:26.400294"
+    }
   }
 ]
