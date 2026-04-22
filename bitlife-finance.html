@@ -2140,34 +2140,51 @@ function tickPendingExpenses(char, ev){
 // ── Monthly Expense Generator ─────────────────────────────────────
 function generateMonthlyExpenseEvent(char){
   if(char.age < 16) return null;
-  const item = pick(MONTHLY_EXPENSES);
-  const cost = ri(item.min, item.max);
+  // Pick 4 distinct items, each with its own rolled cost
+  const pool = MONTHLY_EXPENSES.slice();
+  const picks = [];
+  const count = Math.min(4, pool.length);
+  for(let i=0; i<count; i++){
+    const idx = ri(0, pool.length-1);
+    const item = pool.splice(idx, 1)[0];
+    picks.push({item, cost: ri(item.min, item.max)});
+  }
+  const descLines = picks.map(p => `${p.item.icon} ${p.item.name} — ${fmt$(p.cost)}`).join('  ·  ');
+  const choices = [];
+  for(const p of picks){
+    choices.push({
+      text:`Buy ${p.item.icon} ${p.item.name} — ${fmt$(p.cost)}`,
+      fn(c){
+        c.checking -= p.cost;
+        const bump = ri(1,3);
+        c.creditScore = clamp(c.creditScore + bump, 300, 850);
+        if(!c.belongings) c.belongings=[];
+        c.belongings.push({id:`b_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, name:p.item.name, icon:p.item.icon, cost:p.cost, purchasedAt:c.monthAge});
+        return `Paid ${fmt$(p.cost)} for ${p.item.name}. Added to belongings — sell anytime from Assets tab. Credit score +${bump}.`;
+      }
+    });
+  }
+  for(const p of picks){
+    choices.push({
+      text:`Defer ${p.item.icon} ${p.item.name} — ${fmt$(p.cost)} (10 mo)`,
+      fn(c){
+        if(!c.pendingExpenses) c.pendingExpenses=[];
+        c.pendingExpenses.push({name:p.item.name, icon:p.item.icon, cost:p.cost, monthsLeft:10});
+        return `Deferred ${p.item.name}. ${fmt$(p.cost)} due in 10 months. Miss it and your credit takes a hit.`;
+      }
+    });
+  }
+  choices.push({
+    text:`Pass — none of these`,
+    fn(){ return `Skipped this month's offers. Maybe next time.`; }
+  });
   return {
     id: 'monthly_expense_'+Date.now(),
-    title: item.name,
+    title: 'Monthly Shopping Offers',
     cat: 'expense',
-    icon: item.icon,
-    desc: `You spotted a ${item.name.toLowerCase()} you want. It costs ${fmt$(cost)}. Pay now or defer up to 10 months — but miss the deadline and it auto-deducts with a credit penalty.`,
-    _cost: cost,
-    _item: item,
-    choices:[
-      {text:`Buy Now — ${fmt$(cost)} from checking`,
-       fn(c){
-         c.checking -= cost;
-         c.creditScore = clamp(c.creditScore + ri(1,3), 300, 850);
-         if(!c.belongings) c.belongings=[];
-         c.belongings.push({id:`b_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, name:item.name, icon:item.icon, cost, purchasedAt:c.monthAge});
-         return `Paid ${fmt$(cost)} for ${item.name}. Added to belongings — sell anytime from Assets tab. Credit score +${ri(1,3)} (on-time).`;
-       }
-      },
-      {text:`Defer — pay within 10 months or auto-deducted`,
-       fn(c){
-         if(!c.pendingExpenses) c.pendingExpenses=[];
-         c.pendingExpenses.push({name:item.name, icon:item.icon, cost, monthsLeft:10});
-         return `Deferred. ${fmt$(cost)} due in 10 months. Miss it and your credit takes a hit.`;
-       }
-      },
-    ],
+    icon: picks[0].item.icon,
+    desc: `Four items caught your eye this month. Pick one to buy, defer the cost up to 10 months, or pass entirely.\n\n${descLines}`,
+    choices,
   };
 }
 
