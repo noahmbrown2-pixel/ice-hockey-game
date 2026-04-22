@@ -824,6 +824,7 @@ function generateInboxItems(c, inv){
 function addInboxItem(item){
   if(!GS.inbox) GS.inbox=[];
   GS.inbox.unshift({id:`ib_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, read:false, ...item});
+  if(GS.inbox.length>40) GS.inbox.length=40;
 }
 
 function renderInbox(){
@@ -2602,7 +2603,7 @@ function showStockModal(){
     const pos=inv.portfolio[s.id];
     const owned=pos?pos.shares:0;
     const canAfford=c.checking>=s.price*10;
-    const card=document.createElement('div'); card.className='asset-card';
+    const card=document.createElement('div'); card.className='asset-card'; card.setAttribute('data-stock-card', s.id);
     card.innerHTML=`
       <div class="ac-hdr"><div><div class="ac-name">${s.name}</div><div class="ac-ticker">${s.id} · ${s.sector||'stocks'}</div></div>
       <div style="text-align:right"><div class="ac-price">$${s.price.toFixed(2)}</div><div class="ac-chg ${chg>=0?'pos':'neg'}">${chg>=0?'+':''}${chg.toFixed(1)}%</div></div></div>
@@ -2618,6 +2619,21 @@ function showStockModal(){
   const closeBtn=document.createElement('button'); closeBtn.className='choice-btn'; closeBtn.textContent='Close';
   closeBtn.onclick=()=>{$('modal-box').classList.remove('wide'); closeModal();};
   ch.appendChild(closeBtn);
+  function refreshStockCard(id){
+    const s=inv.stocks.find(x=>x.id===id); if(!s) return;
+    const card=grid.querySelector(`[data-stock-card="${id}"]`); if(!card) return;
+    const pos=inv.portfolio[s.id]; const owned=pos?pos.shares:0;
+    const meta=card.querySelector('.ac-meta');
+    if(meta) meta.innerHTML=`<span>${owned?`Owned: ${owned} sh · ${fmt$(s.price*owned)}`:'Not held'}</span><span>10sh = ${fmt$(s.price*10)}</span>`;
+    const sellBtn=card.querySelector('.ac-btn.sell'); if(sellBtn) sellBtn.disabled=!owned;
+  }
+  function refreshStockAffordability(){
+    $('m-body').textContent=`Climate: ${inv.climate.toUpperCase()} · Cash: ${fmt$(c.checking)} · Prices update monthly.`;
+    inv.stocks.forEach(stk=>{
+      const b=grid.querySelector(`[data-buy="${stk.id}"]`);
+      if(b) b.disabled=c.checking<stk.price*10;
+    });
+  }
   grid.onclick=(e)=>{
     const buyId=e.target.getAttribute('data-buy');
     const sellId=e.target.getAttribute('data-sell');
@@ -2628,7 +2644,7 @@ function showStockModal(){
       if(!inv.portfolio[s.id]) inv.portfolio[s.id]={shares:0,avgCost:0};
       const p=inv.portfolio[s.id]; p.avgCost=(p.avgCost*p.shares+cost)/(p.shares+10); p.shares+=10;
       showToast(`Bought 10 ${s.id} for ${fmt$(cost)}`);
-      showStockModal();
+      refreshStockCard(buyId); refreshStockAffordability();
     }else if(sellId){
       const s=inv.stocks.find(x=>x.id===sellId); const p=inv.portfolio[sellId]; if(!p) return;
       const proceeds=Math.round(s.price*p.shares);
@@ -2637,7 +2653,7 @@ function showStockModal(){
       c.checking+=proceeds-tax;
       delete inv.portfolio[sellId];
       showToast(`Sold ${sellId} for ${fmt$(proceeds-tax)}`);
-      showStockModal();
+      refreshStockCard(sellId); refreshStockAffordability();
     }
   };
   overlay.classList.add('open');
@@ -2664,7 +2680,7 @@ function showCryptoModal(){
     const owned=pos?pos.coins:0;
     const canAfford=c.checking>=1000;
     const priceLbl=coin.price>=1000?'$'+(coin.price/1000).toFixed(2)+'k':coin.price>=1?'$'+coin.price.toFixed(2):'$'+coin.price.toFixed(5);
-    const card=document.createElement('div'); card.className='asset-card';
+    const card=document.createElement('div'); card.className='asset-card'; card.setAttribute('data-crypto-card', coin.id);
     card.innerHTML=`
       <div class="ac-hdr"><div><div class="ac-name">${coin.name}</div><div class="ac-ticker">${coin.id}</div></div>
       <div style="text-align:right"><div class="ac-price">${priceLbl}</div><div class="ac-chg ${chg>=0?'pos':'neg'}">${chg>=0?'+':''}${chg.toFixed(1)}%</div></div></div>
@@ -2680,6 +2696,21 @@ function showCryptoModal(){
   const closeBtn=document.createElement('button'); closeBtn.className='choice-btn'; closeBtn.textContent='Close';
   closeBtn.onclick=()=>{$('modal-box').classList.remove('wide'); closeModal();};
   ch.appendChild(closeBtn);
+  function refreshCryptoCard(id){
+    const coin=inv.cryptos.find(x=>x.id===id); if(!coin) return;
+    const card=grid.querySelector(`[data-crypto-card="${id}"]`); if(!card) return;
+    const pos=inv.cryptoHeld[coin.id]; const owned=pos?pos.coins:0;
+    const meta=card.querySelector('.ac-meta');
+    if(meta) meta.innerHTML=`<span>${owned?`Owned: ${owned.toFixed(4)} · ${fmt$(coin.price*owned)}`:'Not held'}</span><span>Buy = $1,000</span>`;
+    const sellBtn=card.querySelector('.ac-btn.sell'); if(sellBtn) sellBtn.disabled=!owned;
+  }
+  function refreshCryptoAffordability(){
+    $('m-body').textContent=`Climate: ${inv.climate.toUpperCase()} · Cash: ${fmt$(c.checking)} · Extremely volatile. Prices update monthly.`;
+    inv.cryptos.forEach(coin=>{
+      const b=grid.querySelector(`[data-buy="${coin.id}"]`);
+      if(b) b.disabled=c.checking<1000;
+    });
+  }
   grid.onclick=(e)=>{
     const buyId=e.target.getAttribute('data-buy');
     const sellId=e.target.getAttribute('data-sell');
@@ -2691,7 +2722,7 @@ function showCryptoModal(){
       if(!inv.cryptoHeld[coin.id]) inv.cryptoHeld[coin.id]={coins:0,avgCost:0};
       const p=inv.cryptoHeld[coin.id]; p.avgCost=(p.avgCost*p.coins+1000)/(p.coins+coins); p.coins+=coins;
       showToast(`Bought ${coins.toFixed(4)} ${coin.id}`);
-      showCryptoModal();
+      refreshCryptoCard(buyId); refreshCryptoAffordability();
     }else if(sellId){
       const coin=inv.cryptos.find(x=>x.id===sellId); const p=inv.cryptoHeld[sellId]; if(!p) return;
       const proceeds=coin.price*p.coins;
@@ -2699,7 +2730,7 @@ function showCryptoModal(){
       c.checking+=proceeds-tax;
       delete inv.cryptoHeld[sellId];
       showToast(`Sold ${sellId} for ${fmt$(proceeds-tax)}`);
-      showCryptoModal();
+      refreshCryptoCard(sellId); refreshCryptoAffordability();
     }
   };
   overlay.classList.add('open');
