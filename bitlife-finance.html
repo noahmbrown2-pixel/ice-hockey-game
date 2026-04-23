@@ -110,6 +110,8 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 .act-btn.hustle{border-color:#80cbc4}
 .act-btn.edu{border-color:#ef9a9a}
 .act-btn.biz{border-color:#ffb74d}
+.act-btn.sponsors{border-color:#f48fb1;color:#f48fb1}
+.act-btn.sponsors:hover{background:linear-gradient(135deg,var(--bg3),rgba(244,143,177,.1))}
 .act-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
 
 /* Chart Area */
@@ -473,6 +475,7 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
         <button class="act-btn crypto" id="btn-crypto"><span class="aico">₿</span>Crypto</button>
         <button class="act-btn hustle" id="btn-hustle"><span class="aico">⚡</span>Side Hustle</button>
         <button class="act-btn edu"    id="btn-edu"><span class="aico">🎓</span>Education</button>
+        <button class="act-btn sponsors" id="btn-sponsors" style="display:none"><span class="aico">🤝</span>Sponsors</button>
         <button class="act-btn inbox"  id="btn-inbox" style="grid-column:1/-1;position:relative"><span class="aico">📬</span>Inbox<span id="inbox-badge" class="inbox-badge-btn">0</span></button>
       </div>
       <div id="chart-area">
@@ -885,17 +888,50 @@ const BIZ_TYPES = [
   {icon:'☁️', name:'SaaS Company', cost:40000,  revMult:3.5},
 ];
 
+const EQUIPMENT_TIERS = [
+  {tier:1, label:'Basic',             revBoost:0.00, moraleFloor:40, upgradeCost:15000},
+  {tier:2, label:'Standard',          revBoost:0.05, moraleFloor:50, upgradeCost:30000},
+  {tier:3, label:'Pro',               revBoost:0.10, moraleFloor:60, upgradeCost:60000},
+  {tier:4, label:'Premium',           revBoost:0.18, moraleFloor:70, upgradeCost:120000},
+  {tier:5, label:'State-of-the-art',  revBoost:0.28, moraleFloor:80, upgradeCost:null},
+];
+function equipmentInfo(b){
+  const tier = EQUIPMENT_TIERS.find(e=>e.tier===(b.equipTier||1)) || EQUIPMENT_TIERS[0];
+  const age = b.equipAge||0;
+  // Old equipment: age > 5 years OR tier 1 + age > 2 years
+  const old = age >= 6 || (tier.tier===1 && age>=3) || (tier.tier===2 && age>=5);
+  const next = EQUIPMENT_TIERS.find(e=>e.tier===tier.tier+1) || null;
+  return {tier, age, old, next};
+}
+
 function startBusiness(idx){
   const bz=BIZ_TYPES[idx]; if(!bz) return;
   const c=GS.char;
   if(c.checking<bz.cost){ showToast(`Need ${fmt$(bz.cost)} to start ${bz.name}.`); return; }
   c.checking-=bz.cost;
-  GS.inv.businesses.push({name:bz.name,startCost:bz.cost,value:bz.cost,revMult:bz.revMult,profit:0,age:0,employees:[]});
+  GS.inv.businesses.push({name:bz.name,startCost:bz.cost,value:bz.cost,revMult:bz.revMult,profit:0,age:0,employees:[],equipTier:1,equipAge:0});
   logEvent(`${bz.icon} Started ${bz.name} — invested ${fmt$(bz.cost)}`, 'good');
   showToast(`Started ${bz.name}!`);
   saveGame();
   const nw=calcNetWorth(GS.char,GS.inv);
   updateUI(null,nw,nw);
+}
+
+function upgradeEquipment(bizIdx){
+  const b=GS.inv.businesses[bizIdx]; if(!b) return;
+  const info=equipmentInfo(b);
+  if(!info.next){ showToast('Already at top-tier equipment.'); return; }
+  const cost = info.tier.upgradeCost;
+  if(GS.char.checking < cost){ showToast(`Need ${fmt$(cost)} to upgrade.`); return; }
+  GS.char.checking -= cost;
+  b.equipTier = info.next.tier;
+  b.equipAge = 0;
+  // Morale bump for all employees
+  for(const e of (b.employees||[])){ e.morale = clamp((e.morale||75) + ri(6,12), 0, 100); }
+  logEvent(`🛠️ Upgraded ${b.name} equipment → ${info.next.label} (${fmt$(cost)})`, 'good');
+  saveGame();
+  showHireModal(bizIdx);
+  renderBusinessTab();
 }
 
 function renderBusinessTab(){
@@ -930,9 +966,47 @@ function renderBusinessTab(){
   }
 }
 
+function payBonuses(bizIdx){
+  const b=GS.inv.businesses[bizIdx]; if(!b||!b.employees||!b.employees.length) return;
+  const per=500, total=per*b.employees.length;
+  if(GS.char.checking<total){ showToast(`Need ${fmt$(total)} for bonuses.`); return; }
+  GS.char.checking-=total;
+  for(const e of b.employees){ e.morale=clamp((e.morale||75)+ri(10,18),0,100); }
+  logEvent(`🎁 Paid $${per} bonus × ${b.employees.length} at ${b.name} (${fmt$(total)})`, 'good');
+  saveGame(); showHireModal(bizIdx); renderBusinessTab();
+}
+function raiseWages(bizIdx){
+  const b=GS.inv.businesses[bizIdx]; if(!b||!b.employees||!b.employees.length) return;
+  for(const e of b.employees){ e.wage=Math.round((e.wage||0)*1.08); e.morale=clamp((e.morale||75)+ri(6,10),0,100); e.tenure=0; }
+  logEvent(`📈 8% raise at ${b.name} — team morale up`, 'good');
+  saveGame(); showHireModal(bizIdx); renderBusinessTab();
+}
+function throwTeamParty(bizIdx){
+  const b=GS.inv.businesses[bizIdx]; if(!b||!b.employees||!b.employees.length) return;
+  const cost=2000 + 300*b.employees.length;
+  if(GS.char.checking<cost){ showToast(`Need ${fmt$(cost)} for the party.`); return; }
+  GS.char.checking-=cost;
+  for(const e of b.employees){ e.morale=clamp((e.morale||75)+ri(5,10),0,100); }
+  logEvent(`🎉 Team party at ${b.name} (${fmt$(cost)})`, 'good');
+  saveGame(); showHireModal(bizIdx); renderBusinessTab();
+}
+function trainingProgram(bizIdx){
+  const b=GS.inv.businesses[bizIdx]; if(!b||!b.employees||!b.employees.length) return;
+  const per=3000, total=per*b.employees.length;
+  if(GS.char.checking<total){ showToast(`Need ${fmt$(total)} for training.`); return; }
+  GS.char.checking-=total;
+  for(const e of b.employees){
+    e.morale=clamp((e.morale||75)+ri(8,14),0,100);
+    e.boost=Math.min(1.5,(e.boost||0)+0.04);
+  }
+  logEvent(`📚 Training program at ${b.name} (${fmt$(total)}) — +4% rev each`, 'good');
+  saveGame(); showHireModal(bizIdx); renderBusinessTab();
+}
+
 function showHireModal(bizIdx){
   const b=GS.inv.businesses[bizIdx]; if(!b) return;
   if(!b.employees) b.employees=[];
+  if(b.equipTier===undefined){ b.equipTier=1; b.equipAge=0; }
   $('m-icon').textContent='👥';
   $('m-tag').textContent='Staffing';
   $('m-tag').className='modal-tag fla';
@@ -941,9 +1015,29 @@ function showHireModal(bizIdx){
   const curBoost=Math.round(b.employees.reduce((s,e)=>s+(e.boost||0),0)*100);
   const avgMorale=b.employees.length ? Math.round(b.employees.reduce((s,e)=>s+(e.morale||75),0)/b.employees.length) : 0;
   const moraleTag = b.employees.length ? ` · Morale ${avgMorale}%` : '';
-  $('m-body').textContent=`Current staff: ${b.employees.length} · Wages: ${fmt$(curWages)}/mo · Revenue boost: +${curBoost}%${moraleTag}`;
+  const einfo=equipmentInfo(b);
+  const equipLine = `Equipment: ${einfo.tier.label} (T${einfo.tier.tier}, ${einfo.age}y${einfo.old?' — OLD ⚠️':''}) · +${Math.round(einfo.tier.revBoost*100)}% rev`;
+  $('m-body').textContent=`Staff: ${b.employees.length} · Wages: ${fmt$(curWages)}/mo · Boost: +${curBoost}%${moraleTag}\n${equipLine}`;
   $('m-result').style.display='none';
   const ch=$('m-choices');
+  // Morale boosters (only if staff exists)
+  let moraleBtns='';
+  if(b.employees.length){
+    const bonusTot = 500*b.employees.length;
+    const partyTot = 2000 + 300*b.employees.length;
+    const trainTot = 3000*b.employees.length;
+    moraleBtns = `<button class="choice-btn" onclick="payBonuses(${bizIdx})" style="border-color:#80cbc4;color:#80cbc4">🎁 Pay $500 bonuses (${fmt$(bonusTot)} total) · +10–18 morale</button>`
+      + `<button class="choice-btn" onclick="raiseWages(${bizIdx})" style="border-color:#80cbc4;color:#80cbc4">📈 Raise wages 8% · +6–10 morale (ongoing cost)</button>`
+      + `<button class="choice-btn" onclick="throwTeamParty(${bizIdx})" style="border-color:#80cbc4;color:#80cbc4">🎉 Team party (${fmt$(partyTot)}) · +5–10 morale</button>`
+      + `<button class="choice-btn" onclick="trainingProgram(${bizIdx})" style="border-color:#80cbc4;color:#80cbc4">📚 Training program (${fmt$(trainTot)}) · +8–14 morale, +4% boost each</button>`;
+  }
+  // Equipment upgrade
+  let equipBtn='';
+  if(einfo.next){
+    equipBtn = `<button class="choice-btn" onclick="upgradeEquipment(${bizIdx})" style="border-color:#ffb74d;color:#ffb74d">🛠️ Upgrade → ${einfo.next.label} (T${einfo.next.tier}) — ${fmt$(einfo.tier.upgradeCost)} · +${Math.round(einfo.next.revBoost*100)}% rev, resets age, morale boost</button>`;
+  } else {
+    equipBtn = `<div style="padding:8px;text-align:center;color:var(--muted);font-size:11px">Equipment is at max tier — State-of-the-art.</div>`;
+  }
   const hireBtns = EMPLOYEE_ROLES.map(r=>{
     return `<button class="choice-btn" onclick="hireEmployee(${bizIdx},'${r.title}')">${r.icon} Hire ${r.title} — ${fmt$(r.wage)}/mo · +${Math.round(r.boost*100)}% rev</button>`;
   }).join('');
@@ -953,7 +1047,11 @@ function showHireModal(bizIdx){
     const nameTag = e.name ? ` — ${e.name}` : '';
     return `<button class="choice-btn" onclick="fireEmployee(${bizIdx},${ei})" style="border-color:var(--red);color:var(--red)">${moodIco} ${m}% · ✖ Fire ${e.title}${nameTag} (${fmt$(e.wage)}/mo)</button>`;
   }).join('');
-  ch.innerHTML = hireBtns + (fireBtns?`<div style="height:1px;background:var(--border);margin:6px 0"></div>`+fireBtns:'')
+  const sep = `<div style="height:1px;background:var(--border);margin:6px 0"></div>`;
+  ch.innerHTML = equipBtn
+    + (moraleBtns ? sep + moraleBtns : '')
+    + sep + hireBtns
+    + (fireBtns ? sep + fireBtns : '')
     + `<button class="choice-btn" onclick="closeModal()">Close</button>`;
   $('modal-box').classList.add('compact');
   $('modal-overlay').classList.add('open');
@@ -1649,6 +1747,9 @@ function createInvState(){
     properties:[],
     businesses:[],
     vehicles:[],     // [{name,type,price,value,monthlyCost,isElectric,age,depRate}]
+    sponsors:[],     // [{name,icon,monthly,monthsLeft,signedAt,category}]
+    sponsorOffers:null, // cached current offer set
+    sponsorOffersMonth:-1,
     climate:'normal',
     climateYearsLeft:0,
   };
@@ -1787,19 +1888,23 @@ function tickRealEstate(inv, ev){
 function tickBusinesses(inv, char, ev){
   for(const b of inv.businesses){
     if(!b.employees) b.employees=[];
+    if(b.equipTier===undefined){ b.equipTier=1; b.equipAge=0; }
     const cm=CLIMATE_MULT[inv.climate]||CLIMATE_MULT.normal;
     const statF=(char.smarts/100)*0.6+(char.looks/100)*0.2+0.2;
     // Employee morale dampens boost: avg morale < 50 cuts effectiveness
     const avgMorale=b.employees.length ? b.employees.reduce((s,e)=>s+(e.morale||75),0)/b.employees.length : 75;
     const moraleF=0.4 + (avgMorale/100)*0.7;  // ~0.75 at 50 morale, ~1.05 at 90
     const empBoost=1 + b.employees.reduce((s,e)=>s+((e.boost||0)*((e.morale||75)/75)),0);
-    const rev=Math.round(b.startCost*b.revMult*statF*(cm.stock)*rf(0.75,1.25)*Math.max(0.5,Math.log(b.age+2))*empBoost);
+    const einfo = equipmentInfo(b);
+    const equipF = 1 + einfo.tier.revBoost - (einfo.old ? 0.08 : 0);
+    const rev=Math.round(b.startCost*b.revMult*statF*(cm.stock)*rf(0.75,1.25)*Math.max(0.5,Math.log(b.age+2))*empBoost*equipF);
     const wages=b.employees.reduce((s,e)=>s+(e.wage||0)*12,0);
     const exp=Math.round(rev*rf(0.55,0.75)+b.startCost*0.05)+wages;
     b.profit=rev-exp; b.value=Math.max(Math.round(b.startCost*0.3),Math.round(b.profit*rf(2,4)));
     b.age++;
-    if(b.profit>0){char.checking+=b.profit;ev.push({type:'good',text:`${b.name} profit: ${fmt$(b.profit)} (wages ${fmt$(wages)}, morale ${Math.round(avgMorale)}%)`});}
-    else{char.checking+=b.profit;ev.push({type:'bad',text:`${b.name} loss: ${fmt$(Math.abs(b.profit))} (wages ${fmt$(wages)}, morale ${Math.round(avgMorale)}%)`});}
+    b.equipAge=(b.equipAge||0)+1;
+    if(b.profit>0){char.checking+=b.profit;ev.push({type:'good',text:`${b.name} profit: ${fmt$(b.profit)} (wages ${fmt$(wages)}, morale ${Math.round(avgMorale)}%, equip ${einfo.tier.label}${einfo.old?' OLD':''})`});}
+    else{char.checking+=b.profit;ev.push({type:'bad',text:`${b.name} loss: ${fmt$(Math.abs(b.profit))} (wages ${fmt$(wages)}, morale ${Math.round(avgMorale)}%, equip ${einfo.tier.label}${einfo.old?' OLD':''})`});}
   }
 }
 
@@ -1834,10 +1939,19 @@ const EMPLOYEE_POSITIVES = [
   'Everyone stayed late to help close out inventory. Good crew.',
 ];
 
+const EQUIPMENT_COMPLAINTS = [
+  'The equipment is genuinely past its life. Tools break mid-shift.',
+  'Our gear is old — I\'m losing an hour a day working around it.',
+  'Can we please upgrade the equipment? It\'s embarrassing in front of customers.',
+  'The old machines keep jamming. Team is frustrated.',
+  'Tried to fix the rig again yesterday. It needs replacing, not patching.',
+];
+
 function tickEmployeeMessages(c, inv){
   const bizs=inv.businesses||[];
   for(const b of bizs){
     if(!b.employees) continue;
+    const einfo = equipmentInfo(b);
     // Compute biz health for morale drift
     const profitPerEmp = (b.profit||0) / Math.max(1, b.employees.length);
     for(const e of b.employees){
@@ -1848,6 +1962,9 @@ function tickEmployeeMessages(c, inv){
       if(profitPerEmp > 5000) drift += 2;
       else if(profitPerEmp < -2000) drift -= 4;
       else if(profitPerEmp < 0) drift -= 2;
+      // Old equipment erodes morale over time
+      if(einfo.old) drift -= ri(1,3);
+      else if(einfo.tier.tier >= 4) drift += 1;
       // Long tenure without pay bump → slight decay
       if(e.tenure > 24 && e.tenure % 12 === 0) drift -= 1;
       e.morale = clamp(e.morale + drift, 0, 100);
@@ -1856,6 +1973,8 @@ function tickEmployeeMessages(c, inv){
       const date = currentMonthDate(c);
       const name = e.name || e.title;
       const roleIcon = (EMPLOYEE_ROLES.find(r=>r.title===e.title)?.icon) || '👥';
+      // Pool complaints — include equipment complaints only when equipment is old
+      const problemPool = einfo.old ? WORKPLACE_PROBLEMS.concat(EQUIPMENT_COMPLAINTS, EQUIPMENT_COMPLAINTS) : WORKPLACE_PROBLEMS;
       let subject, body, moodLabel;
       if(e.morale >= 80){
         moodLabel='High';
@@ -1864,24 +1983,24 @@ function tickEmployeeMessages(c, inv){
         body = `Hey boss,\n\n${positive}\n\nTeam morale feels strong — I'd say we're around ${e.morale}%. No real problems right now.\n\n— ${name}, ${e.title}`;
       } else if(e.morale >= 55){
         moodLabel='Steady';
-        const maybeProblem = pct(0.5) ? pick(WORKPLACE_PROBLEMS) : 'Nothing major going on — things are steady.';
+        const maybeProblem = pct(0.5) ? pick(problemPool) : 'Nothing major going on — things are steady.';
         subject = `${b.name} check-in — ${name}`;
         body = `Hey boss,\n\nJust a quick update. Workplace morale's around ${e.morale}% — people show up, do the work, go home.\n\n${maybeProblem}\n\nLet me know if you want me to look into anything.\n\n— ${name}, ${e.title}`;
       } else if(e.morale >= 30){
         moodLabel='Low';
-        const prob1 = pick(WORKPLACE_PROBLEMS);
-        const prob2 = pick(WORKPLACE_PROBLEMS.filter(p=>p!==prob1));
+        const prob1 = pick(problemPool);
+        const prob2 = pick(problemPool.filter(p=>p!==prob1));
         subject = `${b.name}: morale is slipping — ${name}`;
-        body = `Hey boss,\n\nWanted to flag that morale here has been dropping. I'd put it around ${e.morale}% honestly.\n\nTwo things on my mind:\n• ${prob1}\n• ${prob2}\n\nI think a pay review or small team gesture would go a long way. Otherwise I'm worried about turnover.\n\n— ${name}, ${e.title}`;
+        body = `Hey boss,\n\nWanted to flag that morale here has been dropping. I'd put it around ${e.morale}% honestly.\n\nTwo things on my mind:\n• ${prob1}\n• ${prob2}\n\nOptions that would help: a bonus, a raise, a team day, training, or (if the gear is old) an equipment upgrade. Staff actions are in the Business tab under Manage Staff.\n\n— ${name}, ${e.title}`;
       } else {
         moodLabel='Critical';
-        const prob = pick(WORKPLACE_PROBLEMS);
+        const prob = pick(problemPool);
         subject = `${b.name}: considering my options — ${name}`;
-        body = `Hey boss,\n\nI've got to be honest — morale at ${e.morale}% is rough. Multiple issues stacking up:\n\n• ${prob}\n• Wages haven't kept up with the workload.\n• Long stretches without real recognition.\n\nI'm looking around. Happy to talk before I decide anything, but you should know.\n\n— ${name}, ${e.title}`;
+        body = `Hey boss,\n\nI've got to be honest — morale at ${e.morale}% is rough. Multiple issues stacking up:\n\n• ${prob}\n• Wages haven't kept up with the workload.\n• Long stretches without real recognition.\n\nI'm looking around. Happy to talk before I decide anything, but you should know. A bonus, raise, team event, or equipment upgrade from Manage Staff would seriously help.\n\n— ${name}, ${e.title}`;
       }
       addInboxItem({
         type:'news', icon:roleIcon, subject, date,
-        body: `${body}\n\n── Snapshot ──\nBusiness: ${b.name}\nMorale: ${e.morale}% (${moodLabel})\nTenure: ${e.tenure} months\nWage: ${fmt$(e.wage)}/mo`
+        body: `${body}\n\n── Snapshot ──\nBusiness: ${b.name}\nMorale: ${e.morale}% (${moodLabel})\nTenure: ${e.tenure} months\nWage: ${fmt$(e.wage)}/mo\nEquipment: ${einfo.tier.label} (${einfo.age}y${einfo.old?' — OLD':''})`
       });
     }
   }
@@ -1894,6 +2013,83 @@ const EMPLOYEE_ROLES = [
   {icon:'👔', title:'Operations Manager', wage:6500, boost:0.70},
   {icon:'🧠', title:'Specialist / Senior',wage:8000, boost:0.90},
 ];
+
+// ── SPONSORS ─────────────────────────────────────────────────────
+// Unlocked when total business value >= $500,000. Offers refresh each visit.
+const SPONSOR_CATALOG = [
+  {icon:'📱', name:'PixelTech Devices',   monthly: 2500, months:36, category:'tech'},
+  {icon:'🥤', name:'FizzPop Beverages',   monthly: 3500, months:36, category:'consumer'},
+  {icon:'🚗', name:'AutoLine Motors',     monthly: 5500, months:48, category:'auto'},
+  {icon:'⚽', name:'KickStrike Sports',   monthly: 4000, months:60, category:'sports'},
+  {icon:'🎮', name:'NovaPlay Gaming',     monthly: 3000, months:48, category:'entertainment'},
+  {icon:'💎', name:'Marchetti Luxury',    monthly: 9000, months:60, category:'luxury'},
+  {icon:'🏦', name:'Silverline Financial',monthly: 6500, months:60, category:'finance'},
+  {icon:'🎬', name:'FrameOne Media',      monthly: 4500, months:48, category:'media'},
+  {icon:'👟', name:'StrideCo Apparel',    monthly: 3200, months:36, category:'apparel'},
+  {icon:'☕', name:'RoastHaus Coffee',    monthly: 2000, months:24, category:'food'},
+  {icon:'🛫', name:'SkyRoute Airlines',   monthly: 7000, months:48, category:'travel'},
+  {icon:'🎧', name:'AudioWave HQ',        monthly: 2800, months:36, category:'tech'},
+  {icon:'🍔', name:'BigBun Foods',        monthly: 3800, months:48, category:'food'},
+  {icon:'💊', name:'CoreHealth Pharma',   monthly: 5000, months:60, category:'health'},
+  {icon:'🎨', name:'Palette Studios',     monthly: 2200, months:24, category:'creative'},
+];
+function sponsorsUnlocked(inv){ return totalBizValue(inv||GS.inv) >= 500000; }
+function rollSponsorOffers(){
+  const inv = GS.inv;
+  const bizVal = totalBizValue(inv);
+  const scale = Math.min(4, 1 + Math.log10(Math.max(1, bizVal/500000))); // 1x at 500k, ~2x at 5M, ~3x at 50M
+  const pool = SPONSOR_CATALOG.slice();
+  const picks = [];
+  const n = Math.min(5, pool.length);
+  for(let i=0;i<n;i++){
+    const idx = ri(0, pool.length-1);
+    const s = pool.splice(idx,1)[0];
+    const monthly = Math.round(s.monthly * scale * rf(0.85, 1.25));
+    picks.push({...s, monthly});
+  }
+  inv.sponsorOffers = picks;
+  inv.sponsorOffersMonth = GS.char.monthAge;
+  return picks;
+}
+function signSponsor(offer){
+  const inv = GS.inv;
+  if(!inv.sponsors) inv.sponsors = [];
+  if(inv.sponsors.some(s=>s.name===offer.name)) return `Already signed with ${offer.name}.`;
+  inv.sponsors.push({name:offer.name, icon:offer.icon, monthly:offer.monthly, monthsLeft:offer.months, signedAt:GS.char.monthAge, category:offer.category});
+  // Signing bonus = 3 months upfront
+  const bonus = offer.monthly * 3;
+  GS.char.checking += bonus;
+  logEvent(`🤝 Signed sponsor ${offer.icon} ${offer.name} — ${fmt$(offer.monthly)}/mo for ${offer.months}mo (+${fmt$(bonus)} signing bonus)`, 'good');
+  addInboxItem({
+    type:'news', icon:offer.icon,
+    subject:`Sponsorship signed — ${offer.name}`,
+    date: currentMonthDate(GS.char),
+    body:`Signed with ${offer.name}.\n\nMonthly: ${fmt$(offer.monthly)}\nTerm: ${offer.months} months\nSigning bonus: ${fmt$(bonus)} (deposited to checking)\n\nPayments will hit monthly in Finances.`
+  });
+  // Remove from current offers
+  inv.sponsorOffers = (inv.sponsorOffers||[]).filter(o=>o.name!==offer.name);
+  saveGame();
+  return `Signed ${offer.name}. +${fmt$(bonus)} upfront, then ${fmt$(offer.monthly)}/mo for ${offer.months} months.`;
+}
+function tickSponsors(inv, char){
+  if(!inv.sponsors || !inv.sponsors.length) return;
+  const remaining=[];
+  for(const s of inv.sponsors){
+    char.checking += s.monthly;
+    s.monthsLeft--;
+    if(s.monthsLeft <= 0){
+      addInboxItem({
+        type:'news', icon:s.icon,
+        subject:`Sponsorship ended — ${s.name}`,
+        date: currentMonthDate(char),
+        body:`Your deal with ${s.name} has run its course.\n\nTotal monthly payments over the term added up over time. You can re-sign if they're still available in the Sponsors tab.`
+      });
+    } else {
+      remaining.push(s);
+    }
+  }
+  inv.sponsors = remaining;
+}
 
 function stockPortfolioValue(inv){
   return Object.entries(inv.portfolio).reduce((s,[id,pos])=>{
@@ -2233,6 +2429,9 @@ function monthlyTick(){
   // Tick deferred expenses (auto-pay overdue ones)
   tickPendingExpenses(c, ev);
 
+  // Monthly sponsor payments + term tracking
+  tickSponsors(inv, c);
+
   // Monthly finances
   const fin=tickFinances(c, ev);
 
@@ -2291,6 +2490,18 @@ function setText(id,v){const el=$(id);if(el)el.textContent=v}
 
 function updateUI(fin, prevNW, nw){
   const c=GS.char, inv=GS.inv;
+
+  // Sponsors button visibility: gated at $500k total business value
+  const spBtn = $('btn-sponsors');
+  if(spBtn){
+    const unlocked = sponsorsUnlocked(inv);
+    spBtn.style.display = unlocked ? '' : 'none';
+    if(unlocked && (inv.sponsors||[]).length){
+      spBtn.innerHTML = `<span class="aico">🤝</span>Sponsors (${inv.sponsors.length})`;
+    } else if(unlocked){
+      spBtn.innerHTML = `<span class="aico">🤝</span>Sponsors`;
+    }
+  }
 
   // Stats bar
   setText('char-name',c.name);
@@ -3036,6 +3247,38 @@ function runSideHustle(h){
   return `❌ ${h.name} didn't gain traction. Lost ${fmt$(h.cost)} startup.`;
 }
 
+$('btn-sponsors').onclick=()=>{
+  const inv=GS.inv, c=GS.char;
+  if(!sponsorsUnlocked(inv)){
+    showToast('Sponsors unlock at $500k total business value.');
+    return;
+  }
+  // Refresh offers once per visit if older than 3 months or missing
+  const stale = !inv.sponsorOffers || !inv.sponsorOffers.length || (c.monthAge - (inv.sponsorOffersMonth||0) > 3);
+  if(stale) rollSponsorOffers();
+  const active = inv.sponsors||[];
+  const activeLines = active.length
+    ? `Active: ${active.map(s=>`${s.icon} ${s.name} (${fmt$(s.monthly)}/mo · ${s.monthsLeft}mo left)`).join(' · ')}`
+    : 'No active sponsors yet.';
+  const headline = `Total biz value: ${fmt$(totalBizValue(inv))}\n${activeLines}`;
+  const choices = [];
+  for(const o of (inv.sponsorOffers||[])){
+    const alreadySigned = active.some(s=>s.name===o.name);
+    if(alreadySigned) continue;
+    const bonus = o.monthly * 3;
+    choices.push({
+      text:`${o.icon} ${o.name} — ${fmt$(o.monthly)}/mo × ${o.months}mo · ${fmt$(bonus)} signing bonus`,
+      fn(){ return signSponsor(o); }
+    });
+  }
+  if(!choices.length){
+    choices.push({text:'📭 No offers right now — come back next month', fn(){return 'Check back after aging a few months.';}});
+  }
+  choices.push({text:'🔄 Refresh offers (next visit rerolls)', fn(){ rollSponsorOffers(); setTimeout(()=>$('btn-sponsors').click(),50); return 'Rerolled.'; }});
+  showActionModal('Sponsors', headline, choices);
+  $('modal-box').classList.add('compact');
+};
+
 $('btn-hustle').onclick=()=>{
   const c=GS.char;
   // Shuffle and show 6 random hustles each time + persistent "Start a Business" option
@@ -3133,7 +3376,15 @@ function saveGame(){
   try{localStorage.setItem('finlife_save',JSON.stringify({char:GS.char,inv:GS.inv,nwHistory:GS.nwHistory,inbox:GS.inbox,billAccum:GS.billAccum}));}catch(e){}
 }
 function loadGame(){
-  try{const d=localStorage.getItem('finlife_save');if(!d)return false;const p=JSON.parse(d);GS.char=p.char;GS.inv=p.inv||createInvState();GS.nwHistory=p.nwHistory||[];GS.inbox=p.inbox||[];GS.billAccum=p.billAccum||[];return true;}catch(e){return false;}
+  try{const d=localStorage.getItem('finlife_save');if(!d)return false;const p=JSON.parse(d);GS.char=p.char;GS.inv=p.inv||createInvState();GS.nwHistory=p.nwHistory||[];GS.inbox=p.inbox||[];GS.billAccum=p.billAccum||[];
+    // Migrations for older saves
+    if(!GS.inv.sponsors) GS.inv.sponsors=[];
+    if(GS.inv.sponsorOffersMonth===undefined) GS.inv.sponsorOffersMonth=-1;
+    for(const b of (GS.inv.businesses||[])){
+      if(b.equipTier===undefined){ b.equipTier=1; b.equipAge=0; }
+    }
+    return true;
+  }catch(e){return false;}
 }
 
 // ════════════════════════════════════════════════════════════════
