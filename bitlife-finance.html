@@ -112,6 +112,8 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 .act-btn.biz{border-color:#ffb74d}
 .act-btn.sponsors{border-color:#f48fb1;color:#f48fb1}
 .act-btn.sponsors:hover{background:linear-gradient(135deg,var(--bg3),rgba(244,143,177,.1))}
+.act-btn.fitness{border-color:#81c784;color:#81c784}
+.act-btn.fitness:hover{background:linear-gradient(135deg,var(--bg3),rgba(129,199,132,.1))}
 .act-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
 
 /* Chart Area */
@@ -489,6 +491,7 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
         <button class="act-btn realty" id="btn-realty"><span class="aico">🏠</span>Real Estate</button>
         <button class="act-btn crypto" id="btn-crypto"><span class="aico">₿</span>Crypto</button>
         <button class="act-btn edu"    id="btn-edu"><span class="aico">🎓</span>Education</button>
+        <button class="act-btn fitness" id="btn-fitness"><span class="aico">🏋️</span>Fitness</button>
         <button class="act-btn sponsors" id="btn-sponsors"><span class="aico">🤝</span>Sponsors</button>
         <button class="act-btn inbox"  id="btn-inbox" style="grid-column:1/-1;position:relative"><span class="aico">📬</span>Inbox<span id="inbox-badge" class="inbox-badge-btn">0</span></button>
       </div>
@@ -3544,6 +3547,79 @@ $('btn-sponsors').onclick=()=>{
   }
   choices.push({text:'🔄 Refresh offers (next visit rerolls)', fn(){ rollSponsorOffers(); setTimeout(()=>$('btn-sponsors').click(),50); return 'Rerolled.'; }});
   showActionModal('Sponsors', headline, choices);
+  $('modal-box').classList.add('compact');
+};
+
+// ── Fitness ──────────────────────────────────────────────────────
+const FITNESS_GYM = [
+  {id:'day_pass',      name:'🏃 Gym day pass',           cost:15,   h:2, p:1},
+  {id:'basic_gym',     name:'💪 Basic gym (3-mo pass)',   cost:180,  h:8, p:3},
+  {id:'premium_gym',   name:'🏋️ Premium gym (6-mo pass)',cost:560,  h:14,p:5},
+  {id:'home_gym',      name:'🏠 Home gym setup',          cost:1800, h:16,p:7},
+  {id:'yoga_class',    name:'🧘 Yoga class pack',        cost:90,   h:4, p:6},
+  {id:'pilates',       name:'🤸 Pilates studio bundle',  cost:240,  h:7, p:5},
+  {id:'swimming',      name:'🏊 Swim club 3-mo',         cost:220,  h:9, p:4},
+  {id:'cycling',       name:'🚴 Bike + cycling gear',    cost:650,  h:11,p:6},
+];
+const FITNESS_FOOD = [
+  {id:'healthy_meal',  name:'🥗 Healthy meal prep (week)',cost:110,  h:4, p:2},
+  {id:'organic_haul',  name:'🍎 Organic grocery haul',   cost:320,  h:6, p:3},
+  {id:'supplements',   name:'💊 Supplements stack',      cost:140,  h:3, p:1},
+  {id:'chef_service',  name:'👨‍🍳 Private chef (month)',  cost:1800, h:12,p:8},
+  {id:'hydration',     name:'💧 Premium hydration plan', cost:80,   h:2, p:2},
+  {id:'protein_plan',  name:'🥩 Protein-rich diet plan', cost:260,  h:6, p:2},
+];
+const FITNESS_WELLNESS = [
+  {id:'massage',       name:'💆 Massage therapy',         cost:130,  h:5, p:7},
+  {id:'spa_day',       name:'🧖 Full spa day',            cost:280,  h:6, p:10},
+  {id:'meditation',    name:'🕉️ Meditation retreat',      cost:650,  h:5, p:12},
+  {id:'therapy',       name:'🧠 Therapy sessions (month)',cost:480,  h:3, p:11},
+  {id:'hiking',        name:'🥾 Guided hiking trip',      cost:220,  h:8, p:8},
+  {id:'sleep_tracker', name:'😴 Sleep tracker + coach',   cost:350,  h:7, p:5},
+];
+const FITNESS_ATHLETE = [
+  {id:'personal_trainer',name:'🏆 Elite personal trainer',cost:600,  h:14,p:6},
+  {id:'nutritionist',  name:'🥙 Sports nutritionist',    cost:900,  h:12,p:4},
+  {id:'recovery_spa',  name:'❄️ Cryotherapy + recovery', cost:450,  h:9, p:8},
+  {id:'sport_camp',    name:'🏕️ Pro training camp',      cost:3800, h:22,p:12},
+  {id:'physio',        name:'🩹 Physiotherapist (month)',cost:800,  h:11,p:5},
+  {id:'performance_lab',name:'🧪 Performance lab session',cost:1200,h:13,p:4},
+];
+function buyFitness(item){
+  const c = GS.char;
+  if(c.checking < item.cost){ showToast('Not enough cash.'); return null; }
+  c.checking -= item.cost;
+  c.health    = clamp((c.health||75) + item.h, 0, 100);
+  c.happiness = clamp((c.happiness||75) + item.p, 0, 100);
+  showToast(`+${item.h} health, +${item.p} happiness`);
+  return `Spent ${fmt$(item.cost)} on ${item.name}. +${item.h} health · +${item.p} happiness.`;
+}
+
+$('btn-fitness').onclick=()=>{
+  const c = GS.char;
+  const isAthlete = c.jobSector === 'sports';
+  const health = c.health||75, happy = c.happiness||75;
+  const headline = `Health: ${health}/100 · Happiness: ${happy}/100 · Cash: ${fmt$(c.checking)}${isAthlete?`\n🏆 Athlete bonuses unlocked (${c.jobTitle})`:''}`;
+  const choices = [];
+  const mkChoice = item => ({
+    text:`${item.name} — ${fmt$(item.cost)} · +${item.h}❤️ +${item.p}😊`,
+    fn(){ return buyFitness(item) || ''; }
+  });
+  choices.push({header:'🏋️ Gym & Workouts'});
+  FITNESS_GYM.forEach(i => choices.push(mkChoice(i)));
+  choices.push({header:'🥗 Health Food'});
+  FITNESS_FOOD.forEach(i => choices.push(mkChoice(i)));
+  choices.push({header:'🧘 Wellness'});
+  FITNESS_WELLNESS.forEach(i => choices.push(mkChoice(i)));
+  if(isAthlete){
+    choices.push({header:'🏆 Athlete Exclusives'});
+    // Apply 1.4x health multiplier for athletes on athlete-only items
+    FITNESS_ATHLETE.forEach(base => {
+      const boosted = {...base, h: Math.round(base.h * 1.4)};
+      choices.push(mkChoice(boosted));
+    });
+  }
+  showActionModal('Fitness & Wellness', headline, choices);
   $('modal-box').classList.add('compact');
 };
 
