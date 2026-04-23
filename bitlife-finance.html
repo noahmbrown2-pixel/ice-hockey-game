@@ -475,7 +475,7 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
         <button class="act-btn crypto" id="btn-crypto"><span class="aico">₿</span>Crypto</button>
         <button class="act-btn hustle" id="btn-hustle"><span class="aico">⚡</span>Side Hustle</button>
         <button class="act-btn edu"    id="btn-edu"><span class="aico">🎓</span>Education</button>
-        <button class="act-btn sponsors" id="btn-sponsors" style="display:none"><span class="aico">🤝</span>Sponsors</button>
+        <button class="act-btn sponsors" id="btn-sponsors"><span class="aico">🤝</span>Sponsors</button>
         <button class="act-btn inbox"  id="btn-inbox" style="grid-column:1/-1;position:relative"><span class="aico">📬</span>Inbox<span id="inbox-badge" class="inbox-badge-btn">0</span></button>
       </div>
       <div id="chart-area">
@@ -2491,15 +2491,18 @@ function setText(id,v){const el=$(id);if(el)el.textContent=v}
 function updateUI(fin, prevNW, nw){
   const c=GS.char, inv=GS.inv;
 
-  // Sponsors button visibility: gated at $500k total business value
+  // Sponsors button: always visible next to Education, disabled until $500k biz value
   const spBtn = $('btn-sponsors');
   if(spBtn){
     const unlocked = sponsorsUnlocked(inv);
-    spBtn.style.display = unlocked ? '' : 'none';
+    spBtn.disabled = !unlocked;
+    spBtn.title = unlocked ? 'Browse sponsorship deals' : 'Unlocks at $500k total business value';
     if(unlocked && (inv.sponsors||[]).length){
       spBtn.innerHTML = `<span class="aico">🤝</span>Sponsors (${inv.sponsors.length})`;
     } else if(unlocked){
       spBtn.innerHTML = `<span class="aico">🤝</span>Sponsors`;
+    } else {
+      spBtn.innerHTML = `<span class="aico">🔒</span>Sponsors`;
     }
   }
 
