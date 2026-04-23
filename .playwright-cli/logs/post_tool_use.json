@@ -500,5 +500,257 @@
       "numLines": 0
     },
     "tool_use_id": "toolu_01J7RVvaKN2MjQZKMC6Mpa3H"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node smoke.js 2>&1 | tail -30",
+      "timeout": 120000,
+      "description": "Run smoke test"
+    },
+    "tool_response": {
+      "stdout": "{\n  \"errors\": [],\n  \"inbox\": 27\n}",
+      "stderr": "",
+      "interrupted": false,
+      "isImage": false,
+      "noOutputExpected": false
+    },
+    "tool_use_id": "toolu_01PEhfLVWHbhGZj669SUynPm"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node smoke.js 2>&1 | tail -10",
+      "timeout": 120000,
+      "description": "Smoke test after changes"
+    },
+    "tool_response": {
+      "stdout": "{\n  \"errors\": [],\n  \"inbox\": 40\n}",
+      "stderr": "",
+      "interrupted": false,
+      "isImage": false,
+      "noOutputExpected": false
+    },
+    "tool_use_id": "toolu_01EovQewmT5NGPBBMeH7zqx3"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\.playwright-cli\\sponsor-test.js",
+      "content": "// Test sponsors & equipment: rich start, start biz, age many years, verify systems fire.\nconst { chromium } = require('playwright');\n(async () => {\n  const browser = await chromium.launch({ headless: true });\n  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });\n  const page = await ctx.newPage();\n  const errs = [];\n  page.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });\n  page.on('pageerror', e => errs.push('page: ' + e.message));\n  await page.goto('http://localhost:3000/bitlife-finance.html', { waitUntil: 'domcontentloaded' });\n  await page.evaluate(() => { try { localStorage.removeItem('finlife_save'); } catch(e){} });\n  await page.reload({ waitUntil: 'domcontentloaded' });\n  await page.waitForSelector('#screen-new.active', { timeout: 5000 });\n  await page.fill('#inp-name', 'Sponsor');\n  await page.evaluate(() => { const rb=document.querySelector('input[name=\"scn\"][value=\"rich\"]'); if(rb) rb.checked=true; });\n  await page.click('#btn-start');\n  await page.waitForSelector('#screen-game.active', { timeout: 5000 });\n\n  async function closeModals(){\n    for (let k=0;k<8;k++){\n      const open = await page.$('#modal-overlay.open');\n      if (!open) break;\n      const btns = await page.$$('#m-choices button');\n      let idx=-1;\n      for(let j=0;j<btns.length;j++){\n        const t=(await btns[j].textContent()||'').toLowerCase();\n        if(/pass|close|continue|skip|cancel|back/.test(t)){idx=j;break;}\n      }\n      if(idx<0) idx=Math.max(0,btns.length-1);\n      if(btns[idx]) await btns[idx].click({force:true}).catch(()=>{});\n      await page.waitForTimeout(30);\n    }\n  }\n\n  // Age to 20 then force-start a Tech Startup (cheap $30k revMult 3x)\n  for (let i=0;i<12;i++){ await closeModals(); await page.click('#btn-age',{force:true}); await page.waitForTimeout(30); }\n  await page.evaluate(() => {\n    // seed cash for testing and start a couple of high-growth businesses\n    GS.char.checking = 300000;\n    // bypass UI: call startBusiness directly\n    startBusiness(3); // Tech Startup\n    startBusiness(9); // SaaS\n  });\n\n  // Age 20 years\n  for (let i=0;i<240;i++){ await closeModals(); await page.click('#btn-age',{force:true}); await page.waitForTimeout(20); }\n\n  const snap = await page.evaluate(() => ({\n    bizVal: GS.inv.businesses.reduce((s,b)=>s+b.value,0),\n    biz: GS.inv.businesses.map(b=>({name:b.name, value:b.value, tier:b.equipTier, eqAge:b.equipAge, emps:(b.employees||[]).length})),\n    sponsorBtnVisible: document.getElementById('btn-sponsors').style.display !== 'none',\n    activeSponsors: (GS.inv.sponsors||[]).length,\n    sponsorOffers: (GS.inv.sponsorOffers||[]).length,\n    sponsorsUnlocked: typeof sponsorsUnlocked === 'function' ? sponsorsUnlocked(GS.inv) : null,\n    equipInfo: GS.inv.businesses.map(b=>equipmentInfo(b)),\n  }));\n\n  // If unlocked, open sponsors modal and sign the first\n  let signedResult = null;\n  if (snap.sponsorsUnlocked) {\n    await closeModals();\n    await page.click('#btn-sponsors', {force:true});\n    await page.waitForTimeout(120);\n    const btns = await page.$$('#m-choices button');\n    for (const b of btns) {\n      const t = (await b.textContent()) || '';\n      if (/mo \u00c3\u2014 /.test(t)) { await b.click({force:true}); signedResult = t; break; }\n    }\n    await page.waitForTimeout(80);\n  }\n  await closeModals();\n\n  // Try upgrading equipment on first biz\n  let equipUpgradeResult = null;\n  const upgradeOk = await page.evaluate(() => {\n    if (!GS.inv.businesses.length) return false;\n    const prevTier = GS.inv.businesses[0].equipTier;\n    upgradeEquipment(0);\n    return GS.inv.businesses[0].equipTier > prevTier;\n  });\n  equipUpgradeResult = upgradeOk;\n  await closeModals();\n\n  // Try paying bonuses\n  const bonusOk = await page.evaluate(() => {\n    const b = GS.inv.businesses[0];\n    if (!b || !b.employees || !b.employees.length) return 'no staff';\n    const moraleBefore = Math.round(b.employees.reduce((s,e)=>s+(e.morale||75),0)/b.employees.length);\n    payBonuses(0);\n    const moraleAfter = Math.round(b.employees.reduce((s,e)=>s+(e.morale||75),0)/b.employees.length);\n    return { before: moraleBefore, after: moraleAfter };\n  });\n\n  console.log(JSON.stringify({ errors: errs, snap, signedResult, equipUpgradeResult, bonusOk }, null, 2));\n  await browser.close();\n})().catch(e => { console.error('FATAL', e); process.exit(1); });\n"
+    },
+    "tool_response": {
+      "type": "create",
+      "filePath": "C:\\Users\\noahm\\Project\\.playwright-cli\\sponsor-test.js",
+      "content": "// Test sponsors & equipment: rich start, start biz, age many years, verify systems fire.\nconst { chromium } = require('playwright');\n(async () => {\n  const browser = await chromium.launch({ headless: true });\n  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });\n  const page = await ctx.newPage();\n  const errs = [];\n  page.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });\n  page.on('pageerror', e => errs.push('page: ' + e.message));\n  await page.goto('http://localhost:3000/bitlife-finance.html', { waitUntil: 'domcontentloaded' });\n  await page.evaluate(() => { try { localStorage.removeItem('finlife_save'); } catch(e){} });\n  await page.reload({ waitUntil: 'domcontentloaded' });\n  await page.waitForSelector('#screen-new.active', { timeout: 5000 });\n  await page.fill('#inp-name', 'Sponsor');\n  await page.evaluate(() => { const rb=document.querySelector('input[name=\"scn\"][value=\"rich\"]'); if(rb) rb.checked=true; });\n  await page.click('#btn-start');\n  await page.waitForSelector('#screen-game.active', { timeout: 5000 });\n\n  async function closeModals(){\n    for (let k=0;k<8;k++){\n      const open = await page.$('#modal-overlay.open');\n      if (!open) break;\n      const btns = await page.$$('#m-choices button');\n      let idx=-1;\n      for(let j=0;j<btns.length;j++){\n        const t=(await btns[j].textContent()||'').toLowerCase();\n        if(/pass|close|continue|skip|cancel|back/.test(t)){idx=j;break;}\n      }\n      if(idx<0) idx=Math.max(0,btns.length-1);\n      if(btns[idx]) await btns[idx].click({force:true}).catch(()=>{});\n      await page.waitForTimeout(30);\n    }\n  }\n\n  // Age to 20 then force-start a Tech Startup (cheap $30k revMult 3x)\n  for (let i=0;i<12;i++){ await closeModals(); await page.click('#btn-age',{force:true}); await page.waitForTimeout(30); }\n  await page.evaluate(() => {\n    // seed cash for testing and start a couple of high-growth businesses\n    GS.char.checking = 300000;\n    // bypass UI: call startBusiness directly\n    startBusiness(3); // Tech Startup\n    startBusiness(9); // SaaS\n  });\n\n  // Age 20 years\n  for (let i=0;i<240;i++){ await closeModals(); await page.click('#btn-age',{force:true}); await page.waitForTimeout(20); }\n\n  const snap = await page.evaluate(() => ({\n    bizVal: GS.inv.businesses.reduce((s,b)=>s+b.value,0),\n    biz: GS.inv.businesses.map(b=>({name:b.name, value:b.value, tier:b.equipTier, eqAge:b.equipAge, emps:(b.employees||[]).length})),\n    sponsorBtnVisible: document.getElementById('btn-sponsors').style.display !== 'none',\n    activeSponsors: (GS.inv.sponsors||[]).length,\n    sponsorOffers: (GS.inv.sponsorOffers||[]).length,\n    sponsorsUnlocked: typeof sponsorsUnlocked === 'function' ? sponsorsUnlocked(GS.inv) : null,\n    equipInfo: GS.inv.businesses.map(b=>equipmentInfo(b)),\n  }));\n\n  // If unlocked, open sponsors modal and sign the first\n  let signedResult = null;\n  if (snap.sponsorsUnlocked) {\n    await closeModals();\n    await page.click('#btn-sponsors', {force:true});\n    await page.waitForTimeout(120);\n    const btns = await page.$$('#m-choices button');\n    for (const b of btns) {\n      const t = (await b.textContent()) || '';\n      if (/mo \u00c3\u2014 /.test(t)) { await b.click({force:true}); signedResult = t; break; }\n    }\n    await page.waitForTimeout(80);\n  }\n  await closeModals();\n\n  // Try upgrading equipment on first biz\n  let equipUpgradeResult = null;\n  const upgradeOk = await page.evaluate(() => {\n    if (!GS.inv.businesses.length) return false;\n    const prevTier = GS.inv.businesses[0].equipTier;\n    upgradeEquipment(0);\n    return GS.inv.businesses[0].equipTier > prevTier;\n  });\n  equipUpgradeResult = upgradeOk;\n  await closeModals();\n\n  // Try paying bonuses\n  const bonusOk = await page.evaluate(() => {\n    const b = GS.inv.businesses[0];\n    if (!b || !b.employees || !b.employees.length) return 'no staff';\n    const moraleBefore = Math.round(b.employees.reduce((s,e)=>s+(e.morale||75),0)/b.employees.length);\n    payBonuses(0);\n    const moraleAfter = Math.round(b.employees.reduce((s,e)=>s+(e.morale||75),0)/b.employees.length);\n    return { before: moraleBefore, after: moraleAfter };\n  });\n\n  console.log(JSON.stringify({ errors: errs, snap, signedResult, equipUpgradeResult, bonusOk }, null, 2));\n  await browser.close();\n})().catch(e => { console.error('FATAL', e); process.exit(1); });\n",
+      "structuredPatch": [],
+      "originalFile": null,
+      "userModified": false
+    },
+    "tool_use_id": "toolu_01NZDkeyU4cWgn6LXVp4jhqa"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node sponsor-test.js 2>&1 | tail -60",
+      "timeout": 180000,
+      "description": "Run sponsor/equipment test"
+    },
+    "tool_response": {
+      "stdout": "        \"value\": 100153,\n        \"tier\": 1,\n        \"eqAge\": 14,\n        \"emps\": 0\n      },\n      {\n        \"name\": \"SaaS Company\",\n        \"value\": 184881,\n        \"tier\": 1,\n        \"eqAge\": 14,\n        \"emps\": 0\n      }\n    ],\n    \"sponsorBtnVisible\": false,\n    \"activeSponsors\": 0,\n    \"sponsorOffers\": 0,\n    \"sponsorsUnlocked\": false,\n    \"equipInfo\": [\n      {\n        \"tier\": {\n          \"tier\": 1,\n          \"label\": \"Basic\",\n          \"revBoost\": 0,\n          \"moraleFloor\": 40,\n          \"upgradeCost\": 15000\n        },\n        \"age\": 14,\n        \"old\": true,\n        \"next\": {\n          \"tier\": 2,\n          \"label\": \"Standard\",\n          \"revBoost\": 0.05,\n          \"moraleFloor\": 50,\n          \"upgradeCost\": 30000\n        }\n      },\n      {\n        \"tier\": {\n          \"tier\": 1,\n          \"label\": \"Basic\",\n          \"revBoost\": 0,\n          \"moraleFloor\": 40,\n          \"upgradeCost\": 15000\n        },\n        \"age\": 14,\n        \"old\": true,\n        \"next\": {\n          \"tier\": 2,\n          \"label\": \"Standard\",\n          \"revBoost\": 0.05,\n          \"moraleFloor\": 50,\n          \"upgradeCost\": 30000\n        }\n      }\n    ]\n  },\n  \"signedResult\": null,\n  \"equipUpgradeResult\": true,\n  \"bonusOk\": \"no staff\"\n}",
+      "stderr": "",
+      "interrupted": false,
+      "isImage": false,
+      "noOutputExpected": false
+    },
+    "tool_use_id": "toolu_01C7sQF5UogVdifRVutnejf2"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b = await chromium.launch({ headless: true });\n  const c = await b.newContext();\n  const p = await c.newPage();\n  const errs=[]; p.on('console',m=>{if(m.type()==='error')errs.push(m.text())}); p.on('pageerror',e=>errs.push('page: '+e.message));\n  await p.goto('http://localhost:3000/bitlife-finance.html',{waitUntil:'domcontentloaded'});\n  await p.evaluate(()=>{try{localStorage.removeItem('finlife_save')}catch(e){}});\n  await p.reload({waitUntil:'domcontentloaded'});\n  await p.waitForSelector('#screen-new.active');\n  await p.fill('#inp-name','Test');\n  await p.click('#btn-start');\n  await p.waitForSelector('#screen-game.active');\n  // Force a 750k biz value to unlock sponsors\n  const out = await p.evaluate(() => {\n    GS.char.checking = 1000000;\n    startBusiness(9); // SaaS\n    GS.inv.businesses[0].value = 750000;\n    // Force updateUI to refresh sponsors button\n    updateUI(null, 0, calcNetWorth(GS.char, GS.inv));\n    return {\n      unlocked: sponsorsUnlocked(GS.inv),\n      btnDisplay: document.getElementById('btn-sponsors').style.display,\n      bizVal: totalBizValue(GS.inv),\n    };\n  });\n  // Open sponsors and try signing\n  await p.click('#btn-sponsors');\n  await p.waitForTimeout(150);\n  const choices = await p.\\$\\$('#m-choices button');\n  const labels = [];\n  for(const x of choices){ labels.push((await x.textContent())||''); }\n  // Click first real offer\n  let signed=null;\n  for(const x of choices){\n    const t=(await x.textContent())||'';\n    if(/mo \u00c3\u2014 /.test(t)){ await x.click({force:true}); signed=t; break; }\n  }\n  await p.waitForTimeout(100);\n  const after = await p.evaluate(() => ({\n    active: GS.inv.sponsors.length,\n    sample: GS.inv.sponsors[0],\n    checking: GS.char.checking\n  }));\n  console.log(JSON.stringify({errs, out, offerCount:labels.length, offers:labels, signed, after},null,2));\n  await b.close();\n})().catch(e=>{console.error('FATAL',e);process.exit(1);});\n\" 2>&1 | tail -40",
+      "timeout": 60000,
+      "description": "Force-test sponsor unlock + sign flow"
+    },
+    "tool_response": {
+      "stdout": "{\n  \"errs\": [],\n  \"out\": {\n    \"unlocked\": true,\n    \"btnDisplay\": \"\",\n    \"bizVal\": 750000\n  },\n  \"offerCount\": 7,\n  \"offers\": [\n    \"\u00f0\u0178\udc8d\u201d BigBun Foods \u00e2\u20ac\u201d $5.2k/mo \u00c3\u2014 48mo \u00c2\u00b7 $15.5k signing bonus\",\n    \"\u00f0\u0178\u017d\u00a8 Palette Studios \u00e2\u20ac\u201d $3.1k/mo \u00c3\u2014 24mo \u00c2\u00b7 $9.2k signing bonus\",\n    \"\u00f0\u0178\u017d\u00ae NovaPlay Gaming \u00e2\u20ac\u201d $3.4k/mo \u00c3\u2014 48mo \u00c2\u00b7 $10.1k signing bonus\",\n    \"\u00e2\u0161\u00bd KickStrike Sports \u00e2\u20ac\u201d $4.3k/mo \u00c3\u2014 60mo \u00c2\u00b7 $13k signing bonus\",\n    \"\u00f0\u0178\u2019\u017d Marchetti Luxury \u00e2\u20ac\u201d $12.7k/mo \u00c3\u2014 60mo \u00c2\u00b7 $38.2k signing bonus\",\n    \"\u00f0\u0178\u201d\u201e Refresh offers (next visit rerolls)\",\n    \"Cancel\"\n  ],\n  \"signed\": \"\u00f0\u0178\udc8d\u201d BigBun Foods \u00e2\u20ac\u201d $5.2k/mo \u00c3\u2014 48mo \u00c2\u00b7 $15.5k signing bonus\",\n  \"after\": {\n    \"active\": 1,\n    \"sample\": {\n      \"name\": \"BigBun Foods\",\n      \"icon\": \"\u00f0\u0178\udc8d\u201d\",\n      \"monthly\": 5152,\n      \"monthsLeft\": 48,\n      \"signedAt\": 264,\n      \"category\": \"food\"\n    },\n    \"checking\": 975456\n  }\n}",
+      "stderr": "",
+      "interrupted": false,
+      "isImage": false,
+      "noOutputExpected": false
+    },
+    "tool_use_id": "toolu_01Jz5DvAtGWgtdLEZqsPYqvz"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node smoke.js 2>&1 | tail -8",
+      "timeout": 120000,
+      "description": "Smoke test"
+    },
+    "tool_response": {
+      "stdout": "{\n  \"errors\": [],\n  \"inbox\": 40\n}",
+      "stderr": "",
+      "interrupted": false,
+      "isImage": false,
+      "noOutputExpected": false
+    },
+    "tool_use_id": "toolu_01RepqXkGni2kavypfFbBmHc"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node smoke.js 2>&1 | tail -5",
+      "timeout": 120000,
+      "description": "Smoke test"
+    },
+    "tool_response": {
+      "stdout": "{\n  \"errors\": [],\n  \"inbox\": 28\n}",
+      "stderr": "",
+      "interrupted": false,
+      "isImage": false,
+      "noOutputExpected": false
+    },
+    "tool_use_id": "toolu_01WiYNMn3FKvHeuScVqg2pF2"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node smoke.js 2>&1 | tail -5",
+      "timeout": 120000,
+      "description": "Smoke test"
+    },
+    "tool_response": {
+      "stdout": "{\n  \"errors\": [],\n  \"inbox\": 33\n}",
+      "stderr": "",
+      "interrupted": false,
+      "isImage": false,
+      "noOutputExpected": false
+    },
+    "tool_use_id": "toolu_01MbPFeMr4dttToXq1gSTihq"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node smoke.js 2>&1 | tail -5",
+      "timeout": 120000,
+      "description": "Smoke test merged Work button"
+    },
+    "tool_response": {
+      "stdout": "  \"errors\": [\n    \"console: WebSocket is already in CLOSING or CLOSED state.\"\n  ],\n  \"inbox\": 27\n}",
+      "stderr": "",
+      "interrupted": false,
+      "isImage": false,
+      "noOutputExpected": false
+    },
+    "tool_use_id": "toolu_017Y4afXDFw299RGa6PBWDkP"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b = await chromium.launch({ headless: true });\n  const c = await b.newContext();\n  const p = await c.newPage();\n  const errs=[]; p.on('pageerror',e=>errs.push('page: '+e.message));\n  await p.goto('http://localhost:3000/bitlife-finance.html',{waitUntil:'domcontentloaded'});\n  await p.evaluate(()=>{try{localStorage.removeItem('finlife_save')}catch(e){}});\n  await p.reload({waitUntil:'domcontentloaded'});\n  await p.waitForSelector('#screen-new.active');\n  await p.fill('#inp-name','Test');\n  await p.click('#btn-start');\n  await p.waitForSelector('#screen-game.active');\n  for(let i=0;i<20;i++){ await p.click('#btn-age',{force:true}); await p.waitForTimeout(30);\n    const op = await p.\\$('#modal-overlay.open');\n    if(op){const btns=await p.\\$\\$('#m-choices button');if(btns.length)await btns[btns.length-1].click({force:true}).catch(()=>{});}\n  }\n  await p.click('#btn-job',{force:true});\n  await p.waitForTimeout(200);\n  const title = await p.textContent('#m-title');\n  const choiceCount = (await p.\\$\\$('#m-choices button')).length;\n  const headerCount = await p.evaluate(()=>document.querySelectorAll('#m-choices > div').length);\n  console.log(JSON.stringify({errs, title, choiceCount, headerCount}));\n  await b.close();\n})().catch(e=>{console.error('FATAL',e);process.exit(1);});\n\" 2>&1 | tail -5",
+      "timeout": 60000,
+      "description": "Verify Work button opens merged modal"
+    },
+    "tool_response": {
+      "stdout": "{\"errs\":[],\"title\":\"Casino Night\",\"choiceCount\":3,\"headerCount\":0}",
+      "stderr": "",
+      "interrupted": false,
+      "isImage": false,
+      "noOutputExpected": false
+    },
+    "tool_use_id": "toolu_01P2wVUa2apcw4HLFHd7bAqV"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b = await chromium.launch({ headless: true });\n  const c = await b.newContext();\n  const p = await c.newPage();\n  const errs=[]; p.on('pageerror',e=>errs.push('page: '+e.message));\n  await p.goto('http://localhost:3000/bitlife-finance.html',{waitUntil:'domcontentloaded'});\n  await p.evaluate(()=>{try{localStorage.removeItem('finlife_save')}catch(e){}});\n  await p.reload({waitUntil:'domcontentloaded'});\n  await p.waitForSelector('#screen-new.active');\n  await p.fill('#inp-name','Test');\n  await p.click('#btn-start');\n  await p.waitForSelector('#screen-game.active');\n  // Force-close any modal, set education, call handler directly\n  const info = await p.evaluate(()=>{\n    closeModal();\n    GS.char.education='high_school';\n    GS.char.age = 22; GS.char.monthAge = 22*12;\n    document.getElementById('btn-job').click();\n    return {\n      title: document.getElementById('m-title').textContent,\n      buttons: Array.from(document.querySelectorAll('#m-choices button')).map(b=>b.textContent).slice(0,12),\n      headers: Array.from(document.querySelectorAll('#m-choices > div')).map(d=>d.textContent),\n      hustleBtnExists: !!document.getElementById('btn-hustle'),\n    };\n  });\n  console.log(JSON.stringify({errs, ...info}, null, 2));\n  await b.close();\n})().catch(e=>{console.error('FATAL',e);process.exit(1);});\n\" 2>&1 | tail -30",
+      "timeout": 60000,
+      "description": "Force-open Work modal and inspect"
+    },
+    "tool_response": {
+      "stdout": "{\n  \"errs\": [],\n  \"title\": \"Work\",\n  \"buttons\": [\n    \"Hockey Player (sports) \u00e2\u20ac\u201d $700k\u00e2\u20ac\u201c$4.5M/yr\",\n    \"Baseball Player (sports) \u00e2\u20ac\u201d $600k\u00e2\u20ac\u201c$5.0M/yr\",\n    \"Race Car Driver (sports) \u00e2\u20ac\u201d $150k\u00e2\u20ac\u201c$3.0M/yr\",\n    \"Professional Golfer (sports) \u00e2\u20ac\u201d $80k\u00e2\u20ac\u201c$2.5M/yr\",\n    \"Soccer Player (sports) \u00e2\u20ac\u201d $75k\u00e2\u20ac\u201c$3.5M/yr\",\n    \"Tennis Player (sports) \u00e2\u20ac\u201d $65k\u00e2\u20ac\u201c$2.5M/yr\",\n    \"\u00e2\u0153\udc8d\u00ef\u00b8\udc8f Substack Newsletter \u00e2\u20ac\u201d free \u00c2\u00b7 smarts\",\n    \"\u00f0\u0178\u201c\u02c6 Day Trading \u00e2\u20ac\u201d $3.0k start \u00c2\u00b7 smarts\",\n    \"\u00f0\u0178\u2018\u0178 Sneaker Reselling \u00e2\u20ac\u201d $2.0k start\",\n    \"\u00f0\u0178\udc8f\u00a1 Airbnb Co-Host \u00e2\u20ac\u201d $0.3k start \u00c2\u00b7 smarts\",\n    \"\u00f0\u0178\u017d\u00a5 YouTube Channel \u00e2\u20ac\u201d $0.8k start \u00c2\u00b7 smarts\",\n    \"\u00f0\u0178\u2013\u00a8\u00ef\u00b8\udc8f Print-on-Demand \u00e2\u20ac\u201d $0.2k start\"\n  ],\n  \"headers\": [\n    \"\u00f0\u0178\u2019\u00bc Job offers\",\n    \"\u00e2\u0161\u00a1 Side hustles\"\n  ],\n  \"hustleBtnExists\": false\n}",
+      "stderr": "",
+      "interrupted": false,
+      "isImage": false,
+      "noOutputExpected": false
+    },
+    "tool_use_id": "toolu_01NU16zWZbAh9en5REqjRRSx"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b = await chromium.launch({ headless: true });\n  const c = await b.newContext();\n  const p = await c.newPage();\n  const errs=[]; p.on('pageerror',e=>errs.push('page: '+e.message));\n  await p.goto('http://localhost:3000/bitlife-finance.html',{waitUntil:'domcontentloaded'});\n  await p.evaluate(()=>{try{localStorage.removeItem('finlife_save')}catch(e){}});\n  await p.reload({waitUntil:'domcontentloaded'});\n  await p.waitForSelector('#screen-new.active');\n  await p.fill('#inp-name','MarketTest');\n  await p.evaluate(()=>{const rb=document.querySelector('input[name=\\\"scn\\\"][value=\\\"rich\\\"]');if(rb)rb.checked=true;});\n  await p.click('#btn-start');\n  await p.waitForSelector('#screen-game.active');\n  await p.evaluate(()=>{GS.char.checking=500000;});\n  // Stocks\n  await p.click('#btn-invest');\n  await p.waitForTimeout(150);\n  const stockInputs = await p.\\$\\$('.ac-buy-input[data-buy-input]');\n  const firstStockResult = await p.evaluate(()=>{\n    const input = document.querySelector('.ac-buy-input[data-buy-input]');\n    if(!input) return 'no input';\n    const id = input.getAttribute('data-buy-input');\n    input.value = '5000';\n    const buyBtn = document.querySelector('[data-buy=\\\"'+id+'\\\"]');\n    buyBtn.click();\n    const pos = GS.inv.portfolio[id];\n    return { id, shares: pos?.shares, invested: Math.round((pos?.avgCost||0)*(pos?.shares||0)), checkingAfter: GS.char.checking };\n  });\n  // Close & open crypto\n  await p.evaluate(()=>{closeModal();});\n  await p.click('#btn-crypto');\n  await p.waitForTimeout(150);\n  const firstCryptoResult = await p.evaluate(()=>{\n    const input = document.querySelector('.ac-buy-input[data-buy-input]');\n    const id = input.getAttribute('data-buy-input');\n    input.value = '2500';\n    const buyBtn = document.querySelector('[data-buy=\\\"'+id+'\\\"]');\n    buyBtn.click();\n    const pos = GS.inv.cryptoHeld[id];\n    return { id, coins: pos?.coins, invested: Math.round((pos?.avgCost||0)*(pos?.coins||0)), checkingAfter: GS.char.checking };\n  });\n  console.log(JSON.stringify({errs, stockInputCount: stockInputs.length, firstStockResult, firstCryptoResult}, null, 2));\n  await b.close();\n})().catch(e=>{console.error('FATAL',e);process.exit(1);});\n\" 2>&1 | tail -25",
+      "timeout": 60000,
+      "description": "Test custom-dollar buy for stocks and crypto"
+    },
+    "tool_response": {
+      "stdout": "{\n  \"errs\": [],\n  \"stockInputCount\": 88,\n  \"firstStockResult\": {\n    \"id\": \"APPL\",\n    \"shares\": 27,\n    \"invested\": 4860,\n    \"checkingAfter\": 495140\n  },\n  \"firstCryptoResult\": {\n    \"id\": \"BTC\",\n    \"coins\": 0.05555555555555555,\n    \"invested\": 2500,\n    \"checkingAfter\": 492640\n  }\n}",
+      "stderr": "",
+      "interrupted": false,
+      "isImage": false,
+      "noOutputExpected": false
+    },
+    "tool_use_id": "toolu_01SHtYisHmnofGUHS7BkQkKu"
   }
 ]

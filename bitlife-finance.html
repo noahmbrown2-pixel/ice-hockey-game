@@ -238,7 +238,10 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 .ac-chg.pos{color:var(--green)} .ac-chg.neg{color:var(--red)}
 .ac-chart{width:100%;height:50px;background:var(--bg);border-radius:4px;display:block}
 .ac-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
-.ac-actions{display:flex;gap:6px;margin-top:2px}
+.ac-actions{display:flex;gap:4px;margin-top:2px;align-items:stretch}
+.ac-buy-input{width:70px;padding:6px 6px;border-radius:4px;font-size:11px;font-weight:600;border:1px solid var(--border);background:var(--bg3);color:var(--white);text-align:right;-moz-appearance:textfield}
+.ac-buy-input::-webkit-outer-spin-button,.ac-buy-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.ac-buy-input:focus{outline:none;border-color:var(--green)}
 .ac-btn{flex:1;padding:6px 8px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--white);transition:all var(--t)}
 .ac-btn.buy{border-color:rgba(0,200,83,.4);color:var(--green)}
 .ac-btn.buy:hover{background:rgba(0,200,83,.15)}
@@ -2929,13 +2932,15 @@ function showStockModal(){
     const owned=pos?pos.shares:0;
     const canAfford=c.checking>=s.price*10;
     const card=document.createElement('div'); card.className='asset-card'; card.setAttribute('data-stock-card', s.id);
+    const defaultBuy = Math.max(100, Math.round(s.price*10));
     card.innerHTML=`
       <div class="ac-hdr"><div><div class="ac-name">${s.name}</div><div class="ac-ticker">${s.id} · ${s.sector||'stocks'}</div></div>
       <div style="text-align:right"><div class="ac-price">$${s.price.toFixed(2)}</div><div class="ac-chg ${chg>=0?'pos':'neg'}">${chg>=0?'+':''}${chg.toFixed(1)}%</div></div></div>
       <canvas class="ac-chart" id="ch-stk-${idx}"></canvas>
-      <div class="ac-meta"><span>${owned?`Owned: ${owned} sh · ${fmt$(s.price*owned)}`:'Not held'}</span><span>10sh = ${fmt$(s.price*10)}</span></div>
+      <div class="ac-meta"><span>${owned?`Owned: ${owned} sh · ${fmt$(s.price*owned)}`:'Not held'}</span><span>1sh = $${s.price.toFixed(2)}</span></div>
       <div class="ac-actions">
-        <button class="ac-btn buy" ${canAfford?'':'disabled'} data-buy="${s.id}">Buy 10</button>
+        <input class="ac-buy-input" type="number" min="1" step="1" value="${defaultBuy}" data-buy-input="${s.id}" title="Dollar amount to invest">
+        <button class="ac-btn buy" ${canAfford?'':'disabled'} data-buy="${s.id}">Buy $</button>
         <button class="ac-btn sell" ${owned?'':'disabled'} data-sell="${s.id}">Sell All</button>
       </div>`;
     grid.appendChild(card); cards.push({canvas:'ch-stk-'+idx, history:h, up:chg>=0});
@@ -2949,26 +2954,32 @@ function showStockModal(){
     const card=grid.querySelector(`[data-stock-card="${id}"]`); if(!card) return;
     const pos=inv.portfolio[s.id]; const owned=pos?pos.shares:0;
     const meta=card.querySelector('.ac-meta');
-    if(meta) meta.innerHTML=`<span>${owned?`Owned: ${owned} sh · ${fmt$(s.price*owned)}`:'Not held'}</span><span>10sh = ${fmt$(s.price*10)}</span>`;
+    if(meta) meta.innerHTML=`<span>${owned?`Owned: ${owned} sh · ${fmt$(s.price*owned)}`:'Not held'}</span><span>1sh = $${s.price.toFixed(2)}</span>`;
     const sellBtn=card.querySelector('.ac-btn.sell'); if(sellBtn) sellBtn.disabled=!owned;
   }
   function refreshStockAffordability(){
     $('m-body').textContent=`Climate: ${inv.climate.toUpperCase()} · Cash: ${fmt$(c.checking)} · Prices update monthly.`;
     inv.stocks.forEach(stk=>{
       const b=grid.querySelector(`[data-buy="${stk.id}"]`);
-      if(b) b.disabled=c.checking<stk.price*10;
+      if(b) b.disabled=c.checking<stk.price;
     });
   }
   grid.onclick=(e)=>{
     const buyId=e.target.getAttribute('data-buy');
     const sellId=e.target.getAttribute('data-sell');
     if(buyId){
-      const s=inv.stocks.find(x=>x.id===buyId); const cost=Math.round(s.price*10);
-      if(c.checking<cost){showToast('Not enough cash.');return;}
+      const s=inv.stocks.find(x=>x.id===buyId);
+      const input=grid.querySelector(`[data-buy-input="${buyId}"]`);
+      const wanted=Math.max(0, Math.floor(parseFloat(input?.value)||0));
+      if(wanted<s.price){ showToast(`Need at least $${s.price.toFixed(2)} for 1 share.`); return; }
+      if(c.checking<wanted){ showToast('Not enough cash.'); return; }
+      const shares=Math.floor(wanted / s.price);
+      const cost=Math.round(shares * s.price);
+      if(shares<1){ showToast('Amount buys 0 shares.'); return; }
       c.checking-=cost;
       if(!inv.portfolio[s.id]) inv.portfolio[s.id]={shares:0,avgCost:0};
-      const p=inv.portfolio[s.id]; p.avgCost=(p.avgCost*p.shares+cost)/(p.shares+10); p.shares+=10;
-      showToast(`Bought 10 ${s.id} for ${fmt$(cost)}`);
+      const p=inv.portfolio[s.id]; p.avgCost=(p.avgCost*p.shares+cost)/(p.shares+shares); p.shares+=shares;
+      showToast(`Bought ${shares} ${s.id} for ${fmt$(cost)}`);
       refreshStockCard(buyId); refreshStockAffordability();
     }else if(sellId){
       const s=inv.stocks.find(x=>x.id===sellId); const p=inv.portfolio[sellId]; if(!p) return;
@@ -3010,9 +3021,10 @@ function showCryptoModal(){
       <div class="ac-hdr"><div><div class="ac-name">${coin.name}</div><div class="ac-ticker">${coin.id}</div></div>
       <div style="text-align:right"><div class="ac-price">${priceLbl}</div><div class="ac-chg ${chg>=0?'pos':'neg'}">${chg>=0?'+':''}${chg.toFixed(1)}%</div></div></div>
       <canvas class="ac-chart" id="ch-cry-${idx}"></canvas>
-      <div class="ac-meta"><span>${owned?`Owned: ${owned.toFixed(4)} · ${fmt$(coin.price*owned)}`:'Not held'}</span><span>Buy = $1,000</span></div>
+      <div class="ac-meta"><span>${owned?`Owned: ${owned.toFixed(4)} · ${fmt$(coin.price*owned)}`:'Not held'}</span><span>1 = ${priceLbl}</span></div>
       <div class="ac-actions">
-        <button class="ac-btn buy" ${canAfford?'':'disabled'} data-buy="${coin.id}">Buy $1k</button>
+        <input class="ac-buy-input" type="number" min="1" step="1" value="1000" data-buy-input="${coin.id}" title="Dollar amount to invest">
+        <button class="ac-btn buy" ${canAfford?'':'disabled'} data-buy="${coin.id}">Buy $</button>
         <button class="ac-btn sell" ${owned?'':'disabled'} data-sell="${coin.id}">Sell All</button>
       </div>`;
     grid.appendChild(card); cards.push({canvas:'ch-cry-'+idx, history:h, up:chg>=0});
@@ -3025,15 +3037,16 @@ function showCryptoModal(){
     const coin=inv.cryptos.find(x=>x.id===id); if(!coin) return;
     const card=grid.querySelector(`[data-crypto-card="${id}"]`); if(!card) return;
     const pos=inv.cryptoHeld[coin.id]; const owned=pos?pos.coins:0;
+    const priceLbl=coin.price>=1000?'$'+(coin.price/1000).toFixed(2)+'k':coin.price>=1?'$'+coin.price.toFixed(2):'$'+coin.price.toFixed(5);
     const meta=card.querySelector('.ac-meta');
-    if(meta) meta.innerHTML=`<span>${owned?`Owned: ${owned.toFixed(4)} · ${fmt$(coin.price*owned)}`:'Not held'}</span><span>Buy = $1,000</span>`;
+    if(meta) meta.innerHTML=`<span>${owned?`Owned: ${owned.toFixed(4)} · ${fmt$(coin.price*owned)}`:'Not held'}</span><span>1 = ${priceLbl}</span>`;
     const sellBtn=card.querySelector('.ac-btn.sell'); if(sellBtn) sellBtn.disabled=!owned;
   }
   function refreshCryptoAffordability(){
     $('m-body').textContent=`Climate: ${inv.climate.toUpperCase()} · Cash: ${fmt$(c.checking)} · Extremely volatile. Prices update monthly.`;
     inv.cryptos.forEach(coin=>{
       const b=grid.querySelector(`[data-buy="${coin.id}"]`);
-      if(b) b.disabled=c.checking<1000;
+      if(b) b.disabled=c.checking<1;
     });
   }
   grid.onclick=(e)=>{
@@ -3041,12 +3054,15 @@ function showCryptoModal(){
     const sellId=e.target.getAttribute('data-sell');
     if(buyId){
       const coin=inv.cryptos.find(x=>x.id===buyId);
-      if(c.checking<1000){showToast('Not enough cash.');return;}
-      const coins=1000/coin.price;
-      c.checking-=1000;
+      const input=grid.querySelector(`[data-buy-input="${buyId}"]`);
+      const wanted=Math.max(0, Math.floor(parseFloat(input?.value)||0));
+      if(wanted<1){ showToast('Enter a dollar amount.'); return; }
+      if(c.checking<wanted){ showToast('Not enough cash.'); return; }
+      const coins=wanted/coin.price;
+      c.checking-=wanted;
       if(!inv.cryptoHeld[coin.id]) inv.cryptoHeld[coin.id]={coins:0,avgCost:0};
-      const p=inv.cryptoHeld[coin.id]; p.avgCost=(p.avgCost*p.coins+1000)/(p.coins+coins); p.coins+=coins;
-      showToast(`Bought ${coins.toFixed(4)} ${coin.id}`);
+      const p=inv.cryptoHeld[coin.id]; p.avgCost=(p.avgCost*p.coins+wanted)/(p.coins+coins); p.coins+=coins;
+      showToast(`Bought ${coins.toFixed(4)} ${coin.id} for ${fmt$(wanted)}`);
       refreshCryptoCard(buyId); refreshCryptoAffordability();
     }else if(sellId){
       const coin=inv.cryptos.find(x=>x.id===sellId); const p=inv.cryptoHeld[sellId]; if(!p) return;

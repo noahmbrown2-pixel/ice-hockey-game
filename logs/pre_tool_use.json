@@ -6390,5 +6390,1345 @@
       "limit": 50
     },
     "tool_use_id": "toolu_01KEJnuWvtV2cMGC3kMXjJXJ"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 2130,
+      "limit": 90
+    },
+    "tool_use_id": "toolu_01YWHbhMg738edCWWaR7nvHD"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "function generateMonthlyExpenseEvent(char){\n  if(char.age < 16) return null;\n  const item = pick(MONTHLY_EXPENSES);\n  const cost = ri(item.min, item.max);\n  return {\n    id: 'monthly_expense_'+Date.now(),\n    title: item.name,\n    cat: 'expense',\n    icon: item.icon,\n    desc: `You spotted a ${item.name.toLowerCase()} you want. It costs ${fmt$(cost)}. Pay now or defer up to 10 months \u00e2\u20ac\u201d but miss the deadline and it auto-deducts with a credit penalty.`,\n    _cost: cost,\n    _item: item,\n    choices:[\n      {text:`Buy Now \u00e2\u20ac\u201d ${fmt$(cost)} from checking`,\n       fn(c){\n         c.checking -= cost;\n         c.creditScore = clamp(c.creditScore + ri(1,3), 300, 850);\n         if(!c.belongings) c.belongings=[];\n         c.belongings.push({id:`b_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, name:item.name, icon:item.icon, cost, purchasedAt:c.monthAge});\n         return `Paid ${fmt$(cost)} for ${item.name}. Added to belongings \u00e2\u20ac\u201d sell anytime from Assets tab. Credit score +${ri(1,3)} (on-time).`;\n       }\n      },\n      {text:`Defer \u00e2\u20ac\u201d pay within 10 months or auto-deducted`,\n       fn(c){\n         if(!c.pendingExpenses) c.pendingExpenses=[];\n         c.pendingExpenses.push({name:item.name, icon:item.icon, cost, monthsLeft:10});\n         return `Deferred. ${fmt$(cost)} due in 10 months. Miss it and your credit takes a hit.`;\n       }\n      },\n    ],\n  };\n}",
+      "new_string": "function generateMonthlyExpenseEvent(char){\n  if(char.age < 16) return null;\n  // Pick 4 distinct items, each with its own rolled cost\n  const pool = MONTHLY_EXPENSES.slice();\n  const picks = [];\n  const count = Math.min(4, pool.length);\n  for(let i=0; i<count; i++){\n    const idx = ri(0, pool.length-1);\n    const item = pool.splice(idx, 1)[0];\n    picks.push({item, cost: ri(item.min, item.max)});\n  }\n  const descLines = picks.map(p => `${p.item.icon} ${p.item.name} \u00e2\u20ac\u201d ${fmt$(p.cost)}`).join('  \u00c2\u00b7  ');\n  const choices = [];\n  for(const p of picks){\n    choices.push({\n      text:`Buy ${p.item.icon} ${p.item.name} \u00e2\u20ac\u201d ${fmt$(p.cost)}`,\n      fn(c){\n        c.checking -= p.cost;\n        const bump = ri(1,3);\n        c.creditScore = clamp(c.creditScore + bump, 300, 850);\n        if(!c.belongings) c.belongings=[];\n        c.belongings.push({id:`b_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, name:p.item.name, icon:p.item.icon, cost:p.cost, purchasedAt:c.monthAge});\n        return `Paid ${fmt$(p.cost)} for ${p.item.name}. Added to belongings \u00e2\u20ac\u201d sell anytime from Assets tab. Credit score +${bump}.`;\n      }\n    });\n  }\n  for(const p of picks){\n    choices.push({\n      text:`Defer ${p.item.icon} ${p.item.name} \u00e2\u20ac\u201d ${fmt$(p.cost)} (10 mo)`,\n      fn(c){\n        if(!c.pendingExpenses) c.pendingExpenses=[];\n        c.pendingExpenses.push({name:p.item.name, icon:p.item.icon, cost:p.cost, monthsLeft:10});\n        return `Deferred ${p.item.name}. ${fmt$(p.cost)} due in 10 months. Miss it and your credit takes a hit.`;\n      }\n    });\n  }\n  choices.push({\n    text:`Pass \u00e2\u20ac\u201d none of these`,\n    fn(){ return `Skipped this month's offers. Maybe next time.`; }\n  });\n  return {\n    id: 'monthly_expense_'+Date.now(),\n    title: 'Monthly Shopping Offers',\n    cat: 'expense',\n    icon: picks[0].item.icon,\n    desc: `Four items caught your eye this month. Pick one to buy, defer the cost up to 10 months, or pass entirely.\\n\\n${descLines}`,\n    choices,\n  };\n}",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01KmPNCiaEseFQ68d4Rog6kx"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "function showEventModal|function showModal|m-choices",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content",
+      "head_limit": 20
+    },
+    "tool_use_id": "toolu_01P7YRKA2xpw3kXGHs7ydg6q"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 2550,
+      "limit": 40
+    },
+    "tool_use_id": "toolu_01EhaCmiNFJfMy6vA9fu5vwa"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "curl -s http://localhost:3000/bitlife-finance.html -o /dev/null -w \"%{http_code}\\n\" 2>&1 | tail -5",
+      "description": "Check if dev server is running"
+    },
+    "tool_use_id": "toolu_01BJjYBzAF7hB1DJ34ijXh7N"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\.playwright-cli\\smoke.js",
+      "content": "// Quick smoke check \u00e2\u20ac\u201d load page, start game, age ~24 months, ensure no console/page errors.\nconst { chromium } = require('playwright');\n(async () => {\n  const browser = await chromium.launch({ headless: true });\n  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });\n  const page = await ctx.newPage();\n  const errs = [];\n  page.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });\n  page.on('pageerror', e => errs.push('page: ' + e.message));\n  await page.goto('http://localhost:3000/bitlife-finance.html', { waitUntil: 'domcontentloaded' });\n  await page.evaluate(() => { try { localStorage.removeItem('finlife_save'); } catch(e){} });\n  await page.reload({ waitUntil: 'domcontentloaded' });\n  await page.waitForSelector('#screen-new.active', { timeout: 5000 });\n  await page.fill('#inp-name', 'Smoke');\n  await page.click('#btn-start');\n  await page.waitForSelector('#screen-game.active', { timeout: 5000 });\n  for (let i = 0; i < 60; i++) {\n    // auto-dismiss modals so we can keep aging\n    for (let k = 0; k < 8; k++) {\n      const open = await page.$('#modal-overlay.open');\n      if (!open) break;\n      const btns = await page.$$('#m-choices button');\n      let idx = -1;\n      for (let j = 0; j < btns.length; j++) {\n        const t = (await btns[j].textContent() || '').toLowerCase();\n        if (/pass|close|cancel|skip|continue|back/.test(t)) { idx = j; break; }\n      }\n      if (idx < 0) idx = Math.max(0, btns.length - 1);\n      if (btns[idx]) await btns[idx].click({ force: true }).catch(()=>{});\n      await page.waitForTimeout(30);\n    }\n    await page.click('#btn-age', { force: true }).catch(()=>{});\n    await page.waitForTimeout(40);\n  }\n  const seenExpenseOffer = await page.evaluate(() => {\n    return (GS.inbox||[]).length;\n  });\n  console.log(JSON.stringify({ errors: errs, inbox: seenExpenseOffer }, null, 2));\n  await browser.close();\n})().catch(e => { console.error('FATAL', e); process.exit(1); });\n"
+    },
+    "tool_use_id": "toolu_01M7Hz6YFRcn1JMMvyVV1wCi"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node smoke.js 2>&1 | tail -30",
+      "timeout": 120000,
+      "description": "Run smoke test"
+    },
+    "tool_use_id": "toolu_01PEhfLVWHbhGZj669SUynPm"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\" && git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 push origin master 2>&1 | tail -10",
+      "timeout": 120000,
+      "description": "Push to origin master"
+    },
+    "tool_use_id": "toolu_0173T456BxAgKoniZJ9a9M32"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "ls /tmp/finlife-deploy 2>&1 | head -5",
+      "description": "Check finlife deploy folder"
+    },
+    "tool_use_id": "toolu_012n48W6CbX17CZawRfEzNzt"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cp \"C:\\Users\\noahm\\Project\\bitlife-finance.html\" /tmp/finlife-deploy/index.html && cd /tmp/finlife-deploy && git add index.html && git commit -m \"$(cat <<'EOF'\nMonthly expense event now offers 4 items to pick from\n\nCo-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>\nEOF\n)\" && git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 push origin main 2>&1 | tail -10",
+      "timeout": 120000,
+      "description": "Deploy to finlife-simulator repo"
+    },
+    "tool_use_id": "toolu_014e76kkghJ4tWaFTW6MPtvM"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "btn-bank|btn-hustle|action-btn|WORKPLACE_PROBLEMS|hireEmployee|tickBusinesses|BIZ_TYPES|renderBusinessTab",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content",
+      "head_limit": 60
+    },
+    "tool_use_id": "toolu_01YKfKyvoEbqcVedVKYzh81o"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 460,
+      "limit": 40
+    },
+    "tool_use_id": "toolu_01CukPtwBQUSMobLwYqkU4oN"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 870,
+      "limit": 140
+    },
+    "tool_use_id": "toolu_01TBFhhmtRq44KBqLc7L85kx"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 1787,
+      "limit": 130
+    },
+    "tool_use_id": "toolu_011siJPTTAwkzb6FqK8zWzTd"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 2815,
+      "limit": 100
+    },
+    "tool_use_id": "toolu_01PCW38nKPBeKc9ygeg2SoxG"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "act-btn|actions-grid",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content",
+      "head_limit": 20
+    },
+    "tool_use_id": "toolu_01EfqihmLw9QZ2ya5DsnYFhF"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": ".act-btn.biz{border-color:#ffb74d}",
+      "new_string": ".act-btn.biz{border-color:#ffb74d}\n.act-btn.sponsors{border-color:#f48fb1;color:#f48fb1}\n.act-btn.sponsors:hover{background:linear-gradient(135deg,var(--bg3),rgba(244,143,177,.1))}",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01C4iQ89rof4DNpusPAryuyJ"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "        <button class=\"act-btn edu\"    id=\"btn-edu\"><span class=\"aico\">\u00f0\u0178\u017d\u201c</span>Education</button>\n        <button class=\"act-btn inbox\"  id=\"btn-inbox\" style=\"grid-column:1/-1;position:relative\"><span class=\"aico\">\u00f0\u0178\u201c\u00ac</span>Inbox<span id=\"inbox-badge\" class=\"inbox-badge-btn\">0</span></button>",
+      "new_string": "        <button class=\"act-btn edu\"    id=\"btn-edu\"><span class=\"aico\">\u00f0\u0178\u017d\u201c</span>Education</button>\n        <button class=\"act-btn sponsors\" id=\"btn-sponsors\" style=\"display:none\"><span class=\"aico\">\u00f0\u0178\u00a4\udc9d</span>Sponsors</button>\n        <button class=\"act-btn inbox\"  id=\"btn-inbox\" style=\"grid-column:1/-1;position:relative\"><span class=\"aico\">\u00f0\u0178\u201c\u00ac</span>Inbox<span id=\"inbox-badge\" class=\"inbox-badge-btn\">0</span></button>",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01R5D2AVmodkxqAPcz5xm4JC"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "function startBusiness(idx){\n  const bz=BIZ_TYPES[idx]; if(!bz) return;\n  const c=GS.char;\n  if(c.checking<bz.cost){ showToast(`Need ${fmt$(bz.cost)} to start ${bz.name}.`); return; }\n  c.checking-=bz.cost;\n  GS.inv.businesses.push({name:bz.name,startCost:bz.cost,value:bz.cost,revMult:bz.revMult,profit:0,age:0,employees:[]});\n  logEvent(`${bz.icon} Started ${bz.name} \u00e2\u20ac\u201d invested ${fmt$(bz.cost)}`, 'good');\n  showToast(`Started ${bz.name}!`);\n  saveGame();\n  const nw=calcNetWorth(GS.char,GS.inv);\n  updateUI(null,nw,nw);\n}",
+      "new_string": "const EQUIPMENT_TIERS = [\n  {tier:1, label:'Basic',             revBoost:0.00, moraleFloor:40, upgradeCost:15000},\n  {tier:2, label:'Standard',          revBoost:0.05, moraleFloor:50, upgradeCost:30000},\n  {tier:3, label:'Pro',               revBoost:0.10, moraleFloor:60, upgradeCost:60000},\n  {tier:4, label:'Premium',           revBoost:0.18, moraleFloor:70, upgradeCost:120000},\n  {tier:5, label:'State-of-the-art',  revBoost:0.28, moraleFloor:80, upgradeCost:null},\n];\nfunction equipmentInfo(b){\n  const tier = EQUIPMENT_TIERS.find(e=>e.tier===(b.equipTier||1)) || EQUIPMENT_TIERS[0];\n  const age = b.equipAge||0;\n  // Old equipment: age > 5 years OR tier 1 + age > 2 years\n  const old = age >= 6 || (tier.tier===1 && age>=3) || (tier.tier===2 && age>=5);\n  const next = EQUIPMENT_TIERS.find(e=>e.tier===tier.tier+1) || null;\n  return {tier, age, old, next};\n}\n\nfunction startBusiness(idx){\n  const bz=BIZ_TYPES[idx]; if(!bz) return;\n  const c=GS.char;\n  if(c.checking<bz.cost){ showToast(`Need ${fmt$(bz.cost)} to start ${bz.name}.`); return; }\n  c.checking-=bz.cost;\n  GS.inv.businesses.push({name:bz.name,startCost:bz.cost,value:bz.cost,revMult:bz.revMult,profit:0,age:0,employees:[],equipTier:1,equipAge:0});\n  logEvent(`${bz.icon} Started ${bz.name} \u00e2\u20ac\u201d invested ${fmt$(bz.cost)}`, 'good');\n  showToast(`Started ${bz.name}!`);\n  saveGame();\n  const nw=calcNetWorth(GS.char,GS.inv);\n  updateUI(null,nw,nw);\n}\n\nfunction upgradeEquipment(bizIdx){\n  const b=GS.inv.businesses[bizIdx]; if(!b) return;\n  const info=equipmentInfo(b);\n  if(!info.next){ showToast('Already at top-tier equipment.'); return; }\n  const cost = info.tier.upgradeCost;\n  if(GS.char.checking < cost){ showToast(`Need ${fmt$(cost)} to upgrade.`); return; }\n  GS.char.checking -= cost;\n  b.equipTier = info.next.tier;\n  b.equipAge = 0;\n  // Morale bump for all employees\n  for(const e of (b.employees||[])){ e.morale = clamp((e.morale||75) + ri(6,12), 0, 100); }\n  logEvent(`\u00f0\u0178\u203a\u00a0\u00ef\u00b8\udc8f Upgraded ${b.name} equipment \u00e2\u2020\u2019 ${info.next.label} (${fmt$(cost)})`, 'good');\n  saveGame();\n  showHireModal(bizIdx);\n  renderBusinessTab();\n}",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01Y1aDMWpezdzDxGTqhqyPAo"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "function tickBusinesses(inv, char, ev){\n  for(const b of inv.businesses){\n    if(!b.employees) b.employees=[];\n    const cm=CLIMATE_MULT[inv.climate]||CLIMATE_MULT.normal;\n    const statF=(char.smarts/100)*0.6+(char.looks/100)*0.2+0.2;\n    // Employee morale dampens boost: avg morale < 50 cuts effectiveness\n    const avgMorale=b.employees.length ? b.employees.reduce((s,e)=>s+(e.morale||75),0)/b.employees.length : 75;\n    const moraleF=0.4 + (avgMorale/100)*0.7;  // ~0.75 at 50 morale, ~1.05 at 90\n    const empBoost=1 + b.employees.reduce((s,e)=>s+((e.boost||0)*((e.morale||75)/75)),0);\n    const rev=Math.round(b.startCost*b.revMult*statF*(cm.stock)*rf(0.75,1.25)*Math.max(0.5,Math.log(b.age+2))*empBoost);\n    const wages=b.employees.reduce((s,e)=>s+(e.wage||0)*12,0);\n    const exp=Math.round(rev*rf(0.55,0.75)+b.startCost*0.05)+wages;\n    b.profit=rev-exp; b.value=Math.max(Math.round(b.startCost*0.3),Math.round(b.profit*rf(2,4)));\n    b.age++;\n    if(b.profit>0){char.checking+=b.profit;ev.push({type:'good',text:`${b.name} profit: ${fmt$(b.profit)} (wages ${fmt$(wages)}, morale ${Math.round(avgMorale)}%)`});}\n    else{char.checking+=b.profit;ev.push({type:'bad',text:`${b.name} loss: ${fmt$(Math.abs(b.profit))} (wages ${fmt$(wages)}, morale ${Math.round(avgMorale)}%)`});}\n  }\n}",
+      "new_string": "function tickBusinesses(inv, char, ev){\n  for(const b of inv.businesses){\n    if(!b.employees) b.employees=[];\n    if(b.equipTier===undefined){ b.equipTier=1; b.equipAge=0; }\n    const cm=CLIMATE_MULT[inv.climate]||CLIMATE_MULT.normal;\n    const statF=(char.smarts/100)*0.6+(char.looks/100)*0.2+0.2;\n    // Employee morale dampens boost: avg morale < 50 cuts effectiveness\n    const avgMorale=b.employees.length ? b.employees.reduce((s,e)=>s+(e.morale||75),0)/b.employees.length : 75;\n    const moraleF=0.4 + (avgMorale/100)*0.7;  // ~0.75 at 50 morale, ~1.05 at 90\n    const empBoost=1 + b.employees.reduce((s,e)=>s+((e.boost||0)*((e.morale||75)/75)),0);\n    const einfo = equipmentInfo(b);\n    const equipF = 1 + einfo.tier.revBoost - (einfo.old ? 0.08 : 0);\n    const rev=Math.round(b.startCost*b.revMult*statF*(cm.stock)*rf(0.75,1.25)*Math.max(0.5,Math.log(b.age+2))*empBoost*equipF);\n    const wages=b.employees.reduce((s,e)=>s+(e.wage||0)*12,0);\n    const exp=Math.round(rev*rf(0.55,0.75)+b.startCost*0.05)+wages;\n    b.profit=rev-exp; b.value=Math.max(Math.round(b.startCost*0.3),Math.round(b.profit*rf(2,4)));\n    b.age++;\n    b.equipAge=(b.equipAge||0)+1;\n    if(b.profit>0){char.checking+=b.profit;ev.push({type:'good',text:`${b.name} profit: ${fmt$(b.profit)} (wages ${fmt$(wages)}, morale ${Math.round(avgMorale)}%, equip ${einfo.tier.label}${einfo.old?' OLD':''})`});}\n    else{char.checking+=b.profit;ev.push({type:'bad',text:`${b.name} loss: ${fmt$(Math.abs(b.profit))} (wages ${fmt$(wages)}, morale ${Math.round(avgMorale)}%, equip ${einfo.tier.label}${einfo.old?' OLD':''})`});}\n  }\n}",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01AsjnvyCscZxiMJkHvcYZhp"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "function tickEmployeeMessages(c, inv){\n  const bizs=inv.businesses||[];\n  for(const b of bizs){\n    if(!b.employees) continue;\n    // Compute biz health for morale drift\n    const profitPerEmp = (b.profit||0) / Math.max(1, b.employees.length);\n    for(const e of b.employees){\n      e.tenure = (e.tenure||0)+1;\n      if(e.morale===undefined) e.morale=75;\n      // Monthly morale drift\n      let drift = ri(-2,2);\n      if(profitPerEmp > 5000) drift += 2;\n      else if(profitPerEmp < -2000) drift -= 4;\n      else if(profitPerEmp < 0) drift -= 2;\n      // Long tenure without pay bump \u00e2\u2020\u2019 slight decay\n      if(e.tenure > 24 && e.tenure % 12 === 0) drift -= 1;\n      e.morale = clamp(e.morale + drift, 0, 100);\n      // Message chance: ~12% per employee per month\n      if(!pct(0.12)) continue;\n      const date = currentMonthDate(c);\n      const name = e.name || e.title;\n      const roleIcon = (EMPLOYEE_ROLES.find(r=>r.title===e.title)?.icon) || '\u00f0\u0178\u2018\u00a5';\n      let subject, body, moodLabel;\n      if(e.morale >= 80){\n        moodLabel='High';\n        const positive = pick(EMPLOYEE_POSITIVES);\n        subject = `Good week at ${b.name} \u00e2\u20ac\u201d ${name}`;\n        body = `Hey boss,\\n\\n${positive}\\n\\nTeam morale feels strong \u00e2\u20ac\u201d I'd say we're around ${e.morale}%. No real problems right now.\\n\\n\u00e2\u20ac\u201d ${name}, ${e.title}`;\n      } else if(e.morale >= 55){\n        moodLabel='Steady';\n        const maybeProblem = pct(0.5) ? pick(WORKPLACE_PROBLEMS) : 'Nothing major going on \u00e2\u20ac\u201d things are steady.';\n        subject = `${b.name} check-in \u00e2\u20ac\u201d ${name}`;\n        body = `Hey boss,\\n\\nJust a quick update. Workplace morale's around ${e.morale}% \u00e2\u20ac\u201d people show up, do the work, go home.\\n\\n${maybeProblem}\\n\\nLet me know if you want me to look into anything.\\n\\n\u00e2\u20ac\u201d ${name}, ${e.title}`;\n      } else if(e.morale >= 30){\n        moodLabel='Low';\n        const prob1 = pick(WORKPLACE_PROBLEMS);\n        const prob2 = pick(WORKPLACE_PROBLEMS.filter(p=>p!==prob1));\n        subject = `${b.name}: morale is slipping \u00e2\u20ac\u201d ${name}`;\n        body = `Hey boss,\\n\\nWanted to flag that morale here has been dropping. I'd put it around ${e.morale}% honestly.\\n\\nTwo things on my mind:\\n\u00e2\u20ac\u00a2 ${prob1}\\n\u00e2\u20ac\u00a2 ${prob2}\\n\\nI think a pay review or small team gesture would go a long way. Otherwise I'm worried about turnover.\\n\\n\u00e2\u20ac\u201d ${name}, ${e.title}`;\n      } else {\n        moodLabel='Critical';\n        const prob = pick(WORKPLACE_PROBLEMS);\n        subject = `${b.name}: considering my options \u00e2\u20ac\u201d ${name}`;\n        body = `Hey boss,\\n\\nI've got to be honest \u00e2\u20ac\u201d morale at ${e.morale}% is rough. Multiple issues stacking up:\\n\\n\u00e2\u20ac\u00a2 ${prob}\\n\u00e2\u20ac\u00a2 Wages haven't kept up with the workload.\\n\u00e2\u20ac\u00a2 Long stretches without real recognition.\\n\\nI'm looking around. Happy to talk before I decide anything, but you should know.\\n\\n\u00e2\u20ac\u201d ${name}, ${e.title}`;\n      }\n      addInboxItem({\n        type:'news', icon:roleIcon, subject, date,\n        body: `${body}\\n\\n\u00e2\u201d\u20ac\u00e2\u201d\u20ac Snapshot \u00e2\u201d\u20ac\u00e2\u201d\u20ac\\nBusiness: ${b.name}\\nMorale: ${e.morale}% (${moodLabel})\\nTenure: ${e.tenure} months\\nWage: ${fmt$(e.wage)}/mo`\n      });\n    }\n  }\n}",
+      "new_string": "const EQUIPMENT_COMPLAINTS = [\n  'The equipment is genuinely past its life. Tools break mid-shift.',\n  'Our gear is old \u00e2\u20ac\u201d I\\'m losing an hour a day working around it.',\n  'Can we please upgrade the equipment? It\\'s embarrassing in front of customers.',\n  'The old machines keep jamming. Team is frustrated.',\n  'Tried to fix the rig again yesterday. It needs replacing, not patching.',\n];\n\nfunction tickEmployeeMessages(c, inv){\n  const bizs=inv.businesses||[];\n  for(const b of bizs){\n    if(!b.employees) continue;\n    const einfo = equipmentInfo(b);\n    // Compute biz health for morale drift\n    const profitPerEmp = (b.profit||0) / Math.max(1, b.employees.length);\n    for(const e of b.employees){\n      e.tenure = (e.tenure||0)+1;\n      if(e.morale===undefined) e.morale=75;\n      // Monthly morale drift\n      let drift = ri(-2,2);\n      if(profitPerEmp > 5000) drift += 2;\n      else if(profitPerEmp < -2000) drift -= 4;\n      else if(profitPerEmp < 0) drift -= 2;\n      // Old equipment erodes morale over time\n      if(einfo.old) drift -= ri(1,3);\n      else if(einfo.tier.tier >= 4) drift += 1;\n      // Long tenure without pay bump \u00e2\u2020\u2019 slight decay\n      if(e.tenure > 24 && e.tenure % 12 === 0) drift -= 1;\n      e.morale = clamp(e.morale + drift, 0, 100);\n      // Message chance: ~12% per employee per month\n      if(!pct(0.12)) continue;\n      const date = currentMonthDate(c);\n      const name = e.name || e.title;\n      const roleIcon = (EMPLOYEE_ROLES.find(r=>r.title===e.title)?.icon) || '\u00f0\u0178\u2018\u00a5';\n      // Pool complaints \u00e2\u20ac\u201d include equipment complaints only when equipment is old\n      const problemPool = einfo.old ? WORKPLACE_PROBLEMS.concat(EQUIPMENT_COMPLAINTS, EQUIPMENT_COMPLAINTS) : WORKPLACE_PROBLEMS;\n      let subject, body, moodLabel;\n      if(e.morale >= 80){\n        moodLabel='High';\n        const positive = pick(EMPLOYEE_POSITIVES);\n        subject = `Good week at ${b.name} \u00e2\u20ac\u201d ${name}`;\n        body = `Hey boss,\\n\\n${positive}\\n\\nTeam morale feels strong \u00e2\u20ac\u201d I'd say we're around ${e.morale}%. No real problems right now.\\n\\n\u00e2\u20ac\u201d ${name}, ${e.title}`;\n      } else if(e.morale >= 55){\n        moodLabel='Steady';\n        const maybeProblem = pct(0.5) ? pick(problemPool) : 'Nothing major going on \u00e2\u20ac\u201d things are steady.';\n        subject = `${b.name} check-in \u00e2\u20ac\u201d ${name}`;\n        body = `Hey boss,\\n\\nJust a quick update. Workplace morale's around ${e.morale}% \u00e2\u20ac\u201d people show up, do the work, go home.\\n\\n${maybeProblem}\\n\\nLet me know if you want me to look into anything.\\n\\n\u00e2\u20ac\u201d ${name}, ${e.title}`;\n      } else if(e.morale >= 30){\n        moodLabel='Low';\n        const prob1 = pick(problemPool);\n        const prob2 = pick(problemPool.filter(p=>p!==prob1));\n        subject = `${b.name}: morale is slipping \u00e2\u20ac\u201d ${name}`;\n        body = `Hey boss,\\n\\nWanted to flag that morale here has been dropping. I'd put it around ${e.morale}% honestly.\\n\\nTwo things on my mind:\\n\u00e2\u20ac\u00a2 ${prob1}\\n\u00e2\u20ac\u00a2 ${prob2}\\n\\nOptions that would help: a bonus, a raise, a team day, training, or (if the gear is old) an equipment upgrade. Staff actions are in the Business tab under Manage Staff.\\n\\n\u00e2\u20ac\u201d ${name}, ${e.title}`;\n      } else {\n        moodLabel='Critical';\n        const prob = pick(problemPool);\n        subject = `${b.name}: considering my options \u00e2\u20ac\u201d ${name}`;\n        body = `Hey boss,\\n\\nI've got to be honest \u00e2\u20ac\u201d morale at ${e.morale}% is rough. Multiple issues stacking up:\\n\\n\u00e2\u20ac\u00a2 ${prob}\\n\u00e2\u20ac\u00a2 Wages haven't kept up with the workload.\\n\u00e2\u20ac\u00a2 Long stretches without real recognition.\\n\\nI'm looking around. Happy to talk before I decide anything, but you should know. A bonus, raise, team event, or equipment upgrade from Manage Staff would seriously help.\\n\\n\u00e2\u20ac\u201d ${name}, ${e.title}`;\n      }\n      addInboxItem({\n        type:'news', icon:roleIcon, subject, date,\n        body: `${body}\\n\\n\u00e2\u201d\u20ac\u00e2\u201d\u20ac Snapshot \u00e2\u201d\u20ac\u00e2\u201d\u20ac\\nBusiness: ${b.name}\\nMorale: ${e.morale}% (${moodLabel})\\nTenure: ${e.tenure} months\\nWage: ${fmt$(e.wage)}/mo\\nEquipment: ${einfo.tier.label} (${einfo.age}y${einfo.old?' \u00e2\u20ac\u201d OLD':''})`\n      });\n    }\n  }\n}",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_014BVEBJRF1pB2Se5Hu2o1iB"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "function showHireModal(bizIdx){\n  const b=GS.inv.businesses[bizIdx]; if(!b) return;\n  if(!b.employees) b.employees=[];\n  $('m-icon').textContent='\u00f0\u0178\u2018\u00a5';\n  $('m-tag').textContent='Staffing';\n  $('m-tag').className='modal-tag fla';\n  $('m-title').textContent=`${b.name} \u00e2\u20ac\u201d Staff`;\n  const curWages=b.employees.reduce((s,e)=>s+(e.wage||0),0);\n  const curBoost=Math.round(b.employees.reduce((s,e)=>s+(e.boost||0),0)*100);\n  const avgMorale=b.employees.length ? Math.round(b.employees.reduce((s,e)=>s+(e.morale||75),0)/b.employees.length) : 0;\n  const moraleTag = b.employees.length ? ` \u00c2\u00b7 Morale ${avgMorale}%` : '';\n  $('m-body').textContent=`Current staff: ${b.employees.length} \u00c2\u00b7 Wages: ${fmt$(curWages)}/mo \u00c2\u00b7 Revenue boost: +${curBoost}%${moraleTag}`;\n  $('m-result').style.display='none';\n  const ch=$('m-choices');\n  const hireBtns = EMPLOYEE_ROLES.map(r=>{\n    return `<button class=\"choice-btn\" onclick=\"hireEmployee(${bizIdx},'${r.title}')\">${r.icon} Hire ${r.title} \u00e2\u20ac\u201d ${fmt$(r.wage)}/mo \u00c2\u00b7 +${Math.round(r.boost*100)}% rev</button>`;\n  }).join('');\n  const fireBtns = b.employees.map((e,ei)=>{\n    const m = e.morale||75;\n    const moodIco = m>=80?'\u00f0\u0178\u02dc\u201e':m>=55?'\u00f0\u0178\u2122\u201a':m>=30?'\u00f0\u0178\u02dc\u0178':'\u00f0\u0178\u02dc\u00a0';\n    const nameTag = e.name ? ` \u00e2\u20ac\u201d ${e.name}` : '';\n    return `<button class=\"choice-btn\" onclick=\"fireEmployee(${bizIdx},${ei})\" style=\"border-color:var(--red);color:var(--red)\">${moodIco} ${m}% \u00c2\u00b7 \u00e2\u0153\u2013 Fire ${e.title}${nameTag} (${fmt$(e.wage)}/mo)</button>`;\n  }).join('');\n  ch.innerHTML = hireBtns + (fireBtns?`<div style=\"height:1px;background:var(--border);margin:6px 0\"></div>`+fireBtns:'')\n    + `<button class=\"choice-btn\" onclick=\"closeModal()\">Close</button>`;\n  $('modal-box').classList.add('compact');\n  $('modal-overlay').classList.add('open');\n}",
+      "new_string": "function payBonuses(bizIdx){\n  const b=GS.inv.businesses[bizIdx]; if(!b||!b.employees||!b.employees.length) return;\n  const per=500, total=per*b.employees.length;\n  if(GS.char.checking<total){ showToast(`Need ${fmt$(total)} for bonuses.`); return; }\n  GS.char.checking-=total;\n  for(const e of b.employees){ e.morale=clamp((e.morale||75)+ri(10,18),0,100); }\n  logEvent(`\u00f0\u0178\u017d\udc81 Paid $${per} bonus \u00c3\u2014 ${b.employees.length} at ${b.name} (${fmt$(total)})`, 'good');\n  saveGame(); showHireModal(bizIdx); renderBusinessTab();\n}\nfunction raiseWages(bizIdx){\n  const b=GS.inv.businesses[bizIdx]; if(!b||!b.employees||!b.employees.length) return;\n  for(const e of b.employees){ e.wage=Math.round((e.wage||0)*1.08); e.morale=clamp((e.morale||75)+ri(6,10),0,100); e.tenure=0; }\n  logEvent(`\u00f0\u0178\u201c\u02c6 8% raise at ${b.name} \u00e2\u20ac\u201d team morale up`, 'good');\n  saveGame(); showHireModal(bizIdx); renderBusinessTab();\n}\nfunction throwTeamParty(bizIdx){\n  const b=GS.inv.businesses[bizIdx]; if(!b||!b.employees||!b.employees.length) return;\n  const cost=2000 + 300*b.employees.length;\n  if(GS.char.checking<cost){ showToast(`Need ${fmt$(cost)} for the party.`); return; }\n  GS.char.checking-=cost;\n  for(const e of b.employees){ e.morale=clamp((e.morale||75)+ri(5,10),0,100); }\n  logEvent(`\u00f0\u0178\u017d\u2030 Team party at ${b.name} (${fmt$(cost)})`, 'good');\n  saveGame(); showHireModal(bizIdx); renderBusinessTab();\n}\nfunction trainingProgram(bizIdx){\n  const b=GS.inv.businesses[bizIdx]; if(!b||!b.employees||!b.employees.length) return;\n  const per=3000, total=per*b.employees.length;\n  if(GS.char.checking<total){ showToast(`Need ${fmt$(total)} for training.`); return; }\n  GS.char.checking-=total;\n  for(const e of b.employees){\n    e.morale=clamp((e.morale||75)+ri(8,14),0,100);\n    e.boost=Math.min(1.5,(e.boost||0)+0.04);\n  }\n  logEvent(`\u00f0\u0178\u201c\u0161 Training program at ${b.name} (${fmt$(total)}) \u00e2\u20ac\u201d +4% rev each`, 'good');\n  saveGame(); showHireModal(bizIdx); renderBusinessTab();\n}\n\nfunction showHireModal(bizIdx){\n  const b=GS.inv.businesses[bizIdx]; if(!b) return;\n  if(!b.employees) b.employees=[];\n  if(b.equipTier===undefined){ b.equipTier=1; b.equipAge=0; }\n  $('m-icon').textContent='\u00f0\u0178\u2018\u00a5';\n  $('m-tag').textContent='Staffing';\n  $('m-tag').className='modal-tag fla';\n  $('m-title').textContent=`${b.name} \u00e2\u20ac\u201d Staff`;\n  const curWages=b.employees.reduce((s,e)=>s+(e.wage||0),0);\n  const curBoost=Math.round(b.employees.reduce((s,e)=>s+(e.boost||0),0)*100);\n  const avgMorale=b.employees.length ? Math.round(b.employees.reduce((s,e)=>s+(e.morale||75),0)/b.employees.length) : 0;\n  const moraleTag = b.employees.length ? ` \u00c2\u00b7 Morale ${avgMorale}%` : '';\n  const einfo=equipmentInfo(b);\n  const equipLine = `Equipment: ${einfo.tier.label} (T${einfo.tier.tier}, ${einfo.age}y${einfo.old?' \u00e2\u20ac\u201d OLD \u00e2\u0161\u00a0\u00ef\u00b8\udc8f':''}) \u00c2\u00b7 +${Math.round(einfo.tier.revBoost*100)}% rev`;\n  $('m-body').textContent=`Staff: ${b.employees.length} \u00c2\u00b7 Wages: ${fmt$(curWages)}/mo \u00c2\u00b7 Boost: +${curBoost}%${moraleTag}\\n${equipLine}`;\n  $('m-result').style.display='none';\n  const ch=$('m-choices');\n  // Morale boosters (only if staff exists)\n  let moraleBtns='';\n  if(b.employees.length){\n    const bonusTot = 500*b.employees.length;\n    const partyTot = 2000 + 300*b.employees.length;\n    const trainTot = 3000*b.employees.length;\n    moraleBtns = `<button class=\"choice-btn\" onclick=\"payBonuses(${bizIdx})\" style=\"border-color:#80cbc4;color:#80cbc4\">\u00f0\u0178\u017d\udc81 Pay $500 bonuses (${fmt$(bonusTot)} total) \u00c2\u00b7 +10\u00e2\u20ac\u201c18 morale</button>`\n      + `<button class=\"choice-btn\" onclick=\"raiseWages(${bizIdx})\" style=\"border-color:#80cbc4;color:#80cbc4\">\u00f0\u0178\u201c\u02c6 Raise wages 8% \u00c2\u00b7 +6\u00e2\u20ac\u201c10 morale (ongoing cost)</button>`\n      + `<button class=\"choice-btn\" onclick=\"throwTeamParty(${bizIdx})\" style=\"border-color:#80cbc4;color:#80cbc4\">\u00f0\u0178\u017d\u2030 Team party (${fmt$(partyTot)}) \u00c2\u00b7 +5\u00e2\u20ac\u201c10 morale</button>`\n      + `<button class=\"choice-btn\" onclick=\"trainingProgram(${bizIdx})\" style=\"border-color:#80cbc4;color:#80cbc4\">\u00f0\u0178\u201c\u0161 Training program (${fmt$(trainTot)}) \u00c2\u00b7 +8\u00e2\u20ac\u201c14 morale, +4% boost each</button>`;\n  }\n  // Equipment upgrade\n  let equipBtn='';\n  if(einfo.next){\n    equipBtn = `<button class=\"choice-btn\" onclick=\"upgradeEquipment(${bizIdx})\" style=\"border-color:#ffb74d;color:#ffb74d\">\u00f0\u0178\u203a\u00a0\u00ef\u00b8\udc8f Upgrade \u00e2\u2020\u2019 ${einfo.next.label} (T${einfo.next.tier}) \u00e2\u20ac\u201d ${fmt$(einfo.tier.upgradeCost)} \u00c2\u00b7 +${Math.round(einfo.next.revBoost*100)}% rev, resets age, morale boost</button>`;\n  } else {\n    equipBtn = `<div style=\"padding:8px;text-align:center;color:var(--muted);font-size:11px\">Equipment is at max tier \u00e2\u20ac\u201d State-of-the-art.</div>`;\n  }\n  const hireBtns = EMPLOYEE_ROLES.map(r=>{\n    return `<button class=\"choice-btn\" onclick=\"hireEmployee(${bizIdx},'${r.title}')\">${r.icon} Hire ${r.title} \u00e2\u20ac\u201d ${fmt$(r.wage)}/mo \u00c2\u00b7 +${Math.round(r.boost*100)}% rev</button>`;\n  }).join('');\n  const fireBtns = b.employees.map((e,ei)=>{\n    const m = e.morale||75;\n    const moodIco = m>=80?'\u00f0\u0178\u02dc\u201e':m>=55?'\u00f0\u0178\u2122\u201a':m>=30?'\u00f0\u0178\u02dc\u0178':'\u00f0\u0178\u02dc\u00a0';\n    const nameTag = e.name ? ` \u00e2\u20ac\u201d ${e.name}` : '';\n    return `<button class=\"choice-btn\" onclick=\"fireEmployee(${bizIdx},${ei})\" style=\"border-color:var(--red);color:var(--red)\">${moodIco} ${m}% \u00c2\u00b7 \u00e2\u0153\u2013 Fire ${e.title}${nameTag} (${fmt$(e.wage)}/mo)</button>`;\n  }).join('');\n  const sep = `<div style=\"height:1px;background:var(--border);margin:6px 0\"></div>`;\n  ch.innerHTML = equipBtn\n    + (moraleBtns ? sep + moraleBtns : '')\n    + sep + hireBtns\n    + (fireBtns ? sep + fireBtns : '')\n    + `<button class=\"choice-btn\" onclick=\"closeModal()\">Close</button>`;\n  $('modal-box').classList.add('compact');\n  $('modal-overlay').classList.add('open');\n}",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01Gs8yJyAhf6knGLW1fzfVWL"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "inv\\.sponsors|newInv\\(|function newInv|inv\\s*=\\s*\\{|tickFinances|sideHustleIncome",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content",
+      "head_limit": 20
+    },
+    "tool_use_id": "toolu_01Psv6tmoN1qRtqyXXQ48F22"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 1493,
+      "limit": 55
+    },
+    "tool_use_id": "toolu_01Qa9nu5pokCAUYzY8R9mRKP"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "inv\\s*=\\s*\\{|businesses:\\[\\]|function newGame",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content",
+      "head_limit": 10
+    },
+    "tool_use_id": "toolu_01ETUE5wwPybJdLcCdW5QpZP"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 1735,
+      "limit": 25
+    },
+    "tool_use_id": "toolu_01DH7iFMYHmhGrnwNCW1b9Ze"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "    vehicles:[],     // [{name,type,price,value,monthlyCost,isElectric,age,depRate}]\n    climate:'normal',\n    climateYearsLeft:0,\n  };\n}",
+      "new_string": "    vehicles:[],     // [{name,type,price,value,monthlyCost,isElectric,age,depRate}]\n    sponsors:[],     // [{name,icon,monthly,monthsLeft,signedAt,category}]\n    sponsorOffers:null, // cached current offer set\n    sponsorOffersMonth:-1,\n    climate:'normal',\n    climateYearsLeft:0,\n  };\n}",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01V1rRMKucbZEoFsYfwVmVgC"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "function stockPortfolioValue(inv){",
+      "new_string": "// \u00e2\u201d\u20ac\u00e2\u201d\u20ac SPONSORS \u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\u00e2\u201d\u20ac\n// Unlocked when total business value >= $500,000. Offers refresh each visit.\nconst SPONSOR_CATALOG = [\n  {icon:'\u00f0\u0178\u201c\u00b1', name:'PixelTech Devices',   monthly: 2500, months:36, category:'tech'},\n  {icon:'\u00f0\u0178\u00a5\u00a4', name:'FizzPop Beverages',   monthly: 3500, months:36, category:'consumer'},\n  {icon:'\u00f0\u0178\u0161\u2014', name:'AutoLine Motors',     monthly: 5500, months:48, category:'auto'},\n  {icon:'\u00e2\u0161\u00bd', name:'KickStrike Sports',   monthly: 4000, months:60, category:'sports'},\n  {icon:'\u00f0\u0178\u017d\u00ae', name:'NovaPlay Gaming',     monthly: 3000, months:48, category:'entertainment'},\n  {icon:'\u00f0\u0178\u2019\u017d', name:'Marchetti Luxury',    monthly: 9000, months:60, category:'luxury'},\n  {icon:'\u00f0\u0178\udc8f\u00a6', name:'Silverline Financial',monthly: 6500, months:60, category:'finance'},\n  {icon:'\u00f0\u0178\u017d\u00ac', name:'FrameOne Media',      monthly: 4500, months:48, category:'media'},\n  {icon:'\u00f0\u0178\u2018\u0178', name:'StrideCo Apparel',    monthly: 3200, months:36, category:'apparel'},\n  {icon:'\u00e2\u02dc\u2022', name:'RoastHaus Coffee',    monthly: 2000, months:24, category:'food'},\n  {icon:'\u00f0\u0178\u203a\u00ab', name:'SkyRoute Airlines',   monthly: 7000, months:48, category:'travel'},\n  {icon:'\u00f0\u0178\u017d\u00a7', name:'AudioWave HQ',        monthly: 2800, months:36, category:'tech'},\n  {icon:'\u00f0\u0178\udc8d\u201d', name:'BigBun Foods',        monthly: 3800, months:48, category:'food'},\n  {icon:'\u00f0\u0178\u2019\u0160', name:'CoreHealth Pharma',   monthly: 5000, months:60, category:'health'},\n  {icon:'\u00f0\u0178\u017d\u00a8', name:'Palette Studios',     monthly: 2200, months:24, category:'creative'},\n];\nfunction sponsorsUnlocked(inv){ return totalBizValue(inv||GS.inv) >= 500000; }\nfunction rollSponsorOffers(){\n  const inv = GS.inv;\n  const bizVal = totalBizValue(inv);\n  const scale = Math.min(4, 1 + Math.log10(Math.max(1, bizVal/500000))); // 1x at 500k, ~2x at 5M, ~3x at 50M\n  const pool = SPONSOR_CATALOG.slice();\n  const picks = [];\n  const n = Math.min(5, pool.length);\n  for(let i=0;i<n;i++){\n    const idx = ri(0, pool.length-1);\n    const s = pool.splice(idx,1)[0];\n    const monthly = Math.round(s.monthly * scale * rf(0.85, 1.25));\n    picks.push({...s, monthly});\n  }\n  inv.sponsorOffers = picks;\n  inv.sponsorOffersMonth = GS.char.monthAge;\n  return picks;\n}\nfunction signSponsor(offer){\n  const inv = GS.inv;\n  if(!inv.sponsors) inv.sponsors = [];\n  if(inv.sponsors.some(s=>s.name===offer.name)) return `Already signed with ${offer.name}.`;\n  inv.sponsors.push({name:offer.name, icon:offer.icon, monthly:offer.monthly, monthsLeft:offer.months, signedAt:GS.char.monthAge, category:offer.category});\n  // Signing bonus = 3 months upfront\n  const bonus = offer.monthly * 3;\n  GS.char.checking += bonus;\n  logEvent(`\u00f0\u0178\u00a4\udc9d Signed sponsor ${offer.icon} ${offer.name} \u00e2\u20ac\u201d ${fmt$(offer.monthly)}/mo for ${offer.months}mo (+${fmt$(bonus)} signing bonus)`, 'good');\n  addInboxItem({\n    type:'news', icon:offer.icon,\n    subject:`Sponsorship signed \u00e2\u20ac\u201d ${offer.name}`,\n    date: currentMonthDate(GS.char),\n    body:`Signed with ${offer.name}.\\n\\nMonthly: ${fmt$(offer.monthly)}\\nTerm: ${offer.months} months\\nSigning bonus: ${fmt$(bonus)} (deposited to checking)\\n\\nPayments will hit monthly in Finances.`\n  });\n  // Remove from current offers\n  inv.sponsorOffers = (inv.sponsorOffers||[]).filter(o=>o.name!==offer.name);\n  saveGame();\n  return `Signed ${offer.name}. +${fmt$(bonus)} upfront, then ${fmt$(offer.monthly)}/mo for ${offer.months} months.`;\n}\nfunction tickSponsors(inv, char){\n  if(!inv.sponsors || !inv.sponsors.length) return;\n  const remaining=[];\n  for(const s of inv.sponsors){\n    char.checking += s.monthly;\n    s.monthsLeft--;\n    if(s.monthsLeft <= 0){\n      addInboxItem({\n        type:'news', icon:s.icon,\n        subject:`Sponsorship ended \u00e2\u20ac\u201d ${s.name}`,\n        date: currentMonthDate(char),\n        body:`Your deal with ${s.name} has run its course.\\n\\nTotal monthly payments over the term added up over time. You can re-sign if they're still available in the Sponsors tab.`\n      });\n    } else {\n      remaining.push(s);\n    }\n  }\n  inv.sponsors = remaining;\n}\n\nfunction stockPortfolioValue(inv){",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01H1JzMcf3fXPKVaG2pjUV3k"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 2355,
+      "limit": 45
+    },
+    "tool_use_id": "toolu_01QaZu23Y7huSeQhg8v2GZek"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 2415,
+      "limit": 30
+    },
+    "tool_use_id": "toolu_01XxxEyDh1YLmvsp3XPSCDXs"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "  // Tick deferred expenses (auto-pay overdue ones)\n  tickPendingExpenses(c, ev);\n\n  // Monthly finances\n  const fin=tickFinances(c, ev);",
+      "new_string": "  // Tick deferred expenses (auto-pay overdue ones)\n  tickPendingExpenses(c, ev);\n\n  // Monthly sponsor payments + term tracking\n  tickSponsors(inv, c);\n\n  // Monthly finances\n  const fin=tickFinances(c, ev);",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_011du3chyNESQXNo6ViAMEQv"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "\\$\\('btn-hustle'\\)\\.onclick|function updateUI",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content",
+      "head_limit": 5
+    },
+    "tool_use_id": "toolu_017LDXCYBnb86Xvh21Kfv5s4"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 2491,
+      "limit": 40
+    },
+    "tool_use_id": "toolu_01XFjFb1KzeKA8WWaXaZLa4S"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "function updateUI(fin, prevNW, nw){\n  const c=GS.char, inv=GS.inv;\n\n  // Stats bar\n  setText('char-name',c.name);",
+      "new_string": "function updateUI(fin, prevNW, nw){\n  const c=GS.char, inv=GS.inv;\n\n  // Sponsors button visibility: gated at $500k total business value\n  const spBtn = $('btn-sponsors');\n  if(spBtn){\n    const unlocked = sponsorsUnlocked(inv);\n    spBtn.style.display = unlocked ? '' : 'none';\n    if(unlocked && (inv.sponsors||[]).length){\n      spBtn.innerHTML = `<span class=\"aico\">\u00f0\u0178\u00a4\udc9d</span>Sponsors (${inv.sponsors.length})`;\n    } else if(unlocked){\n      spBtn.innerHTML = `<span class=\"aico\">\u00f0\u0178\u00a4\udc9d</span>Sponsors`;\n    }\n  }\n\n  // Stats bar\n  setText('char-name',c.name);",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_011Kf349xqU1b7S1YbmVdovd"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 3235,
+      "limit": 40
+    },
+    "tool_use_id": "toolu_01CGXwFd9u59G9FuqWwKy1RZ"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "$('btn-hustle').onclick=()=>{\n  const c=GS.char;\n  // Shuffle and show 6 random hustles each time + persistent \"Start a Business\" option",
+      "new_string": "$('btn-sponsors').onclick=()=>{\n  const inv=GS.inv, c=GS.char;\n  if(!sponsorsUnlocked(inv)){\n    showToast('Sponsors unlock at $500k total business value.');\n    return;\n  }\n  // Refresh offers once per visit if older than 3 months or missing\n  const stale = !inv.sponsorOffers || !inv.sponsorOffers.length || (c.monthAge - (inv.sponsorOffersMonth||0) > 3);\n  if(stale) rollSponsorOffers();\n  const active = inv.sponsors||[];\n  const activeLines = active.length\n    ? `Active: ${active.map(s=>`${s.icon} ${s.name} (${fmt$(s.monthly)}/mo \u00c2\u00b7 ${s.monthsLeft}mo left)`).join(' \u00c2\u00b7 ')}`\n    : 'No active sponsors yet.';\n  const headline = `Total biz value: ${fmt$(totalBizValue(inv))}\\n${activeLines}`;\n  const choices = [];\n  for(const o of (inv.sponsorOffers||[])){\n    const alreadySigned = active.some(s=>s.name===o.name);\n    if(alreadySigned) continue;\n    const bonus = o.monthly * 3;\n    choices.push({\n      text:`${o.icon} ${o.name} \u00e2\u20ac\u201d ${fmt$(o.monthly)}/mo \u00c3\u2014 ${o.months}mo \u00c2\u00b7 ${fmt$(bonus)} signing bonus`,\n      fn(){ return signSponsor(o); }\n    });\n  }\n  if(!choices.length){\n    choices.push({text:'\u00f0\u0178\u201c\u00ad No offers right now \u00e2\u20ac\u201d come back next month', fn(){return 'Check back after aging a few months.';}});\n  }\n  choices.push({text:'\u00f0\u0178\u201d\u201e Refresh offers (next visit rerolls)', fn(){ rollSponsorOffers(); setTimeout(()=>$('btn-sponsors').click(),50); return 'Rerolled.'; }});\n  showActionModal('Sponsors', headline, choices);\n  $('modal-box').classList.add('compact');\n};\n\n$('btn-hustle').onclick=()=>{\n  const c=GS.char;\n  // Shuffle and show 6 random hustles each time + persistent \"Start a Business\" option",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01GAVUkyfXzwPaXayRr3z3SZ"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "loadGame|JSON\\.parse.*finlife|migrate",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content",
+      "head_limit": 10
+    },
+    "tool_use_id": "toolu_01RnkCfnrAMoUCJbYw2DsNdM"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 3378,
+      "limit": 30
+    },
+    "tool_use_id": "toolu_01Tzigm1eZniqgUPrFTHGdv4"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "function loadGame(){\n  try{const d=localStorage.getItem('finlife_save');if(!d)return false;const p=JSON.parse(d);GS.char=p.char;GS.inv=p.inv||createInvState();GS.nwHistory=p.nwHistory||[];GS.inbox=p.inbox||[];GS.billAccum=p.billAccum||[];return true;}catch(e){return false;}\n}",
+      "new_string": "function loadGame(){\n  try{const d=localStorage.getItem('finlife_save');if(!d)return false;const p=JSON.parse(d);GS.char=p.char;GS.inv=p.inv||createInvState();GS.nwHistory=p.nwHistory||[];GS.inbox=p.inbox||[];GS.billAccum=p.billAccum||[];\n    // Migrations for older saves\n    if(!GS.inv.sponsors) GS.inv.sponsors=[];\n    if(GS.inv.sponsorOffersMonth===undefined) GS.inv.sponsorOffersMonth=-1;\n    for(const b of (GS.inv.businesses||[])){\n      if(b.equipTier===undefined){ b.equipTier=1; b.equipAge=0; }\n    }\n    return true;\n  }catch(e){return false;}\n}",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01QfrXJUJZFKy7L1HbkfZM5m"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node smoke.js 2>&1 | tail -10",
+      "timeout": 120000,
+      "description": "Smoke test after changes"
+    },
+    "tool_use_id": "toolu_01EovQewmT5NGPBBMeH7zqx3"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cp \"C:\\Users\\noahm\\Project\\bitlife-finance.html\" /tmp/finlife-deploy/index.html && cd /tmp/finlife-deploy && git add index.html && git commit -m \"$(cat <<'EOF'\nSponsors, morale boosters, and equipment upgrades\n\nCo-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>\nEOF\n)\" && git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 push origin main 2>&1 | tail -5",
+      "timeout": 120000,
+      "description": "Deploy to finlife-simulator"
+    },
+    "tool_use_id": "toolu_01Lv6BgDxtdMys3ynjEp36Cn"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 467,
+      "limit": 15
+    },
+    "tool_use_id": "toolu_01NbHAS5TnAhTTKgZMYdHi2t"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "        <button class=\"act-btn sponsors\" id=\"btn-sponsors\" style=\"display:none\"><span class=\"aico\">\u00f0\u0178\u00a4\udc9d</span>Sponsors</button>",
+      "new_string": "        <button class=\"act-btn sponsors\" id=\"btn-sponsors\"><span class=\"aico\">\u00f0\u0178\u00a4\udc9d</span>Sponsors</button>",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01MF16VcSYt8g5J5FLRhyiAE"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "  // Sponsors button visibility: gated at $500k total business value\n  const spBtn = $('btn-sponsors');\n  if(spBtn){\n    const unlocked = sponsorsUnlocked(inv);\n    spBtn.style.display = unlocked ? '' : 'none';\n    if(unlocked && (inv.sponsors||[]).length){\n      spBtn.innerHTML = `<span class=\"aico\">\u00f0\u0178\u00a4\udc9d</span>Sponsors (${inv.sponsors.length})`;\n    } else if(unlocked){\n      spBtn.innerHTML = `<span class=\"aico\">\u00f0\u0178\u00a4\udc9d</span>Sponsors`;\n    }\n  }",
+      "new_string": "  // Sponsors button: always visible next to Education, disabled until $500k biz value\n  const spBtn = $('btn-sponsors');\n  if(spBtn){\n    const unlocked = sponsorsUnlocked(inv);\n    spBtn.disabled = !unlocked;\n    spBtn.title = unlocked ? 'Browse sponsorship deals' : 'Unlocks at $500k total business value';\n    if(unlocked && (inv.sponsors||[]).length){\n      spBtn.innerHTML = `<span class=\"aico\">\u00f0\u0178\u00a4\udc9d</span>Sponsors (${inv.sponsors.length})`;\n    } else if(unlocked){\n      spBtn.innerHTML = `<span class=\"aico\">\u00f0\u0178\u00a4\udc9d</span>Sponsors`;\n    } else {\n      spBtn.innerHTML = `<span class=\"aico\">\u00f0\u0178\u201d\u2019</span>Sponsors`;\n    }\n  }",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01JQGEn5FkJjCowbmuMB7JkX"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node smoke.js 2>&1 | tail -8",
+      "timeout": 120000,
+      "description": "Smoke test"
+    },
+    "tool_use_id": "toolu_01RepqXkGni2kavypfFbBmHc"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cp \"C:\\Users\\noahm\\Project\\bitlife-finance.html\" /tmp/finlife-deploy/index.html && cd /tmp/finlife-deploy && git add index.html && git commit -m \"Sponsors button always visible next to Education\" && git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 push origin main 2>&1 | tail -3",
+      "timeout": 120000,
+      "description": "Deploy to finlife-simulator"
+    },
+    "tool_use_id": "toolu_01FCZs8QsfkBnsMtmzqS4SeR"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "curl -s http://localhost:3000/bitlife-finance.html -o /dev/null -w \"%{http_code}\\n\"",
+      "description": "Check if dev server is running"
+    },
+    "tool_use_id": "toolu_01L66esLPcfMJNhro8LoiLyp"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "start \"\" \"http://localhost:3000/bitlife-finance.html\"",
+      "description": "Open game in browser"
+    },
+    "tool_use_id": "toolu_013VHxsPmukaZZ3A6ZkVEMj2"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node stress.js 2>&1 | head -50",
+      "timeout": 600000,
+      "description": "Run stress test (15 runs \u00c3\u2014 240 months)"
+    },
+    "tool_use_id": "toolu_013r2HgBP9pREWDw9hxAeUzd"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "ToolSearch",
+    "tool_input": {
+      "query": "select:TaskOutput",
+      "max_results": 1
+    },
+    "tool_use_id": "toolu_01QSQkvfYH5V4mUVgte8PJ1k"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "TaskOutput",
+    "tool_input": {
+      "task_id": "bl2i0e7ze",
+      "block": true,
+      "timeout": 600000
+    },
+    "tool_use_id": "toolu_013KrU21h9KT11swMDcuezU7"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "modal-box|modal-overlay|#modal-|\\.modal-",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content",
+      "head_limit": 30
+    },
+    "tool_use_id": "toolu_01LiGjNLweVYXM7rjJb3gk1t"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 186,
+      "limit": 35
+    },
+    "tool_use_id": "toolu_01ULMvqMxdYWbVkyM2pBR9jJ"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 512,
+      "limit": 15
+    },
+    "tool_use_id": "toolu_01B3LHx2H1zNV6UTqhmXnv4R"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "#modal-overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.75);\n  align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}\n#modal-overlay.open{display:flex}\n#modal-box{background:var(--bg2);border:1px solid var(--border-gold);border-radius:18px;\n  max-width:460px;width:100%;padding:28px 24px;box-shadow:var(--shadow),0 0 40px rgba(255,215,0,.08);\n  animation:scaleIn .2s ease}",
+      "new_string": "#modal-overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.75);\n  align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}\n#modal-overlay.open{display:flex}\n#modal-box{background:var(--bg2);border:1px solid var(--border-gold);border-radius:18px;\n  max-width:460px;width:100%;padding:28px 24px;box-shadow:var(--shadow),0 0 40px rgba(255,215,0,.08);\n  animation:scaleIn .2s ease;position:relative;max-height:92vh;display:flex;flex-direction:column;\n  overflow:hidden}\n/* When viewport is cramped, constrain to a square so the player doesn't chase a tall modal */\n@media (max-height:720px){\n  #modal-box{max-width:min(92vh,460px)}\n}\n#modal-close-x{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;\n  background:rgba(255,61,61,.12);color:var(--red);border:1.5px solid var(--red);\n  display:flex;align-items:center;justify-content:center;font-weight:900;cursor:pointer;z-index:20;\n  font-size:16px;line-height:1;padding:0;transition:all var(--t)}\n#modal-close-x:hover{background:var(--red);color:#fff;transform:rotate(90deg)}\n#modal-box > .modal-choices{flex:1 1 auto;overflow-y:auto;min-height:0}\n#modal-box > .modal-body{flex:0 0 auto}",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01HyPfeHZvxmqYjJcgGMDGsr"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "<div id=\"modal-overlay\">\n  <div id=\"modal-box\">\n    <span class=\"modal-icon\" id=\"m-icon\">\u00f0\u0178\u2019\u00b0</span>\n    <div style=\"text-align:center\"><span class=\"modal-tag\" id=\"m-tag\">Event</span></div>\n    <div class=\"modal-title\" id=\"m-title\">Event</div>\n    <div class=\"modal-body\" id=\"m-body\"></div>\n    <div class=\"modal-result\" id=\"m-result\" style=\"display:none\"></div>\n    <div class=\"modal-choices\" id=\"m-choices\"></div>\n  </div>\n</div>",
+      "new_string": "<div id=\"modal-overlay\">\n  <div id=\"modal-box\">\n    <button id=\"modal-close-x\" onclick=\"closeModal()\" title=\"Close (Esc)\" aria-label=\"Close\">\u00e2\u0153\u2022</button>\n    <span class=\"modal-icon\" id=\"m-icon\">\u00f0\u0178\u2019\u00b0</span>\n    <div style=\"text-align:center\"><span class=\"modal-tag\" id=\"m-tag\">Event</span></div>\n    <div class=\"modal-title\" id=\"m-title\">Event</div>\n    <div class=\"modal-body\" id=\"m-body\"></div>\n    <div class=\"modal-result\" id=\"m-result\" style=\"display:none\"></div>\n    <div class=\"modal-choices\" id=\"m-choices\"></div>\n  </div>\n</div>",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01FPxKsRSRTJeSwdXZ84DSZD"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "addEventListener\\('keydown|keydown.*Escape|key.*Escape",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content",
+      "head_limit": 5
+    },
+    "tool_use_id": "toolu_01GEupUsF7xAecN63hLDbtnC"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "function closeModal",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content"
+    },
+    "tool_use_id": "toolu_01UA6sgvKTenLw7CoqYPuoVy"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 2809,
+      "limit": 10
+    },
+    "tool_use_id": "toolu_01T5vFw56DpCz6w9cHQbaRJD"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "function closeModal(){\n  $('modal-overlay').classList.remove('open');\n  $('modal-box').classList.remove('wide');\n  $('modal-box').classList.remove('compact');\n  if(GS.pendingEvents.length>0) setTimeout(showNextEvent,200);\n}",
+      "new_string": "function closeModal(){\n  $('modal-overlay').classList.remove('open');\n  $('modal-box').classList.remove('wide');\n  $('modal-box').classList.remove('compact');\n  if(GS.pendingEvents.length>0) setTimeout(showNextEvent,200);\n}\n// Esc closes the modal\ndocument.addEventListener('keydown', e=>{\n  if(e.key==='Escape' && $('modal-overlay').classList.contains('open')) closeModal();\n});",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01NMz6w3tujoBYWcry9VUxWQ"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node smoke.js 2>&1 | tail -5",
+      "timeout": 120000,
+      "description": "Smoke test"
+    },
+    "tool_use_id": "toolu_01WiYNMn3FKvHeuScVqg2pF2"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cp \"C:\\Users\\noahm\\Project\\bitlife-finance.html\" /tmp/finlife-deploy/index.html && cd /tmp/finlife-deploy && git add index.html && git commit -m \"Red X close button + bounded modal\" && git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 push origin main 2>&1 | tail -3",
+      "timeout": 120000,
+      "description": "Deploy to finlife-simulator"
+    },
+    "tool_use_id": "toolu_01EDpJPhQuG6S9iujq9FhN4G"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "JOBS\\s*=|jobTitle|getAvailableJobs|applyForJob|jobSector",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content",
+      "head_limit": 20
+    },
+    "tool_use_id": "toolu_014mzFve31pjqn77xFV3cSXB"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 1263,
+      "limit": 70
+    },
+    "tool_use_id": "toolu_01W2mTh2fs1ing8TDgQBf77Z"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "suits:\\[",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content",
+      "head_limit": 25
+    },
+    "tool_use_id": "toolu_0148im2nxCn3TsSPuzhf7gag"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 633,
+      "limit": 30
+    },
+    "tool_use_id": "toolu_01FuyE2P6FEv7qMm8KvtsybE"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "  {id:'fitness_coach',       name:'Fitness Coach',       sector:'other',      min:35000,  max:65000,  edu:'none',         tier:1},\n];",
+      "new_string": "  {id:'fitness_coach',       name:'Fitness Coach',       sector:'other',      min:35000,  max:65000,  edu:'none',         tier:1},\n  // Sports / Athletes\n  {id:'semipro_athlete',     name:'Semi-Pro Athlete',    sector:'sports',     min:35000,  max:85000,  edu:'high_school',  tier:1},\n  {id:'mma_fighter',         name:'MMA Fighter',         sector:'sports',     min:50000,  max:500000, edu:'none',         tier:2},\n  {id:'boxer',               name:'Professional Boxer',  sector:'sports',     min:45000,  max:750000, edu:'none',         tier:2},\n  {id:'esports_pro',         name:'Esports Pro',         sector:'sports',     min:55000,  max:500000, edu:'high_school',  tier:3},\n  {id:'swimmer',             name:'Pro Swimmer',         sector:'sports',     min:45000,  max:250000, edu:'high_school',  tier:2},\n  {id:'track_athlete',       name:'Track & Field Pro',   sector:'sports',     min:40000,  max:180000, edu:'high_school',  tier:2},\n  {id:'olympic_athlete',     name:'Olympic Athlete',     sector:'sports',     min:50000,  max:300000, edu:'high_school',  tier:3},\n  {id:'tennis_player',       name:'Tennis Player',       sector:'sports',     min:65000,  max:2500000,edu:'high_school',  tier:3},\n  {id:'golfer',              name:'Professional Golfer', sector:'sports',     min:80000,  max:2500000,edu:'high_school',  tier:3},\n  {id:'soccer_player',       name:'Soccer Player',       sector:'sports',     min:75000,  max:3500000,edu:'high_school',  tier:3},\n  {id:'race_car_driver',     name:'Race Car Driver',     sector:'sports',     min:150000, max:3000000,edu:'high_school',  tier:4},\n  {id:'baseball_player',     name:'Baseball Player',     sector:'sports',     min:600000, max:5000000,edu:'high_school',  tier:4},\n  {id:'hockey_player',       name:'Hockey Player',       sector:'sports',     min:700000, max:4500000,edu:'high_school',  tier:4},\n  {id:'football_player',     name:'NFL Football Player', sector:'sports',     min:800000, max:6000000,edu:'bachelors',    tier:5},\n  {id:'basketball_player',   name:'NBA Basketball Player',sector:'sports',    min:1000000,max:10000000,edu:'bachelors',   tier:5},\n  {id:'team_coach',          name:'Team Coach',          sector:'sports',     min:60000,  max:300000, edu:'bachelors',    tier:3},\n  {id:'athletic_trainer',    name:'Athletic Trainer',    sector:'sports',     min:45000,  max:85000,  edu:'bachelors',    tier:2},\n];",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_012uCezqdX3mmnQaY76vy6WF"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "  {id:'phcu',  icon:'\u00e2\u0161\u2022\u00ef\u00b8\udc8f', name:'Provident Health Credit Union', fee:18, signupBonus:150, apyBonus:0.3, suits:['healthcare','service','trades','transport','law'],",
+      "new_string": "  {id:'phcu',  icon:'\u00e2\u0161\u2022\u00ef\u00b8\udc8f', name:'Provident Health Credit Union', fee:18, signupBonus:150, apyBonus:0.3, suits:['healthcare','service','trades','transport','law','sports'],",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_017yW9nmZtdn7AcriXempgtx"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "  {id:'pwb',   icon:'\u00f0\u0178\u2019\u017d', name:'Prosperity Wealth Bank',       fee:45, signupBonus:500, apyBonus:0.8, suits:['finance','tech','law','healthcare'],",
+      "new_string": "  {id:'pwb',   icon:'\u00f0\u0178\u2019\u017d', name:'Prosperity Wealth Bank',       fee:45, signupBonus:500, apyBonus:0.8, suits:['finance','tech','law','healthcare','sports'],",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_013U1H1482jSADsb1NkUSi8E"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node smoke.js 2>&1 | tail -5",
+      "timeout": 120000,
+      "description": "Smoke test"
+    },
+    "tool_use_id": "toolu_01MbPFeMr4dttToXq1gSTihq"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cp \"C:\\Users\\noahm\\Project\\bitlife-finance.html\" /tmp/finlife-deploy/index.html && cd /tmp/finlife-deploy && git add index.html && git commit -m \"Add athletes as jobs\" && git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 push origin main 2>&1 | tail -3",
+      "timeout": 120000,
+      "description": "Deploy"
+    },
+    "tool_use_id": "toolu_01WWSQW85etQ8jKTNm3TR6tM"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "btn-job|btn-hustle",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content",
+      "head_limit": 20
+    },
+    "tool_use_id": "toolu_01CSbuthn6xoWUEZX7Kxuv8e"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 3055,
+      "limit": 70
+    },
+    "tool_use_id": "toolu_01TuyW2thG7YTqBupZF7Kqu7"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 3315,
+      "limit": 20
+    },
+    "tool_use_id": "toolu_01NdCyDu18NsEcmuDG1NQRsB"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "buildJobChoices",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content"
+    },
+    "tool_use_id": "toolu_01Gixfx4tca9E2FhSpj4BFZC"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 1462,
+      "limit": 25
+    },
+    "tool_use_id": "toolu_01CfXcggE3UBf4ntogTr7Xsi"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "function showActionModal",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content"
+    },
+    "tool_use_id": "toolu_01NtxL63dAC463jGnrMCTwS7"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 2842,
+      "limit": 25
+    },
+    "tool_use_id": "toolu_01P4V4y1UN5DPgfRE8voP7Dt"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "function showActionModal(title, desc, choices){\n  const overlay=$('modal-overlay');\n  $('m-icon').textContent='\u00e2\u0161\u2122\u00ef\u00b8\udc8f';\n  $('m-tag').textContent='Action';$('m-tag').className='modal-tag fla';\n  $('m-title').textContent=title;\n  $('m-body').textContent=desc;\n  $('m-result').style.display='none';\n  const ch=$('m-choices');ch.innerHTML='';\n  for(const c of choices){\n    const btn=document.createElement('button');btn.className='choice-btn';btn.textContent=c.text;\n    btn.onclick=()=>{\n      const res=c.fn();\n      const rEl=$('m-result');rEl.style.display='block';rEl.textContent=res||'Done.';\n      ch.innerHTML='<button class=\"choice-btn\" onclick=\"closeModal()\">OK</button>';\n      const nw=calcNetWorth(GS.char,GS.inv);\n      if(GS.nwHistory.length)GS.nwHistory[GS.nwHistory.length-1]=nw;\n      updateUI(null,nw,nw);\n    };\n    ch.appendChild(btn);\n  }\n  const cancel=document.createElement('button');cancel.className='choice-btn';cancel.textContent='Cancel';\n  cancel.onclick=closeModal;ch.appendChild(cancel);\n  overlay.classList.add('open');\n}",
+      "new_string": "function showActionModal(title, desc, choices){\n  const overlay=$('modal-overlay');\n  $('m-icon').textContent='\u00e2\u0161\u2122\u00ef\u00b8\udc8f';\n  $('m-tag').textContent='Action';$('m-tag').className='modal-tag fla';\n  $('m-title').textContent=title;\n  $('m-body').textContent=desc;\n  $('m-result').style.display='none';\n  const ch=$('m-choices');ch.innerHTML='';\n  for(const c of choices){\n    if(c.header){\n      const h=document.createElement('div');\n      h.textContent=c.header;\n      h.style.cssText='font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:6px 4px 2px;border-top:1px solid var(--border);margin-top:4px';\n      ch.appendChild(h);\n      continue;\n    }\n    const btn=document.createElement('button');btn.className='choice-btn';btn.textContent=c.text;\n    btn.onclick=()=>{\n      const res=c.fn();\n      const rEl=$('m-result');rEl.style.display='block';rEl.textContent=res||'Done.';\n      ch.innerHTML='<button class=\"choice-btn\" onclick=\"closeModal()\">OK</button>';\n      const nw=calcNetWorth(GS.char,GS.inv);\n      if(GS.nwHistory.length)GS.nwHistory[GS.nwHistory.length-1]=nw;\n      updateUI(null,nw,nw);\n    };\n    ch.appendChild(btn);\n  }\n  const cancel=document.createElement('button');cancel.className='choice-btn';cancel.textContent='Cancel';\n  cancel.onclick=closeModal;ch.appendChild(cancel);\n  overlay.classList.add('open');\n}",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01PxaMzwq4MHSzZ6DyNekLrh"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "        <button class=\"act-btn job\"    id=\"btn-job\"><span class=\"aico\">\u00f0\u0178\u2019\u00bc</span>Find Job</button>\n        <button class=\"act-btn bank\"   id=\"btn-bank\"><span class=\"aico\">\u00f0\u0178\udc8f\u00a6</span>Banking</button>\n        <button class=\"act-btn invest\" id=\"btn-invest\"><span class=\"aico\">\u00f0\u0178\u201c\u02c6</span>Stocks</button>\n        <button class=\"act-btn realty\" id=\"btn-realty\"><span class=\"aico\">\u00f0\u0178\udc8f\u00a0</span>Real Estate</button>\n        <button class=\"act-btn crypto\" id=\"btn-crypto\"><span class=\"aico\">\u00e2\u201a\u00bf</span>Crypto</button>\n        <button class=\"act-btn hustle\" id=\"btn-hustle\"><span class=\"aico\">\u00e2\u0161\u00a1</span>Side Hustle</button>\n        <button class=\"act-btn edu\"    id=\"btn-edu\"><span class=\"aico\">\u00f0\u0178\u017d\u201c</span>Education</button>",
+      "new_string": "        <button class=\"act-btn job\"    id=\"btn-job\"><span class=\"aico\">\u00f0\u0178\u2019\u00bc</span>Work</button>\n        <button class=\"act-btn bank\"   id=\"btn-bank\"><span class=\"aico\">\u00f0\u0178\udc8f\u00a6</span>Banking</button>\n        <button class=\"act-btn invest\" id=\"btn-invest\"><span class=\"aico\">\u00f0\u0178\u201c\u02c6</span>Stocks</button>\n        <button class=\"act-btn realty\" id=\"btn-realty\"><span class=\"aico\">\u00f0\u0178\udc8f\u00a0</span>Real Estate</button>\n        <button class=\"act-btn crypto\" id=\"btn-crypto\"><span class=\"aico\">\u00e2\u201a\u00bf</span>Crypto</button>\n        <button class=\"act-btn edu\"    id=\"btn-edu\"><span class=\"aico\">\u00f0\u0178\u017d\u201c</span>Education</button>",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01Xzr8SgLK4pB2F661PRR6dG"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "$('btn-job').onclick=()=>{\n  const c=GS.char;\n  if(c.inSchool){showToast('Finish school first!');return;}\n  if(c.retired){showToast('You\\'re retired!');return;}\n  showActionModal('Find a Job','Browse available positions based on your education and skills.',buildJobChoices(c));\n};",
+      "new_string": "$('btn-job').onclick=()=>{\n  const c=GS.char;\n  if(c.inSchool){showToast('Finish school first!');return;}\n  if(c.retired){showToast('You\\'re retired!');return;}\n  const jobChoices = buildJobChoices(c);\n  const hustles = [...SIDE_HUSTLES].sort(()=>Math.random()-0.5).slice(0,6);\n  const hustleChoices = hustles.map(h=>{\n    const statNote = h.stat==='smarts'?' \u00c2\u00b7 smarts':h.stat==='looks'?' \u00c2\u00b7 looks':'';\n    const costNote = h.cost>0?`$${(h.cost/1000).toFixed(1)}k start`:'free';\n    return {text:`${h.icon} ${h.name} \u00e2\u20ac\u201d ${costNote}${statNote}`, fn(){return runSideHustle(h);}};\n  });\n  hustleChoices.push({text:'\u00f0\u0178\u201d\u201e Refresh hustle list', fn(){ setTimeout(()=>$('btn-job').click(),80); return 'Looking at other options...'; }});\n  const employedLine = c.employed ? `Job: ${c.jobTitle} \u00e2\u20ac\u201d ${fmt$(c.salary)}/yr` : 'Unemployed';\n  const sideLine = c.sideHustleIncome ? ` \u00c2\u00b7 Side: ${fmt$(c.sideHustleIncome)}/yr` : '';\n  const headline = `${employedLine}${sideLine}\\nJobs (salaried) above, one-off side hustles below.`;\n  const choices = [{header:'\u00f0\u0178\u2019\u00bc Job offers'}, ...jobChoices, {header:'\u00e2\u0161\u00a1 Side hustles'}, ...hustleChoices];\n  showActionModal('Work', headline, choices);\n  $('modal-box').classList.add('compact');\n};",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_019QxPadympWKeP892kfTFRG"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "$('btn-hustle').onclick=()=>{\n  const c=GS.char;\n  // Shuffle and show 6 random hustles each time + persistent \"Start a Business\" option\n  const shuffled=[...SIDE_HUSTLES].sort(()=>Math.random()-0.5).slice(0,6);\n  const choices=shuffled.map(h=>{\n    const statNote = h.stat==='smarts'?` \u00c2\u00b7 smarts-based`:h.stat==='looks'?` \u00c2\u00b7 looks-based`:'';\n    const costNote = h.cost>0?`$${(h.cost/1000).toFixed(1)}k start`:'free';\n    return {text:`${h.icon} ${h.name} \u00e2\u20ac\u201d ${costNote}${statNote}`, fn(){return runSideHustle(h);}};\n  });\n  choices.push({text:'\u00f0\u0178\u201d\u201e Refresh hustle list',fn(){setTimeout(()=>$('btn-hustle').click(),100);return'Looking at other options...';}});\n  showActionModal('Side Hustle','Pick one \u00e2\u20ac\u201d results roll immediately. Smarts/looks can boost your odds. For full-fledged businesses, see the Business tab.',choices);\n};",
+      "new_string": "",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_014G8HHKfAcKoEveRPqZkbGp"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node smoke.js 2>&1 | tail -5",
+      "timeout": 120000,
+      "description": "Smoke test merged Work button"
+    },
+    "tool_use_id": "toolu_017Y4afXDFw299RGa6PBWDkP"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cp \"C:\\Users\\noahm\\Project\\bitlife-finance.html\" /tmp/finlife-deploy/index.html && cd /tmp/finlife-deploy && git add index.html && git commit -m \"Merge Side Hustle into Work action\" && git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 push origin main 2>&1 | tail -3",
+      "timeout": 120000,
+      "description": "Deploy"
+    },
+    "tool_use_id": "toolu_01WvBPZEJ4qbJTRznpv2dmEs"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "showStockModal|showCryptoModal|refreshStockCard|refreshCryptoCard|buyStock|buyCrypto|sellStock|sellCrypto",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content",
+      "head_limit": 30
+    },
+    "tool_use_id": "toolu_01A33ahnnF8HZNTmev3g23dX"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "offset": 2913,
+      "limit": 180
+    },
+    "tool_use_id": "toolu_01EWyso5qmAaKoofhPn2aDrD"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "\\.ac-actions|\\.ac-btn|\\.ac-meta",
+      "path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "output_mode": "content",
+      "head_limit": 10
+    },
+    "tool_use_id": "toolu_017mFx3M7fKCd8j1T3YPoRk4"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": ".ac-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}\n.ac-actions{display:flex;gap:6px;margin-top:2px}\n.ac-btn{flex:1;padding:6px 8px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--white);transition:all var(--t)}",
+      "new_string": ".ac-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}\n.ac-actions{display:flex;gap:4px;margin-top:2px;align-items:stretch}\n.ac-buy-input{width:70px;padding:6px 6px;border-radius:4px;font-size:11px;font-weight:600;border:1px solid var(--border);background:var(--bg3);color:var(--white);text-align:right;-moz-appearance:textfield}\n.ac-buy-input::-webkit-outer-spin-button,.ac-buy-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}\n.ac-buy-input:focus{outline:none;border-color:var(--green)}\n.ac-btn{flex:1;padding:6px 8px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--white);transition:all var(--t)}",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01Vuz8WRDqfjM79aJbctsW2F"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "    card.innerHTML=`\n      <div class=\"ac-hdr\"><div><div class=\"ac-name\">${s.name}</div><div class=\"ac-ticker\">${s.id} \u00c2\u00b7 ${s.sector||'stocks'}</div></div>\n      <div style=\"text-align:right\"><div class=\"ac-price\">$${s.price.toFixed(2)}</div><div class=\"ac-chg ${chg>=0?'pos':'neg'}\">${chg>=0?'+':''}${chg.toFixed(1)}%</div></div></div>\n      <canvas class=\"ac-chart\" id=\"ch-stk-${idx}\"></canvas>\n      <div class=\"ac-meta\"><span>${owned?`Owned: ${owned} sh \u00c2\u00b7 ${fmt$(s.price*owned)}`:'Not held'}</span><span>10sh = ${fmt$(s.price*10)}</span></div>\n      <div class=\"ac-actions\">\n        <button class=\"ac-btn buy\" ${canAfford?'':'disabled'} data-buy=\"${s.id}\">Buy 10</button>\n        <button class=\"ac-btn sell\" ${owned?'':'disabled'} data-sell=\"${s.id}\">Sell All</button>\n      </div>`;",
+      "new_string": "    const defaultBuy = Math.max(100, Math.round(s.price*10));\n    card.innerHTML=`\n      <div class=\"ac-hdr\"><div><div class=\"ac-name\">${s.name}</div><div class=\"ac-ticker\">${s.id} \u00c2\u00b7 ${s.sector||'stocks'}</div></div>\n      <div style=\"text-align:right\"><div class=\"ac-price\">$${s.price.toFixed(2)}</div><div class=\"ac-chg ${chg>=0?'pos':'neg'}\">${chg>=0?'+':''}${chg.toFixed(1)}%</div></div></div>\n      <canvas class=\"ac-chart\" id=\"ch-stk-${idx}\"></canvas>\n      <div class=\"ac-meta\"><span>${owned?`Owned: ${owned} sh \u00c2\u00b7 ${fmt$(s.price*owned)}`:'Not held'}</span><span>1sh = $${s.price.toFixed(2)}</span></div>\n      <div class=\"ac-actions\">\n        <input class=\"ac-buy-input\" type=\"number\" min=\"1\" step=\"1\" value=\"${defaultBuy}\" data-buy-input=\"${s.id}\" title=\"Dollar amount to invest\">\n        <button class=\"ac-btn buy\" ${canAfford?'':'disabled'} data-buy=\"${s.id}\">Buy $</button>\n        <button class=\"ac-btn sell\" ${owned?'':'disabled'} data-sell=\"${s.id}\">Sell All</button>\n      </div>`;",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01RZ1uqtVHy9c9C3wUwBygvB"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "  function refreshStockCard(id){\n    const s=inv.stocks.find(x=>x.id===id); if(!s) return;\n    const card=grid.querySelector(`[data-stock-card=\"${id}\"]`); if(!card) return;\n    const pos=inv.portfolio[s.id]; const owned=pos?pos.shares:0;\n    const meta=card.querySelector('.ac-meta');\n    if(meta) meta.innerHTML=`<span>${owned?`Owned: ${owned} sh \u00c2\u00b7 ${fmt$(s.price*owned)}`:'Not held'}</span><span>10sh = ${fmt$(s.price*10)}</span>`;\n    const sellBtn=card.querySelector('.ac-btn.sell'); if(sellBtn) sellBtn.disabled=!owned;\n  }\n  function refreshStockAffordability(){\n    $('m-body').textContent=`Climate: ${inv.climate.toUpperCase()} \u00c2\u00b7 Cash: ${fmt$(c.checking)} \u00c2\u00b7 Prices update monthly.`;\n    inv.stocks.forEach(stk=>{\n      const b=grid.querySelector(`[data-buy=\"${stk.id}\"]`);\n      if(b) b.disabled=c.checking<stk.price*10;\n    });\n  }\n  grid.onclick=(e)=>{\n    const buyId=e.target.getAttribute('data-buy');\n    const sellId=e.target.getAttribute('data-sell');\n    if(buyId){\n      const s=inv.stocks.find(x=>x.id===buyId); const cost=Math.round(s.price*10);\n      if(c.checking<cost){showToast('Not enough cash.');return;}\n      c.checking-=cost;\n      if(!inv.portfolio[s.id]) inv.portfolio[s.id]={shares:0,avgCost:0};\n      const p=inv.portfolio[s.id]; p.avgCost=(p.avgCost*p.shares+cost)/(p.shares+10); p.shares+=10;\n      showToast(`Bought 10 ${s.id} for ${fmt$(cost)}`);\n      refreshStockCard(buyId); refreshStockAffordability();\n    }else if(sellId){",
+      "new_string": "  function refreshStockCard(id){\n    const s=inv.stocks.find(x=>x.id===id); if(!s) return;\n    const card=grid.querySelector(`[data-stock-card=\"${id}\"]`); if(!card) return;\n    const pos=inv.portfolio[s.id]; const owned=pos?pos.shares:0;\n    const meta=card.querySelector('.ac-meta');\n    if(meta) meta.innerHTML=`<span>${owned?`Owned: ${owned} sh \u00c2\u00b7 ${fmt$(s.price*owned)}`:'Not held'}</span><span>1sh = $${s.price.toFixed(2)}</span>`;\n    const sellBtn=card.querySelector('.ac-btn.sell'); if(sellBtn) sellBtn.disabled=!owned;\n  }\n  function refreshStockAffordability(){\n    $('m-body').textContent=`Climate: ${inv.climate.toUpperCase()} \u00c2\u00b7 Cash: ${fmt$(c.checking)} \u00c2\u00b7 Prices update monthly.`;\n    inv.stocks.forEach(stk=>{\n      const b=grid.querySelector(`[data-buy=\"${stk.id}\"]`);\n      if(b) b.disabled=c.checking<stk.price;\n    });\n  }\n  grid.onclick=(e)=>{\n    const buyId=e.target.getAttribute('data-buy');\n    const sellId=e.target.getAttribute('data-sell');\n    if(buyId){\n      const s=inv.stocks.find(x=>x.id===buyId);\n      const input=grid.querySelector(`[data-buy-input=\"${buyId}\"]`);\n      const wanted=Math.max(0, Math.floor(parseFloat(input?.value)||0));\n      if(wanted<s.price){ showToast(`Need at least $${s.price.toFixed(2)} for 1 share.`); return; }\n      if(c.checking<wanted){ showToast('Not enough cash.'); return; }\n      const shares=Math.floor(wanted / s.price);\n      const cost=Math.round(shares * s.price);\n      if(shares<1){ showToast('Amount buys 0 shares.'); return; }\n      c.checking-=cost;\n      if(!inv.portfolio[s.id]) inv.portfolio[s.id]={shares:0,avgCost:0};\n      const p=inv.portfolio[s.id]; p.avgCost=(p.avgCost*p.shares+cost)/(p.shares+shares); p.shares+=shares;\n      showToast(`Bought ${shares} ${s.id} for ${fmt$(cost)}`);\n      refreshStockCard(buyId); refreshStockAffordability();\n    }else if(sellId){",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01AYhzSLftt4UsSDecDUFYB8"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "    card.innerHTML=`\n      <div class=\"ac-hdr\"><div><div class=\"ac-name\">${coin.name}</div><div class=\"ac-ticker\">${coin.id}</div></div>\n      <div style=\"text-align:right\"><div class=\"ac-price\">${priceLbl}</div><div class=\"ac-chg ${chg>=0?'pos':'neg'}\">${chg>=0?'+':''}${chg.toFixed(1)}%</div></div></div>\n      <canvas class=\"ac-chart\" id=\"ch-cry-${idx}\"></canvas>\n      <div class=\"ac-meta\"><span>${owned?`Owned: ${owned.toFixed(4)} \u00c2\u00b7 ${fmt$(coin.price*owned)}`:'Not held'}</span><span>Buy = $1,000</span></div>\n      <div class=\"ac-actions\">\n        <button class=\"ac-btn buy\" ${canAfford?'':'disabled'} data-buy=\"${coin.id}\">Buy $1k</button>\n        <button class=\"ac-btn sell\" ${owned?'':'disabled'} data-sell=\"${coin.id}\">Sell All</button>\n      </div>`;",
+      "new_string": "    card.innerHTML=`\n      <div class=\"ac-hdr\"><div><div class=\"ac-name\">${coin.name}</div><div class=\"ac-ticker\">${coin.id}</div></div>\n      <div style=\"text-align:right\"><div class=\"ac-price\">${priceLbl}</div><div class=\"ac-chg ${chg>=0?'pos':'neg'}\">${chg>=0?'+':''}${chg.toFixed(1)}%</div></div></div>\n      <canvas class=\"ac-chart\" id=\"ch-cry-${idx}\"></canvas>\n      <div class=\"ac-meta\"><span>${owned?`Owned: ${owned.toFixed(4)} \u00c2\u00b7 ${fmt$(coin.price*owned)}`:'Not held'}</span><span>1 = ${priceLbl}</span></div>\n      <div class=\"ac-actions\">\n        <input class=\"ac-buy-input\" type=\"number\" min=\"1\" step=\"1\" value=\"1000\" data-buy-input=\"${coin.id}\" title=\"Dollar amount to invest\">\n        <button class=\"ac-btn buy\" ${canAfford?'':'disabled'} data-buy=\"${coin.id}\">Buy $</button>\n        <button class=\"ac-btn sell\" ${owned?'':'disabled'} data-sell=\"${coin.id}\">Sell All</button>\n      </div>`;",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01SPYaWe8vBup8T4gnL9kmEz"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html",
+      "old_string": "  function refreshCryptoCard(id){\n    const coin=inv.cryptos.find(x=>x.id===id); if(!coin) return;\n    const card=grid.querySelector(`[data-crypto-card=\"${id}\"]`); if(!card) return;\n    const pos=inv.cryptoHeld[coin.id]; const owned=pos?pos.coins:0;\n    const meta=card.querySelector('.ac-meta');\n    if(meta) meta.innerHTML=`<span>${owned?`Owned: ${owned.toFixed(4)} \u00c2\u00b7 ${fmt$(coin.price*owned)}`:'Not held'}</span><span>Buy = $1,000</span>`;\n    const sellBtn=card.querySelector('.ac-btn.sell'); if(sellBtn) sellBtn.disabled=!owned;\n  }\n  function refreshCryptoAffordability(){\n    $('m-body').textContent=`Climate: ${inv.climate.toUpperCase()} \u00c2\u00b7 Cash: ${fmt$(c.checking)} \u00c2\u00b7 Extremely volatile. Prices update monthly.`;\n    inv.cryptos.forEach(coin=>{\n      const b=grid.querySelector(`[data-buy=\"${coin.id}\"]`);\n      if(b) b.disabled=c.checking<1000;\n    });\n  }\n  grid.onclick=(e)=>{\n    const buyId=e.target.getAttribute('data-buy');\n    const sellId=e.target.getAttribute('data-sell');\n    if(buyId){\n      const coin=inv.cryptos.find(x=>x.id===buyId);\n      if(c.checking<1000){showToast('Not enough cash.');return;}\n      const coins=1000/coin.price;\n      c.checking-=1000;\n      if(!inv.cryptoHeld[coin.id]) inv.cryptoHeld[coin.id]={coins:0,avgCost:0};\n      const p=inv.cryptoHeld[coin.id]; p.avgCost=(p.avgCost*p.coins+1000)/(p.coins+coins); p.coins+=coins;\n      showToast(`Bought ${coins.toFixed(4)} ${coin.id}`);\n      refreshCryptoCard(buyId); refreshCryptoAffordability();\n    }else if(sellId){",
+      "new_string": "  function refreshCryptoCard(id){\n    const coin=inv.cryptos.find(x=>x.id===id); if(!coin) return;\n    const card=grid.querySelector(`[data-crypto-card=\"${id}\"]`); if(!card) return;\n    const pos=inv.cryptoHeld[coin.id]; const owned=pos?pos.coins:0;\n    const priceLbl=coin.price>=1000?'$'+(coin.price/1000).toFixed(2)+'k':coin.price>=1?'$'+coin.price.toFixed(2):'$'+coin.price.toFixed(5);\n    const meta=card.querySelector('.ac-meta');\n    if(meta) meta.innerHTML=`<span>${owned?`Owned: ${owned.toFixed(4)} \u00c2\u00b7 ${fmt$(coin.price*owned)}`:'Not held'}</span><span>1 = ${priceLbl}</span>`;\n    const sellBtn=card.querySelector('.ac-btn.sell'); if(sellBtn) sellBtn.disabled=!owned;\n  }\n  function refreshCryptoAffordability(){\n    $('m-body').textContent=`Climate: ${inv.climate.toUpperCase()} \u00c2\u00b7 Cash: ${fmt$(c.checking)} \u00c2\u00b7 Extremely volatile. Prices update monthly.`;\n    inv.cryptos.forEach(coin=>{\n      const b=grid.querySelector(`[data-buy=\"${coin.id}\"]`);\n      if(b) b.disabled=c.checking<1;\n    });\n  }\n  grid.onclick=(e)=>{\n    const buyId=e.target.getAttribute('data-buy');\n    const sellId=e.target.getAttribute('data-sell');\n    if(buyId){\n      const coin=inv.cryptos.find(x=>x.id===buyId);\n      const input=grid.querySelector(`[data-buy-input=\"${buyId}\"]`);\n      const wanted=Math.max(0, Math.floor(parseFloat(input?.value)||0));\n      if(wanted<1){ showToast('Enter a dollar amount.'); return; }\n      if(c.checking<wanted){ showToast('Not enough cash.'); return; }\n      const coins=wanted/coin.price;\n      c.checking-=wanted;\n      if(!inv.cryptoHeld[coin.id]) inv.cryptoHeld[coin.id]={coins:0,avgCost:0};\n      const p=inv.cryptoHeld[coin.id]; p.avgCost=(p.avgCost*p.coins+wanted)/(p.coins+coins); p.coins+=coins;\n      showToast(`Bought ${coins.toFixed(4)} ${coin.id} for ${fmt$(wanted)}`);\n      refreshCryptoCard(buyId); refreshCryptoAffordability();\n    }else if(sellId){",
+      "replace_all": false
+    },
+    "tool_use_id": "toolu_01TLHzmnKFfQYbsG8CQwRkyv"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b = await chromium.launch({ headless: true });\n  const c = await b.newContext();\n  const p = await c.newPage();\n  const errs=[]; p.on('pageerror',e=>errs.push('page: '+e.message));\n  await p.goto('http://localhost:3000/bitlife-finance.html',{waitUntil:'domcontentloaded'});\n  await p.evaluate(()=>{try{localStorage.removeItem('finlife_save')}catch(e){}});\n  await p.reload({waitUntil:'domcontentloaded'});\n  await p.waitForSelector('#screen-new.active');\n  await p.fill('#inp-name','MarketTest');\n  await p.evaluate(()=>{const rb=document.querySelector('input[name=\\\"scn\\\"][value=\\\"rich\\\"]');if(rb)rb.checked=true;});\n  await p.click('#btn-start');\n  await p.waitForSelector('#screen-game.active');\n  await p.evaluate(()=>{GS.char.checking=500000;});\n  // Stocks\n  await p.click('#btn-invest');\n  await p.waitForTimeout(150);\n  const stockInputs = await p.\\$\\$('.ac-buy-input[data-buy-input]');\n  const firstStockResult = await p.evaluate(()=>{\n    const input = document.querySelector('.ac-buy-input[data-buy-input]');\n    if(!input) return 'no input';\n    const id = input.getAttribute('data-buy-input');\n    input.value = '5000';\n    const buyBtn = document.querySelector('[data-buy=\\\"'+id+'\\\"]');\n    buyBtn.click();\n    const pos = GS.inv.portfolio[id];\n    return { id, shares: pos?.shares, invested: Math.round((pos?.avgCost||0)*(pos?.shares||0)), checkingAfter: GS.char.checking };\n  });\n  // Close & open crypto\n  await p.evaluate(()=>{closeModal();});\n  await p.click('#btn-crypto');\n  await p.waitForTimeout(150);\n  const firstCryptoResult = await p.evaluate(()=>{\n    const input = document.querySelector('.ac-buy-input[data-buy-input]');\n    const id = input.getAttribute('data-buy-input');\n    input.value = '2500';\n    const buyBtn = document.querySelector('[data-buy=\\\"'+id+'\\\"]');\n    buyBtn.click();\n    const pos = GS.inv.cryptoHeld[id];\n    return { id, coins: pos?.coins, invested: Math.round((pos?.avgCost||0)*(pos?.coins||0)), checkingAfter: GS.char.checking };\n  });\n  console.log(JSON.stringify({errs, stockInputCount: stockInputs.length, firstStockResult, firstCryptoResult}, null, 2));\n  await b.close();\n})().catch(e=>{console.error('FATAL',e);process.exit(1);});\n\" 2>&1 | tail -25",
+      "timeout": 60000,
+      "description": "Test custom-dollar buy for stocks and crypto"
+    },
+    "tool_use_id": "toolu_01SHtYisHmnofGUHS7BkQkKu"
   }
 ]

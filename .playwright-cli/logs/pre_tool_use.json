@@ -278,5 +278,157 @@
       "description": "Quick direct page error check"
     },
     "tool_use_id": "toolu_017QuyvsXCjtRVz1pmVyn3Ar"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\" && git add bitlife-finance.html && git commit -m \"$(cat <<'EOF'\nfinlife: monthly expense event now offers 4 items to pick from\n\nPreviously showed a single forced item with Buy/Defer. Now rolls 4\ndistinct items each with their own rolled cost and gives Buy + Defer\nper item plus a Pass option (9 choices total) so the player actually\nchooses what to spend on.\n\nCo-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>\nEOF\n)\"",
+      "description": "Commit expense picker change"
+    },
+    "tool_use_id": "toolu_01GxjcVLQY9iLTehcwn6jXqi"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\.playwright-cli\\sponsor-test.js",
+      "content": "// Test sponsors & equipment: rich start, start biz, age many years, verify systems fire.\nconst { chromium } = require('playwright');\n(async () => {\n  const browser = await chromium.launch({ headless: true });\n  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });\n  const page = await ctx.newPage();\n  const errs = [];\n  page.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });\n  page.on('pageerror', e => errs.push('page: ' + e.message));\n  await page.goto('http://localhost:3000/bitlife-finance.html', { waitUntil: 'domcontentloaded' });\n  await page.evaluate(() => { try { localStorage.removeItem('finlife_save'); } catch(e){} });\n  await page.reload({ waitUntil: 'domcontentloaded' });\n  await page.waitForSelector('#screen-new.active', { timeout: 5000 });\n  await page.fill('#inp-name', 'Sponsor');\n  await page.evaluate(() => { const rb=document.querySelector('input[name=\"scn\"][value=\"rich\"]'); if(rb) rb.checked=true; });\n  await page.click('#btn-start');\n  await page.waitForSelector('#screen-game.active', { timeout: 5000 });\n\n  async function closeModals(){\n    for (let k=0;k<8;k++){\n      const open = await page.$('#modal-overlay.open');\n      if (!open) break;\n      const btns = await page.$$('#m-choices button');\n      let idx=-1;\n      for(let j=0;j<btns.length;j++){\n        const t=(await btns[j].textContent()||'').toLowerCase();\n        if(/pass|close|continue|skip|cancel|back/.test(t)){idx=j;break;}\n      }\n      if(idx<0) idx=Math.max(0,btns.length-1);\n      if(btns[idx]) await btns[idx].click({force:true}).catch(()=>{});\n      await page.waitForTimeout(30);\n    }\n  }\n\n  // Age to 20 then force-start a Tech Startup (cheap $30k revMult 3x)\n  for (let i=0;i<12;i++){ await closeModals(); await page.click('#btn-age',{force:true}); await page.waitForTimeout(30); }\n  await page.evaluate(() => {\n    // seed cash for testing and start a couple of high-growth businesses\n    GS.char.checking = 300000;\n    // bypass UI: call startBusiness directly\n    startBusiness(3); // Tech Startup\n    startBusiness(9); // SaaS\n  });\n\n  // Age 20 years\n  for (let i=0;i<240;i++){ await closeModals(); await page.click('#btn-age',{force:true}); await page.waitForTimeout(20); }\n\n  const snap = await page.evaluate(() => ({\n    bizVal: GS.inv.businesses.reduce((s,b)=>s+b.value,0),\n    biz: GS.inv.businesses.map(b=>({name:b.name, value:b.value, tier:b.equipTier, eqAge:b.equipAge, emps:(b.employees||[]).length})),\n    sponsorBtnVisible: document.getElementById('btn-sponsors').style.display !== 'none',\n    activeSponsors: (GS.inv.sponsors||[]).length,\n    sponsorOffers: (GS.inv.sponsorOffers||[]).length,\n    sponsorsUnlocked: typeof sponsorsUnlocked === 'function' ? sponsorsUnlocked(GS.inv) : null,\n    equipInfo: GS.inv.businesses.map(b=>equipmentInfo(b)),\n  }));\n\n  // If unlocked, open sponsors modal and sign the first\n  let signedResult = null;\n  if (snap.sponsorsUnlocked) {\n    await closeModals();\n    await page.click('#btn-sponsors', {force:true});\n    await page.waitForTimeout(120);\n    const btns = await page.$$('#m-choices button');\n    for (const b of btns) {\n      const t = (await b.textContent()) || '';\n      if (/mo \u00c3\u2014 /.test(t)) { await b.click({force:true}); signedResult = t; break; }\n    }\n    await page.waitForTimeout(80);\n  }\n  await closeModals();\n\n  // Try upgrading equipment on first biz\n  let equipUpgradeResult = null;\n  const upgradeOk = await page.evaluate(() => {\n    if (!GS.inv.businesses.length) return false;\n    const prevTier = GS.inv.businesses[0].equipTier;\n    upgradeEquipment(0);\n    return GS.inv.businesses[0].equipTier > prevTier;\n  });\n  equipUpgradeResult = upgradeOk;\n  await closeModals();\n\n  // Try paying bonuses\n  const bonusOk = await page.evaluate(() => {\n    const b = GS.inv.businesses[0];\n    if (!b || !b.employees || !b.employees.length) return 'no staff';\n    const moraleBefore = Math.round(b.employees.reduce((s,e)=>s+(e.morale||75),0)/b.employees.length);\n    payBonuses(0);\n    const moraleAfter = Math.round(b.employees.reduce((s,e)=>s+(e.morale||75),0)/b.employees.length);\n    return { before: moraleBefore, after: moraleAfter };\n  });\n\n  console.log(JSON.stringify({ errors: errs, snap, signedResult, equipUpgradeResult, bonusOk }, null, 2));\n  await browser.close();\n})().catch(e => { console.error('FATAL', e); process.exit(1); });\n"
+    },
+    "tool_use_id": "toolu_01NZDkeyU4cWgn6LXVp4jhqa"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node sponsor-test.js 2>&1 | tail -60",
+      "timeout": 180000,
+      "description": "Run sponsor/equipment test"
+    },
+    "tool_use_id": "toolu_01C7sQF5UogVdifRVutnejf2"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b = await chromium.launch({ headless: true });\n  const c = await b.newContext();\n  const p = await c.newPage();\n  const errs=[]; p.on('console',m=>{if(m.type()==='error')errs.push(m.text())}); p.on('pageerror',e=>errs.push('page: '+e.message));\n  await p.goto('http://localhost:3000/bitlife-finance.html',{waitUntil:'domcontentloaded'});\n  await p.evaluate(()=>{try{localStorage.removeItem('finlife_save')}catch(e){}});\n  await p.reload({waitUntil:'domcontentloaded'});\n  await p.waitForSelector('#screen-new.active');\n  await p.fill('#inp-name','Test');\n  await p.click('#btn-start');\n  await p.waitForSelector('#screen-game.active');\n  // Force a 750k biz value to unlock sponsors\n  const out = await p.evaluate(() => {\n    GS.char.checking = 1000000;\n    startBusiness(9); // SaaS\n    GS.inv.businesses[0].value = 750000;\n    // Force updateUI to refresh sponsors button\n    updateUI(null, 0, calcNetWorth(GS.char, GS.inv));\n    return {\n      unlocked: sponsorsUnlocked(GS.inv),\n      btnDisplay: document.getElementById('btn-sponsors').style.display,\n      bizVal: totalBizValue(GS.inv),\n    };\n  });\n  // Open sponsors and try signing\n  await p.click('#btn-sponsors');\n  await p.waitForTimeout(150);\n  const choices = await p.\\$\\$('#m-choices button');\n  const labels = [];\n  for(const x of choices){ labels.push((await x.textContent())||''); }\n  // Click first real offer\n  let signed=null;\n  for(const x of choices){\n    const t=(await x.textContent())||'';\n    if(/mo \u00c3\u2014 /.test(t)){ await x.click({force:true}); signed=t; break; }\n  }\n  await p.waitForTimeout(100);\n  const after = await p.evaluate(() => ({\n    active: GS.inv.sponsors.length,\n    sample: GS.inv.sponsors[0],\n    checking: GS.char.checking\n  }));\n  console.log(JSON.stringify({errs, out, offerCount:labels.length, offers:labels, signed, after},null,2));\n  await b.close();\n})().catch(e=>{console.error('FATAL',e);process.exit(1);});\n\" 2>&1 | tail -40",
+      "timeout": 60000,
+      "description": "Force-test sponsor unlock + sign flow"
+    },
+    "tool_use_id": "toolu_01Jz5DvAtGWgtdLEZqsPYqvz"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\" && git add bitlife-finance.html && git commit -m \"$(cat <<'EOF'\nfinlife: sponsors, morale boosters, and equipment upgrades\n\nSponsors action square appears only when total business value >= $500k.\nOffers 5 random brand deals per visit with signing bonus + monthly income\nover a term; tracked in inv.sponsors and ticked monthly.\n\nManage Staff modal now exposes four morale boosters: pay bonuses, raise\nwages, throw team parties, and training programs (also +4% rev boost\nper employee). Each one costs money and lifts morale.\n\nEach business now owns equipment with 5 tiers (Basic to State-of-the-art).\nEquipment ages yearly. Old gear drags morale and revenue; upgrading\ncosts money, resets age, boosts rev, and bumps team morale. Employee\ncomplaints about old equipment now only fire when gear is actually old,\nand messages explicitly point the player to Manage Staff.\n\nCo-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>\nEOF\n)\" && git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 push origin master 2>&1 | tail -5",
+      "timeout": 120000,
+      "description": "Commit and push to ice-hockey-game"
+    },
+    "tool_use_id": "toolu_011ME29KXpdUTdLyTcfFbuzX"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\" && git add bitlife-finance.html && git commit -m \"$(cat <<'EOF'\nfinlife: sponsors button always visible next to Education (locked until $500k)\n\nPreviously hidden when locked; now sits permanently in the action grid\nnext to the Education button with a lock icon and disabled state. Shows\na tooltip explaining the $500k business value unlock.\n\nCo-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>\nEOF\n)\" && git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 push origin master 2>&1 | tail -3",
+      "timeout": 120000,
+      "description": "Commit and push"
+    },
+    "tool_use_id": "toolu_01LWRU3qoWmnhFkQofeGGKQw"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\" && git add bitlife-finance.html && git commit -m \"$(cat <<'EOF'\nfinlife: red-X close button + bounded modal with internal scroll\n\nModal box is now capped at 92vh and scrolls its choice list internally\ninstead of spilling off-screen. A red \u00e2\u0153\u2022 button pinned to the top-right\ncorner always exits the modal without scrolling to find a Close button.\nOn short viewports the max-width clamps to the height so the window\nstays roughly square. Esc also closes.\n\nCo-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>\nEOF\n)\" && git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 push origin master 2>&1 | tail -3",
+      "timeout": 120000,
+      "description": "Commit and push"
+    },
+    "tool_use_id": "toolu_01MfaSbcffwb3A5uwJDxZnxN"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\" && git add bitlife-finance.html && git commit -m \"$(cat <<'EOF'\nfinlife: add 16 athlete jobs under new 'sports' sector\n\nSemi-pro athlete, MMA fighter, boxer, esports pro, swimmer, track,\nolympian, tennis, golf, soccer, racing, baseball, hockey, NFL, NBA,\ncoach, athletic trainer. Salaries span $35k entry tier up to $10M\nNBA-tier, with most requiring only high_school so the path opens\nearly in a run. Extended Provident Health CU and Prosperity Wealth\nbank suits to include 'sports' so athletes get a fit recommendation.\n\nCo-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>\nEOF\n)\" && git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 push origin master 2>&1 | tail -3",
+      "timeout": 120000,
+      "description": "Commit and push"
+    },
+    "tool_use_id": "toolu_01TphG93e29pU92NrCpTfYYo"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b = await chromium.launch({ headless: true });\n  const c = await b.newContext();\n  const p = await c.newPage();\n  const errs=[]; p.on('pageerror',e=>errs.push('page: '+e.message));\n  await p.goto('http://localhost:3000/bitlife-finance.html',{waitUntil:'domcontentloaded'});\n  await p.evaluate(()=>{try{localStorage.removeItem('finlife_save')}catch(e){}});\n  await p.reload({waitUntil:'domcontentloaded'});\n  await p.waitForSelector('#screen-new.active');\n  await p.fill('#inp-name','Test');\n  await p.click('#btn-start');\n  await p.waitForSelector('#screen-game.active');\n  for(let i=0;i<20;i++){ await p.click('#btn-age',{force:true}); await p.waitForTimeout(30);\n    const op = await p.\\$('#modal-overlay.open');\n    if(op){const btns=await p.\\$\\$('#m-choices button');if(btns.length)await btns[btns.length-1].click({force:true}).catch(()=>{});}\n  }\n  await p.click('#btn-job',{force:true});\n  await p.waitForTimeout(200);\n  const title = await p.textContent('#m-title');\n  const choiceCount = (await p.\\$\\$('#m-choices button')).length;\n  const headerCount = await p.evaluate(()=>document.querySelectorAll('#m-choices > div').length);\n  console.log(JSON.stringify({errs, title, choiceCount, headerCount}));\n  await b.close();\n})().catch(e=>{console.error('FATAL',e);process.exit(1);});\n\" 2>&1 | tail -5",
+      "timeout": 60000,
+      "description": "Verify Work button opens merged modal"
+    },
+    "tool_use_id": "toolu_01P2wVUa2apcw4HLFHd7bAqV"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b = await chromium.launch({ headless: true });\n  const c = await b.newContext();\n  const p = await c.newPage();\n  const errs=[]; p.on('pageerror',e=>errs.push('page: '+e.message));\n  await p.goto('http://localhost:3000/bitlife-finance.html',{waitUntil:'domcontentloaded'});\n  await p.evaluate(()=>{try{localStorage.removeItem('finlife_save')}catch(e){}});\n  await p.reload({waitUntil:'domcontentloaded'});\n  await p.waitForSelector('#screen-new.active');\n  await p.fill('#inp-name','Test');\n  await p.click('#btn-start');\n  await p.waitForSelector('#screen-game.active');\n  // Force-close any modal, set education, call handler directly\n  const info = await p.evaluate(()=>{\n    closeModal();\n    GS.char.education='high_school';\n    GS.char.age = 22; GS.char.monthAge = 22*12;\n    document.getElementById('btn-job').click();\n    return {\n      title: document.getElementById('m-title').textContent,\n      buttons: Array.from(document.querySelectorAll('#m-choices button')).map(b=>b.textContent).slice(0,12),\n      headers: Array.from(document.querySelectorAll('#m-choices > div')).map(d=>d.textContent),\n      hustleBtnExists: !!document.getElementById('btn-hustle'),\n    };\n  });\n  console.log(JSON.stringify({errs, ...info}, null, 2));\n  await b.close();\n})().catch(e=>{console.error('FATAL',e);process.exit(1);});\n\" 2>&1 | tail -30",
+      "timeout": 60000,
+      "description": "Force-open Work modal and inspect"
+    },
+    "tool_use_id": "toolu_01NU16zWZbAh9en5REqjRRSx"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\" && git add bitlife-finance.html && git commit -m \"$(cat <<'EOF'\nfinlife: merge Side Hustle into Find Job as single Work action\n\nRemoved the separate Side Hustle action square. The Find Job square is\nrenamed Work and its modal now shows a '\u00f0\u0178\u2019\u00bc Job offers' section (salary\ncareer) followed by a '\u00e2\u0161\u00a1 Side hustles' section (6 rolled one-offs).\nAdded header-row support to showActionModal so multi-section modals can\nvisually separate categories.\n\nCo-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>\nEOF\n)\" && git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 push origin master 2>&1 | tail -3",
+      "timeout": 120000,
+      "description": "Commit and push"
+    },
+    "tool_use_id": "toolu_011BKQLcUBXfrLwGGymXVdeD"
   }
 ]
