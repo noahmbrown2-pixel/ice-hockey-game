@@ -190,7 +190,19 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 #modal-overlay.open{display:flex}
 #modal-box{background:var(--bg2);border:1px solid var(--border-gold);border-radius:18px;
   max-width:460px;width:100%;padding:28px 24px;box-shadow:var(--shadow),0 0 40px rgba(255,215,0,.08);
-  animation:scaleIn .2s ease}
+  animation:scaleIn .2s ease;position:relative;max-height:92vh;display:flex;flex-direction:column;
+  overflow:hidden}
+/* When viewport is cramped, constrain to a square so the player doesn't chase a tall modal */
+@media (max-height:720px){
+  #modal-box{max-width:min(92vh,460px)}
+}
+#modal-close-x{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;
+  background:rgba(255,61,61,.12);color:var(--red);border:1.5px solid var(--red);
+  display:flex;align-items:center;justify-content:center;font-weight:900;cursor:pointer;z-index:20;
+  font-size:16px;line-height:1;padding:0;transition:all var(--t)}
+#modal-close-x:hover{background:var(--red);color:#fff;transform:rotate(90deg)}
+#modal-box > .modal-choices{flex:1 1 auto;overflow-y:auto;min-height:0}
+#modal-box > .modal-body{flex:0 0 auto}
 @keyframes scaleIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
 .modal-icon{font-size:36px;text-align:center;display:block;margin-bottom:8px}
 .modal-tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
@@ -511,6 +523,7 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 <!-- MODAL -->
 <div id="modal-overlay">
   <div id="modal-box">
+    <button id="modal-close-x" onclick="closeModal()" title="Close (Esc)" aria-label="Close">✕</button>
     <span class="modal-icon" id="m-icon">💰</span>
     <div style="text-align:center"><span class="modal-tag" id="m-tag">Event</span></div>
     <div class="modal-title" id="m-title">Event</div>
@@ -2799,6 +2812,10 @@ function closeModal(){
   $('modal-box').classList.remove('compact');
   if(GS.pendingEvents.length>0) setTimeout(showNextEvent,200);
 }
+// Esc closes the modal
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && $('modal-overlay').classList.contains('open')) closeModal();
+});
 
 // ════════════════════════════════════════════════════════════════
 //  ACTION BUTTONS
