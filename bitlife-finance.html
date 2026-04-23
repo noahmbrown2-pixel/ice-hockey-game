@@ -480,12 +480,11 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
     <div id="right-panel">
       <div class="actions-grid">
         <button class="act-btn age" id="btn-age"><span class="aico">⏩</span>Age +1 Month</button>
-        <button class="act-btn job"    id="btn-job"><span class="aico">💼</span>Find Job</button>
+        <button class="act-btn job"    id="btn-job"><span class="aico">💼</span>Work</button>
         <button class="act-btn bank"   id="btn-bank"><span class="aico">🏦</span>Banking</button>
         <button class="act-btn invest" id="btn-invest"><span class="aico">📈</span>Stocks</button>
         <button class="act-btn realty" id="btn-realty"><span class="aico">🏠</span>Real Estate</button>
         <button class="act-btn crypto" id="btn-crypto"><span class="aico">₿</span>Crypto</button>
-        <button class="act-btn hustle" id="btn-hustle"><span class="aico">⚡</span>Side Hustle</button>
         <button class="act-btn edu"    id="btn-edu"><span class="aico">🎓</span>Education</button>
         <button class="act-btn sponsors" id="btn-sponsors"><span class="aico">🤝</span>Sponsors</button>
         <button class="act-btn inbox"  id="btn-inbox" style="grid-column:1/-1;position:relative"><span class="aico">📬</span>Inbox<span id="inbox-badge" class="inbox-badge-btn">0</span></button>
@@ -2848,6 +2847,13 @@ function showActionModal(title, desc, choices){
   $('m-result').style.display='none';
   const ch=$('m-choices');ch.innerHTML='';
   for(const c of choices){
+    if(c.header){
+      const h=document.createElement('div');
+      h.textContent=c.header;
+      h.style.cssText='font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:6px 4px 2px;border-top:1px solid var(--border);margin-top:4px';
+      ch.appendChild(h);
+      continue;
+    }
     const btn=document.createElement('button');btn.className='choice-btn';btn.textContent=c.text;
     btn.onclick=()=>{
       const res=c.fn();
@@ -3060,7 +3066,20 @@ $('btn-job').onclick=()=>{
   const c=GS.char;
   if(c.inSchool){showToast('Finish school first!');return;}
   if(c.retired){showToast('You\'re retired!');return;}
-  showActionModal('Find a Job','Browse available positions based on your education and skills.',buildJobChoices(c));
+  const jobChoices = buildJobChoices(c);
+  const hustles = [...SIDE_HUSTLES].sort(()=>Math.random()-0.5).slice(0,6);
+  const hustleChoices = hustles.map(h=>{
+    const statNote = h.stat==='smarts'?' · smarts':h.stat==='looks'?' · looks':'';
+    const costNote = h.cost>0?`$${(h.cost/1000).toFixed(1)}k start`:'free';
+    return {text:`${h.icon} ${h.name} — ${costNote}${statNote}`, fn(){return runSideHustle(h);}};
+  });
+  hustleChoices.push({text:'🔄 Refresh hustle list', fn(){ setTimeout(()=>$('btn-job').click(),80); return 'Looking at other options...'; }});
+  const employedLine = c.employed ? `Job: ${c.jobTitle} — ${fmt$(c.salary)}/yr` : 'Unemployed';
+  const sideLine = c.sideHustleIncome ? ` · Side: ${fmt$(c.sideHustleIncome)}/yr` : '';
+  const headline = `${employedLine}${sideLine}\nJobs (salaried) above, one-off side hustles below.`;
+  const choices = [{header:'💼 Job offers'}, ...jobChoices, {header:'⚡ Side hustles'}, ...hustleChoices];
+  showActionModal('Work', headline, choices);
+  $('modal-box').classList.add('compact');
 };
 
 $('btn-bank').onclick=()=>{
@@ -3317,18 +3336,6 @@ $('btn-sponsors').onclick=()=>{
   $('modal-box').classList.add('compact');
 };
 
-$('btn-hustle').onclick=()=>{
-  const c=GS.char;
-  // Shuffle and show 6 random hustles each time + persistent "Start a Business" option
-  const shuffled=[...SIDE_HUSTLES].sort(()=>Math.random()-0.5).slice(0,6);
-  const choices=shuffled.map(h=>{
-    const statNote = h.stat==='smarts'?` · smarts-based`:h.stat==='looks'?` · looks-based`:'';
-    const costNote = h.cost>0?`$${(h.cost/1000).toFixed(1)}k start`:'free';
-    return {text:`${h.icon} ${h.name} — ${costNote}${statNote}`, fn(){return runSideHustle(h);}};
-  });
-  choices.push({text:'🔄 Refresh hustle list',fn(){setTimeout(()=>$('btn-hustle').click(),100);return'Looking at other options...';}});
-  showActionModal('Side Hustle','Pick one — results roll immediately. Smarts/looks can boost your odds. For full-fledged businesses, see the Business tab.',choices);
-};
 
 $('btn-edu').onclick=()=>{
   const c=GS.char;
