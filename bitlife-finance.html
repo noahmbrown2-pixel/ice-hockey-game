@@ -1520,6 +1520,32 @@ function getAvailableJobs(char){
     .slice(0,8);
 }
 
+const ENV_JOB_IDS = new Set(['farmer','rancher','landscaper','gardener','arborist','env_scientist','conservationist','wildlife_biologist','park_ranger','zookeeper','marine_biologist','soil_scientist','hydrologist','forester','solar_installer']);
+const JOB_CATEGORY_ORDER = ['healthcare','tech','trades','education','law','finance','creative','service','transport','environment','sports'];
+function jobCategory(j){
+  if(ENV_JOB_IDS.has(j.id)) return 'environment';
+  return j.sector;
+}
+function getBalancedJobChoices(char){
+  const charEdu = eduIdx(char.education);
+  const eligible = ALL_JOBS.filter(j => charEdu >= eduIdx(j.edu));
+  const byCat = {};
+  JOB_CATEGORY_ORDER.forEach(c => byCat[c] = []);
+  eligible.forEach(j => { const c = jobCategory(j); if(byCat[c]) byCat[c].push(j); });
+  const shuffle = arr => { const a = arr.slice(); for(let i=a.length-1;i>0;i--){ const k=Math.floor(Math.random()*(i+1)); [a[i],a[k]]=[a[k],a[i]]; } return a; };
+  const picked = [];
+  const usedIds = new Set();
+  // Guarantee one from each category if available
+  shuffle(JOB_CATEGORY_ORDER).forEach(cat => {
+    const pool = shuffle(byCat[cat]);
+    if(pool.length){ picked.push(pool[0]); usedIds.add(pool[0].id); }
+  });
+  // Fill up to 14 with random eligible extras for variety
+  const extras = shuffle(eligible.filter(j => !usedIds.has(j.id)));
+  while(picked.length < 14 && extras.length) picked.push(extras.shift());
+  return shuffle(picked);
+}
+
 function applyForJob(char, job){
   const smartsMod = 0.7 + (char.smarts/100)*0.6;
   char.employed     = true;
@@ -1631,7 +1657,7 @@ function tickCareerNew(char, ev){
 }
 
 function buildJobChoices(char){
-  const jobs = getAvailableJobs(char).slice(0,6);
+  const jobs = getBalancedJobChoices(char);
   if(!jobs.length){
     return [{text:'No jobs available — get more education',fn(){return'No qualifying jobs found. Consider furthering your education.'}}];
   }
