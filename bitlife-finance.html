@@ -2599,12 +2599,12 @@ function sendSoccerStandings(c){
   }).join('\n');
   const champion = standings[0];
   let playerSummary;
-  if(playerPos === 1) playerSummary = `🏆 ${c.sportsTeam} won the ${league}! Champions!`;
-  else if(playerPos <= 5) playerSummary = `🌟 ${c.sportsTeam} finished ${ordinal(playerPos)} — qualified for the UEFA Champions League.`;
-  else if(playerPos === 6) playerSummary = `🥈 ${c.sportsTeam} finished 6th — qualified for the UEFA Europa League.`;
-  else if(playerPos === 7) playerSummary = `🥉 ${c.sportsTeam} finished 7th — qualified for the UEFA Conference League.`;
-  else if(playerPos >= 18) playerSummary = `⬇️ ${c.sportsTeam} finished ${ordinal(playerPos)} — relegation zone!`;
-  else playerSummary = `${c.sportsTeam} finished ${ordinal(playerPos)} — a mid-table season.`;
+  if(playerPos === 1){ playerSummary = `🏆 ${c.sportsTeam} won the ${league}! Champions!`; c._euroComp = 'champions'; }
+  else if(playerPos <= 5){ playerSummary = `🌟 ${c.sportsTeam} finished ${ordinal(playerPos)} — qualified for the UEFA Champions League.`; c._euroComp = 'champions'; }
+  else if(playerPos === 6){ playerSummary = `🥈 ${c.sportsTeam} finished 6th — qualified for the UEFA Europa League.`; c._euroComp = 'europa'; }
+  else if(playerPos === 7){ playerSummary = `🥉 ${c.sportsTeam} finished 7th — qualified for the UEFA Conference League.`; c._euroComp = 'conference'; }
+  else if(playerPos >= 18){ playerSummary = `⬇️ ${c.sportsTeam} finished ${ordinal(playerPos)} — relegation zone!`; c._euroComp = null; }
+  else { playerSummary = `${c.sportsTeam} finished ${ordinal(playerPos)} — a mid-table season.`; c._euroComp = null; }
 
   // Small morale/happiness effect
   if(playerPos <= 5) c.happiness = clamp((c.happiness||75) + 8, 0, 100);
@@ -2625,12 +2625,182 @@ function ordinal(n){
   return n + (s[(v-20)%10]||s[v]||s[0]);
 }
 
+// ── European / International Club Competitions ──
+// Pools include top-division clubs from Europe, North America, and South America so any
+// qualified soccer player plays a continental-style tournament regardless of region.
+const EURO_COMP_POOLS = {
+  champions: [
+    'Manchester City','Liverpool','Arsenal','Manchester United',
+    'Real Madrid','Barcelona','Atletico Madrid','Sevilla',
+    'Inter Milan','AC Milan','Juventus','Napoli',
+    'Bayern Munich','Borussia Dortmund','RB Leipzig','Bayer Leverkusen',
+    'Paris Saint-Germain','AS Monaco','Lille OSC','Olympique Lyonnais',
+    'FC Porto','SL Benfica','Ajax','PSV Eindhoven',
+    'Inter Miami','LAFC','Seattle Sounders','Club America',
+    'Tigres UANL','CF Monterrey','Chivas de Guadalajara','Toronto FC',
+    'Flamengo','Palmeiras','Boca Juniors','River Plate',
+  ],
+  europa: [
+    'Chelsea','Tottenham','Newcastle United','Aston Villa',
+    'Real Sociedad','Villarreal','Real Betis','Athletic Bilbao',
+    'AS Roma','Lazio','Atalanta','Fiorentina',
+    'Eintracht Frankfurt','VfB Stuttgart','Hoffenheim','SC Freiburg',
+    'Olympique Marseille','OGC Nice','RC Lens','Stade Rennais',
+    'Sporting CP','SC Braga','Feyenoord','AZ Alkmaar',
+    'NYCFC','NY Red Bulls','Philadelphia Union','Atlanta United',
+    'Columbus Crew','Cruz Azul','Pumas UNAM','Pachuca',
+    'Corinthians','Sao Paulo FC','Independiente','Racing Club',
+  ],
+  conference: [
+    'West Ham','Brighton','Crystal Palace','Brentford',
+    'Valencia','Getafe','Osasuna','Girona',
+    'Bologna','Torino','Genoa','Monza',
+    'Werder Bremen','VfL Wolfsburg','Union Berlin','FC Augsburg',
+    'FC Nantes','RC Strasbourg','Stade de Reims','Montpellier',
+    'Legia Warsaw','Olympiacos','AEK Athens','Anderlecht',
+    'FC Cincinnati','DC United','Orlando City','New England Revolution',
+    'Santos Laguna','Club Leon','Toluca','Club Tijuana',
+    'Fluminense','Internacional','Velez Sarsfield','San Lorenzo',
+  ],
+};
+const EURO_COMP_META = {
+  champions: { label:'UEFA Champions League', short:'Champions League', icon:'🏆' },
+  europa:    { label:'UEFA Europa League',    short:'Europa League',    icon:'🥈' },
+  conference:{ label:'UEFA Conference League',short:'Conference League',icon:'🥉' },
+};
+const DEFAULT_EURO_COMP_TIER = {
+  champions: new Set(['Manchester City','Liverpool','Arsenal','Manchester United','Real Madrid','Barcelona','Atletico Madrid','Inter Milan','AC Milan','Juventus','Napoli','Bayern Munich','Borussia Dortmund','RB Leipzig','Bayer Leverkusen','Paris Saint-Germain']),
+  europa: new Set(['Chelsea','Tottenham','Newcastle United','Sevilla','AS Roma','Lazio','Atalanta','Eintracht Frankfurt','VfB Stuttgart','Olympique Marseille','Villarreal','Real Betis','AS Monaco','Lille OSC']),
+  conference: new Set(['Aston Villa','West Ham','Brighton','Real Sociedad','Fiorentina','Bologna','OGC Nice','Athletic Bilbao','SC Freiburg','Hoffenheim']),
+};
+function initEuroCompForTeam(c){
+  if(c.jobId !== 'soccer_player' || !c.sportsTeam) return;
+  for(const [comp, teams] of Object.entries(DEFAULT_EURO_COMP_TIER)){
+    if(teams.has(c.sportsTeam)){ c._euroComp = comp; return; }
+  }
+  c._euroComp = null;
+}
+function sendEuroCompFixtures(c){
+  const comp = c._euroComp;
+  if(!comp || !EURO_COMP_POOLS[comp]) return;
+  const meta = EURO_COMP_META[comp];
+  const opponents = EURO_COMP_POOLS[comp].filter(t => t !== c.sportsTeam);
+  const picked = opponents.slice().sort(()=>Math.random()-0.5).slice(0,8);
+  const ha = ['H','H','H','H','A','A','A','A'].sort(()=>Math.random()-0.5);
+  const mds = ['Sep','Sep','Oct','Nov','Nov','Dec','Jan','Jan'];
+  const lines = picked.map((opp,i) => {
+    const side = ha[i];
+    const v = side==='H' ? `${c.sportsTeam} vs ${opp}` : `${opp} vs ${c.sportsTeam}`;
+    return `MD${i+1}  ${mds[i].padEnd(3,' ')}  ${side==='H'?'🏠':'✈️'} ${v}`;
+  }).join('\n');
+  const y = Math.floor(c.monthAge/12);
+  const body =
+    `${meta.icon} ${meta.label} — League Phase\n\n`+
+    `Your club: ${c.sportsTeam}\n`+
+    `Format: 36 clubs · 8 matches each (4 home · 4 away)\n\n`+
+    `Advancement:\n• Top 8 → straight to Round of 16\n• 9th–24th → Knockout Playoff Round\n• 25th–36th → eliminated\n\n`+
+    `Your fixtures:\n${lines}\n\n`+
+    `Knockout path (two-legged aggregate, except final):\n`+
+    `• Round of 16 — Feb/Mar\n• Quarterfinals — Apr\n• Semifinals — May\n• Final — single match, early June\n\n`+
+    `Tied on aggregate? → Extra time, then penalties. No away-goals rule.`;
+  addInboxItem({
+    type:'news', icon: meta.icon,
+    subject: `${meta.short} — ${c.sportsTeam} league-phase fixtures`,
+    date: `Y${y}-Aug`,
+    body,
+  });
+}
+function sendEuroCompResults(c){
+  const comp = c._euroComp;
+  if(!comp || !EURO_COMP_POOLS[comp]) return;
+  const meta = EURO_COMP_META[comp];
+  const pool = EURO_COMP_POOLS[comp].filter(t => t !== c.sportsTeam);
+  const salaryFactor = Math.min(1, (c.salary||0) / 10000000);
+  // League-phase finish position (1-36), salary-biased
+  const r = Math.random();
+  let leaguePos;
+  if(salaryFactor > 0.5) leaguePos = r<0.5 ? ri(1,8) : r<0.85 ? ri(9,24) : ri(25,36);
+  else if(salaryFactor > 0.2) leaguePos = r<0.3 ? ri(1,8) : r<0.75 ? ri(9,24) : ri(25,36);
+  else leaguePos = r<0.15 ? ri(1,8) : r<0.6 ? ri(9,24) : ri(25,36);
+  const path = [];
+  path.push(`League phase: finished ${ordinal(leaguePos)} of 36`);
+  let champion = null;
+  let eliminatedAt = null;
+  const shuffleOpp = () => pool[Math.floor(Math.random()*pool.length)];
+  const aggScore = (win) => {
+    const a = win ? ri(2,4) : ri(0,2);
+    const b = win ? ri(0,2) : ri(2,4);
+    if(a === b) return `${a}-${b} (${win?'won':'lost'} on penalties)`;
+    return `${a}-${b} agg`;
+  };
+  if(leaguePos > 24){
+    eliminatedAt = 'league phase';
+  } else {
+    if(leaguePos > 8){
+      const kpOpp = shuffleOpp();
+      const win = Math.random() < (0.45 + salaryFactor*0.2);
+      path.push(`Knockout Playoff vs ${kpOpp} — ${aggScore(win)} ${win?'✅':'❌'}`);
+      if(!win) eliminatedAt = 'Knockout Playoff';
+    } else {
+      path.push(`Top 8 finish → direct to Round of 16 ✅`);
+    }
+    if(!eliminatedAt){
+      const rounds = ['Round of 16','Quarterfinal','Semifinal','Final'];
+      for(const round of rounds){
+        const opp = shuffleOpp();
+        const isFinal = round === 'Final';
+        const baseWin = 0.5 + salaryFactor*0.15;
+        const win = Math.random() < baseWin;
+        const scoreTxt = isFinal
+          ? (win ? `${ri(1,3)}-${ri(0,2)}` : `${ri(0,2)}-${ri(1,3)}`) + ' (single match)'
+          : aggScore(win);
+        path.push(`${round} vs ${opp} — ${scoreTxt} ${win?'✅':'❌'}`);
+        if(!win){ eliminatedAt = round; break; }
+        if(isFinal){ champion = c.sportsTeam; break; }
+      }
+    }
+  }
+  if(!champion) champion = pool[Math.floor(Math.random()*pool.length)];
+  const won = champion === c.sportsTeam;
+  // Effects
+  if(won){
+    c.happiness = clamp((c.happiness||75) + 15, 0, 100);
+    c.checking += Math.round((c.salary||0) * 0.15);
+  } else if(eliminatedAt === 'league phase'){
+    c.happiness = clamp((c.happiness||75) - 4, 0, 100);
+  }
+  const summary = won
+    ? `🏆 ${c.sportsTeam} WON the ${meta.label}! Continental champions!`
+    : `Campaign ended in the ${eliminatedAt || 'final'}.`;
+  const body =
+    `${meta.icon} ${meta.label} — Campaign Summary\n\n`+
+    `${summary}\n\n`+
+    `🏆 ${meta.short} Winner: ${champion}\n\n`+
+    `Your path:\n${path.map((p,i)=>`${i+1}. ${p}`).join('\n')}\n\n`+
+    (won ? `Prize: ${fmt$(Math.round((c.salary||0)*0.15))} bonus credited. +15 happiness.\n\n` : '') +
+    `Next season's European qualification depends on your domestic league finish.`;
+  const y = Math.floor(c.monthAge/12);
+  addInboxItem({
+    type:'news', icon: won ? '🏆' : meta.icon,
+    subject: won ? `${meta.short} CHAMPIONS — ${c.sportsTeam}!` : `${meta.short} — ${c.sportsTeam} campaign ended`,
+    date: `Y${y}-Jun`,
+    body,
+  });
+  c._euroComp = null;
+}
+
 function tickSoccerSeason(c){
   if(c.jobId !== 'soccer_player' || !c.sportsTeam) return;
+  if(c._euroInit !== true){ initEuroCompForTeam(c); c._euroInit = true; }
   const monthInYear = c.monthAge % 12; // 0-indexed month position in life year
   // Proxy: monthInYear 7 = August (season start), monthInYear 5 = June (season end)
-  if(monthInYear === 7) sendSoccerFixtures(c);
-  else if(monthInYear === 5) sendSoccerStandings(c);
+  if(monthInYear === 7){
+    sendSoccerFixtures(c);
+    if(c._euroComp) sendEuroCompFixtures(c);
+  } else if(monthInYear === 5){
+    if(c._euroComp) sendEuroCompResults(c); // must fire before standings so the slot is clear
+    sendSoccerStandings(c);
+  }
 }
 
 // ── NFL Season: Schedule, Standings, Playoffs ───────────────────
@@ -2896,6 +3066,8 @@ function signSportsContract(item){
   // Reset jobTitle to the base role (strip any prior team), then append new team
   const baseRole = (c.jobTitle||'').split(' @ ')[0];
   c.jobTitle = `${baseRole} @ ${o.teamName}`;
+  // Reset European qualification — new team, re-seed next tick
+  c._euroInit = false; c._euroComp = null;
   c.checking += o.signingBonus;
   item.signed = true;
   item.body += `\n\n✅ Signed. New salary applied: ${fmt$(o.newSalary)}/yr. Signing bonus ${fmt$(o.signingBonus)} credited.`;
