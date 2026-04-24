@@ -3892,21 +3892,43 @@ $('btn-job').onclick=()=>{
   const c=GS.char;
   if(c.inSchool){showToast('Finish school first!');return;}
   if(c.retired){showToast('You\'re retired!');return;}
-  const jobChoices = buildJobChoices(c);
-  const hustles = [...SIDE_HUSTLES].sort(()=>Math.random()-0.5).slice(0,6);
-  const hustleChoices = hustles.map(h=>{
-    const statNote = h.stat==='smarts'?' · smarts':h.stat==='looks'?' · looks':'';
-    const costNote = h.cost>0?`$${(h.cost/1000).toFixed(1)}k start`:'free';
-    return {text:`${h.icon} ${h.name} — ${costNote}${statNote}`, fn(){return runSideHustle(h);}};
-  });
-  hustleChoices.push({text:'🔄 Refresh hustle list', fn(){ setTimeout(()=>$('btn-job').click(),80); return 'Looking at other options...'; }});
+  openWorkModal('careers');
+};
+
+function openWorkModal(tab){
+  const c = GS.char;
   const employedLine = c.employed ? `Job: ${c.jobTitle} — ${fmt$(c.salary)}/yr` : 'Unemployed';
   const sideLine = c.sideHustleIncome ? ` · Side: ${fmt$(c.sideHustleIncome)}/yr` : '';
-  const headline = `${employedLine}${sideLine}\nJobs (salaried) above, one-off side hustles below.`;
-  const choices = [{header:'💼 Job offers'}, ...jobChoices, {header:'⚡ Side hustles'}, ...hustleChoices];
+  const headline = `${employedLine}${sideLine}`;
+  let choices;
+  if(tab === 'side'){
+    const hustles = [...SIDE_HUSTLES].sort(()=>Math.random()-0.5).slice(0,6);
+    choices = hustles.map(h=>{
+      const statNote = h.stat==='smarts'?' · smarts':h.stat==='looks'?' · looks':'';
+      const costNote = h.cost>0?`$${(h.cost/1000).toFixed(1)}k start`:'free';
+      return {text:`${h.icon} ${h.name} — ${costNote}${statNote}`, fn(){return runSideHustle(h);}};
+    });
+    choices.push({text:'🔄 Refresh side projects', fn(){ setTimeout(()=>openWorkModal('side'),80); return 'Looking at other options...'; }});
+  } else {
+    choices = buildJobChoices(c);
+  }
   showActionModal('Work', headline, choices);
   $('modal-box').classList.add('compact');
-};
+  const ch = $('m-choices');
+  const tabBar = document.createElement('div');
+  tabBar.style.cssText = 'display:flex;gap:4px;margin-bottom:10px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:2';
+  const mkTab = (id, label) => {
+    const b = document.createElement('button');
+    b.textContent = label;
+    const active = id === tab;
+    b.style.cssText = `flex:1;padding:10px 8px;background:${active?'var(--bg3)':'transparent'};border:none;border-bottom:2px solid ${active?'var(--gold)':'transparent'};color:${active?'var(--gold)':'var(--muted)'};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;transition:all .15s;border-radius:6px 6px 0 0`;
+    b.onclick = () => openWorkModal(id);
+    return b;
+  };
+  tabBar.appendChild(mkTab('careers', '💼 Careers'));
+  tabBar.appendChild(mkTab('side', '⚡ Side Projects'));
+  ch.insertBefore(tabBar, ch.firstChild);
+}
 
 $('btn-bank').onclick=()=>{
   const c=GS.char;
