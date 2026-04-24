@@ -2609,6 +2609,259 @@ function tickSoccerSeason(c){
   else if(monthInYear === 5) sendSoccerStandings(c);
 }
 
+// ── NFL Season: Schedule, Standings, Playoffs ───────────────────
+const NFL_CONFERENCES = {
+  AFC: {
+    East: ['Buffalo Bills','Miami Dolphins','New England Patriots','New York Jets'],
+    North: ['Baltimore Ravens','Cincinnati Bengals','Cleveland Browns','Pittsburgh Steelers'],
+    South: ['Houston Texans','Indianapolis Colts','Jacksonville Jaguars','Tennessee Titans'],
+    West: ['Denver Broncos','Kansas City Chiefs','Las Vegas Raiders','Los Angeles Chargers'],
+  },
+  NFC: {
+    East: ['Dallas Cowboys','New York Giants','Philadelphia Eagles','Washington Commanders'],
+    North: ['Chicago Bears','Detroit Lions','Green Bay Packers','Minnesota Vikings'],
+    South: ['Atlanta Falcons','Carolina Panthers','New Orleans Saints','Tampa Bay Buccaneers'],
+    West: ['Arizona Cardinals','Los Angeles Rams','San Francisco 49ers','Seattle Seahawks'],
+  },
+};
+function flattenConf(conf){
+  return Object.values(conf).flat();
+}
+function playerNFLConf(team){
+  for(const [conf, divs] of Object.entries(NFL_CONFERENCES)){
+    for(const list of Object.values(divs)){
+      if(list.includes(team)) return conf;
+    }
+  }
+  return null;
+}
+function sendNFLSchedule(c){
+  const team = c.sportsTeam;
+  if(!team) return;
+  const conf = playerNFLConf(team) || 'AFC';
+  const allTeams = [...flattenConf(NFL_CONFERENCES.AFC), ...flattenConf(NFL_CONFERENCES.NFC)].filter(t=>t!==team);
+  const opps = allTeams.slice().sort(()=>Math.random()-0.5).slice(0,17);
+  const months=['Sep','Sep','Sep','Sep','Oct','Oct','Oct','Oct','Nov','Nov','Nov','Nov','Dec','Dec','Dec','Jan','Jan'];
+  const body = `NFL regular season schedule released. 17 games across 18 weeks.\n\nYour team: ${team} (${conf})\n\n` +
+    opps.map((o,i)=>{
+      const ha = i%2===0?'🏠':'✈️';
+      const m = months[Math.min(months.length-1,i)];
+      return `Wk ${String(i+1).padStart(2,'0')}  ${m}  ${ha} ${ha==='🏠'?team+' vs '+o : o+' vs '+team}`;
+    }).join('\n') +
+    `\n\nPlayoffs: top 7 per conference qualify. #1 seed gets a bye. Seeds 2-7 play Wild Card → Divisional → Conference Championship → Super Bowl.`;
+  const y = Math.floor(c.monthAge/12);
+  addInboxItem({type:'news', icon:'🏈', subject:`${team} — NFL schedule released`, date:`Y${y}-Sep`, body});
+}
+function sendNFLPlayoffs(c){
+  const team = c.sportsTeam;
+  if(!team) return;
+  const conf = playerNFLConf(team) || 'AFC';
+  const confTeams = flattenConf(NFL_CONFERENCES[conf]);
+  const otherConf = conf==='AFC' ? 'NFC' : 'AFC';
+  const otherTeams = flattenConf(NFL_CONFERENCES[otherConf]);
+  const salaryFactor = Math.min(1, (c.salary||0)/20000000);
+  const r = Math.random();
+  let seed;
+  if(salaryFactor > 0.5) seed = r<0.4?ri(1,3):r<0.75?ri(4,7):ri(8,16);
+  else if(salaryFactor > 0.2) seed = r<0.25?ri(1,5):r<0.7?ri(6,11):ri(12,16);
+  else seed = r<0.15?ri(1,7):r<0.6?ri(8,12):ri(13,16);
+  const confShuf = confTeams.slice().sort(()=>Math.random()-0.5);
+  const standings = [];
+  let oi = 0;
+  const others = confShuf.filter(t=>t!==team);
+  for(let pos=1;pos<=16;pos++){
+    if(pos===seed) standings.push(team);
+    else standings.push(others[oi++]);
+  }
+  const playoffTeams = standings.slice(0,7);
+  const otherPlayoffTeams = otherTeams.slice().sort(()=>Math.random()-0.5).slice(0,7);
+  const tbl = standings.map((t,i)=>{
+    const wins = Math.max(1, 14 - Math.floor(i*0.85) + ri(-1,1));
+    const losses = 17 - wins;
+    const mark = t===team?' ← YOU':'';
+    const qual = i===0?' 🏆 #1 seed (BYE)':(i<7?` 🌟 seed ${i+1} — playoff`:(i>=13?' ⬇️':''));
+    return `${String(i+1).padStart(2,' ')}. ${t.padEnd(24,' ')} ${String(wins).padStart(2,' ')}-${String(losses).padStart(2,' ')}${qual}${mark}`;
+  }).join('\n');
+  // Wild Card results: 2v7, 3v6, 4v5 per conference
+  const wc = [[1,6],[2,5],[3,4]]; // indexes within seeds 2-7 (playoffTeams[1..6])
+  const wcResults = wc.map(([a,b])=>{
+    const ta=playoffTeams[a], tb=playoffTeams[b];
+    const winA = Math.random() < 0.6;
+    return winA?`${ta} def. ${tb}`:`${tb} def. ${ta}`;
+  });
+  let playerNote;
+  if(seed===1) playerNote = `🏆 ${team} finished ${seed===1?'#1':`#${seed}`} — FIRST-ROUND BYE. Advance straight to Divisional round.`;
+  else if(seed<=7) playerNote = `🌟 ${team} finished seed ${seed} — entering Wild Card round.`;
+  else playerNote = `${team} finished seed ${seed} — missed the playoffs.`;
+  const body = `🏈 ${conf} Playoff Picture\n\n${playerNote}\n\nWild Card Round (${conf}):\n• ${wcResults.join('\n• ')}\n\nFinal ${conf} Standings:\n${tbl}\n\n${otherConf} #1 seed: ${otherPlayoffTeams[0]} (BYE)\n${otherConf} playoff teams: ${otherPlayoffTeams.slice(0,7).join(', ')}`;
+  const y = Math.floor(c.monthAge/12);
+  addInboxItem({type:'news', icon:'🏈', subject:`${conf} Playoffs — ${team} seed ${seed>7?'—':`#${seed}`}`, date:`Y${y}-Jan`, body});
+  c._nflPlayoffSeed = seed;
+  c._nflConf = conf;
+  c._nflOtherConfChamp = otherPlayoffTeams[ri(0,3)];
+}
+function sendNFLSuperBowl(c){
+  const team = c.sportsTeam;
+  if(!team) return;
+  const seed = c._nflPlayoffSeed || 16;
+  const conf = c._nflConf || 'AFC';
+  const otherConfChamp = c._nflOtherConfChamp || 'Kansas City Chiefs';
+  const inPlayoffs = seed <= 7;
+  const playerTeamChance = Math.max(0.02, (8-seed)/9 * (seed<=7?1:0));
+  const playerWinsConf = inPlayoffs && Math.random() < playerTeamChance;
+  let outcome;
+  const salaryFactor = Math.min(1, (c.salary||0)/20000000);
+  if(playerWinsConf){
+    const sbWin = Math.random() < (0.35 + salaryFactor*0.25);
+    if(sbWin){
+      outcome = `🏆 SUPER BOWL CHAMPIONS! ${team} defeats ${otherConfChamp}.\nConfetti. Parade. Ring ceremony.`;
+      c.happiness = clamp((c.happiness||75)+15,0,100);
+      c.checking += Math.round((c.salary||0)*0.15);
+      logEvent(`Super Bowl Champion with ${team}!`, 'gold');
+    } else {
+      outcome = `🥈 ${team} lost the Super Bowl to ${otherConfChamp}. Heartbreak.`;
+      c.happiness = clamp((c.happiness||75)-5,0,100);
+    }
+  } else if(inPlayoffs){
+    const rounds = ['Wild Card','Divisional','Conference Championship'];
+    const exitRound = pick(rounds);
+    outcome = `${team} exited in the ${exitRound} round.\n\nSuper Bowl: ${otherConfChamp} wins it all.`;
+  } else {
+    const afcChamp = otherConfChamp;
+    const nfcChamp = pick(flattenConf(NFL_CONFERENCES[conf==='AFC'?'NFC':'AFC']));
+    outcome = `${team} missed the playoffs this year.\n\nSuper Bowl: ${afcChamp} defeats ${nfcChamp}.`;
+  }
+  const body = `🏆 Super Bowl Results\n\n${outcome}\n\nOff-season begins. Roster moves ahead.`;
+  const y = Math.floor(c.monthAge/12);
+  addInboxItem({type:'news', icon:'🏆', subject:`Super Bowl — ${playerWinsConf?'VICTORY':'Results'}`, date:`Y${y}-Feb`, body});
+}
+function tickNFLSeason(c){
+  if(c.jobId !== 'football_player' || !c.sportsTeam) return;
+  const m = c.monthAge % 12; // 0=Jan … 8=Sep
+  if(m === 8) sendNFLSchedule(c);       // September: schedule
+  else if(m === 0) sendNFLPlayoffs(c);  // January: playoffs/standings
+  else if(m === 1) sendNFLSuperBowl(c); // February: Super Bowl
+}
+
+// ── NHL Season: Schedule, Standings, Play-in, Playoffs ──────────
+const NHL_CONFERENCES = {
+  Eastern: ['Toronto Maple Leafs','Montreal Canadiens','New York Rangers','Boston Bruins','Buffalo Sabres','Ottawa Senators','Detroit Red Wings','Florida Panthers','Tampa Bay Lightning','Carolina Hurricanes','Washington Capitals','Philadelphia Flyers','Pittsburgh Penguins','New Jersey Devils','New York Islanders','Columbus Blue Jackets'],
+  Western: ['Chicago Blackhawks','Minnesota Wild','Colorado Avalanche','Dallas Stars','Nashville Predators','Winnipeg Jets','St. Louis Blues','Vancouver Canucks','Edmonton Oilers','Calgary Flames','Los Angeles Kings','Anaheim Ducks','San Jose Sharks','Vegas Golden Knights','Arizona Coyotes','Seattle Kraken'],
+};
+function playerNHLConf(team){
+  for(const [conf, list] of Object.entries(NHL_CONFERENCES)){
+    if(list.includes(team)) return conf;
+  }
+  return null;
+}
+function sendNHLSchedule(c){
+  const team = c.sportsTeam;
+  if(!team) return;
+  const conf = playerNHLConf(team) || 'Eastern';
+  const all = [...NHL_CONFERENCES.Eastern, ...NHL_CONFERENCES.Western].filter(t=>t!==team);
+  // Full NHL season = 82 games. Show a condensed preview of 20.
+  const opps = [];
+  while(opps.length < 20){
+    opps.push(all[Math.floor(Math.random()*all.length)]);
+  }
+  const months=['Oct','Oct','Nov','Nov','Dec','Dec','Jan','Jan','Feb','Feb','Feb','Mar','Mar','Mar','Apr','Apr','Apr','Apr','Apr','Apr'];
+  const body = `NHL regular season schedule released. 82 games.\n\nYour team: ${team} (${conf} Conference)\n\nPreview (first 20 matchdays):\n` +
+    opps.map((o,i)=>{
+      const ha = i%2===0?'🏠':'✈️';
+      return `G${String(i+1).padStart(2,'0')}  ${months[i]}  ${ha} ${ha==='🏠'?team+' vs '+o : o+' vs '+team}`;
+    }).join('\n') +
+    `\n\nPlayoffs: top 6 per conference auto-qualify. Seeds 7-10 enter a play-in tournament (7v10, 8v9, best-of-3) — winners take seeds 7 & 8 in the main bracket.\nMain playoffs: best-of-7 series across 4 rounds → Stanley Cup Final.`;
+  const y = Math.floor(c.monthAge/12);
+  addInboxItem({type:'news', icon:'🏒', subject:`${team} — NHL schedule released`, date:`Y${y}-Oct`, body});
+}
+function sendNHLPlayins(c){
+  const team = c.sportsTeam;
+  if(!team) return;
+  const conf = playerNHLConf(team) || 'Eastern';
+  const confTeams = NHL_CONFERENCES[conf];
+  const salaryFactor = Math.min(1, (c.salary||0)/10000000);
+  const r = Math.random();
+  let seed;
+  if(salaryFactor > 0.5) seed = r<0.35?ri(1,4):r<0.7?ri(5,10):ri(11,16);
+  else if(salaryFactor > 0.2) seed = r<0.25?ri(1,6):r<0.7?ri(7,12):ri(13,16);
+  else seed = r<0.2?ri(1,8):r<0.6?ri(9,13):ri(14,16);
+  const others = confTeams.filter(t=>t!==team).sort(()=>Math.random()-0.5);
+  const standings = [];
+  let oi = 0;
+  for(let pos=1;pos<=16;pos++){
+    if(pos===seed) standings.push(team);
+    else standings.push(others[oi++]);
+  }
+  const tbl = standings.map((t,i)=>{
+    const pts = Math.max(55, 115 - i*4 + ri(-3,3));
+    const wins = Math.floor(pts/2.4);
+    const losses = 82 - wins - ri(3,10);
+    const ot = 82 - wins - losses;
+    const mark = t===team?' ← YOU':'';
+    const qual = i<6 ? ' 🌟 auto playoff' : (i<10 ? ' 🎟️ play-in' : (i>=14?' ⬇️':''));
+    return `${String(i+1).padStart(2,' ')}. ${t.padEnd(22,' ')} ${String(wins).padStart(2,' ')}-${String(losses).padStart(2,' ')}-${String(ot).padStart(1,' ')}  ${String(pts).padStart(3,' ')}pts${qual}${mark}`;
+  }).join('\n');
+  // Play-in bracket: seeds 7v10 and 8v9
+  const s7=standings[6], s10=standings[9], s8=standings[7], s9=standings[8];
+  const winA = Math.random()<0.55 ? s7 : s10;
+  const winB = Math.random()<0.55 ? s8 : s9;
+  let playerNote;
+  if(seed===1) playerNote = `🥇 ${team} finished 1st in ${conf} — clinched division, top seed.`;
+  else if(seed<=6) playerNote = `🌟 ${team} finished ${ordinal(seed)} — automatic playoff berth.`;
+  else if(seed<=10) playerNote = `🎟️ ${team} finished ${ordinal(seed)} — entering the play-in tournament.`;
+  else playerNote = `${team} finished ${ordinal(seed)} — missed the postseason.`;
+  const body = `🏒 ${conf} Conference — Regular Season Recap\n\n${playerNote}\n\nPlay-in Results (best-of-3):\n• ${s7} vs ${s10} — winner: ${winA}\n• ${s8} vs ${s9} — winner: ${winB}\n\n${winA} and ${winB} now fill seeds 7 & 8 in the main playoff bracket.\n\nFinal ${conf} Standings:\n${tbl}`;
+  const y = Math.floor(c.monthAge/12);
+  addInboxItem({type:'news', icon:'🏒', subject:`${conf} — standings + play-in (${team} ${ordinal(seed)})`, date:`Y${y}-Apr`, body});
+  c._nhlSeed = seed;
+  c._nhlConf = conf;
+}
+function sendNHLStanleyCup(c){
+  const team = c.sportsTeam;
+  if(!team) return;
+  const seed = c._nhlSeed || 16;
+  const conf = c._nhlConf || 'Eastern';
+  const otherConf = conf==='Eastern'?'Western':'Eastern';
+  const otherChamp = pick(NHL_CONFERENCES[otherConf]);
+  const inPlayoffs = seed <= 10; // 1-6 auto, 7-10 via play-in
+  const salaryFactor = Math.min(1, (c.salary||0)/10000000);
+  let outcome;
+  if(inPlayoffs){
+    const advChance = seed<=4?0.55:seed<=6?0.4:seed<=8?0.25:0.12;
+    const wonConf = Math.random() < advChance;
+    if(wonConf){
+      const cupWin = Math.random() < (0.4 + salaryFactor*0.2);
+      if(cupWin){
+        outcome = `🏆 STANLEY CUP CHAMPIONS! ${team} defeats ${otherChamp} in the Finals.\nLord Stanley's Cup is yours. Name engraved.`;
+        c.happiness = clamp((c.happiness||75)+18,0,100);
+        c.checking += Math.round((c.salary||0)*0.20);
+        logEvent(`Stanley Cup Champion with ${team}!`, 'gold');
+      } else {
+        outcome = `🥈 ${team} lost the Stanley Cup Final to ${otherChamp}. Gut-wrenching.`;
+        c.happiness = clamp((c.happiness||75)-5,0,100);
+      }
+    } else {
+      const rounds = ['First Round','Second Round','Conference Final'];
+      const exitRound = pick(rounds);
+      outcome = `${team} was eliminated in the ${exitRound}.\n\nStanley Cup: ${otherChamp} defeats a ${conf} rival.`;
+    }
+  } else {
+    const eastC = pick(NHL_CONFERENCES.Eastern);
+    const westC = pick(NHL_CONFERENCES.Western);
+    outcome = `${team} missed the playoffs this year.\n\nStanley Cup: ${eastC} vs ${westC} — champion: ${pick([eastC,westC])}.`;
+  }
+  const body = `🏆 Stanley Cup Final — Results\n\n${outcome}\n\nDraft and free agency ahead.`;
+  const y = Math.floor(c.monthAge/12);
+  addInboxItem({type:'news', icon:'🏆', subject:`Stanley Cup — ${inPlayoffs?'Results':'Recap'}`, date:`Y${y}-Jun`, body});
+}
+function tickNHLSeason(c){
+  if(c.jobId !== 'hockey_player' || !c.sportsTeam) return;
+  const m = c.monthAge % 12;
+  if(m === 9) sendNHLSchedule(c);        // October
+  else if(m === 3) sendNHLPlayins(c);    // April — standings + play-in
+  else if(m === 5) sendNHLStanleyCup(c); // June — Stanley Cup
+}
+
 function signSportsContract(item){
   const c = GS.char;
   if(!item || !item.offer) return 'Invalid offer.';
@@ -2993,6 +3246,10 @@ function monthlyTick(){
 
   // Soccer season events (fixtures in Aug, standings in Jun)
   tickSoccerSeason(c);
+  // NFL season: Sep schedule, Jan playoffs, Feb Super Bowl
+  tickNFLSeason(c);
+  // NHL season: Oct schedule, Apr play-in, Jun Stanley Cup
+  tickNHLSeason(c);
 
   // Monthly finances
   const fin=tickFinances(c, ev);
