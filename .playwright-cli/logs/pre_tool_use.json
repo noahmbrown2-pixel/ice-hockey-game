@@ -430,5 +430,31 @@
       "description": "Commit and push"
     },
     "tool_use_id": "toolu_011BKQLcUBXfrLwGGymXVdeD"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\" && git add bitlife-finance.html && git commit -m \"finlife: custom-dollar buy input on stock and crypto cards\"",
+      "description": "Commit custom-dollar buy feature"
+    },
+    "tool_use_id": "toolu_01PZn6e4diaw2Q1oFwawo5FP"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\" && git log --oneline -5 && git status bitlife-finance.html",
+      "description": "Check recent commits and file status"
+    },
+    "tool_use_id": "toolu_01LbLgJY7swHGx3456MWVnaW"
   }
 ]

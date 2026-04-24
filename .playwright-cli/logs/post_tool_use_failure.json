@@ -62,5 +62,36 @@
       "is_interrupt": false,
       "logged_at": "2026-04-20T21:21:55.573000"
     }
+  },
+  {
+    "timestamp": "2026-04-23T16:13:33.450692",
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01PZn6e4diaw2Q1oFwawo5FP",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\" && git add bitlife-finance.html && git commit -m \"finlife: custom-dollar buy input on stock and crypto cards\"",
+      "description": "Commit custom-dollar buy feature"
+    },
+    "error": "Exit code 1\nOn branch master\nYour branch is ahead of 'origin/master' by 1 commit.\n  (use \"git push\" to publish your local commits)\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n  (commit or discard the untracked or modified content in submodules)\n\tmodified:   .playwright-cli/logs/pre_compact.json\n\tmodified:   .playwright-cli/logs/pre_tool_use.json\n\tmodified:   .playwright-cli/logs/session_start.json\n\tmodified:   .playwright-cli/logs/subagent_debug.log\n\tmodified:   .playwright-cli/logs/subagent_stop.json\n\tmodified:   chainlink-agent-swarm (untracked content)\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "raw_input": {
+      "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "cd \"C:\\Users\\noahm\\Project\" && git add bitlife-finance.html && git commit -m \"finlife: custom-dollar buy input on stock and crypto cards\"",
+        "description": "Commit custom-dollar buy feature"
+      },
+      "tool_use_id": "toolu_01PZn6e4diaw2Q1oFwawo5FP",
+      "error": "Exit code 1\nOn branch master\nYour branch is ahead of 'origin/master' by 1 commit.\n  (use \"git push\" to publish your local commits)\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n  (commit or discard the untracked or modified content in submodules)\n\tmodified:   .playwright-cli/logs/pre_compact.json\n\tmodified:   .playwright-cli/logs/pre_tool_use.json\n\tmodified:   .playwright-cli/logs/session_start.json\n\tmodified:   .playwright-cli/logs/subagent_debug.log\n\tmodified:   .playwright-cli/logs/subagent_stop.json\n\tmodified:   chainlink-agent-swarm (untracked content)\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")",
+      "is_interrupt": false,
+      "logged_at": "2026-04-23T16:13:33.450692"
+    }
   }
 ]

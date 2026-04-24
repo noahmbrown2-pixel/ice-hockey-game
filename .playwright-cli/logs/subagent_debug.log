@@ -25,3 +25,12 @@
 [2026-04-21T07:36:36.635632] Generated summary_message: Subagent task completed
 [2026-04-21T07:36:36.636644] Lock acquired, announcing: Subagent task completed
 [2026-04-21T07:36:39.565201] Lock released
+[2026-04-23T16:13:28.136284] === SubagentStop for agent: ab7cf2aae44a0797e ===
+[2026-04-23T16:13:28.137335] agent_transcript_path: C:\Users\noahm\.claude\projects\C--Users-noahm-Project\e791a149-a17b-4b24-b2d4-90d3c14e1a95\subagents\agent-ab7cf2aae44a0797e.jsonl
+[2026-04-23T16:13:28.137335] ANTHROPIC_API_KEY present: False
+[2026-04-23T16:13:28.137335] Extracted task_context: completed a task...
+[2026-04-23T16:13:28.138845] [SUMMARIZER] summarize_subagent_task called with: completed a task...
+[2026-04-23T16:13:28.138845] [SUMMARIZER] ERROR: ANTHROPIC_API_KEY not found!
+[2026-04-23T16:13:28.138845] Generated summary_message: Subagent task completed
+[2026-04-23T16:13:28.138845] Lock acquired, announcing: Subagent task completed
+[2026-04-23T16:13:28.449819] Lock released

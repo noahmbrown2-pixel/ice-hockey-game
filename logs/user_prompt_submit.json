@@ -551,5 +551,77 @@
     "permission_mode": "bypassPermissions",
     "hook_event_name": "UserPromptSubmit",
     "prompt": "for the markets, instead of only being able to pay for a stock/crypto at a certain price, add a textbox near where it say buy and let the player type in the amount of money they want to put in at once"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "add these jobs ### \u00f0\u0178\udc8f\u00a5 Healthcare (1\u00e2\u20ac\u201c25)\n\n1. Doctor\n2. Surgeon\n3. Nurse\n4. Nurse practitioner\n5. Physician assistant\n6. Dentist\n7. Orthodontist\n8. Pharmacist\n9. Physical therapist\n10. Occupational therapist\n11. Speech therapist\n12. Psychologist\n13. Psychiatrist\n14. EMT\n15. Paramedic\n16. Medical assistant\n17. Radiologic technologist\n18. Lab technician\n19. Anesthesiologist\n20. Dietitian\n21. Chiropractor\n22. Optometrist\n23. Veterinary doctor\n24. Vet assistant\n25. Home health aide\n\n---\n\n### \u00f0\u0178\u2019\u00bb Technology (26\u00e2\u20ac\u201c50)\n\n26. Software developer\n27. Web developer\n28. App developer\n29. Game designer\n30. Data analyst\n31. Data scientist\n32. Cybersecurity analyst\n33. Network engineer\n34. IT support specialist\n35. Systems administrator\n36. Cloud engineer\n37. AI engineer\n38. Machine learning engineer\n39. UX designer\n40. UI designer\n41. Database administrator\n42. DevOps engineer\n43. QA tester\n44. Computer programmer\n45. Blockchain developer\n46. Robotics engineer\n47. Hardware engineer\n48. Tech consultant\n49. IT project manager\n50. Information security manager\n\n---\n\n### \u00f0\u0178\u201d\u00a7 Skilled Trades (51\u00e2\u20ac\u201c75)\n\n51. Electrician\n52. Plumber\n53. Carpenter\n54. Welder\n55. HVAC technician\n56. Mechanic\n57. Auto body repair\n58. Construction worker\n59. Roofer\n60. Mason\n61. Painter\n62. Tile installer\n63. Ironworker\n64. Boilermaker\n65. Elevator installer\n66. Lineworker\n67. Crane operator\n68. Heavy equipment operator\n69. Bricklayer\n70. Glazier\n71. Flooring installer\n72. Cabinetmaker\n73. Locksmith\n74. Tool and die maker\n75. Diesel technician\n\n---\n\n### \u00f0\u0178\udc8f\u00ab Education (76\u00e2\u20ac\u201c90)\n\n76. Teacher\n77. Professor\n78. Tutor\n79. School counselor\n80. Principal\n81. Special education teacher\n82. Librarian\n83. Archivist\n84. Instructional designer\n85. Education consultant\n86. Coach\n87. Substitute teacher\n88. Preschool teacher\n89. Teaching assistant\n90. Academic advisor\n\n---\n\n### \u00e2\u0161\u2013\u00ef\u00b8\udc8f Law & Government (91\u00e2\u20ac\u201c110)\n\n91. Lawyer\n92. Judge\n93. Paralegal\n94. Legal assistant\n95. Police officer\n96. Detective\n97. FBI agent\n98. Border patrol agent\n99. Firefighter\n100. Corrections officer\n101. Bailiff\n102. Probation officer\n103. Political scientist\n104. Diplomat\n105. City planner\n106. Legislator\n107. Court reporter\n108. Public defender\n109. Prosecutor\n110. Intelligence analyst\n\n---\n\n### \u00f0\u0178\u201c\u0160 Business & Finance (111\u00e2\u20ac\u201c130)\n\n111. Accountant\n112. Financial analyst\n113. Investment banker\n114. Banker\n115. Loan officer\n116. Insurance agent\n117. Actuary\n118. Auditor\n119. Business analyst\n120. Project manager\n121. HR manager\n122. Recruiter\n123. Marketing manager\n124. Sales manager\n125. Real estate agent\n126. Property manager\n127. Entrepreneur\n128. CEO\n129. Consultant\n130. Operations manager\n\n---\n\n### \u00f0\u0178\u017d\u00a8 Creative & Media (131\u00e2\u20ac\u201c150)\n\n131. Photographer\n132. Videographer\n133. Graphic designer\n134. Animator\n135. Film editor\n136. Director\n137. Producer\n138. Actor\n139. Musician\n140. DJ\n141. Writer\n142. Journalist\n143. Editor\n144. Copywriter\n145. Fashion designer\n146. Interior designer\n147. Art director\n148. Illustrator\n149. Social media manager\n150. Content creator\n\n---\n\n### \u00f0\u0178\udc8d\u201d Service & Retail (151\u00e2\u20ac\u201c170)\n\n151. Cashier\n152. Retail associate\n153. Store manager\n154. Customer service rep\n155. Waiter\n156. Bartender\n157. Barista\n158. Chef\n159. Cook\n160. Baker\n161. Hotel clerk\n162. Concierge\n163. Housekeeper\n164. Janitor\n165. Security guard\n166. Delivery driver\n167. Warehouse worker\n168. Stock clerk\n169. Call center agent\n170. Receptionist\n\n---\n\n### \u00f0\u0178\u0161\u201c Transportation & Travel (171\u00e2\u20ac\u201c185)\n\n171. Pilot\n172. Flight attendant\n173. Air traffic controller\n174. Bus driver\n175. Truck driver\n176. Taxi driver\n177. Uber driver\n178. Train conductor\n179. Subway operator\n180. Ship captain\n181. Sailor\n182. Travel agent\n183. Tour guide\n184. Logistics manager\n185. Dispatcher\n\n---\n\n### \u00f0\u0178\u0152\u00b1 Environment & Agriculture (186\u00e2\u20ac\u201c200)\n\n186. Farmer\n187. Rancher\n188. Landscaper\n189. Gardener\n190. Arborist\n191. Environmental scientist\n192. Conservationist\n193. Wildlife biologist\n194. Park ranger\n195. Zookeeper\n196. Marine biologist\n197. Soil scientist\n198. Hydrologist\n199. Forester\n200. Solar panel installer\n"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make sure the jobs are randomized everytime, but every job refresh these requirments must be hit. atleast 1 athelete job,Business & Finance,Creative & Media,Service & Retail,Transportation & Travel,Environment & Agriculture,Law & Government,Education,Skilled Trades,Technology,and Healthcare, one of each everytime player open the job window"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make a another action square called fitness were you can improve your health and happiness, buy going to the gym,buy\nhealth food, and if you work a sport then you get sports work outs,foods and other things that improves the players\nhealth,"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "open"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "for anyone that has a sports job, send messages to the players imbox to sign the player to the sports team, like \"soccer player\" gets a offer to manchester united or \"basketball player\" sign to the new york knicks,use real world sports team to design these contracts, if the player were to sign, what ever payrise  is offered in the message will automatically transfer the monthly pay to job salary"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "replace LA Galaxy with AC milan"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "when the player is sign, in august send a message of the fixtures for the whole year and in june show the league table and who won the in the standings, for soccer spicifically any teams in the top five qualify for the champions league and 6 and 7 place qualify for europa league and confrence league"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "for the nfl and nhl there are play offs and playoff play ins"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "save to repo"
   }
 ]
