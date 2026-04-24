@@ -1116,12 +1116,35 @@ function openInboxItem(id){
   item.read=true; renderInbox();
   $('modal-box').classList.remove('compact');
   $('m-icon').textContent=item.icon||'📬';
-  $('m-tag').textContent = item.type==='bill' ? 'Bill' : 'News';
-  $('m-tag').className='modal-tag '+(item.type==='bill'?'exp':'fla');
+  const tag = item.type==='bill' ? 'Bill' : (item.type==='offer' ? 'Offer' : 'News');
+  $('m-tag').textContent = tag;
+  $('m-tag').className='modal-tag '+(item.type==='bill'?'exp':(item.type==='offer'?'gld':'fla'));
   $('m-title').textContent=item.subject;
   $('m-body').textContent=item.body;
   $('m-result').style.display='none';
-  const ch=$('m-choices'); ch.innerHTML='<button class="choice-btn" onclick="showInboxModal()">← Back to Inbox</button><button class="choice-btn" onclick="closeModal()">Close</button>';
+  const ch=$('m-choices');
+  if(item.type==='offer' && item.offer && !item.signed){
+    ch.innerHTML = `
+      <button class="choice-btn" style="background:linear-gradient(135deg,#4caf50,#2e7d32);color:#fff;font-weight:700" id="ib-sign">✅ Sign Contract — ${fmt$(item.offer.newSalary)}/yr</button>
+      <button class="choice-btn" id="ib-decline">❌ Decline offer</button>
+      <button class="choice-btn" onclick="showInboxModal()">← Back to Inbox</button>`;
+    $('ib-sign').onclick=()=>{
+      const msg = signSportsContract(item);
+      $('m-body').textContent = item.body;
+      $('m-result').style.display='block';
+      $('m-result').textContent = msg;
+      ch.innerHTML = `<button class="choice-btn" onclick="showInboxModal()">← Back to Inbox</button><button class="choice-btn" onclick="closeModal()">Close</button>`;
+      updateUI({monthExp:0,monthInc:0},0,0);
+    };
+    $('ib-decline').onclick=()=>{
+      item.declined=true;
+      $('m-result').style.display='block';
+      $('m-result').textContent = `Declined ${item.offer.teamName}'s offer.`;
+      ch.innerHTML = `<button class="choice-btn" onclick="showInboxModal()">← Back to Inbox</button><button class="choice-btn" onclick="closeModal()">Close</button>`;
+    };
+  } else {
+    ch.innerHTML='<button class="choice-btn" onclick="showInboxModal()">← Back to Inbox</button><button class="choice-btn" onclick="closeModal()">Close</button>';
+  }
   $('modal-overlay').classList.add('open');
 }
 
@@ -1552,10 +1575,12 @@ function getBalancedJobChoices(char){
 function applyForJob(char, job){
   const smartsMod = 0.7 + (char.smarts/100)*0.6;
   char.employed     = true;
+  char.jobId        = job.id;
   char.jobTitle     = job.name;
   char.jobSector    = job.sector;
   char.jobMin       = job.min;
   char.jobMax       = job.max;
+  char.sportsTeam   = null;
   char.salary       = Math.round(rf(job.min, job.max) * smartsMod);
   char.yearsAtJob   = 0;
   char.monthsAtJob  = 0;
@@ -2302,6 +2327,187 @@ function signSponsor(offer){
   saveGame();
   return `Signed ${offer.name}. +${fmt$(bonus)} upfront, then ${fmt$(offer.monthly)}/mo for ${offer.months} months.`;
 }
+// ── Sports Team Contract Offers ─────────────────────────────────
+const SPORTS_TEAMS = {
+  soccer_player: [
+    {name:'Manchester United', league:'Premier League', emoji:'🔴', min:4000000,  max:15000000},
+    {name:'Real Madrid',       league:'La Liga',       emoji:'👑', min:5000000,  max:20000000},
+    {name:'FC Barcelona',      league:'La Liga',       emoji:'🔵', min:4500000,  max:18000000},
+    {name:'Manchester City',   league:'Premier League',emoji:'🌆', min:4500000,  max:17000000},
+    {name:'Liverpool FC',      league:'Premier League',emoji:'🔴', min:4000000,  max:14000000},
+    {name:'Paris Saint-Germain',league:'Ligue 1',      emoji:'🇫🇷', min:5000000,  max:25000000},
+    {name:'Bayern Munich',     league:'Bundesliga',    emoji:'🇩🇪', min:4000000,  max:15000000},
+    {name:'LA Galaxy',         league:'MLS',           emoji:'🌴', min:800000,   max:3000000},
+    {name:'Inter Miami',       league:'MLS',           emoji:'🦩', min:1000000,  max:4000000},
+  ],
+  basketball_player: [
+    {name:'New York Knicks',       league:'NBA', emoji:'🗽', min:3000000, max:40000000},
+    {name:'Los Angeles Lakers',    league:'NBA', emoji:'💜', min:3000000, max:45000000},
+    {name:'Boston Celtics',        league:'NBA', emoji:'☘️', min:3000000, max:42000000},
+    {name:'Golden State Warriors', league:'NBA', emoji:'🌉', min:3000000, max:45000000},
+    {name:'Chicago Bulls',         league:'NBA', emoji:'🐂', min:3000000, max:38000000},
+    {name:'Miami Heat',            league:'NBA', emoji:'🔥', min:3000000, max:40000000},
+    {name:'Brooklyn Nets',         league:'NBA', emoji:'🕸️', min:3000000, max:40000000},
+    {name:'Dallas Mavericks',      league:'NBA', emoji:'🐴', min:3000000, max:38000000},
+    {name:'Milwaukee Bucks',       league:'NBA', emoji:'🦌', min:3000000, max:38000000},
+  ],
+  football_player: [
+    {name:'Dallas Cowboys',         league:'NFL', emoji:'🤠', min:2000000, max:30000000},
+    {name:'Kansas City Chiefs',     league:'NFL', emoji:'🏹', min:2000000, max:45000000},
+    {name:'New England Patriots',   league:'NFL', emoji:'🏰', min:2000000, max:25000000},
+    {name:'Philadelphia Eagles',    league:'NFL', emoji:'🦅', min:2000000, max:28000000},
+    {name:'San Francisco 49ers',    league:'NFL', emoji:'⛏️', min:2000000, max:35000000},
+    {name:'Green Bay Packers',      league:'NFL', emoji:'🧀', min:2000000, max:40000000},
+    {name:'Miami Dolphins',         league:'NFL', emoji:'🐬', min:2000000, max:30000000},
+    {name:'Buffalo Bills',          league:'NFL', emoji:'🦬', min:2000000, max:32000000},
+  ],
+  baseball_player: [
+    {name:'New York Yankees',       league:'MLB', emoji:'🧢', min:1500000, max:30000000},
+    {name:'Los Angeles Dodgers',    league:'MLB', emoji:'🌴', min:1500000, max:32000000},
+    {name:'Boston Red Sox',         league:'MLB', emoji:'🧦', min:1500000, max:28000000},
+    {name:'Houston Astros',         league:'MLB', emoji:'🚀', min:1500000, max:26000000},
+    {name:'Chicago Cubs',           league:'MLB', emoji:'🐻', min:1500000, max:25000000},
+    {name:'San Francisco Giants',   league:'MLB', emoji:'🌁', min:1500000, max:25000000},
+    {name:'Atlanta Braves',         league:'MLB', emoji:'🪓', min:1500000, max:27000000},
+  ],
+  hockey_player: [
+    {name:'Toronto Maple Leafs',    league:'NHL', emoji:'🍁', min:1200000, max:12000000},
+    {name:'Montreal Canadiens',     league:'NHL', emoji:'🇨🇦', min:1000000, max:10000000},
+    {name:'New York Rangers',       league:'NHL', emoji:'🗽', min:1200000, max:11000000},
+    {name:'Boston Bruins',          league:'NHL', emoji:'🐻', min:1200000, max:11000000},
+    {name:'Chicago Blackhawks',     league:'NHL', emoji:'🏒', min:1000000, max:10000000},
+    {name:'Pittsburgh Penguins',    league:'NHL', emoji:'🐧', min:1200000, max:12000000},
+    {name:'Detroit Red Wings',      league:'NHL', emoji:'⚙️', min:1000000, max:10000000},
+    {name:'Edmonton Oilers',        league:'NHL', emoji:'🛢️', min:1200000, max:13000000},
+  ],
+  tennis_player: [
+    {name:'Wimbledon Circuit',      league:'Grand Slam', emoji:'🎾', min:800000, max:10000000},
+    {name:'US Open Circuit',        league:'Grand Slam', emoji:'🗽', min:700000, max:9000000},
+    {name:'French Open Circuit',    league:'Grand Slam', emoji:'🗼', min:600000, max:8000000},
+    {name:'Australian Open Circuit',league:'Grand Slam', emoji:'🇦🇺', min:600000, max:8000000},
+    {name:'Nike Tennis Sponsorship',league:'ATP/WTA',    emoji:'✓',  min:500000, max:8000000},
+  ],
+  golfer: [
+    {name:'PGA Tour',             league:'Golf',   emoji:'⛳', min:800000,  max:15000000},
+    {name:'LIV Golf',             league:'Golf',   emoji:'💰', min:2000000, max:30000000},
+    {name:'The Masters Circuit',  league:'Major',  emoji:'🏆', min:1000000, max:12000000},
+    {name:'DP World Tour',        league:'Golf',   emoji:'🌍', min:500000,  max:8000000},
+  ],
+  boxer: [
+    {name:'Top Rank Boxing',      league:'Pro Boxing', emoji:'🥊', min:300000, max:5000000},
+    {name:'Matchroom Boxing',     league:'Pro Boxing', emoji:'🥊', min:300000, max:5000000},
+    {name:'Premier Boxing Champs',league:'Pro Boxing', emoji:'🥊', min:250000, max:4000000},
+  ],
+  mma_fighter: [
+    {name:'UFC',                  league:'MMA', emoji:'🥋', min:200000, max:3500000},
+    {name:'Bellator MMA',         league:'MMA', emoji:'🥋', min:150000, max:1500000},
+    {name:'ONE Championship',     league:'MMA', emoji:'🏅', min:150000, max:1200000},
+    {name:'PFL',                  league:'MMA', emoji:'🥇', min:150000, max:1500000},
+  ],
+  race_car_driver: [
+    {name:'Ferrari F1',           league:'Formula 1', emoji:'🏎️', min:2000000, max:40000000},
+    {name:'Mercedes-AMG F1',      league:'Formula 1', emoji:'⚡', min:2000000, max:35000000},
+    {name:'Red Bull Racing',      league:'Formula 1', emoji:'🐂', min:2000000, max:50000000},
+    {name:'McLaren F1',           league:'Formula 1', emoji:'🟠', min:1500000, max:25000000},
+    {name:'Hendrick Motorsports', league:'NASCAR',    emoji:'🏁', min:800000,  max:12000000},
+    {name:'Joe Gibbs Racing',     league:'NASCAR',    emoji:'🏁', min:800000,  max:10000000},
+  ],
+  esports_pro: [
+    {name:'Team Liquid',          league:'Esports', emoji:'🟦', min:150000, max:1200000},
+    {name:'FaZe Clan',            league:'Esports', emoji:'😈', min:150000, max:1500000},
+    {name:'Cloud9',               league:'Esports', emoji:'☁️', min:120000, max:1000000},
+    {name:'TSM',                  league:'Esports', emoji:'🎮', min:120000, max:1000000},
+    {name:'G2 Esports',           league:'Esports', emoji:'🎯', min:120000, max:900000},
+    {name:'Fnatic',               league:'Esports', emoji:'🟧', min:120000, max:900000},
+  ],
+  swimmer: [
+    {name:'USA Swimming (Olympic)',     league:'Olympic', emoji:'🇺🇸', min:150000, max:2000000},
+    {name:'International Swim League',  league:'ISL',     emoji:'🌊', min:100000, max:800000},
+    {name:'Red Bull Athlete Sponsorship',league:'Sponsorship',emoji:'🐂',min:200000,max:1500000},
+  ],
+  track_athlete: [
+    {name:'Nike Track Team',      league:'Track & Field', emoji:'✓',  min:120000, max:1200000},
+    {name:'Diamond League',       league:'Track & Field', emoji:'💎', min:150000, max:2000000},
+    {name:'Adidas Runners',       league:'Track & Field', emoji:'🟢', min:100000, max:1000000},
+  ],
+  olympic_athlete: [
+    {name:'Team USA',             league:'Olympic', emoji:'🇺🇸', min:100000, max:1500000},
+    {name:'Team GB',              league:'Olympic', emoji:'🇬🇧', min:100000, max:1200000},
+    {name:'Team Canada',          league:'Olympic', emoji:'🇨🇦', min:80000,  max:1000000},
+  ],
+  semipro_athlete: [
+    {name:'Minor League Club',    league:'Minor League',emoji:'🏟️', min:60000, max:180000},
+    {name:'Regional Farm Team',   league:'Farm League', emoji:'🌾', min:55000, max:150000},
+  ],
+  team_coach: [
+    {name:'NCAA Division I School',league:'NCAA', emoji:'🎓', min:400000, max:8000000},
+    {name:'NBA Assistant Coach',   league:'NBA',  emoji:'🏀', min:500000, max:3000000},
+    {name:'Premier League Staff',  league:'EPL',  emoji:'⚽', min:300000, max:1500000},
+    {name:'NFL Position Coach',    league:'NFL',  emoji:'🏈', min:400000, max:2500000},
+  ],
+  athletic_trainer: [
+    {name:'MLB Training Staff',   league:'MLB', emoji:'⚾', min:120000, max:400000},
+    {name:'NFL Medical Team',     league:'NFL', emoji:'🏈', min:150000, max:500000},
+    {name:'Team USA Wellness',    league:'Olympic',emoji:'🇺🇸', min:100000, max:350000},
+    {name:'NBA Performance Staff',league:'NBA', emoji:'🏀', min:140000, max:450000},
+  ],
+};
+
+function tickSportsOffers(c){
+  if(!c.employed || c.jobSector !== 'sports') return;
+  // 6% chance per month of receiving an offer
+  if(!pct(0.06)) return;
+  const teams = SPORTS_TEAMS[c.jobId];
+  if(!teams || !teams.length) return;
+  // Avoid repeat offers from the current team
+  const team = pick(teams.filter(t => t.name !== c.sportsTeam)) || pick(teams);
+  const cur = c.salary || 0;
+  const baseOffer = ri(team.min, team.max);
+  const newSalary = Math.max(baseOffer, Math.round(cur * rf(1.15, 1.8)));
+  const raise = newSalary - cur;
+  if(raise <= 0) return;
+  const months = pick([12, 24, 36, 48]);
+  const monthlyPay = Math.round(newSalary / 12);
+  const curMonthly = Math.round(cur / 12);
+  const raiseMonthly = monthlyPay - curMonthly;
+  const y = Math.floor(c.monthAge/12), m = (c.monthAge%12)+1;
+  addInboxItem({
+    type:'offer',
+    icon: team.emoji,
+    subject: `${team.name} offers you a contract`,
+    date: `Y${y}M${m}`,
+    body: `Dear ${c.name},\n\n${team.name} (${team.league}) wants to sign you as a ${c.jobTitle} to a ${months}-month deal.\n\nCurrent: ${fmt$(cur)}/yr (${fmt$(curMonthly)}/mo)\nOffered: ${fmt$(newSalary)}/yr (${fmt$(monthlyPay)}/mo)\nRaise:   +${fmt$(raise)}/yr (+${fmt$(raiseMonthly)}/mo)\n\nSigning bonus: ${fmt$(Math.round(newSalary*0.08))}\n\nIf you accept, your salary is immediately replaced with the offered amount and paid out from the team.`,
+    offer:{
+      teamName: team.name,
+      league: team.league,
+      emoji: team.emoji,
+      newSalary,
+      months,
+      raise,
+      raiseMonthly,
+      signingBonus: Math.round(newSalary*0.08),
+    },
+  });
+}
+
+function signSportsContract(item){
+  const c = GS.char;
+  if(!item || !item.offer) return 'Invalid offer.';
+  if(c.jobSector !== 'sports'){ return 'You\'re no longer a pro athlete.'; }
+  const o = item.offer;
+  c.salary = o.newSalary;
+  c.sportsTeam = o.teamName;
+  // Reset jobTitle to the base role (strip any prior team), then append new team
+  const baseRole = (c.jobTitle||'').split(' @ ')[0];
+  c.jobTitle = `${baseRole} @ ${o.teamName}`;
+  c.checking += o.signingBonus;
+  item.signed = true;
+  item.body += `\n\n✅ Signed. New salary applied: ${fmt$(o.newSalary)}/yr. Signing bonus ${fmt$(o.signingBonus)} credited.`;
+  showToast(`Signed with ${o.teamName}! +${fmt$(o.signingBonus)} bonus`);
+  logEvent(`Signed with ${o.teamName} — new salary ${fmt$(o.newSalary)}/yr`, 'gold');
+  return `Signed with ${o.teamName}! Salary now ${fmt$(o.newSalary)}/yr. Signing bonus of ${fmt$(o.signingBonus)} deposited.`;
+}
+
 function tickSponsors(inv, char){
   if(!inv.sponsors || !inv.sponsors.length) return;
   const remaining=[];
@@ -2662,6 +2868,9 @@ function monthlyTick(){
 
   // Monthly sponsor payments + term tracking
   tickSponsors(inv, c);
+
+  // Sports team contract offers (monthly chance for athletes)
+  tickSportsOffers(c);
 
   // Monthly finances
   const fin=tickFinances(c, ev);
