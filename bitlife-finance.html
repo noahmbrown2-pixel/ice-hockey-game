@@ -279,9 +279,33 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 
 /* Mobile */
 @media(max-width:680px){
-  #right-panel{display:none}
-  #game-body{overflow:auto}
+  #game-body{flex-direction:column;overflow:hidden}
+  #left-panel{flex:1 1 0;min-height:0;border-right:none;border-bottom:1px solid var(--border)}
+  #right-panel{width:100%;flex:0 0 auto;max-height:52vh;overflow-y:auto;border-top:1px solid var(--border-gold)}
+  #right-panel #chart-area,#right-panel #timeline{display:none}
+  .actions-grid{grid-template-columns:repeat(3,1fr);gap:6px;padding:8px}
+  .act-btn{padding:10px 4px;font-size:11px;min-height:60px}
+  .act-btn .aico{font-size:20px}
+  .act-btn.age{grid-column:1/-1;padding:14px;min-height:52px}
+  #stats-bar{padding:6px 10px;gap:8px}
+  #char-name{font-size:12px;max-width:110px}
+  #stat-bars{gap:8px}
+  .si{min-width:56px}
   .tab-btn{font-size:10px;padding:8px 3px}
+  #modal-overlay{padding:10px}
+  #modal-box{padding:20px 16px;max-height:94vh;border-radius:14px}
+  #modal-box.compact{padding:18px 14px}
+  #modal-close-x{width:36px;height:36px;font-size:18px}
+  .modal-title{font-size:17px}
+  .modal-body{font-size:12.5px}
+  .choice-btn{padding:13px 12px;font-size:13px;min-height:46px}
+  .ac-actions{flex-wrap:wrap}
+  .ac-buy-input{width:100%}
+  .ac-btn{min-height:36px}
+}
+@media(max-width:380px){
+  .actions-grid{grid-template-columns:repeat(2,1fr)}
+  .act-btn{min-height:64px}
 }
 </style>
 </head>
