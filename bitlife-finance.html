@@ -2490,6 +2490,125 @@ function tickSportsOffers(c){
   });
 }
 
+// ── Soccer Season: Fixtures & Standings ─────────────────────────
+const SOCCER_LEAGUE_TEAMS = {
+  'Premier League': ['Arsenal','Aston Villa','Bournemouth','Brentford','Brighton','Burnley','Chelsea','Crystal Palace','Everton','Fulham','Leeds United','Luton Town','Newcastle United','Nottingham Forest','Sheffield United','Tottenham','West Ham','Wolves','Leicester City'],
+  'La Liga': ['Atletico Madrid','Sevilla','Real Sociedad','Athletic Bilbao','Real Betis','Villarreal','Valencia','Girona','Osasuna','Getafe','Celta Vigo','Rayo Vallecano','Mallorca','Cadiz','Las Palmas','Alaves','Granada','Almeria','Espanyol'],
+  'Ligue 1': ['AS Monaco','Lille OSC','Olympique Lyonnais','Olympique Marseille','OGC Nice','RC Lens','Stade Rennais','FC Nantes','RC Strasbourg','Stade de Reims','Montpellier','Clermont Foot','Toulouse FC','Stade Brestois','FC Metz','Le Havre','FC Lorient','FC Nancy','Angers SCO'],
+  'Bundesliga': ['Borussia Dortmund','RB Leipzig','Bayer Leverkusen','VfB Stuttgart','Eintracht Frankfurt','Hoffenheim','SC Freiburg','Werder Bremen','VfL Wolfsburg','FC Augsburg','Mainz 05','Union Berlin','B. Monchengladbach','Heidenheim','VfL Bochum','Darmstadt','FC Koln','Hertha Berlin','Schalke 04'],
+  'Serie A': ['Inter Milan','Juventus','Napoli','AS Roma','Lazio','Atalanta','Fiorentina','Bologna','Torino','Genoa','Monza','Hellas Verona','Udinese','Frosinone','Sassuolo','Cagliari','Empoli','Lecce','Salernitana'],
+  'MLS': ['LA Galaxy','LAFC','Seattle Sounders','Portland Timbers','Atlanta United','NYCFC','NY Red Bulls','Toronto FC','Philadelphia Union','Columbus Crew','FC Cincinnati','DC United','Orlando City','New England','Chicago Fire','Colorado Rapids','Vancouver Whitecaps','Austin FC','FC Dallas','Houston Dynamo'],
+};
+
+function soccerPlayerTeamLeague(c){
+  if(c.jobId !== 'soccer_player' || !c.sportsTeam) return null;
+  const teams = SPORTS_TEAMS.soccer_player || [];
+  const found = teams.find(t => t.name === c.sportsTeam);
+  return found ? found.league : null;
+}
+
+function sendSoccerFixtures(c){
+  const league = soccerPlayerTeamLeague(c);
+  if(!league || !SOCCER_LEAGUE_TEAMS[league]) return;
+  const pool = SOCCER_LEAGUE_TEAMS[league].slice();
+  // Build fixture list: two legs vs each of 19 opponents = 38 matches across the season
+  const shuffled = pool.slice().sort(()=>Math.random()-0.5);
+  const months = ['Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'];
+  const matches = [];
+  for(let leg=0; leg<2; leg++){
+    const order = shuffled.slice().sort(()=>Math.random()-0.5);
+    order.forEach((opp, i) => {
+      const monthIdx = Math.floor((leg*19 + i) / 4);
+      const mn = months[Math.min(months.length-1, monthIdx)];
+      const ha = (leg===0) ? (i%2===0 ? 'H' : 'A') : (i%2===0 ? 'A' : 'H');
+      matches.push({m:mn, opp, ha});
+    });
+  }
+  const body = `Fixtures released for the upcoming ${league} season.\n\nYour club: ${c.sportsTeam}\nMatchdays: ${matches.length}\n\n` +
+    matches.map((x,i)=>`${String(i+1).padStart(2,'0')}. ${x.m}  ${x.ha==='H'?'🏠':'✈️'} ${x.ha==='H'?c.sportsTeam+' vs '+x.opp : x.opp+' vs '+c.sportsTeam}`).join('\n') +
+    `\n\nGood luck this season. Top 5 → Champions League · 6 → Europa League · 7 → Conference League.`;
+  const y = Math.floor(c.monthAge/12);
+  addInboxItem({
+    type:'news', icon:'📅',
+    subject:`${c.sportsTeam} — ${league} fixtures released`,
+    date:`Y${y}-Aug`,
+    body,
+  });
+}
+
+function sendSoccerStandings(c){
+  const league = soccerPlayerTeamLeague(c);
+  if(!league || !SOCCER_LEAGUE_TEAMS[league]) return;
+  // Build 20-team table: player's team + 19 from league pool
+  const others = SOCCER_LEAGUE_TEAMS[league].slice();
+  const teams = [c.sportsTeam, ...others];
+  // Player position weighted toward top half if recent salary is high
+  const salaryFactor = Math.min(1, (c.salary||0) / 10000000);
+  // Random placement biased by salaryFactor: 60% top-6 if salary rich
+  let playerPos;
+  const r = Math.random();
+  if(salaryFactor > 0.5){
+    playerPos = r < 0.35 ? ri(1,3) : r < 0.7 ? ri(4,7) : ri(8,20);
+  } else if(salaryFactor > 0.2){
+    playerPos = r < 0.25 ? ri(1,6) : r < 0.7 ? ri(7,14) : ri(15,20);
+  } else {
+    playerPos = r < 0.15 ? ri(1,7) : r < 0.6 ? ri(8,15) : ri(16,20);
+  }
+  // Random order for other teams
+  const otherOrder = others.slice().sort(()=>Math.random()-0.5);
+  const standings = [];
+  let otherIdx = 0;
+  for(let pos=1; pos<=20; pos++){
+    if(pos === playerPos) standings.push(c.sportsTeam);
+    else standings.push(otherOrder[otherIdx++]);
+  }
+  // Generate points (decreasing): champion ~90pts, relegated ~25
+  const basePoints = [94,87,80,74,68,63,59,55,52,49,46,43,41,39,37,34,32,30,27,22];
+  const tableLines = standings.map((t,i)=>{
+    const pts = basePoints[i] + ri(-3,3);
+    const w = Math.floor(pts/3 + ri(-2,2));
+    const d = pts - w*3;
+    const l = 38 - w - d;
+    const mark = t === c.sportsTeam ? ' ← YOU' : '';
+    const qual = i===0 ? ' 🏆' : (i<5 ? ' 🌟' : (i===5 ? ' 🥈' : (i===6 ? ' 🥉' : (i>=17 ? ' ⬇️' : ''))));
+    return `${String(i+1).padStart(2,' ')}. ${t.padEnd(24,' ')} ${String(w).padStart(2,' ')}W ${String(d).padStart(2,' ')}D ${String(l).padStart(2,' ')}L  ${String(pts).padStart(2,' ')}pts${qual}${mark}`;
+  }).join('\n');
+  const champion = standings[0];
+  let playerSummary;
+  if(playerPos === 1) playerSummary = `🏆 ${c.sportsTeam} won the ${league}! Champions!`;
+  else if(playerPos <= 5) playerSummary = `🌟 ${c.sportsTeam} finished ${ordinal(playerPos)} — qualified for the UEFA Champions League.`;
+  else if(playerPos === 6) playerSummary = `🥈 ${c.sportsTeam} finished 6th — qualified for the UEFA Europa League.`;
+  else if(playerPos === 7) playerSummary = `🥉 ${c.sportsTeam} finished 7th — qualified for the UEFA Conference League.`;
+  else if(playerPos >= 18) playerSummary = `⬇️ ${c.sportsTeam} finished ${ordinal(playerPos)} — relegation zone!`;
+  else playerSummary = `${c.sportsTeam} finished ${ordinal(playerPos)} — a mid-table season.`;
+
+  // Small morale/happiness effect
+  if(playerPos <= 5) c.happiness = clamp((c.happiness||75) + 8, 0, 100);
+  else if(playerPos >= 18) c.happiness = clamp((c.happiness||75) - 8, 0, 100);
+
+  const body = `🏆 Champion: ${champion}\n\n${playerSummary}\n\nQualification:\n• Top 5 → UEFA Champions League\n• 6th → UEFA Europa League\n• 7th → UEFA Conference League\n• 18th-20th → Relegation\n\nFinal Table:\n${tableLines}`;
+  const y = Math.floor(c.monthAge/12);
+  addInboxItem({
+    type:'news', icon:'📊',
+    subject:`${league} — Final Standings (${champion} Champions)`,
+    date:`Y${y}-Jun`,
+    body,
+  });
+}
+
+function ordinal(n){
+  const s=['th','st','nd','rd'], v=n%100;
+  return n + (s[(v-20)%10]||s[v]||s[0]);
+}
+
+function tickSoccerSeason(c){
+  if(c.jobId !== 'soccer_player' || !c.sportsTeam) return;
+  const monthInYear = c.monthAge % 12; // 0-indexed month position in life year
+  // Proxy: monthInYear 7 = August (season start), monthInYear 5 = June (season end)
+  if(monthInYear === 7) sendSoccerFixtures(c);
+  else if(monthInYear === 5) sendSoccerStandings(c);
+}
+
 function signSportsContract(item){
   const c = GS.char;
   if(!item || !item.offer) return 'Invalid offer.';
@@ -2871,6 +2990,9 @@ function monthlyTick(){
 
   // Sports team contract offers (monthly chance for athletes)
   tickSportsOffers(c);
+
+  // Soccer season events (fixtures in Aug, standings in Jun)
+  tickSoccerSeason(c);
 
   // Monthly finances
   const fin=tickFinances(c, ev);
