@@ -362,6 +362,7 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
         <button class="tab-btn active" data-tab="life">Life</button>
         <button class="tab-btn" data-tab="finances">Finances</button>
         <button class="tab-btn" data-tab="business">Business</button>
+        <button class="tab-btn" data-tab="work">Work</button>
         <button class="tab-btn" data-tab="invest">Invest</button>
         <button class="tab-btn" data-tab="assets">Assets</button>
       </div>
@@ -444,6 +445,34 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
         </div>
       </div>
 
+      <!-- WORK TAB -->
+      <div id="tab-work" class="tab-content">
+        <div class="section">
+          <h3>Current Position</h3>
+          <div class="info-row"><span class="ir-label">Job</span><span class="ir-value gold" id="wk-job">Unemployed</span></div>
+          <div class="info-row"><span class="ir-label">Sector</span><span class="ir-value" id="wk-sector">—</span></div>
+          <div class="info-row"><span class="ir-label">Salary</span><span class="ir-value pos" id="wk-salary">$0/yr</span></div>
+          <div class="info-row"><span class="ir-label">Side Hustle</span><span class="ir-value pos" id="wk-side">$0/yr</span></div>
+          <div class="info-row"><span class="ir-label">Years at Job</span><span class="ir-value" id="wk-years">0</span></div>
+          <div class="info-row"><span class="ir-label">Performance</span><span class="ir-value" id="wk-perf">—</span></div>
+        </div>
+        <div class="section">
+          <div style="display:flex;gap:4px;margin-bottom:10px;border-bottom:1px solid var(--border)">
+            <button class="wk-tab-btn active" data-wktab="careers" style="flex:1;padding:8px;background:var(--bg3);border:none;border-bottom:2px solid var(--gold);color:var(--gold);font-size:11px;font-weight:700;text-transform:uppercase;cursor:pointer;border-radius:6px 6px 0 0">💼 Careers</button>
+            <button class="wk-tab-btn" data-wktab="side" style="flex:1;padding:8px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;cursor:pointer;border-radius:6px 6px 0 0">⚡ Side Projects</button>
+          </div>
+          <div id="wk-careers-pane">
+            <p style="color:var(--muted);font-size:11px;margin:0 0 8px">Available careers based on your education.</p>
+            <div id="wk-careers-list"></div>
+          </div>
+          <div id="wk-side-pane" style="display:none">
+            <p style="color:var(--muted);font-size:11px;margin:0 0 8px">Pick a side hustle. Some require an upfront cost.</p>
+            <div id="wk-side-list"></div>
+            <button id="wk-side-refresh" style="width:100%;margin-top:8px;padding:8px;background:var(--bg3);border:1px solid var(--border);color:var(--gold);border-radius:6px;cursor:pointer;font-size:12px">🔄 Refresh side projects</button>
+          </div>
+        </div>
+      </div>
+
       <!-- INVEST TAB -->
       <div id="tab-invest" class="tab-content">
         <div class="section">
@@ -509,7 +538,7 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
     <div id="right-panel">
       <div class="actions-grid">
         <button class="act-btn age" id="btn-age"><span class="aico">⏩</span>Age +1 Month</button>
-        <button class="act-btn job"    id="btn-job"><span class="aico">💼</span>Work</button>
+        <button class="act-btn job"    id="btn-table"><span class="aico">📊</span>Table</button>
         <button class="act-btn bank"   id="btn-bank"><span class="aico">🏦</span>Banking</button>
         <button class="act-btn invest" id="btn-invest"><span class="aico">📈</span>Stocks</button>
         <button class="act-btn realty" id="btn-realty"><span class="aico">🏠</span>Real Estate</button>
@@ -3556,6 +3585,9 @@ function updateUI(fin, prevNW, nw){
     setText('li-morale',`${Math.round(m)}% · ${tag}`);
   } else setText('li-morale','—');
 
+  // Work tab
+  if(typeof renderWorkTab === 'function') renderWorkTab();
+
   // Finances tab
   setText('fi-check',fmt$(c.checking));
   setText('fi-save',fmt$(c.savings));
@@ -4060,47 +4092,476 @@ function showCryptoModal(){
   requestAnimationFrame(()=>cards.forEach(cd=>drawMiniChart($(cd.canvas), cd.history, cd.up)));
 }
 
-$('btn-job').onclick=()=>{
-  const c=GS.char;
-  if(c.inSchool){showToast('Finish school first!');return;}
-  if(c.retired){showToast('You\'re retired!');return;}
-  openWorkModal('careers');
-};
-
-function openWorkModal(tab){
+// Work tab (left panel) — populated by renderWorkTab(); buttons open the same applyForJob / runSideHustle
+let _wkSideOffers = null;
+function refreshSideOffers(){ _wkSideOffers = [...SIDE_HUSTLES].sort(()=>Math.random()-0.5).slice(0,6); }
+function renderWorkTab(){
   const c = GS.char;
-  const employedLine = c.employed ? `Job: ${c.jobTitle} — ${fmt$(c.salary)}/yr` : 'Unemployed';
-  const sideLine = c.sideHustleIncome ? ` · Side: ${fmt$(c.sideHustleIncome)}/yr` : '';
-  const headline = `${employedLine}${sideLine}`;
-  let choices;
-  if(tab === 'side'){
-    const hustles = [...SIDE_HUSTLES].sort(()=>Math.random()-0.5).slice(0,6);
-    choices = hustles.map(h=>{
+  if(!c) return;
+  // Header summary
+  setText('wk-job', c.inSchool?'In School':c.retired?'Retired':c.employed?c.jobTitle:'Unemployed');
+  setText('wk-sector', c.jobSector ? c.jobSector.charAt(0).toUpperCase()+c.jobSector.slice(1) : '—');
+  setText('wk-salary', c.employed ? fmt$(c.salary)+'/yr' : '$0/yr');
+  setText('wk-side', fmt$(c.sideHustleIncome||0)+'/yr');
+  setText('wk-years', c.yearsAtJob||0);
+  const perfLabels=['','','Struggling','Fair','Good','Very Good','Excellent','Outstanding'];
+  setText('wk-perf', c.employed ? (perfLabels[Math.round(c.performance/14)]||'Good') : '—');
+
+  // Careers list
+  const carEl = $('wk-careers-list');
+  if(carEl){
+    if(c.inSchool){ carEl.innerHTML = '<p style="color:var(--muted);font-size:11px">Finish school first!</p>'; }
+    else if(c.retired){ carEl.innerHTML = '<p style="color:var(--muted);font-size:11px">You\'re retired. Enjoy life!</p>'; }
+    else {
+      const jobs = (typeof getBalancedJobChoices === 'function') ? getBalancedJobChoices(c) : [];
+      if(!jobs.length){
+        carEl.innerHTML = '<p style="color:var(--muted);font-size:11px">No jobs available — get more education.</p>';
+      } else {
+        carEl.innerHTML = jobs.map((j,i) => `
+          <button class="wk-apply-btn" data-job-idx="${i}" style="display:block;width:100%;text-align:left;padding:10px;margin-bottom:6px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;font-size:12px">
+            <div style="font-weight:700;color:var(--gold)">${j.name} <span style="color:var(--muted);font-weight:400;font-size:10px">· ${j.sector} · T${j.tier}</span></div>
+            <div style="color:var(--muted);font-size:11px;margin-top:2px">${fmt$(j.min)}–${fmt$(j.max)}/yr</div>
+          </button>`).join('');
+        carEl.querySelectorAll('.wk-apply-btn').forEach(btn => {
+          btn.onclick = () => {
+            const idx = +btn.dataset.jobIdx;
+            const job = jobs[idx];
+            applyForJob(c, job);
+            showToast(`Hired as ${job.name}! ${fmt$(c.salary)}/yr`);
+            renderWorkTab();
+            updateUI();
+          };
+        });
+      }
+    }
+  }
+
+  // Side hustles list
+  if(!_wkSideOffers) refreshSideOffers();
+  const sideEl = $('wk-side-list');
+  if(sideEl){
+    sideEl.innerHTML = _wkSideOffers.map((h,i) => {
       const statNote = h.stat==='smarts'?' · smarts':h.stat==='looks'?' · looks':'';
       const costNote = h.cost>0?`$${(h.cost/1000).toFixed(1)}k start`:'free';
-      return {text:`${h.icon} ${h.name} — ${costNote}${statNote}`, fn(){return runSideHustle(h);}};
+      return `<button class="wk-hustle-btn" data-hustle-idx="${i}" style="display:block;width:100%;text-align:left;padding:10px;margin-bottom:6px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;font-size:12px">
+        <div style="font-weight:700">${h.icon} ${h.name}</div>
+        <div style="color:var(--muted);font-size:11px;margin-top:2px">${costNote}${statNote}</div>
+      </button>`;
+    }).join('');
+    sideEl.querySelectorAll('.wk-hustle-btn').forEach(btn => {
+      btn.onclick = () => {
+        const idx = +btn.dataset.hustleIdx;
+        const result = runSideHustle(_wkSideOffers[idx]);
+        showToast(result);
+        renderWorkTab();
+        updateUI();
+      };
     });
-    choices.push({text:'🔄 Refresh side projects', fn(){ setTimeout(()=>openWorkModal('side'),80); return 'Looking at other options...'; }});
-  } else {
-    choices = buildJobChoices(c);
   }
-  showActionModal('Work', headline, choices);
+  const refBtn = $('wk-side-refresh');
+  if(refBtn){ refBtn.onclick = () => { refreshSideOffers(); renderWorkTab(); }; }
+}
+// Work-tab subtab switching (Careers / Side Projects)
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('.wk-tab-btn');
+  if(!t) return;
+  document.querySelectorAll('.wk-tab-btn').forEach(b => {
+    const active = b === t;
+    b.style.background = active ? 'var(--bg3)' : 'transparent';
+    b.style.borderBottomColor = active ? 'var(--gold)' : 'transparent';
+    b.style.color = active ? 'var(--gold)' : 'var(--muted)';
+    b.classList.toggle('active', active);
+  });
+  $('wk-careers-pane').style.display = t.dataset.wktab === 'careers' ? 'block' : 'none';
+  $('wk-side-pane').style.display = t.dataset.wktab === 'side' ? 'block' : 'none';
+});
+
+// ════════════════════════════════════════════════════════════════
+//  TABLE ACTION — Standings + Partners
+// ════════════════════════════════════════════════════════════════
+const COWORKER_COUNTRIES = ['USA','UK','Canada','Mexico','Brazil','Argentina','France','Germany','Spain','Italy','Portugal','Netherlands','Sweden','Norway','Poland','Japan','South Korea','China','India','Nigeria','Egypt','Australia','New Zealand','Ireland','Greece','Turkey','Russia','Ukraine','Kenya','South Africa','Colombia','Chile','Croatia','Belgium','Denmark'];
+const COWORKER_FIRST = ['Alex','Jordan','Taylor','Morgan','Casey','Riley','Jamie','Avery','Drew','Quinn','Sage','Blake','Harper','Skyler','Reese','Parker','Rowan','Sasha','Dakota','Emerson','Finley','River','Hayden','Kai','Logan','Marlowe','Noa','Phoenix','Remy','Shiloh','Tatum','Wren','Zion','Aiden','Olivia','Lucas','Mia','Ethan','Sofia','Liam','Emma','Noah','Ava','Mason','Charlotte'];
+const COWORKER_LAST = ['Smith','Johnson','Williams','Brown','Jones','Garcia','Martinez','Davis','Wilson','Anderson','Thomas','Taylor','Moore','Jackson','Martin','Lee','Perez','Thompson','White','Harris','Sanchez','Clark','Ramirez','Lewis','Robinson','Walker','Young','Allen','King','Wright','Scott','Torres','Nguyen','Hill','Flores','Green','Adams','Nakamura','Patel','Kim','Khan','Silva','Rossi','Schmidt','Dubois'];
+const POSITIONS_BY_SECTOR = {
+  healthcare: { boss:'Chief of Medicine', senior:['Department Head','Lead Surgeon','Head Nurse','Chief Resident'], regular:['Resident','RN','MA','Tech','PA','Aide'] },
+  finance:    { boss:'Managing Director', senior:['VP Finance','Senior Analyst','Portfolio Mgr','Risk Lead'], regular:['Analyst','Associate','Trader','Banker','Advisor','Auditor'] },
+  tech:       { boss:'CTO', senior:['Engineering Mgr','Tech Lead','Principal Eng','Staff Eng'], regular:['Sr Engineer','Engineer','SWE','SRE','QA','PM'] },
+  education:  { boss:'Principal', senior:['Dept Chair','Asst Principal','Curriculum Lead','Senior Faculty'], regular:['Teacher','TA','Counselor','Coach','Tutor','Adjunct'] },
+  law:        { boss:'Managing Partner', senior:['Partner','Senior Counsel','Lead Attorney','Captain'], regular:['Associate','Paralegal','Officer','Detective','Agent','Clerk'] },
+  creative:   { boss:'Creative Director', senior:['Art Director','Senior Designer','Lead Editor','Producer'], regular:['Designer','Photographer','Editor','Illustrator','Writer','Artist'] },
+  trades:     { boss:'Foreman', senior:['Master Craftsman','Site Lead','Senior Mechanic','Lead Electrician'], regular:['Plumber','Mechanic','Carpenter','Electrician','Welder','Apprentice'] },
+  service:    { boss:'General Manager', senior:['Asst Manager','Floor Lead','Head Chef','Shift Supervisor'], regular:['Server','Cook','Barista','Cashier','Host','Valet'] },
+  blue_collar:{ boss:'Operations Mgr', senior:['Shift Lead','Senior Operator','Crew Chief','Supervisor'], regular:['Driver','Operator','Worker','Loader','Picker','Cleaner'] },
+  agriculture:{ boss:'Farm Owner', senior:['Senior Rancher','Field Mgr','Crop Lead','Harvest Lead'], regular:['Hand','Farmer','Picker','Planter','Herder','Apprentice'] },
+  sports:     { boss:'Head Coach', senior:['Captain','Vice Captain','Senior Veteran','Star Player'], regular:['Forward','Midfielder','Defender','Striker','Keeper','Sub','Rookie','Veteran'] },
+};
+function getPositions(sector){ return POSITIONS_BY_SECTOR[sector] || POSITIONS_BY_SECTOR.tech; }
+function genCoworkers(c){
+  if(!c.employed){ return null; }
+  const cacheKey = (c.jobId||'unknown') + '|' + (c.sportsTeam||'');
+  if(c._coworkersKey === cacheKey && Array.isArray(c._coworkers)) return c._coworkers;
+  const pos = getPositions(c.jobSector || 'tech');
+  const list = [];
+  // Boss (1)
+  list.push({
+    name: pick(COWORKER_FIRST)+' '+pick(COWORKER_LAST),
+    age: ri(45, 62),
+    position: pos.boss,
+    morale: ri(55, 90),
+    fitness: ri(40, 80),
+    tenure: ri(8, 25),
+    smarts: ri(70, 95),
+    justHired: false,
+    country: pick(COWORKER_COUNTRIES),
+    tier: 'boss',
+  });
+  // Senior (3)
+  for(let i=0; i<3; i++){
+    list.push({
+      name: pick(COWORKER_FIRST)+' '+pick(COWORKER_LAST),
+      age: ri(35, 55),
+      position: pos.senior[i % pos.senior.length],
+      morale: ri(45, 90),
+      fitness: ri(45, 85),
+      tenure: ri(4, 15),
+      smarts: ri(60, 90),
+      justHired: pct(0.05),
+      country: pick(COWORKER_COUNTRIES),
+      tier: 'senior',
+    });
+  }
+  // Regular (8)
+  for(let i=0; i<8; i++){
+    list.push({
+      name: pick(COWORKER_FIRST)+' '+pick(COWORKER_LAST),
+      age: ri(22, 45),
+      position: pos.regular[i % pos.regular.length],
+      morale: ri(35, 90),
+      fitness: ri(40, 90),
+      tenure: ri(0, 8),
+      smarts: ri(45, 85),
+      justHired: pct(0.18),
+      country: pick(COWORKER_COUNTRIES),
+      tier: 'regular',
+    });
+  }
+  c._coworkers = list;
+  c._coworkersKey = cacheKey;
+  return list;
+}
+
+// Build a synthetic vertical league table for the player's team's league
+function buildSoccerStandings(c){
+  const league = soccerPlayerTeamLeague(c);
+  if(!league || !SOCCER_LEAGUE_TEAMS[league]) return null;
+  const teams = SOCCER_LEAGUE_TEAMS[league].slice();
+  if(!teams.includes(c.sportsTeam)) teams.unshift(c.sportsTeam);
+  // Use cached standings per league/team if present
+  const key = league+'|'+c.sportsTeam;
+  if(c._lgStandingsKey === key && Array.isArray(c._lgStandings)) return { league, rows: c._lgStandings };
+  const rows = teams.map(t => {
+    const played = ri(20, 28);
+    const w = ri(4, played-3);
+    const d = ri(1, Math.max(2, played-w-1));
+    const l = Math.max(0, played - w - d);
+    const gf = w*2 + d + ri(0, 12);
+    const ga = l*2 + ri(0, 14);
+    return { team: t, p: played, w, d, l, gf, ga, gd: gf-ga, pts: w*3+d };
+  });
+  rows.sort((a,b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
+  c._lgStandings = rows;
+  c._lgStandingsKey = key;
+  return { league, rows };
+}
+function buildEuroCompStandings(c){
+  if(!c._euroComp || !EURO_COMP_POOLS[c._euroComp]) return null;
+  const meta = EURO_COMP_META[c._euroComp];
+  const pool = [c.sportsTeam, ...EURO_COMP_POOLS[c._euroComp].filter(t => t !== c.sportsTeam)].slice(0, 36);
+  const key = c._euroComp+'|'+c.sportsTeam;
+  if(c._euroStandingsKey === key && Array.isArray(c._euroStandings)) return { meta, rows: c._euroStandings };
+  const rows = pool.map(t => {
+    const p = ri(2, 8);
+    const w = ri(0, p);
+    const d = ri(0, Math.max(0, p-w));
+    const l = Math.max(0, p-w-d);
+    return { team: t, p, w, d, l, gf: w*2+d+ri(0,4), ga: l*2+ri(0,5), gd: 0, pts: w*3+d };
+  });
+  rows.forEach(r => r.gd = r.gf - r.ga);
+  rows.sort((a,b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
+  c._euroStandings = rows;
+  c._euroStandingsKey = key;
+  return { meta, rows };
+}
+
+// Render Standings panel HTML
+function renderStandingsHTML(c){
+  if(!c.employed){
+    return '<p style="color:var(--muted);text-align:center;padding:20px">Not employed. Get a job to see your company table.</p>';
+  }
+  const isSport = c.jobSector === 'sports';
+  let html = '';
+  if(isSport){
+    // Athlete view: monthly competitions + vertical league tables
+    const monthIdx = c.monthAge % 12;
+    const monthName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][monthIdx];
+    const compsThisMonth = ri(3, 4);
+    // Roll match results based on performance
+    const perf = c.performance || 65;
+    const winChance = 0.30 + (perf/100) * 0.40;
+    const matches = [];
+    for(let i=0; i<compsThisMonth; i++){
+      const r = Math.random();
+      let result, score;
+      if(r < winChance){ result='W'; score = `${ri(1,4)}-${ri(0,2)}`; }
+      else if(r < winChance + 0.25){ result='D'; score = `${ri(0,2)}-${ri(0,2)}`; }
+      else { result='L'; score = `${ri(0,2)}-${ri(1,4)}`; }
+      matches.push({ result, score, opp: c.sportsTeam ? 'Opponent ' + (i+1) : 'Match '+(i+1) });
+    }
+    const wins = matches.filter(m=>m.result==='W').length;
+    const draws = matches.filter(m=>m.result==='D').length;
+    const losses = matches.filter(m=>m.result==='L').length;
+    const playerRating = (perf/10 + (wins-losses)*0.4).toFixed(1);
+    html += `<div style="margin-bottom:14px">
+      <h4 style="color:var(--gold);font-size:13px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.5px">📅 ${monthName} — Match Reports</h4>
+      <div style="display:grid;gap:4px">${matches.map(m=>{
+        const col = m.result==='W'?'#3fa34d':m.result==='D'?'#c4a754':'#c44';
+        return `<div style="display:flex;justify-content:space-between;padding:6px 10px;background:var(--bg3);border-radius:4px;font-size:12px">
+          <span>${c.sportsTeam||'You'} vs ${m.opp}</span>
+          <span><b style="color:${col}">${m.result}</b> · ${m.score}</span>
+        </div>`;
+      }).join('')}</div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted);text-align:center">
+        Record: <b style="color:#3fa34d">${wins}W</b> · <b style="color:#c4a754">${draws}D</b> · <b style="color:#c44">${losses}L</b> · Avg Rating: <b style="color:var(--gold)">${playerRating}</b>/10
+      </div>
+    </div>`;
+    // Vertical league table
+    if(c.jobId === 'soccer_player'){
+      const standings = buildSoccerStandings(c);
+      if(standings){
+        const rows = standings.rows;
+        const playerIdx = rows.findIndex(r => r.team === c.sportsTeam);
+        html += `<div style="margin-bottom:14px">
+          <h4 style="color:var(--gold);font-size:13px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.5px">🏆 ${standings.league} Table</h4>
+          <div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:28px 1fr 28px 28px 28px 28px 36px;gap:0;padding:6px 8px;background:var(--bg3);font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase">
+              <span>#</span><span>Team</span><span>P</span><span>W</span><span>D</span><span>L</span><span>Pts</span>
+            </div>
+            ${rows.map((r,i) => {
+              const isPlayer = r.team === c.sportsTeam;
+              const bg = isPlayer ? 'background:rgba(212,175,55,0.15);' : '';
+              const col = isPlayer ? 'color:var(--gold);font-weight:700;' : '';
+              const zone = i<5?'border-left:3px solid #3fa34d':i===5?'border-left:3px solid #4a8fc4':i===6?'border-left:3px solid #b07a3a':i>=rows.length-3?'border-left:3px solid #c44':'border-left:3px solid transparent';
+              return `<div style="display:grid;grid-template-columns:28px 1fr 28px 28px 28px 28px 36px;gap:0;padding:5px 8px;font-size:11px;border-top:1px solid var(--border);${bg}${col}${zone}">
+                <span>${i+1}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.team}${isPlayer?' ←':''}</span>
+                <span>${r.p}</span><span>${r.w}</span><span>${r.d}</span><span>${r.l}</span><span><b>${r.pts}</b></span>
+              </div>`;
+            }).join('')}
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">
+            <span><span style="color:#3fa34d">▌</span>UCL</span>
+            <span><span style="color:#4a8fc4">▌</span>UEL</span>
+            <span><span style="color:#b07a3a">▌</span>UECL</span>
+            <span><span style="color:#c44">▌</span>Relegation</span>
+          </div>
+        </div>`;
+      }
+      // European competition table if qualified
+      const euro = buildEuroCompStandings(c);
+      if(euro){
+        const rows = euro.rows;
+        html += `<div style="margin-bottom:14px">
+          <h4 style="color:var(--gold);font-size:13px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.5px">${euro.meta.icon} ${euro.meta.label} — League Phase</h4>
+          <div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;max-height:280px;overflow-y:auto">
+            <div style="display:grid;grid-template-columns:28px 1fr 28px 28px 28px 28px 36px;gap:0;padding:6px 8px;background:var(--bg3);font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;position:sticky;top:0">
+              <span>#</span><span>Team</span><span>P</span><span>W</span><span>D</span><span>L</span><span>Pts</span>
+            </div>
+            ${rows.map((r,i) => {
+              const isPlayer = r.team === c.sportsTeam;
+              const bg = isPlayer ? 'background:rgba(212,175,55,0.15);' : '';
+              const col = isPlayer ? 'color:var(--gold);font-weight:700;' : '';
+              const zone = i<8?'border-left:3px solid #3fa34d':i<24?'border-left:3px solid #c4a754':'border-left:3px solid #c44';
+              return `<div style="display:grid;grid-template-columns:28px 1fr 28px 28px 28px 28px 36px;gap:0;padding:5px 8px;font-size:11px;border-top:1px solid var(--border);${bg}${col}${zone}">
+                <span>${i+1}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.team}${isPlayer?' ←':''}</span>
+                <span>${r.p}</span><span>${r.w}</span><span>${r.d}</span><span>${r.l}</span><span><b>${r.pts}</b></span>
+              </div>`;
+            }).join('')}
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">
+            <span><span style="color:#3fa34d">▌</span>R16</span>
+            <span><span style="color:#c4a754">▌</span>Playoff</span>
+            <span><span style="color:#c44">▌</span>Eliminated</span>
+          </div>
+        </div>`;
+      }
+    } else {
+      html += `<div style="background:var(--bg3);padding:10px;border-radius:6px;font-size:12px;color:var(--muted);text-align:center">Season standings update each ${monthName==='Jul'?'August':'matchday'}.</div>`;
+    }
+  } else {
+    // Non-athlete: revenue, sentiment, efficiency, your stats, job rank
+    const tier = c.careerTierId ? +c.careerTierId.replace('tier','') : 2;
+    const tierMult = [1, 1, 5, 25, 120, 500][tier] || 5;
+    const revenueAnnual = Math.round((c.salary || 60000) * tierMult * rf(0.85, 1.2));
+    const revenueMonthly = Math.round(revenueAnnual / 12);
+    const sentiment = clamp(Math.round(60 + (c.performance-50)*0.4 + (c.bossMorale-65)*0.2 + ri(-5,5)), 30, 98);
+    const efficiency = clamp(Math.round(55 + (c.performance-50)*0.5 + ri(-8,8)), 30, 98);
+    // Job rank in field — based on performance
+    const rankMax = 100;
+    const playerRank = clamp(Math.round(rankMax - (c.performance/100)*80 - (c.smarts/100)*15 + ri(-5,5)), 1, rankMax);
+    const monthIdx = c.monthAge % 12;
+    const monthName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][monthIdx];
+    const monthlyPerfNote = c.performance>=85?'Outstanding':c.performance>=70?'Very Good':c.performance>=55?'Good':c.performance>=40?'Fair':'Struggling';
+    const sentColor = sentiment>=75?'#3fa34d':sentiment>=55?'#c4a754':'#c44';
+    const effColor = efficiency>=75?'#3fa34d':efficiency>=55?'#c4a754':'#c44';
+    html += `<div style="margin-bottom:14px">
+      <h4 style="color:var(--gold);font-size:13px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.5px">📈 Company Performance</h4>
+      <div class="info-row"><span class="ir-label">Annual Revenue</span><span class="ir-value pos">${fmt$(revenueAnnual)}</span></div>
+      <div class="info-row"><span class="ir-label">Monthly Revenue</span><span class="ir-value pos">${fmt$(revenueMonthly)}</span></div>
+      <div class="info-row"><span class="ir-label">Customer Sentiment</span><span class="ir-value" style="color:${sentColor}">${sentiment}% ${sentiment>=75?'😊':sentiment>=55?'😐':'😠'}</span></div>
+      <div class="info-row"><span class="ir-label">Workplace Efficiency</span><span class="ir-value" style="color:${effColor}">${efficiency}% ${efficiency>=75?'⚡':efficiency>=55?'⚙️':'🐢'}</span></div>
+      <div class="info-row"><span class="ir-label">Order Fulfillment</span><span class="ir-value" style="color:${effColor}">${Math.round(efficiency*0.95)}%</span></div>
+    </div>
+    <div style="margin-bottom:14px">
+      <h4 style="color:var(--gold);font-size:13px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.5px">🎯 Your Stats at ${c.jobTitle}</h4>
+      <div class="info-row"><span class="ir-label">Performance</span><span class="ir-value gold">${Math.round(c.performance)}% · ${monthlyPerfNote}</span></div>
+      <div class="info-row"><span class="ir-label">Boss Morale</span><span class="ir-value">${Math.round(c.bossMorale)}%</span></div>
+      <div class="info-row"><span class="ir-label">Smarts</span><span class="ir-value">${Math.round(c.smarts)}%</span></div>
+      <div class="info-row"><span class="ir-label">Tenure</span><span class="ir-value">${c.yearsAtJob||0} yrs · ${c.monthsAtJob||0} mo</span></div>
+      <div class="info-row"><span class="ir-label">Salary</span><span class="ir-value pos">${fmt$(c.salary)}/yr</span></div>
+    </div>
+    <div style="margin-bottom:14px">
+      <h4 style="color:var(--gold);font-size:13px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.5px">🏅 ${monthName} — Field Ranking</h4>
+      <div class="info-row"><span class="ir-label">Job Rank in Field</span><span class="ir-value gold">#${playerRank} of ${rankMax}</span></div>
+      <div class="info-row"><span class="ir-label">Top ${Math.round(playerRank/rankMax*100)}%</span><span class="ir-value">${playerRank<=10?'Elite ⭐':playerRank<=25?'High Performer':playerRank<=50?'Solid':playerRank<=75?'Average':'Below Avg'}</span></div>
+      <div class="info-row"><span class="ir-label">Monthly Performance</span><span class="ir-value">${monthlyPerfNote}</span></div>
+    </div>`;
+  }
+  return html;
+}
+
+function renderPartnersHTML(c){
+  if(!c.employed){
+    return '<p style="color:var(--muted);text-align:center;padding:20px">Not employed. Coworkers appear once you have a job.</p>';
+  }
+  const list = genCoworkers(c);
+  if(!list || !list.length) return '<p style="color:var(--muted)">No coworkers yet.</p>';
+  const boss = list.find(p => p.tier === 'boss');
+  const seniors = list.filter(p => p.tier === 'senior');
+  const regulars = list.filter(p => p.tier === 'regular');
+
+  const seatHTML = (p, idx, total, ringR) => {
+    const angle = (idx / total) * Math.PI * 2 - Math.PI/2;
+    const x = 50 + Math.cos(angle) * ringR;
+    const y = 50 + Math.sin(angle) * ringR;
+    const moraleColor = p.morale>=70?'#3fa34d':p.morale>=45?'#c4a754':'#c44';
+    return `<div style="position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-50%);width:78px;text-align:center;font-size:9px">
+      <div style="position:relative;width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#3a3a3a,#1f1f1f);border:2px solid ${moraleColor};margin:0 auto 2px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--gold);font-weight:700">
+        ${p.name.split(' ').map(s=>s[0]).join('')}
+        ${p.justHired?'<div style="position:absolute;top:-4px;right:-4px;background:#3fa34d;color:white;border-radius:8px;padding:1px 4px;font-size:8px;font-weight:700">NEW</div>':''}
+      </div>
+      <div style="font-weight:700;color:var(--text);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name.split(' ')[0]}</div>
+      <div style="color:var(--muted);line-height:1.1">${p.position}</div>
+      <div style="color:var(--gold);line-height:1.2;font-size:8px">${p.country}</div>
+    </div>`;
+  };
+  const popoverData = list.map((p,i) => `data-cw-${i}="${encodeURIComponent(JSON.stringify(p))}"`).join(' ');
+  let html = `<div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center">Tap a name for full stats</div>`;
+
+  // Boss office
+  if(boss){
+    const moraleColor = boss.morale>=70?'#3fa34d':boss.morale>=45?'#c4a754':'#c44';
+    html += `<div style="margin-bottom:14px">
+      <h4 style="color:var(--gold);font-size:12px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.5px">🏢 Boss's Office</h4>
+      <div class="cw-card" data-cw='${JSON.stringify(boss).replace(/'/g, "&#39;")}' style="display:flex;align-items:center;gap:12px;padding:12px;background:linear-gradient(135deg,#2a2218,#1a1410);border:2px solid var(--gold);border-radius:8px;cursor:pointer">
+        <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#4a3a1c,#2a1f10);border:2px solid ${moraleColor};display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--gold);font-weight:700;flex-shrink:0">
+          ${boss.name.split(' ').map(s=>s[0]).join('')}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;color:var(--gold);font-size:14px">${boss.name}</div>
+          <div style="font-size:11px;color:var(--text)">${boss.position} · Age ${boss.age} · ${boss.country}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Tenure ${boss.tenure}y · Morale <b style="color:${moraleColor}">${boss.morale}%</b> · Smarts ${boss.smarts}%</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Senior round table
+  if(seniors.length){
+    html += `<div style="margin-bottom:14px">
+      <h4 style="color:var(--gold);font-size:12px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.5px">🎯 Senior Table</h4>
+      <div style="position:relative;width:100%;max-width:340px;margin:0 auto;aspect-ratio:1;background:radial-gradient(ellipse at center, #2d4a2d 0%, #1a2e1a 60%, #0d1a0d 100%);border:3px solid #6b4f1c;border-radius:50%">
+        ${seniors.map((p,i) => seatHTML(p, i, seniors.length, 38)).join('')}
+        <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:10px;color:#6b4f1c;font-weight:700;letter-spacing:1px">SENIOR</div>
+      </div>
+    </div>`;
+  }
+
+  // Regular round table (poker style)
+  if(regulars.length){
+    html += `<div style="margin-bottom:8px">
+      <h4 style="color:var(--gold);font-size:12px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.5px">🤝 Coworker Table</h4>
+      <div style="position:relative;width:100%;max-width:380px;margin:0 auto;aspect-ratio:1;background:radial-gradient(ellipse at center, #1f3a4a 0%, #142a36 60%, #0a1820 100%);border:3px solid #6b4f1c;border-radius:50%">
+        ${regulars.map((p,i) => seatHTML(p, i, regulars.length, 40)).join('')}
+        <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:10px;color:#6b4f1c;font-weight:700;letter-spacing:1px">TEAM</div>
+      </div>
+    </div>`;
+  }
+
+  // Detailed list (alternative view)
+  html += `<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--gold);font-size:12px;font-weight:700;padding:6px 0">📋 Full Coworker List</summary>
+    <div style="display:grid;gap:6px;margin-top:6px">${list.map(p => {
+      const moraleColor = p.morale>=70?'#3fa34d':p.morale>=45?'#c4a754':'#c44';
+      const fitColor = p.fitness>=70?'#3fa34d':p.fitness>=45?'#c4a754':'#c44';
+      return `<div style="padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-size:11px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+          <span style="font-weight:700;color:var(--gold)">${p.name} ${p.justHired?'<span style="background:#3fa34d;color:white;border-radius:6px;padding:1px 5px;font-size:9px;margin-left:4px">NEW HIRE</span>':''}</span>
+          <span style="color:var(--muted);font-size:10px">${p.country}</span>
+        </div>
+        <div style="color:var(--muted);font-size:10px;margin-bottom:3px">${p.position} · Age ${p.age} · ${p.tenure}y tenure</div>
+        <div style="display:flex;gap:8px;font-size:10px;flex-wrap:wrap">
+          <span>Morale <b style="color:${moraleColor}">${p.morale}%</b></span>
+          <span>Fitness <b style="color:${fitColor}">${p.fitness}%</b></span>
+          <span>Smarts <b style="color:var(--text)">${p.smarts}%</b></span>
+        </div>
+      </div>`;
+    }).join('')}</div>
+  </details>`;
+  return html;
+}
+
+function showTableModal(tab){
+  const c = GS.char;
+  const headline = c.employed
+    ? `${c.jobTitle}${c.sportsTeam?` @ ${c.sportsTeam}`:''} · ${fmt$(c.salary)}/yr`
+    : 'Not employed';
+  showActionModal('📊 Company Table', headline, [{text:'Close', fn(){ return ''; }}]);
   $('modal-box').classList.add('compact');
   const ch = $('m-choices');
+  // Tab bar
   const tabBar = document.createElement('div');
   tabBar.style.cssText = 'display:flex;gap:4px;margin-bottom:10px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:2';
-  const mkTab = (id, label) => {
+  ['standings','partners'].forEach(id => {
     const b = document.createElement('button');
-    b.textContent = label;
+    b.textContent = id === 'standings' ? '📊 Standings' : '🤝 Partners';
     const active = id === tab;
     b.style.cssText = `flex:1;padding:10px 8px;background:${active?'var(--bg3)':'transparent'};border:none;border-bottom:2px solid ${active?'var(--gold)':'transparent'};color:${active?'var(--gold)':'var(--muted)'};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;transition:all .15s;border-radius:6px 6px 0 0`;
-    b.onclick = () => openWorkModal(id);
-    return b;
-  };
-  tabBar.appendChild(mkTab('careers', '💼 Careers'));
-  tabBar.appendChild(mkTab('side', '⚡ Side Projects'));
+    b.onclick = () => showTableModal(id);
+    tabBar.appendChild(b);
+  });
   ch.insertBefore(tabBar, ch.firstChild);
+  // Body container — insert before the Close button
+  const bodyDiv = document.createElement('div');
+  bodyDiv.style.cssText = 'padding:0 4px';
+  bodyDiv.innerHTML = tab === 'partners' ? renderPartnersHTML(c) : renderStandingsHTML(c);
+  // Insert before the last button (Close)
+  const closeBtn = ch.lastElementChild;
+  ch.insertBefore(bodyDiv, closeBtn);
 }
+
+$('btn-table').onclick = () => {
+  const c = GS.char;
+  if(!c.employed && !c.retired){ showToast('Get a job first to see your company table!'); return; }
+  showTableModal('standings');
+};
 
 $('btn-bank').onclick=()=>{
   const c=GS.char;
