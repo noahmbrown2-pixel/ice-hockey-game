@@ -1,0 +1,88 @@
+{
+  "sector": "creative",
+  "total": 20,
+  "passed": 20,
+  "failedCount": 0,
+  "pageErrors": [],
+  "failedDetails": [],
+  "sample": [
+    {
+      "id": "actor",
+      "name": "Actor",
+      "sector": "creative",
+      "edu": "none",
+      "tier": 2,
+      "min": 30000,
+      "max": 100000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 93622,
+      "salaryLo": 34500,
+      "salaryHi": 115000,
+      "salaryAfterTicks": 100462,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "photographer",
+      "name": "Photographer",
+      "sector": "creative",
+      "edu": "none",
+      "tier": 2,
+      "min": 40000,
+      "max": 80000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 63590,
+      "salaryLo": 46000,
+      "salaryHi": 92000,
+      "salaryAfterTicks": 69610,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "graphic_designer",
+      "name": "Graphic Designer",
+      "sector": "creative",
+      "edu": "associates",
+      "tier": 2,
+      "min": 50000,
+      "max": 85000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 84244,
+      "salaryLo": 57500,
+      "salaryHi": 97750,
+      "salaryAfterTicks": 98379,
+      "laidOffAfterTicks": false,
+      "pass": true
+    }
+  ]
+}

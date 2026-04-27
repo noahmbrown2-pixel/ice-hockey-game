@@ -1,0 +1,88 @@
+{
+  "sector": "tech",
+  "total": 26,
+  "passed": 26,
+  "failedCount": 0,
+  "pageErrors": [],
+  "failedDetails": [],
+  "sample": [
+    {
+      "id": "software_developer",
+      "name": "Software Developer",
+      "sector": "tech",
+      "edu": "bachelors",
+      "tier": 3,
+      "min": 90000,
+      "max": 150000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 105402,
+      "salaryLo": 103500,
+      "salaryHi": 172500,
+      "salaryAfterTicks": 117261,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "web_developer",
+      "name": "Web Developer",
+      "sector": "tech",
+      "edu": "associates",
+      "tier": 3,
+      "min": 70000,
+      "max": 110000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 101946,
+      "salaryLo": 80500,
+      "salaryHi": 126500,
+      "salaryAfterTicks": 118106,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "data_scientist",
+      "name": "Data Scientist",
+      "sector": "tech",
+      "edu": "masters",
+      "tier": 4,
+      "min": 100000,
+      "max": 160000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 120760,
+      "salaryLo": 115000,
+      "salaryHi": 184000,
+      "salaryAfterTicks": 129169,
+      "laidOffAfterTicks": false,
+      "pass": true
+    }
+  ]
+}

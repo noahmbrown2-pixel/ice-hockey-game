@@ -1,0 +1,88 @@
+{
+  "sector": "healthcare",
+  "total": 24,
+  "passed": 24,
+  "failedCount": 0,
+  "pageErrors": [],
+  "failedDetails": [],
+  "sample": [
+    {
+      "id": "doctor",
+      "name": "Doctor",
+      "sector": "healthcare",
+      "edu": "professional",
+      "tier": 4,
+      "min": 180000,
+      "max": 300000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 214882,
+      "salaryLo": 207000,
+      "salaryHi": 345000,
+      "salaryAfterTicks": 233539,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "nurse",
+      "name": "Nurse",
+      "sector": "healthcare",
+      "edu": "bachelors",
+      "tier": 3,
+      "min": 75000,
+      "max": 100000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 103006,
+      "salaryLo": 86250,
+      "salaryHi": 115000,
+      "salaryAfterTicks": 109208,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "surgeon",
+      "name": "Surgeon",
+      "sector": "healthcare",
+      "edu": "professional",
+      "tier": 5,
+      "min": 250000,
+      "max": 400000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 447169,
+      "salaryLo": 287500,
+      "salaryHi": 460000,
+      "salaryAfterTicks": 486703,
+      "laidOffAfterTicks": false,
+      "pass": true
+    }
+  ]
+}

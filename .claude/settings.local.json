@@ -31,7 +31,10 @@
       "Bash(mkdir -p \"C:/Users/noahm/Project/.claude/agents\")",
       "Bash(mkdir -p \"C:/Users/noahm/Project/.claude/commands\")",
       "Bash(mkdir -p \"C:/Users/noahm/Project/.claude/output-styles\")",
-      "Bash(mkdir -p \"C:/Users/noahm/Project/.claude/status_lines\")"
+      "Bash(mkdir -p \"C:/Users/noahm/Project/.claude/status_lines\")",
+      "WebFetch(domain:craigmbrown.com)",
+      "WebFetch(domain:api.craigmbrown.com)",
+      "Bash(node *)"
     ]
   },
   "hooks": {

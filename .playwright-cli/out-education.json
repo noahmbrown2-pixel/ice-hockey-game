@@ -1,0 +1,88 @@
+{
+  "sector": "education",
+  "total": 14,
+  "passed": 14,
+  "failedCount": 0,
+  "pageErrors": [],
+  "failedDetails": [],
+  "sample": [
+    {
+      "id": "teacher",
+      "name": "Teacher",
+      "sector": "education",
+      "edu": "bachelors",
+      "tier": 2,
+      "min": 50000,
+      "max": 80000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 61689,
+      "salaryLo": 57500,
+      "salaryHi": 92000,
+      "salaryAfterTicks": 67844,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "professor",
+      "name": "Professor",
+      "sector": "education",
+      "edu": "doctoral",
+      "tier": 4,
+      "min": 70000,
+      "max": 150000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 137964,
+      "salaryLo": 80500,
+      "salaryHi": 172500,
+      "salaryAfterTicks": 151441,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "tutor",
+      "name": "Tutor",
+      "sector": "education",
+      "edu": "high_school",
+      "tier": 1,
+      "min": 30000,
+      "max": 60000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 37444,
+      "salaryLo": 34500,
+      "salaryHi": 69000,
+      "salaryAfterTicks": 43503,
+      "laidOffAfterTicks": false,
+      "pass": true
+    }
+  ]
+}

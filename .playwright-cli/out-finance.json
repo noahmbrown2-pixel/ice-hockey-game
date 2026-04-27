@@ -1,0 +1,88 @@
+{
+  "sector": "finance",
+  "total": 22,
+  "passed": 22,
+  "failedCount": 0,
+  "pageErrors": [],
+  "failedDetails": [],
+  "sample": [
+    {
+      "id": "accountant",
+      "name": "Accountant",
+      "sector": "finance",
+      "edu": "bachelors",
+      "tier": 3,
+      "min": 60000,
+      "max": 90000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 99880,
+      "salaryLo": 69000,
+      "salaryHi": 103500,
+      "salaryAfterTicks": 106638,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "financial_advisor",
+      "name": "Financial Advisor",
+      "sector": "finance",
+      "edu": "bachelors",
+      "tier": 3,
+      "min": 70000,
+      "max": 120000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 137778,
+      "salaryLo": 80500,
+      "salaryHi": 138000,
+      "salaryAfterTicks": 146923,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "banker",
+      "name": "Banker",
+      "sector": "finance",
+      "edu": "bachelors",
+      "tier": 2,
+      "min": 50000,
+      "max": 90000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 58882,
+      "salaryLo": 57500,
+      "salaryHi": 103500,
+      "salaryAfterTicks": 62624,
+      "laidOffAfterTicks": false,
+      "pass": true
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "sector": "transport",
+  "total": 15,
+  "passed": 15,
+  "failedCount": 0,
+  "pageErrors": [],
+  "failedDetails": [],
+  "sample": [
+    {
+      "id": "truck_driver",
+      "name": "Truck Driver",
+      "sector": "transport",
+      "edu": "high_school",
+      "tier": 2,
+      "min": 50000,
+      "max": 80000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 79449,
+      "salaryLo": 57500,
+      "salaryHi": 92000,
+      "salaryAfterTicks": 85852,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "pilot",
+      "name": "Pilot",
+      "sector": "transport",
+      "edu": "bachelors",
+      "tier": 4,
+      "min": 100000,
+      "max": 250000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 159252,
+      "salaryLo": 115000,
+      "salaryHi": 287500,
+      "salaryAfterTicks": 170336,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "bus_driver",
+      "name": "Bus Driver",
+      "sector": "transport",
+      "edu": "high_school",
+      "tier": 1,
+      "min": 40000,
+      "max": 65000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 64498,
+      "salaryLo": 46000,
+      "salaryHi": 74750,
+      "salaryAfterTicks": 69345,
+      "laidOffAfterTicks": false,
+      "pass": true
+    }
+  ]
+}

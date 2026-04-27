@@ -1,0 +1,88 @@
+{
+  "sector": "service",
+  "total": 22,
+  "passed": 22,
+  "failedCount": 0,
+  "pageErrors": [],
+  "failedDetails": [],
+  "sample": [
+    {
+      "id": "chef",
+      "name": "Chef",
+      "sector": "service",
+      "edu": "high_school",
+      "tier": 2,
+      "min": 45000,
+      "max": 80000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 81180,
+      "salaryLo": 51750,
+      "salaryHi": 92000,
+      "salaryAfterTicks": 88689,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "waiter",
+      "name": "Waiter",
+      "sector": "service",
+      "edu": "none",
+      "tier": 1,
+      "min": 25000,
+      "max": 50000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 52238,
+      "salaryLo": 28750,
+      "salaryHi": 57500,
+      "salaryAfterTicks": 61803,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "barber",
+      "name": "Barber",
+      "sector": "service",
+      "edu": "none",
+      "tier": 1,
+      "min": 30000,
+      "max": 70000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 42817,
+      "salaryLo": 34500,
+      "salaryHi": 80500,
+      "salaryAfterTicks": 45260,
+      "laidOffAfterTicks": false,
+      "pass": true
+    }
+  ]
+}

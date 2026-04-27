@@ -1,0 +1,85 @@
+{
+  "$schema": "https://blindoracle.agent-services/v1",
+  "name": "Game Reviewer Agent",
+  "description": "Reviews HTML5 browser games against canvas/mobile/perf heuristics. Returns a structured summary, findings, and recommendations.",
+  "version": "0.1.0",
+  "homepage": "https://noahmbrown2-pixel.github.io/",
+  "api_endpoint": "http://localhost:7402/a2a",
+  "auth": {
+    "type": "camel-jwt",
+    "endpoint": "https://api.craigmbrown.com/auth/token",
+    "supported": ["jwt", "lnurl-auth", "nip-98"]
+  },
+  "payment_rails": {
+    "x402": { "endpoint": "http://localhost:7402/x402", "status": "active" },
+    "lightning": { "status": "inactive" },
+    "ecash": { "status": "inactive" }
+  },
+  "proof_chain": {
+    "kinds": [30010, 30011, 30012, 30013, 30014, 30015],
+    "description": "Nostr NIP-33 proof attestations for review jobs"
+  },
+  "service_count": 1,
+  "services": [
+    {
+      "id": "games.game-reviewer-agent",
+      "name": "Game Reviewer",
+      "description": "Audit a single-file HTML5 canvas game for mobile fit, dpi-scaled rendering, input normalization, and perf hot spots. Returns findings and concrete fixes.",
+      "category": "analysis",
+      "team": "games",
+      "agent": "game-reviewer-agent",
+      "trust_tier": 3,
+      "marketplace_visibility": "public",
+      "min_bidder_badge": "none",
+      "pricing": {
+        "model": "per-call",
+        "price_per_call_usd": 0.002,
+        "currency": "USD"
+      },
+      "sla": {
+        "max_latency_secs": 120.0,
+        "availability_pct": 99.0,
+        "accuracy_target_pct": 90.0,
+        "max_retries": 1
+      },
+      "schedule": {
+        "cron": "",
+        "description": "On-demand: triggered by buyer job-intent envelope"
+      },
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "URL or inline source of the HTML game to review."
+          }
+        },
+        "required": ["prompt"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "summary": { "type": "string" },
+          "findings": { "type": "array", "items": { "type": "string" } },
+          "recommendations": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["summary", "findings", "recommendations"]
+      },
+      "evidence_kinds": [
+        "ProofOfWork",
+        "ProofOfService",
+        "ProofOfResolution"
+      ],
+      "bond": {
+        "tier": "Explorer",
+        "amount_usd": 5,
+        "slash_pct_on_loss": 100
+      },
+      "model": "claude-haiku-4-5-20251001",
+      "tags": ["games", "html5", "canvas", "mobile", "review", "audit", "perf"],
+      "status": "active",
+      "version": "0.1.0"
+    }
+  ],
+  "updated_at": "2026-04-25T00:00:00+00:00"
+}

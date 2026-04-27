@@ -93,5 +93,68 @@
       "is_interrupt": false,
       "logged_at": "2026-04-23T16:13:33.450692"
     }
+  },
+  {
+    "timestamp": "2026-04-27T00:42:51.981145",
+    "session_id": "61ddcbba-cf39-4052-b41c-c444f6cf0fdf",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01C9Z88wA8qtj81xmUCPtn18",
+    "tool_input": {
+      "command": "powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Where-Object { (Get-CimInstance Win32_Process -Filter \\\"ProcessId=`$(`$_.Id)\\\").CommandLine -match 'browser-sync' } | Stop-Process -Force\"; echo \"stopped\"",
+      "description": "Stop the browser-sync background process"
+    },
+    "error": "Exit code 1\n/usr/bin/bash: command substitution: line 2: unexpected EOF while looking for matching ``'",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "acceptEdits",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\61ddcbba-cf39-4052-b41c-c444f6cf0fdf.jsonl",
+    "raw_input": {
+      "session_id": "61ddcbba-cf39-4052-b41c-c444f6cf0fdf",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\61ddcbba-cf39-4052-b41c-c444f6cf0fdf.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+      "permission_mode": "acceptEdits",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Where-Object { (Get-CimInstance Win32_Process -Filter \\\"ProcessId=`$(`$_.Id)\\\").CommandLine -match 'browser-sync' } | Stop-Process -Force\"; echo \"stopped\"",
+        "description": "Stop the browser-sync background process"
+      },
+      "tool_use_id": "toolu_01C9Z88wA8qtj81xmUCPtn18",
+      "error": "Exit code 1\n/usr/bin/bash: command substitution: line 2: unexpected EOF while looking for matching ``'",
+      "is_interrupt": false,
+      "duration_ms": 506,
+      "logged_at": "2026-04-27T00:42:51.981145"
+    }
+  },
+  {
+    "timestamp": "2026-04-27T00:47:14.137023",
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_015XWMrLMec6gqeCrJzas6T2",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && (node job-swarm-runner.js healthcare > /tmp/health.json 2>&1 & node job-swarm-runner.js other > /tmp/other.json 2>&1 & wait) && node -e \"\nconst h = JSON.parse(require('fs').readFileSync('/tmp/health.json','utf8'));\nconst o = JSON.parse(require('fs').readFileSync('/tmp/other.json','utf8'));\nconsole.log('healthcare:', h.passed+'/'+h.total, 'failed:', h.failedCount);\nconsole.log('other:', o.passed+'/'+o.total, 'failed:', o.failedCount);\nif(h.failedCount) console.log('  ', h.failedDetails.map(d=>d.id+':'+(d.error||d.failedChecks)));\nif(o.failedCount) console.log('  ', o.failedDetails.map(d=>d.id+':'+(d.error||d.failedChecks)));\n\"",
+      "description": "Rerun healthcare and other with fixed harness"
+    },
+    "error": "Exit code 1\nnode:fs:440\r\n    return binding.readFileUtf8(path, stringToFlags(options.flag));\r\n                   ^\r\n\r\nError: ENOENT: no such file or directory, open 'C:\\tmp\\health.json'\r\n    at Object.readFileSync (node:fs:440:20)\r\n    at [eval]:2:36\r\n    at runScriptInThisContext (node:internal/vm:219:10)\r\n    at node:internal/process/execution:451:12\r\n    at [eval]-wrapper:6:24\r\n    at runScriptInContext (node:internal/process/execution:449:60)\r\n    at evalFunction (node:internal/process/execution:283:30)\r\n    at evalTypeScript (node:internal/process/execution:295:3)\r\n    at node:internal/main/eval_string:71:3 {\r\n  errno: -4058,\r\n  code: 'ENOENT',\r\n  syscall: 'open',\r\n  path: 'C:\\\\tmp\\\\health.json'\r\n}\r\n\r\nNode.js v24.12.0",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "raw_input": {
+      "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "cd \"C:\\Users\\noahm\\Project\\.playwright-cli\" && (node job-swarm-runner.js healthcare > /tmp/health.json 2>&1 & node job-swarm-runner.js other > /tmp/other.json 2>&1 & wait) && node -e \"\nconst h = JSON.parse(require('fs').readFileSync('/tmp/health.json','utf8'));\nconst o = JSON.parse(require('fs').readFileSync('/tmp/other.json','utf8'));\nconsole.log('healthcare:', h.passed+'/'+h.total, 'failed:', h.failedCount);\nconsole.log('other:', o.passed+'/'+o.total, 'failed:', o.failedCount);\nif(h.failedCount) console.log('  ', h.failedDetails.map(d=>d.id+':'+(d.error||d.failedChecks)));\nif(o.failedCount) console.log('  ', o.failedDetails.map(d=>d.id+':'+(d.error||d.failedChecks)));\n\"",
+        "description": "Rerun healthcare and other with fixed harness"
+      },
+      "tool_use_id": "toolu_015XWMrLMec6gqeCrJzas6T2",
+      "error": "Exit code 1\nnode:fs:440\r\n    return binding.readFileUtf8(path, stringToFlags(options.flag));\r\n                   ^\r\n\r\nError: ENOENT: no such file or directory, open 'C:\\tmp\\health.json'\r\n    at Object.readFileSync (node:fs:440:20)\r\n    at [eval]:2:36\r\n    at runScriptInThisContext (node:internal/vm:219:10)\r\n    at node:internal/process/execution:451:12\r\n    at [eval]-wrapper:6:24\r\n    at runScriptInContext (node:internal/process/execution:449:60)\r\n    at evalFunction (node:internal/process/execution:283:30)\r\n    at evalTypeScript (node:internal/process/execution:295:3)\r\n    at node:internal/main/eval_string:71:3 {\r\n  errno: -4058,\r\n  code: 'ENOENT',\r\n  syscall: 'open',\r\n  path: 'C:\\\\tmp\\\\health.json'\r\n}\r\n\r\nNode.js v24.12.0",
+      "is_interrupt": false,
+      "logged_at": "2026-04-27T00:47:14.137023"
+    }
   }
 ]

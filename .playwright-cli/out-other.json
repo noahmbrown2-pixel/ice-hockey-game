@@ -1,0 +1,88 @@
+{
+  "sector": "other",
+  "total": 21,
+  "passed": 21,
+  "failedCount": 0,
+  "pageErrors": [],
+  "failedDetails": [],
+  "sample": [
+    {
+      "id": "architect",
+      "name": "Architect",
+      "sector": "other",
+      "edu": "bachelors",
+      "tier": 3,
+      "min": 70000,
+      "max": 120000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 109862,
+      "salaryLo": 80500,
+      "salaryHi": 138000,
+      "salaryAfterTicks": 127110,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "civil_engineer",
+      "name": "Civil Engineer",
+      "sector": "other",
+      "edu": "bachelors",
+      "tier": 3,
+      "min": 75000,
+      "max": 110000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 113109,
+      "salaryLo": 86250,
+      "salaryHi": 126500,
+      "salaryAfterTicks": 127638,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "scientist",
+      "name": "Scientist",
+      "sector": "other",
+      "edu": "doctoral",
+      "tier": 4,
+      "min": 70000,
+      "max": 130000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 140730,
+      "salaryLo": 80500,
+      "salaryHi": 149500,
+      "salaryAfterTicks": 159688,
+      "laidOffAfterTicks": false,
+      "pass": true
+    }
+  ]
+}

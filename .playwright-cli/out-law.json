@@ -1,0 +1,88 @@
+{
+  "sector": "law",
+  "total": 20,
+  "passed": 20,
+  "failedCount": 0,
+  "pageErrors": [],
+  "failedDetails": [],
+  "sample": [
+    {
+      "id": "lawyer",
+      "name": "Lawyer",
+      "sector": "law",
+      "edu": "professional",
+      "tier": 4,
+      "min": 80000,
+      "max": 200000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 163608,
+      "salaryLo": 92000,
+      "salaryHi": 230000,
+      "salaryAfterTicks": 174168,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "police_officer",
+      "name": "Police Officer",
+      "sector": "law",
+      "edu": "high_school",
+      "tier": 2,
+      "min": 50000,
+      "max": 90000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 62783,
+      "salaryLo": 57500,
+      "salaryHi": 103500,
+      "salaryAfterTicks": 67820,
+      "laidOffAfterTicks": false,
+      "pass": true
+    },
+    {
+      "id": "firefighter",
+      "name": "Firefighter",
+      "sector": "law",
+      "edu": "high_school",
+      "tier": 2,
+      "min": 50000,
+      "max": 85000,
+      "checks": {
+        "employed": true,
+        "jobId": true,
+        "title": true,
+        "sector": true,
+        "tier": true,
+        "salaryNum": true,
+        "salaryRange": true,
+        "bossSet": true,
+        "tickNoCrash": true
+      },
+      "salary": 61547,
+      "salaryLo": 57500,
+      "salaryHi": 97750,
+      "salaryAfterTicks": 66947,
+      "laidOffAfterTicks": false,
+      "pass": true
+    }
+  ]
+}

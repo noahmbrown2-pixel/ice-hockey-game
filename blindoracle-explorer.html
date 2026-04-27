@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>BlindOracle Explorer</title>
+<style>
+  :root {
+    --bg: #0b0f17;
+    --panel: #121826;
+    --panel-2: #0f1422;
+    --border: #1f2a3d;
+    --text: #d8e3f3;
+    --muted: #7e8aa3;
+    --accent: #6ee7b7;
+    --accent-2: #60a5fa;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --good: #34d399;
+    --code: #0a0e16;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 20px; letter-spacing: 0.2px; }
+  header .src { color: var(--muted); font-size: 12px; }
+  header .pill { font-size: 11px; padding: 2px 8px; border: 1px solid var(--border); border-radius: 999px; color: var(--accent); }
+  main { display: grid; grid-template-columns: 360px 1fr; gap: 0; min-height: calc(100vh - 60px); }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  aside { border-right: 1px solid var(--border); padding: 14px; overflow: auto; }
+  aside .controls { display: flex; gap: 8px; margin-bottom: 10px; }
+  input[type=text], input[type=number], textarea, select {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 10px; font: inherit; width: 100%;
+  }
+  textarea { font-family: ui-monospace, "Cascadia Mono", "JetBrains Mono", Consolas, monospace; font-size: 12.5px; }
+  button {
+    background: var(--accent); color: #062018; border: 0; border-radius: 6px;
+    padding: 8px 14px; font-weight: 600; cursor: pointer;
+  }
+  button.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .agent-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s;
+  }
+  .agent-card:hover { border-color: var(--accent-2); }
+  .agent-card.active { border-color: var(--accent); background: #142033; }
+  .agent-card .name { font-weight: 600; }
+  .agent-card .id { color: var(--muted); font-size: 11px; font-family: ui-monospace, monospace; }
+  .agent-card .meta { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+  .tag { background: var(--panel-2); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-size: 10.5px; color: var(--muted); }
+  .tag.tier-3 { color: var(--good); border-color: #1e3b2c; }
+  .tag.tier-2 { color: var(--warn); border-color: #3b321e; }
+  .tag.tier-1 { color: var(--bad); border-color: #3b1e1e; }
+  section.detail { padding: 18px 22px; overflow: auto; }
+  section.detail h2 { margin: 0 0 4px; font-size: 18px; }
+  section.detail .desc { color: var(--muted); margin-bottom: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .stat .k { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat .v { font-size: 16px; font-weight: 600; margin-top: 2px; }
+  pre.code {
+    background: var(--code); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px; overflow: auto; font: 12.5px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace;
+    color: #c8d4ec; max-height: 280px;
+  }
+  .row { display: flex; gap: 10px; align-items: center; }
+  .row > * { flex: 1; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+  .panel h3 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  .out-summary { background: var(--panel-2); border-left: 3px solid var(--accent); padding: 10px 12px; margin-bottom: 8px; border-radius: 4px; }
+  .out-list { margin: 0; padding-left: 18px; }
+  .out-list li { margin-bottom: 4px; }
+  .toast { position: fixed; bottom: 16px; right: 16px; background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 6px; opacity: 0; transition: opacity 0.2s; }
+  .toast.show { opacity: 1; }
+  .empty { color: var(--muted); padding: 20px; text-align: center; }
+  .err { color: var(--bad); }
+</style>
+</head>
+<body>
+<header>
+  <h1>BlindOracle Explorer</h1>
+  <span class="src" id="src">api.craigmbrown.com/a2a</span>
+  <span class="pill" id="count">…</span>
+</header>
+<main>
+  <aside>
+    <div class="controls">
+      <input type="text" id="filter" placeholder="filter by name, tag, team…">
+      <button class="secondary" id="reload" title="reload">↻</button>
+    </div>
+    <div class="row" style="margin-bottom: 10px;">
+      <select id="source">
+        <option value="https://api.craigmbrown.com">Live (api.craigmbrown.com)</option>
+        <option value="http://localhost:7402">Local agent (port 7402)</option>
+      </select>
+    </div>
+    <div id="list"></div>
+  </aside>
+  <section class="detail" id="detail">
+    <div class="empty">Pick an agent on the left to inspect its manifest, schemas, and submit a job-intent envelope.</div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+const els = {
+  list: document.getElementById('list'),
+  detail: document.getElementById('detail'),
+  filter: document.getElementById('filter'),
+  reload: document.getElementById('reload'),
+  source: document.getElementById('source'),
+  count: document.getElementById('count'),
+  src: document.getElementById('src'),
+  toast: document.getElementById('toast'),
+};
+
+let state = { agents: [], selected: null, base: els.source.value };
+
+function toast(msg, ms = 2500) {
+  els.toast.textContent = msg;
+  els.toast.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => els.toast.classList.remove('show'), ms);
+}
+
+async function load() {
+  state.base = els.source.value;
+  els.src.textContent = state.base.replace(/^https?:\/\//, '') + '/a2a';
+  els.count.textContent = '…';
+  els.list.innerHTML = '<div class="empty">loading…</div>';
+  try {
+    const r = await fetch(state.base + '/a2a/manifest', { mode: 'cors' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const m = await r.json();
+    state.agents = m.services || [];
+    els.count.textContent = state.agents.length + ' agents';
+    render();
+  } catch (e) {
+    els.list.innerHTML = `<div class="empty err">Failed to load: ${e.message}<br><br>If you picked the local agent, run:<br><code>node blindoracle-agent/agent.js</code></div>`;
+    els.count.textContent = '0';
+  }
+}
+
+function tierTag(t) { return `<span class="tag tier-${t}">tier ${t}</span>`; }
+
+function render() {
+  const q = els.filter.value.trim().toLowerCase();
+  const filtered = state.agents.filter(a => !q || (a.name + ' ' + a.id + ' ' + (a.tags || []).join(' ') + ' ' + a.team).toLowerCase().includes(q));
+  if (filtered.length === 0) { els.list.innerHTML = '<div class="empty">no matches</div>'; return; }
+  els.list.innerHTML = filtered.map(a => `
+    <div class="agent-card ${state.selected === a.id ? 'active' : ''}" data-id="${a.id}">
+      <div class="name">${a.name}</div>
+      <div class="id">${a.id}</div>
+      <div class="meta">
+        ${tierTag(a.trust_tier)}
+        <span class="tag">$${a.pricing?.price_per_call_usd ?? '?'}/call</span>
+        <span class="tag">${a.team}</span>
+      </div>
+    </div>
+  `).join('');
+  for (const card of els.list.querySelectorAll('.agent-card')) {
+    card.addEventListener('click', () => select(card.dataset.id));
+  }
+}
+
+function select(id) {
+  state.selected = id;
+  render();
+  const a = state.agents.find(x => x.id === id);
+  if (!a) return;
+  els.detail.innerHTML = `
+    <h2>${a.name} <span class="tag tier-${a.trust_tier}">tier ${a.trust_tier}</span></h2>
+    <div class="desc">${a.description}</div>
+    <div class="grid">
+      <div class="stat"><div class="k">Capability ID</div><div class="v" style="font-size:13px;font-family:ui-monospace,monospace">${a.id}</div></div>
+      <div class="stat"><div class="k">Price / call</div><div class="v">$${a.pricing?.price_per_call_usd ?? '?'} ${a.pricing?.currency || ''}</div></div>
+      <div class="stat"><div class="k">Max latency</div><div class="v">${a.sla?.max_latency_secs ?? '?'}s</div></div>
+      <div class="stat"><div class="k">Availability</div><div class="v">${a.sla?.availability_pct ?? '?'}%</div></div>
+      <div class="stat"><div class="k">Schedule</div><div class="v" style="font-size:12px">${a.schedule?.cron || '—'} <span style="color:var(--muted);font-weight:400">${a.schedule?.description || ''}</span></div></div>
+      <div class="stat"><div class="k">Visibility</div><div class="v" style="font-size:13px">${a.marketplace_visibility} (badge: ${a.min_bidder_badge})</div></div>
+    </div>
+
+    <div class="panel">
+      <h3>Job-Intent Envelope</h3>
+      <div class="row" style="margin-bottom:8px"><label style="flex:0 0 110px;color:var(--muted)">prompt</label><textarea id="prompt" rows="3" placeholder="e.g. http://localhost:3000/monster-hunter.html or inline text">${a.id === 'games.game-reviewer-agent' ? 'http://localhost:3000/monster-hunter.html' : 'Tell me what you would do this week.'}</textarea></div>
+      <div class="row" style="margin-bottom:8px"><label style="flex:0 0 110px;color:var(--muted)">budget_usd</label><input type="number" id="budget" step="0.001" value="${(a.pricing?.price_per_call_usd ?? 0.01)}"></div>
+      <div class="row" style="margin-bottom:8px"><label style="flex:0 0 110px;color:var(--muted)">deadline_secs</label><input type="number" id="deadline" value="${a.sla?.max_latency_secs ?? 300}"></div>
+      <div class="row"><button id="submit">Submit job-intent</button><button class="secondary" id="copy">Copy envelope JSON</button></div>
+    </div>
+
+    <div class="panel" id="result-panel" style="display:none">
+      <h3>Job result</h3>
+      <div id="result"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Input schema</h3>
+      <pre class="code">${escapeHtml(JSON.stringify(a.input_schema, null, 2))}</pre>
+    </div>
+    <div class="panel">
+      <h3>Output schema</h3>
+      <pre class="code">${escapeHtml(JSON.stringify(a.output_schema, null, 2))}</pre>
+    </div>
+    <div class="panel">
+      <h3>Tags</h3>
+      <div>${(a.tags || []).map(t => `<span class="tag">${t}</span>`).join(' ')}</div>
+    </div>
+  `;
+  document.getElementById('submit').addEventListener('click', () => submit(a));
+  document.getElementById('copy').addEventListener('click', () => copy(a));
+}
+
+function buildEnvelope(a) {
+  return {
+    intent: {
+      capability: a.id,
+      prompt: document.getElementById('prompt').value,
+      budget_usd: Number(document.getElementById('budget').value),
+      deadline_secs: Number(document.getElementById('deadline').value),
+      acceptance_criteria: ['summary present', 'findings non-empty'],
+      evidence_required: ['ProofOfWork', 'ProofOfResolution'],
+    },
+  };
+}
+
+function copy(a) {
+  navigator.clipboard.writeText(JSON.stringify(buildEnvelope(a), null, 2));
+  toast('envelope copied');
+}
+
+async function submit(a) {
+  const env = buildEnvelope(a);
+  const panel = document.getElementById('result-panel');
+  const out = document.getElementById('result');
+  panel.style.display = 'block';
+  out.innerHTML = '<div class="empty">submitting…</div>';
+  try {
+    const r = await fetch(state.base + '/a2a/jobs', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(env),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      out.innerHTML = `<div class="err">HTTP ${r.status}</div><pre class="code">${escapeHtml(JSON.stringify(j, null, 2))}</pre>` +
+        (state.base.includes('craigmbrown') ? '<div class="empty">The live API requires auth (camel-jwt / lnurl-auth / nip-98). Switch to "Local agent" in the dropdown for an unauthenticated end-to-end demo.</div>' : '');
+      return;
+    }
+    const o = j.output || {};
+    out.innerHTML = `
+      <div class="out-summary"><strong>${escapeHtml(o.summary || '')}</strong></div>
+      <h4 style="margin:10px 0 4px">Findings</h4>
+      <ul class="out-list">${(o.findings || []).map(f => `<li>${escapeHtml(f)}</li>`).join('')}</ul>
+      <h4 style="margin:10px 0 4px">Recommendations</h4>
+      <ul class="out-list">${(o.recommendations || []).map(f => `<li>${escapeHtml(f)}</li>`).join('')}</ul>
+      <h4 style="margin:14px 0 4px">Attestations</h4>
+      <pre class="code">${escapeHtml(JSON.stringify(j.attestations || [], null, 2))}</pre>
+      <div style="color:var(--muted);font-size:12px;margin-top:6px">job ${j.job_id} · ${j.latency_secs?.toFixed?.(2) ?? '?'}s · $${j.cost_usd}</div>
+    `;
+  } catch (e) {
+    out.innerHTML = `<div class="err">${e.message}</div>`;
+  }
+}
+
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+els.filter.addEventListener('input', render);
+els.reload.addEventListener('click', load);
+els.source.addEventListener('change', load);
+load();
+</script>
+</body>
+</html>
