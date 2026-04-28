@@ -955,7 +955,9 @@ function renderInbox(){
   const items = GS.inbox||[];
   const prefs = getInboxPrefs();
   const counts = { red:0, blue:0, orange:0 };
-  for(const i of items){ if(!i.read){ const p = i.priority || classifyInboxItem(i).priority; if(counts[p] !== undefined) counts[p]++; } }
+  // Dot counts are based on dotSeen, not read — opening the inbox clears the dots
+  // while per-item unread state still shows in the modal until the player taps each one.
+  for(const i of items){ if(!i.dotSeen){ const p = i.priority || classifyInboxItem(i).priority; if(counts[p] !== undefined) counts[p]++; } }
   for(const color of ['red','blue','orange']){
     const el = $('ibd-'+color);
     if(!el) continue;
@@ -980,8 +982,13 @@ function showInboxModal(section){
   _inboxSection = section;
   const items = GS.inbox || [];
   const prefs = getInboxPrefs();
-  // Make sure all items are classified (legacy items)
-  for(const it of items){ if(!it.priority || !it.section){ const cl = classifyInboxItem(it); it.priority = it.priority || cl.priority; it.section = it.section || cl.section; } }
+  // Make sure all items are classified (legacy items) AND mark dots as seen so the
+  // colored dots vanish from the inbox button the moment the modal opens.
+  for(const it of items){
+    if(!it.priority || !it.section){ const cl = classifyInboxItem(it); it.priority = it.priority || cl.priority; it.section = it.section || cl.section; }
+    it.dotSeen = true;
+  }
+  renderInbox();
   const filtered = items.filter(i => i.section === section);
   const sectionUnread = filtered.filter(i=>!i.read).length;
   $('m-icon').textContent = '📬';
