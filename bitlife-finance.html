@@ -135,6 +135,12 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 .act-btn.inbox:hover{background:linear-gradient(135deg,var(--bg3),rgba(255,215,0,.08))}
 .inbox-badge-btn{position:absolute;top:4px;right:6px;min-width:18px;height:16px;border-radius:9px;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:0 5px;display:none;align-items:center;justify-content:center}
 .inbox-badge-btn.show{display:flex}
+.inbox-dots{position:absolute;top:4px;right:6px;display:flex;gap:3px;z-index:1;pointer-events:none}
+.inbox-dot{min-width:14px;height:14px;border-radius:8px;font-size:9px;font-weight:700;color:#fff;display:none;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+.inbox-dot.show{display:flex}
+.inbox-dot.red{background:#c44}
+.inbox-dot.blue{background:#3a7bd0}
+.inbox-dot.orange{background:#d68a3a}
 .inbox-item{padding:10px 12px;margin-bottom:6px;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all var(--t);background:var(--bg2);text-align:left}
 .inbox-item:hover{border-color:var(--gold-dim)}
 .inbox-item.unread{border-left:3px solid var(--gold)}
@@ -546,7 +552,7 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
         <button class="act-btn edu"    id="btn-edu"><span class="aico">🎓</span>Education</button>
         <button class="act-btn fitness" id="btn-fitness"><span class="aico">🏋️</span>Fitness</button>
         <button class="act-btn sponsors" id="btn-sponsors"><span class="aico">🤝</span>Sponsors</button>
-        <button class="act-btn inbox"  id="btn-inbox" style="grid-column:1/-1;position:relative"><span class="aico">📬</span>Inbox<span id="inbox-badge" class="inbox-badge-btn">0</span></button>
+        <button class="act-btn inbox"  id="btn-inbox" style="grid-column:1/-1;position:relative"><span class="aico">📬</span>Inbox<span class="inbox-dots" id="inbox-dots"><span class="inbox-dot red" id="ibd-red">0</span><span class="inbox-dot blue" id="ibd-blue">0</span><span class="inbox-dot orange" id="ibd-orange">0</span></span></button>
       </div>
       <div id="chart-area">
         <div id="chart-label">Net Worth History</div>
@@ -908,40 +914,159 @@ function generateInboxItems(c, inv){
   if(GS.inbox.length>40) GS.inbox=GS.inbox.slice(0,40);
 }
 
+// Auto-classify inbox items into a section ('opportunities' for offers/promos/raises/wins;
+// 'bills_news' for everything else) and a priority color (red emergency, blue big offer, orange regular).
+const INBOX_RED_RX  = /injury|hospital|hospitalized|lawsuit|sued|fine|penalty|relegat|fired|laid ?off|emergency|approval ratings collapse|robbery|burglary|crash|attack|assault|passed away|died|death|funeral|critical|cancer|surgery required|complications|bankrupt|foreclos|repossess|tornado|hurricane|earthquake|flood|fire damage|injured|broke|broken bone|fracture|concussion|defect|recall/i;
+const INBOX_BLUE_RX = /\boffer\b|signed|signing|contract|raise|promotion|promoted|award|hall of fame|championship|brand deal|sponsorship|deal|bonus|won the lottery|callup|drafted|callback|book deal|nomination|grant|investment offer|equity|partnership offer|buyout/i;
+const INBOX_OPP_RX  = /\boffer\b|signed|signing|contract|raise|promotion|promoted|brand deal|sponsorship|callup|drafted|bonus|book deal|investment offer|partnership offer|buyout|equity/i;
+
+function classifyInboxItem(item){
+  const subj = (item.subject||'') + ' ' + (item.body||'').slice(0,200);
+  // Priority — explicit override wins
+  let priority = item.priority;
+  if(!priority){
+    if(item.type === 'offer' && /raise|signing/i.test(subj)) priority = 'blue';
+    else if(item.type === 'offer') priority = 'blue';
+    else if(INBOX_RED_RX.test(subj)) priority = 'red';
+    else if(INBOX_BLUE_RX.test(subj)) priority = 'blue';
+    else priority = 'orange';
+  }
+  // Section
+  let section = item.section;
+  if(!section){
+    section = (item.type === 'offer' || INBOX_OPP_RX.test(subj)) ? 'opportunities' : 'bills_news';
+  }
+  return { priority, section };
+}
+
 function addInboxItem(item){
   if(!GS.inbox) GS.inbox=[];
-  GS.inbox.unshift({id:`ib_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, read:false, ...item});
+  const { priority, section } = classifyInboxItem(item);
+  GS.inbox.unshift({id:`ib_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, read:false, priority, section, ...item});
   if(GS.inbox.length>40) GS.inbox.length=40;
 }
 
-function renderInbox(){
-  const items=GS.inbox||[];
-  const unread=items.filter(i=>!i.read).length;
-  const badge=$('inbox-badge');
-  if(badge){ badge.textContent=unread; badge.className='inbox-badge-btn'+(unread>0?' show':''); }
+function getInboxPrefs(){
+  if(!GS.inboxPrefs) GS.inboxPrefs = { showRed: true, showBlue: true, showOrange: true };
+  return GS.inboxPrefs;
 }
 
-function showInboxModal(){
-  const items=GS.inbox||[];
-  $('m-icon').textContent='📬';
-  $('m-tag').textContent='Inbox';
-  $('m-tag').className='modal-tag fla';
-  $('m-title').textContent='Inbox';
-  $('m-body').textContent = items.length ? `${items.length} message${items.length===1?'':'s'} · ${items.filter(i=>!i.read).length} unread` : 'No mail yet. Age +1 month to receive news and bills.';
-  $('m-result').style.display='none';
-  const ch=$('m-choices');
-  if(!items.length){
-    ch.innerHTML='<button class="choice-btn" onclick="closeModal()">Close</button>';
-  } else {
-    ch.innerHTML = items.map(i=>{
-      const preview=(i.body||'').split('\n')[0].substring(0,70);
-      return `<div class="inbox-item ${i.read?'read':'unread'} ${i.type}" onclick="openInboxItem('${i.id}')">
-        <div class="ii-hdr"><span class="ii-date">${i.date}</span></div>
-        <div class="ii-subject">${i.icon} ${i.subject}</div>
-        <div class="ii-preview">${preview}</div>
-      </div>`;
-    }).join('') + '<button class="choice-btn" onclick="closeModal()" style="margin-top:8px">Close</button>';
+function renderInbox(){
+  const items = GS.inbox||[];
+  const prefs = getInboxPrefs();
+  const counts = { red:0, blue:0, orange:0 };
+  for(const i of items){ if(!i.read){ const p = i.priority || classifyInboxItem(i).priority; if(counts[p] !== undefined) counts[p]++; } }
+  for(const color of ['red','blue','orange']){
+    const el = $('ibd-'+color);
+    if(!el) continue;
+    const enabled = prefs['show'+color.charAt(0).toUpperCase()+color.slice(1)];
+    const show = enabled && counts[color] > 0;
+    el.textContent = counts[color];
+    el.className = 'inbox-dot '+color+(show?' show':'');
   }
+}
+
+function toggleInboxPref(color){
+  const prefs = getInboxPrefs();
+  const key = 'show'+color.charAt(0).toUpperCase()+color.slice(1);
+  prefs[key] = !prefs[key];
+  renderInbox();
+  showInboxModal(_inboxSection || 'bills_news');
+}
+
+let _inboxSection = 'bills_news';
+function showInboxModal(section){
+  section = section || _inboxSection || 'bills_news';
+  _inboxSection = section;
+  const items = GS.inbox || [];
+  const prefs = getInboxPrefs();
+  // Make sure all items are classified (legacy items)
+  for(const it of items){ if(!it.priority || !it.section){ const cl = classifyInboxItem(it); it.priority = it.priority || cl.priority; it.section = it.section || cl.section; } }
+  const filtered = items.filter(i => i.section === section);
+  const sectionUnread = filtered.filter(i=>!i.read).length;
+  $('m-icon').textContent = '📬';
+  $('m-tag').textContent = 'Inbox';
+  $('m-tag').className = 'modal-tag fla';
+  $('m-title').textContent = 'Inbox';
+  $('m-body').textContent = items.length
+    ? `${items.length} total · ${sectionUnread} unread in this section`
+    : 'No mail yet. Age +1 month to receive news and bills.';
+  $('m-result').style.display = 'none';
+  const ch = $('m-choices');
+  ch.innerHTML = '';
+
+  // Section tabs
+  const tabBar = document.createElement('div');
+  tabBar.style.cssText = 'display:flex;gap:4px;margin-bottom:8px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:2';
+  const sections = [
+    { id:'bills_news',    label:'📬 Bills & News' },
+    { id:'opportunities', label:'💼 Offers & Promos' },
+  ];
+  sections.forEach(s => {
+    const b = document.createElement('button');
+    const active = s.id === section;
+    const sCount = items.filter(i => i.section === s.id && !i.read).length;
+    b.innerHTML = `${s.label}${sCount?` <span style="background:var(--gold);color:#000;border-radius:8px;padding:1px 6px;font-size:9px;margin-left:4px">${sCount}</span>`:''}`;
+    b.style.cssText = `flex:1;padding:10px 6px;background:${active?'var(--bg3)':'transparent'};border:none;border-bottom:2px solid ${active?'var(--gold)':'transparent'};color:${active?'var(--gold)':'var(--muted)'};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;border-radius:6px 6px 0 0`;
+    b.onclick = () => showInboxModal(s.id);
+    tabBar.appendChild(b);
+  });
+  ch.appendChild(tabBar);
+
+  // Settings strip — toggle which color dots show on the inbox button
+  const setRow = document.createElement('div');
+  setRow.style.cssText = 'display:flex;gap:4px;margin-bottom:10px;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;flex-wrap:wrap;align-items:center';
+  const setLabel = document.createElement('div');
+  setLabel.style.cssText = 'font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;width:100%;margin-bottom:2px';
+  setLabel.textContent = '🔔 Show notification dot for:';
+  setRow.appendChild(setLabel);
+  const colorMeta = [
+    { color:'red',    icon:'🔴', label:'Emergencies', desc:'Injuries, lawsuits, deaths' },
+    { color:'blue',   icon:'🔵', label:'Big Offers',  desc:'Contracts, raises, promotions' },
+    { color:'orange', icon:'🟠', label:'Regular',     desc:'Bills, fixtures, news' },
+  ];
+  colorMeta.forEach(m => {
+    const key = 'show'+m.color.charAt(0).toUpperCase()+m.color.slice(1);
+    const on = prefs[key];
+    const t = document.createElement('button');
+    t.innerHTML = `<span style="font-size:13px">${m.icon}</span> <span>${m.label}</span> <span style="font-size:10px;opacity:.7">${on?'ON':'OFF'}</span>`;
+    t.style.cssText = `flex:1;min-width:120px;padding:8px;background:${on?'var(--bg2)':'rgba(0,0,0,.25)'};border:1px solid ${on?'var(--gold-dim)':'var(--border)'};color:${on?'var(--text)':'var(--muted)'};border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;gap:6px;justify-content:center;opacity:${on?1:.55}`;
+    t.title = m.desc;
+    t.onclick = () => toggleInboxPref(m.color);
+    setRow.appendChild(t);
+  });
+  ch.appendChild(setRow);
+
+  // Item list
+  if(!filtered.length){
+    const empty = document.createElement('div');
+    empty.style.cssText = 'text-align:center;color:var(--muted);font-size:12px;padding:20px';
+    empty.textContent = section === 'opportunities' ? 'No offers or promotions yet.' : 'No bills or news yet.';
+    ch.appendChild(empty);
+  } else {
+    const priorityColor = { red:'#c44', blue:'#3a7bd0', orange:'#d68a3a' };
+    filtered.forEach(i => {
+      const preview = (i.body||'').split('\n')[0].substring(0,70);
+      const pCol = priorityColor[i.priority] || priorityColor.orange;
+      const div = document.createElement('div');
+      div.className = `inbox-item ${i.read?'read':'unread'} ${i.type||''}`;
+      div.style.cssText = `border-left:4px solid ${pCol}`;
+      div.onclick = () => openInboxItem(i.id);
+      div.innerHTML = `
+        <div class="ii-hdr"><span class="ii-date">${i.date||''}</span><span style="font-size:9px;color:${pCol};font-weight:700;text-transform:uppercase">${i.priority||'orange'}</span></div>
+        <div class="ii-subject">${i.icon||''} ${i.subject||''}</div>
+        <div class="ii-preview">${preview}</div>`;
+      ch.appendChild(div);
+    });
+  }
+  // Close button
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'choice-btn';
+  closeBtn.textContent = 'Close';
+  closeBtn.style.marginTop = '8px';
+  closeBtn.onclick = () => closeModal();
+  ch.appendChild(closeBtn);
+
   $('modal-box').classList.add('compact');
   $('modal-overlay').classList.add('open');
 }
@@ -4972,10 +5097,10 @@ function showGameOver(){
 // ════════════════════════════════════════════════════════════════
 
 function saveGame(){
-  try{localStorage.setItem('finlife_save',JSON.stringify({char:GS.char,inv:GS.inv,nwHistory:GS.nwHistory,inbox:GS.inbox,billAccum:GS.billAccum}));}catch(e){}
+  try{localStorage.setItem('finlife_save',JSON.stringify({char:GS.char,inv:GS.inv,nwHistory:GS.nwHistory,inbox:GS.inbox,billAccum:GS.billAccum,inboxPrefs:GS.inboxPrefs}));}catch(e){}
 }
 function loadGame(){
-  try{const d=localStorage.getItem('finlife_save');if(!d)return false;const p=JSON.parse(d);GS.char=p.char;GS.inv=p.inv||createInvState();GS.nwHistory=p.nwHistory||[];GS.inbox=p.inbox||[];GS.billAccum=p.billAccum||[];
+  try{const d=localStorage.getItem('finlife_save');if(!d)return false;const p=JSON.parse(d);GS.char=p.char;GS.inv=p.inv||createInvState();GS.nwHistory=p.nwHistory||[];GS.inbox=p.inbox||[];GS.billAccum=p.billAccum||[];GS.inboxPrefs=p.inboxPrefs||{showRed:true,showBlue:true,showOrange:true};
     // Migrations for older saves
     if(!GS.inv.sponsors) GS.inv.sponsors=[];
     if(GS.inv.sponsorOffersMonth===undefined) GS.inv.sponsorOffersMonth=-1;
