@@ -27,6 +27,8 @@ All games are **single self-contained HTML files** (inline CSS + JS, no dependen
 | `*.html` (root) | Standalone browser games |
 | `index.html` | 3D Minecraft game |
 | `monster-hunter.html` | Open-world Monster Hunter (most complex — see memory for full architecture) |
+| `bitlife-finance.html` | FinLife Simulator — 2D mobile-app-style life/finance sim (deployed at `noahmbrown2-pixel.github.io/finlife-simulator/`) |
+| `finlife-3d.html` | FinLife 3D — first-person island built on Three.js. Buildings = action squares, phone (Tab) = 6 tabs. Reuses all `bitlife-finance.html` game logic via hidden DOM + delegated clicks. |
 | `manutd-news-extension/` | Chrome Extension (Manifest V3) — load unpacked in `chrome://extensions` |
 | `wr-debate/` | Node.js multi-agent debate sim using Google Gemini API |
 | `*.py` | AI image generation scripts using Google Imagen/Gemini |
