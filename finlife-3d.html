@@ -343,9 +343,11 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 /* On-screen mobile buttons */
 #mob-controls{position:absolute;inset:auto 0 0 0;height:0;pointer-events:none;display:none}
 .has-touch #mob-controls{display:block}
-#mob-stick{position:fixed;bottom:30px;left:30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.25);pointer-events:auto;touch-action:none;z-index:6}
-#mob-stick-knob{position:absolute;top:50%;left:50%;width:48px;height:48px;border-radius:50%;background:rgba(255,215,0,.7);transform:translate(-50%,-50%);pointer-events:none}
-.mob-btn{position:fixed;width:64px;height:64px;border-radius:50%;background:rgba(0,0,0,.65);border:2px solid var(--gold);color:var(--gold);font-size:22px;font-weight:700;pointer-events:auto;z-index:6;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none}
+@media (pointer:coarse), (max-width:900px) { #mob-controls{display:block !important} }
+#mob-stick{position:fixed;bottom:34px;left:34px;width:140px;height:140px;border-radius:50%;background:rgba(0,0,0,.5);border:3px solid rgba(255,215,0,.7);pointer-events:auto;touch-action:none;z-index:6;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+#mob-stick::before{content:'MOVE';position:absolute;top:-22px;left:50%;transform:translateX(-50%);color:rgba(255,215,0,.85);font-size:11px;font-weight:700;letter-spacing:1px;text-shadow:0 1px 2px #000}
+#mob-stick-knob{position:absolute;top:50%;left:50%;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#ffe066,#bf8a00);transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.mob-btn{position:fixed;width:72px;height:72px;border-radius:50%;background:rgba(0,0,0,.7);border:3px solid var(--gold);color:var(--gold);font-size:24px;font-weight:700;pointer-events:auto;z-index:6;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;box-shadow:0 4px 16px rgba(0,0,0,.4)}
 #mob-e{bottom:120px;right:30px}
 #mob-phone{bottom:30px;right:30px}
 #mob-look{position:fixed;top:0;right:0;bottom:0;width:50%;pointer-events:auto;touch-action:none;z-index:5}
@@ -372,6 +374,8 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
 .phone-home button.inbox{border-color:var(--red)}
 .phone-home button.maps{border-color:var(--green)}
 .phone-home button.blocktrade{border-color:var(--orange)}
+.phone-home button.wordle{border-color:var(--green)}
+.phone-home button.blockblast{border-color:var(--purple)}
 .phone-app-content[data-fullbleed]{padding:0;height:calc(100% - 4px)}
 .phone-app-content[data-fullbleed] iframe{width:100%;height:100%;border:0;display:block;background:#000}
 
@@ -500,6 +504,8 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Segoe
           <button class="inbox" data-app="inbox"><span class="papp-ico">📬</span>Inbox</button>
           <button class="maps" data-app="maps"><span class="papp-ico">🗺️</span>Maps</button>
           <button class="blocktrade" data-app="blocktrade"><span class="papp-ico">🧱</span>Block Trade</button>
+          <button class="wordle" data-app="wordle"><span class="papp-ico">🟩</span>Wordle</button>
+          <button class="blockblast" data-app="blockblast"><span class="papp-ico">💥</span>Block Blast</button>
         </div>
         <div class="phone-app-content" id="phone-app-content"></div>
       </div>
@@ -6411,7 +6417,8 @@ window.addEventListener('resize', drawNetWorthChart);
     { id:'realty',   pos:[-30,  60], icon:'🏘',  label:'Realty',       color:'#4fc3f7', action:'btn-realty' },
     { id:'edu',      pos:[-30,  15], icon:'🎓', label:'University',   color:'#ce93d8', action:'btn-edu' },
     { id:'gym',      pos:[-30, -30], icon:'🏋',  label:'Gym',          color:'#ff7a8a', action:'btn-fitness' },
-    { id:'sponsors', pos:[ 15, -30], icon:'🤝', label:'Sponsors',     color:'#26c6da', action:'btn-sponsors' },
+    // Sponsors used to be here at (15,-30) — removed: sponsor offers now arrive as
+    // yellow inbox notifications (see tickSponsors below). Lot is open for fillers.
     { id:'inbox',    pos:[ 60, -30], icon:'📬', label:'Post Office',  color:'#ff3d3d', action:'btn-inbox' },
     { id:'table',    pos:[ 15, -75], icon:'📊', label:'Stadium',      color:'#7e9e7a', action:'btn-table' },
   ];
@@ -7571,8 +7578,10 @@ window.addEventListener('resize', drawNetWorthChart);
   // ═════════ INPUT ═════════
   function bindInput(){
     window.addEventListener('keydown', e => {
-      // If the Block Trade iframe has focus, route keys to the game (not FinLife).
+      // If a phone-app iframe has focus, route keys to that iframe (not FinLife).
       if (blockTradeIframe && document.activeElement === blockTradeIframe) return;
+      if (wordleIframe && document.activeElement === wordleIframe) return;
+      if (blockBlastIframe && document.activeElement === blockBlastIframe) return;
       const k = (e.key || '').toLowerCase();
       keys[k] = true;
       if (k === 'e'){ e.preventDefault(); togglePhone(); }
@@ -7686,6 +7695,14 @@ window.addEventListener('resize', drawNetWorthChart);
     if (blockTradeIframe && blockTradeIframe.parentElement === apc){
       blockTradeStash.appendChild(blockTradeIframe);
     }
+    // Same for Wordle
+    if (wordleIframe && wordleIframe.parentElement === apc){
+      wordleStash.appendChild(wordleIframe);
+    }
+    // Same for Block Blast
+    if (blockBlastIframe && blockBlastIframe.parentElement === apc){
+      blockBlastStash.appendChild(blockBlastIframe);
+    }
     while (apc.firstChild){
       const tab = apc.firstChild;
       const lp = $$('left-panel');
@@ -7734,6 +7751,50 @@ window.addEventListener('resize', drawNetWorthChart);
       setTimeout(() => { try { blockTradeIframe.focus(); } catch(e){} }, 50);
       return;
     }
+    if (name === 'wordle'){
+      if (!wordleStash){
+        wordleStash = document.createElement('div');
+        wordleStash.style.display = 'none';
+        document.body.appendChild(wordleStash);
+      }
+      if (!wordleIframe){
+        wordleIframe = document.createElement('iframe');
+        wordleIframe.src = './wordle.html';
+        wordleIframe.title = 'Wordle';
+        wordleIframe.allow = 'autoplay; fullscreen';
+      }
+      returnTabContent();
+      const apc = $$('phone-app-content');
+      apc.appendChild(wordleIframe);
+      apc.classList.add('active');
+      apc.dataset.fullbleed = '1';
+      $$('phone-home').style.display = 'none';
+      $$('phone-back').classList.add('show');
+      setTimeout(() => { try { wordleIframe.focus(); } catch(e){} }, 50);
+      return;
+    }
+    if (name === 'blockblast'){
+      if (!blockBlastStash){
+        blockBlastStash = document.createElement('div');
+        blockBlastStash.style.display = 'none';
+        document.body.appendChild(blockBlastStash);
+      }
+      if (!blockBlastIframe){
+        blockBlastIframe = document.createElement('iframe');
+        blockBlastIframe.src = './blockblast.html';
+        blockBlastIframe.title = 'Block Blast';
+        blockBlastIframe.allow = 'autoplay; fullscreen';
+      }
+      returnTabContent();
+      const apc = $$('phone-app-content');
+      apc.appendChild(blockBlastIframe);
+      apc.classList.add('active');
+      apc.dataset.fullbleed = '1';
+      $$('phone-home').style.display = 'none';
+      $$('phone-back').classList.add('show');
+      setTimeout(() => { try { blockBlastIframe.focus(); } catch(e){} }, 50);
+      return;
+    }
     const tab = $$('tab-' + name);
     if (!tab) return;
     returnTabContent();
@@ -7752,6 +7813,10 @@ window.addEventListener('resize', drawNetWorthChart);
   let mapsBeacon = null;
   let blockTradeIframe = null;
   let blockTradeStash  = null;
+  let wordleIframe = null;
+  let wordleStash  = null;
+  let blockBlastIframe = null;
+  let blockBlastStash  = null;
 
   function showMapsApp(){
     returnTabContent();
@@ -8143,6 +8208,221 @@ window.addEventListener('resize', drawNetWorthChart);
 
   // Periodic HUD refresh
   setInterval(() => { if (initialized) updateHud(); }, 1000);
+
+  // ═══════════════════════════════════════════════════════════════
+  //  SPONSORS — yellow inbox notifications instead of a building
+  //  Eligibility:
+  //    • Sport-job players  → personal endorsement offers (better with awards)
+  //    • Business owners    → biz must be ≥ $250K to attract sponsors
+  //  Once a sponsor signs a business: monthly value × 1.08333…
+  // ═══════════════════════════════════════════════════════════════
+  const SPONSOR_BRANDS = ['Nike','Adidas','Puma','Pepsi','Coca-Cola','Red Bull','Gatorade','Toyota','BMW','Apple','Samsung','Visa','Mastercard','Microsoft','Google','Tesla','Sony','Spotify'];
+  const SPORT_JOB_RE = /\b(player|athlete|forward|midfielder|defender|goalie|goalkeeper|striker|quarterback|pitcher|catcher|guard|center|olympic|nba|nfl|mlb|nhl|mls|coach|jockey|boxer|wrestler|skater)\b/i;
+
+  function pickBrand(){ return SPONSOR_BRANDS[Math.floor(Math.random()*SPONSOR_BRANDS.length)]; }
+  function fmtSp(n){ return '$' + Math.round(n||0).toLocaleString(); }
+  function bizValue(b){ return b.value || b.valuation || b.equity || 0; }
+
+  function getSponsorEligibility(){
+    const gs = readGS(); if (!gs?.char) return null;
+    const c = gs.char, inv = gs.inv || {};
+    const hasSportJob = !!(c.employed && SPORT_JOB_RE.test(c.jobTitle || ''));
+    const eligibleBiz = (inv.businesses || []).filter(b => bizValue(b) >= 250000);
+    return { hasSportJob, eligibleBiz, awards: c.sportsAwards || 0 };
+  }
+
+  function getPendingSponsorOffers(){
+    const gs = readGS();
+    return ((gs?.inbox)||[]).filter(i =>
+      i && i.category === 'sponsor' && i.offer && !i.offer.accepted && !i.offer.declined
+    );
+  }
+
+  function refreshSponsorBadge(){
+    const btn = document.querySelector('#phone-home button.inbox');
+    if (!btn) return;
+    const pending = getPendingSponsorOffers().length;
+    let badge = btn.querySelector('.spons-badge');
+    if (pending === 0){ if (badge) badge.remove(); return; }
+    if (!badge){
+      badge = document.createElement('span');
+      badge.className = 'spons-badge';
+      badge.style.cssText = 'position:absolute;top:6px;right:6px;background:#fdc52a;color:#000;border-radius:50%;width:20px;height:20px;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid #000;z-index:5;cursor:pointer;animation:pulse-yellow 1.6s infinite';
+      btn.style.position = 'relative';
+      btn.appendChild(badge);
+      // inject keyframes once
+      if (!document.getElementById('spons-keyframes')){
+        const s = document.createElement('style');
+        s.id = 'spons-keyframes';
+        s.textContent = '@keyframes pulse-yellow{0%,100%{box-shadow:0 0 0 0 rgba(253,197,42,.6)}50%{box-shadow:0 0 0 8px rgba(253,197,42,0)}}';
+        document.head.appendChild(s);
+      }
+    }
+    badge.textContent = String(pending);
+  }
+
+  function tickSponsors(){
+    const gs = readGS(); if (!gs?.char) return;
+    const c = gs.char, inv = gs.inv || {};
+
+    // Track sports awards over time (if they have a sport job)
+    if (c.employed && SPORT_JOB_RE.test(c.jobTitle || '')){
+      if (Math.random() < 0.045){
+        c.sportsAwards = (c.sportsAwards || 0) + 1;
+        showToast('🏆 Won a sports award!');
+      }
+    }
+
+    // Monthly compound boost for any sponsored business
+    for (const biz of (inv.businesses || [])){
+      if (biz.sponsored){
+        const v = bizValue(biz);
+        const newV = Math.round(v * 1.08333333333);
+        if (biz.value !== undefined) biz.value = newV;
+        if (biz.valuation !== undefined) biz.valuation = newV;
+        if (biz.equity !== undefined) biz.equity = newV;
+      }
+    }
+
+    const elig = getSponsorEligibility(); if (!elig) return;
+    if (!gs.inbox) gs.inbox = [];
+    const monthAge = c.monthAge || 0;
+    let droppedAny = false;
+
+    // Business sponsorship offers
+    for (const biz of elig.eligibleBiz){
+      if (biz.sponsored) continue;
+      // 22% chance per eligible biz per month
+      if (Math.random() > 0.22) continue;
+      const v = bizValue(biz);
+      // Better value → richer deal: 5–14% of valuation
+      const deal = Math.round(v * (0.05 + Math.random() * 0.09));
+      const brand = pickBrand();
+      gs.inbox.push({
+        id: 'sp_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+        icon: '🟡',
+        name: brand + ' wants to sponsor ' + (biz.name || 'your business'),
+        copy: brand + ' offers a ' + fmtSp(deal) + ' signing bonus to sponsor "' + (biz.name||'your business') + '" (currently valued at ' + fmtSp(v) + '). While the deal is active, the business value compounds 8.33% per month.',
+        category: 'sponsor', priority: 'yellow', monthAge,
+        offer: { kind:'business', brand, deal, businessId: biz.id, businessName: biz.name||'business', accepted:false, declined:false },
+      });
+      droppedAny = true;
+    }
+
+    // Sports endorsement offers
+    if (elig.hasSportJob && Math.random() < 0.25){
+      const aw = elig.awards;
+      const tier = aw >= 5 ? 'Mega' : aw >= 3 ? 'Premium' : aw >= 1 ? 'Standard' : 'Rookie';
+      const baseDeal = 30000 + aw*70000 + Math.random()*180000;
+      const deal = Math.round(baseDeal);
+      const brand = pickBrand();
+      gs.inbox.push({
+        id: 'sp_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+        icon: '🟡',
+        name: brand + ' ' + tier + ' endorsement',
+        copy: brand + ' offers ' + fmtSp(deal) + ' for a personal endorsement deal. (' + aw + ' career awards = ' + tier + ' tier — win more to unlock bigger deals.)',
+        category: 'sponsor', priority: 'yellow', monthAge,
+        offer: { kind:'sport', brand, deal, tier, awards:aw, accepted:false, declined:false },
+      });
+      droppedAny = true;
+    }
+
+    if (droppedAny){
+      showToast('🟡 New sponsor offer in your inbox');
+      refreshSponsorBadge();
+    }
+  }
+
+  function showSponsorOffersModal(){
+    const offers = getPendingSponsorOffers();
+    if (offers.length === 0){ showToast('No pending sponsor offers'); return; }
+    const overlay = document.createElement('div');
+    overlay.id = 'spons-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(6px)';
+    let html = '<h2 style="color:#fdc52a;text-align:center;margin:0 0 14px;font-size:20px">🟡 Sponsorship Offers (' + offers.length + ')</h2>';
+    for (const item of offers){
+      const o = item.offer;
+      const bizExtra = o.kind === 'business' ? ' <span style="color:#43b02a">+8.33%/mo while active</span>' : '';
+      html +=
+        '<div style="background:#1a2e1a;border:1px solid #fdc52a;border-radius:10px;padding:14px;margin-bottom:12px">' +
+          '<div style="font-weight:700;color:#fdc52a;font-size:14px;margin-bottom:6px">' + escapeSpHtml(item.name) + '</div>' +
+          '<div style="color:#b0c0b0;font-size:12px;line-height:1.5;margin-bottom:12px">' + escapeSpHtml(item.copy) + bizExtra + '</div>' +
+          '<div style="display:flex;gap:8px">' +
+            '<button data-id="' + item.id + '" data-act="accept" style="flex:1;background:#43b02a;color:#fff;border:none;padding:10px;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px">Accept ' + fmtSp(o.deal) + '</button>' +
+            '<button data-id="' + item.id + '" data-act="decline" style="flex:1;background:#7a2e2e;color:#fff;border:none;padding:10px;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px">Decline</button>' +
+          '</div>' +
+        '</div>';
+    }
+    html += '<button id="spons-close" style="margin-top:6px;width:100%;background:#2a2a2a;color:#fff;border:none;padding:10px;border-radius:6px;cursor:pointer;font-weight:700">Close</button>';
+    const box = document.createElement('div');
+    box.style.cssText = 'background:#0f1f0f;border:2px solid #fdc52a;border-radius:14px;padding:18px;max-width:480px;width:100%;max-height:84vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.7)';
+    box.innerHTML = html;
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    box.querySelector('#spons-close').onclick = () => overlay.remove();
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    box.querySelectorAll('button[data-id]').forEach(b => {
+      b.onclick = () => {
+        applySponsorAction(b.dataset.id, b.dataset.act);
+        overlay.remove();
+        if (getPendingSponsorOffers().length > 0) showSponsorOffersModal();
+      };
+    });
+  }
+
+  function escapeSpHtml(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  function applySponsorAction(id, act){
+    const gs = readGS();
+    const item = (gs?.inbox || []).find(i => i.id === id);
+    if (!item || !item.offer) return;
+    if (act === 'decline'){
+      item.offer.declined = true;
+      showToast('Declined ' + item.offer.brand);
+    } else if (act === 'accept'){
+      item.offer.accepted = true;
+      if (gs.char){
+        gs.char.checking = (gs.char.checking || 0) + (item.offer.deal || 0);
+      }
+      if (item.offer.kind === 'business'){
+        const biz = (gs.inv?.businesses || []).find(b => b.id === item.offer.businessId);
+        if (biz){
+          biz.sponsored = true;
+          biz.sponsorBrand = item.offer.brand;
+        }
+      }
+      showToast('Signed with ' + item.offer.brand + ' · +' + fmtSp(item.offer.deal));
+    }
+    refreshSponsorBadge();
+    if (typeof updateHud === 'function') updateHud();
+  }
+
+  function installSponsorSystem(){
+    const ageBtn = document.getElementById('btn-age');
+    if (ageBtn){
+      const prev = ageBtn.onclick;
+      ageBtn.onclick = function(ev){
+        if (prev) prev.call(this, ev);
+        setTimeout(tickSponsors, 60);
+      };
+    }
+    document.addEventListener('click', e => {
+      const badge = e.target.closest('.spons-badge');
+      if (badge){ e.stopPropagation(); e.preventDefault(); showSponsorOffersModal(); }
+    });
+    setTimeout(refreshSponsorBadge, 200);
+  }
+
+  // Hook installation onto game start (after existing wrappers ran)
+  (function(){
+    const startBtn = $$('btn-start');
+    if (!startBtn) return;
+    const prevStart = startBtn.onclick;
+    startBtn.onclick = function(ev){
+      if (prevStart) prevStart.call(this, ev);
+      setTimeout(installSponsorSystem, 120);
+    };
+  })();
 
   // ═════════════════════════════════════════════════════════════════
   //  STORES — registry, inventories, archetype interiors, shop flow
