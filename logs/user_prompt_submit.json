@@ -735,5 +735,637 @@
     "permission_mode": "acceptEdits",
     "hook_event_name": "UserPromptSubmit",
     "prompt": "use all of the idea mentioned and add them into the game and then when your done do multible test to make sure everything works"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "show me the change"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make it so the second i open the imbox the dots go away"
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "did you finish?"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "read this https://docs.google.com/presentation/d/12365YGC04I6YyFXqpIjT73YKj-FvTNDFky3L8IiA21w/edit?slide=id.g2d467398c2c_0_96#slide=id.g2d467398c2c_0_96"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "What is the significance of this citizen science project on noise pollution?REQUIRED: Your response MUST make use of bullet points with no more than 10 words per bullet point.\nREQUIRED: Make sure to define the topic of this project and tie in current events to support your writing. Consider this article. \nYou should be paraphrasing (no direct quotes), but make sure to cite your sources (author, year). \n\u00e2\u20ac\u02dcThe Canary of the Sea\u00e2\u20ac\u2122 may be a helpful resource. \nBe sure to consistently use appropriate media such as pictures or graphics to support your slides. You must include 1 selfie of you conducting fieldwork at your research site somewhere in the EIR.\n"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "https://www.nationalgeographic.com/science/article/seas-silenced-by-pandemic-could-improve-health-whales and https://podcasts.apple.com/us/podcast/the-canary-of-the-sea/id1466697207?i=1000485613345"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "low effort"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "4 bullet points"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "4 bullet points"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "How was data collected in this citizen science project and what could you do differently next time to improve your results?"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "4 bullet points"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "for now on make the bullets low effort"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "What was your geo-inquiry question and what insight did you gain into that question based on the class data?https://storymaps.arcgis.com/stories/0cb9f0b6d2b64aaf9a4aa5d94f136e11"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "ACES Noise Pollution Citizen Science Project\nA citizen science project to evaluate the noise level of the Scotch Plains-Fanwood Ecosystem (SPFE).\n\nZachary Rittner\n\nApril 24, 2026\n\nThis is the area of study map for our ACES citizen science project on noise pollution. Sound intensity was measured using the Arudino which recorded in decibels (dB). The individual points show where data was collected from in the Scotch Plains-Fanwood Ecosystem (SPFE). You can click on each point to see a summary of the data collected including a graph comparing the average, minimum and maximum sound intensity to the OSHA Threshold of Safety. Additional maps are available that highlight specific variables by scrolling down. \n\n\nNoise Pollution\nSurvey Point\nSPFE Boundary\nThis map illustrates the average sound intensity (dB) from each research site. The legend indicates the sound intensity (dB) for each research site using a color coded system. The average noise level for all the sites we sampled was 29.9 dB. \n\n\nNoise Pollution\nAverage Noise Level (dB)\n> 29.7 \u00e2\u20ac\u201c 40\n> 24.7 \u00e2\u20ac\u201c 29.7\n> 17.7 \u00e2\u20ac\u201c 24.7\n17.7 \u00e2\u20ac\u201c 17.7\nSPFE Boundary\nThis map illustrates the minimum sound intensity (dB) from each research site. The legend indicates the sound intensity (dB) for each research site using a color coded system. The average minimum noise level of the all sites we sampled was 7.6 dB.\n\n\nNoise Pollution\nMinimum Noise Level (dB)\n> 20 \u00e2\u20ac\u201c 24\n> 14.4 \u00e2\u20ac\u201c 20\n> 7.7 \u00e2\u20ac\u201c 14.4\n4.7 \u00e2\u20ac\u201c 7.7\nSPFE Boundary\nThis map illustrates the maximum sound intensity (dB) from each research site. The legend indicates the sound intensity (dB) for each research site using a color coded system. The average maximum noise level of the all sites we sampled was 51.5 dB. "
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "What is OSHA\u00e2\u20ac\u2122s threshold of safety for noise pollution? https://www.osha.gov/noise#:~:text=With%20noise%2C%20OSHA%27s%20permissible%20exposure,a%205%20dBA%20exchange%20rate.&text=NIOSH%20would%20recommend%20limiting%20the,minutes%20of%20exposure%20per%20day."
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "How do the patterns you observed in this citizen science project compare to the larger patterns of the state, nation and/or world?Name:                                                    Date:\nPeriod:                                                ACES\n\nNoise Pollution Citizen Science Project:\nContextualizing Data:\n\nHowLoud Map\nUsing the map, look up the Sound Score for various areas. How does our data for the SPFE compare? \nUse the chart below to help compare and interpret our data with the Sound Scores.\n\nSound Score\nEquivalent dB\nInterpretation\n50 - 60\n120 - 140\nCatastrophic \n61 - 70\n86 - 120\nExcessive\n71 - 80\n51 - 85\nNormal\n81 - 90\n31 - 50\nQuiet\n91 - 100\n0 - 30\nSilent\n\n\nNew Jersey Noise Control Act\nThe statewide sound level standards are 50 decibels during nighttime (10:00 p.m. to 7:00 a.m.) and 65 decibels during daytime.\nHow did our data for the SPFE compare to these guidelines?\n\nOSHA Threshold of Safety\nThe National Institute for Occupational Safety and Health (NIOSH) has recommended that all worker exposures to noise should be controlled below a level equivalent to 85 dBA for eight hours to minimize occupational noise induced hearing loss.\nHow did our data for the SPFE compare to this guideline?\n"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "Replace this text with your responses:\nREQUIRED: Your response MUST make use of bullet points with no more than 10 words per bullet point.\nREQUIRED: Be sure to use specific, quantitative data collected from the citizen science project (such as average values) to support your work. \nREQUIRED: Consider the comparison data provided here.\nBe sure to consistently use appropriate media such as pictures or graphics to support your slides. You must include 1 selfie of you conducting fieldwork at your research site somewhere in the EIR.\n"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "4 bullets"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "Based on our results, what recommendations would you make to stakeholders to improve environmental equity on this issue?"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "https://www.hse.gov.uk/noise/reducenoise.htm eplace this text with your responses:\nREQUIRED: Your response MUST make use of bullet points with no more than 10 words per bullet point.\nREQUIRED: Consider this resource when forming your response. \nBe sure to consistently use appropriate media such as pictures or graphics to support your slides.\n"
+  },
+  {
+    "session_id": "22bf776d-7e00-42f6-8be6-7338c94f2623",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\22bf776d-7e00-42f6-8be6-7338c94f2623.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "Consumer Finance Credit Project\n\nYou are the Public Relations Manager for Spiffy Credit.  Your supervisor is concerned that the company gets so many phone calls from clients who do not understand the importance of good credit.  She has asked you to create an informative poster that explains what credit is, how it is measured, why it is important and how to maintain good credit.\n\nYou can create this document using a google slides template or you could use presentation software to create a flier in Canva.   The presentation should be professional, include graphics and information about credit.\n\nYour presentation should include the following in your own words.  You MAY use the concepts from your notes or my PowerPoint slides, BUT you have to put these items in your own words. \n\nPart 1: \nDefinition of credit\nExplanation of why credit is important\nThe three Cs of credit and an explanation of each\nWhat is credit history?\nWhat is a credit score?  (Credit rating) What is a good credit score?  \nWhat is a credit bureau?   Name two of the big credit bureau with their contact information (look up this contact info to include a phone number)\nWhat can a consumer do to improve their credit score or maintain good credit?\n"
+  },
+  {
+    "session_id": "22bf776d-7e00-42f6-8be6-7338c94f2623",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\22bf776d-7e00-42f6-8be6-7338c94f2623.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "You are the Public Relations Manager for Spiffy Credit.  Your supervisor is concerned that the company gets so many phone calls from clients who do not understand the importance of good credit.  She has asked you to create an informative poster that explains what credit is, how it is measured, why it is important and how to maintain good credit."
+  },
+  {
+    "session_id": "22bf776d-7e00-42f6-8be6-7338c94f2623",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\22bf776d-7e00-42f6-8be6-7338c94f2623.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "describe a noise pollution citzens science project"
+  },
+  {
+    "session_id": "22bf776d-7e00-42f6-8be6-7338c94f2623",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\22bf776d-7e00-42f6-8be6-7338c94f2623.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "do it anyways"
+  },
+  {
+    "session_id": "720453b9-0a4e-4636-a154-7d8cd8ce7bee",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\720453b9-0a4e-4636-a154-7d8cd8ce7bee.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "i need coming up with how to describe a noise pollution citzens science project"
+  },
+  {
+    "session_id": "720453b9-0a4e-4636-a154-7d8cd8ce7bee",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\720453b9-0a4e-4636-a154-7d8cd8ce7bee.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "i just need to describe it in one sentence"
+  },
+  {
+    "session_id": "9ea8dfa5-6a72-4012-8090-08202ebf439e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\9ea8dfa5-6a72-4012-8090-08202ebf439e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make a block trader game /agents make 5 different vision of the game and ill pick which one is one i want"
+  },
+  {
+    "session_id": "9ea8dfa5-6a72-4012-8090-08202ebf439e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\9ea8dfa5-6a72-4012-8090-08202ebf439e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "open all the games"
+  },
+  {
+    "session_id": "9ea8dfa5-6a72-4012-8090-08202ebf439e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\9ea8dfa5-6a72-4012-8090-08202ebf439e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "<task-notification>\n<task-id>af0774c009b7b242f</task-id>\n<tool-use-id>toolu_01U9dBkmwcdxBmBCwWFXjZx2</tool-use-id>\n<output-file>C:\\Users\\noahm\\AppData\\Local\\Temp\\claude\\C--Users-noahm-Project\\9ea8dfa5-6a72-4012-8090-08202ebf439e\\tasks\\af0774c009b7b242f.output</output-file>\n<status>completed</status>\n<summary>Agent \"Block trader v3: factory tycoon\" completed</summary>\n<result>The file doesn't exist yet, but my Write tool was denied. Let me try the Edit tool by first creating an empty placeholder via Bash touch (a minimal action) \u00e2\u20ac\u201d but Edit also requires the file to exist and be read. Let me check if there's a way to create it via a different tool path, or just ask the user.\n\nI attempted to create `C:\\Users\\noahm\\Project\\block-trader-v3-factory.html` using the `Write` tool but permission was denied. I also tried `PowerShell` to verify file state and that was denied too.\n\nTo complete this task, I need permission to use one of the following:\n- The `Write` tool to create the new HTML file at the requested path, OR\n- `Bash` access to write the file content via shell redirection, OR\n- `PowerShell` to write the file\n\nCould you grant permission for `Write` (or another file-creation tool) so I can create `block-trader-v3-factory.html`? The full game code is ready to be written \u00e2\u20ac\u201d it just needs a writable path. Once permitted, I'll drop the complete single-file HTML5 Canvas game (grid factory, miners/conveyors/combiners/sellers, traveling block animations, hotbar, rotation, delete with refund, $/sec stats, localStorage save under key `bt_factory`, $1M goal banner, mobile-touch + DPR + `fitCanvas`/`evPt` patterns) into that file.</result>\n<usage><total_tokens>35020</total_tokens><tool_uses>4</tool_uses><duration_ms>161027</duration_ms></usage>\n</task-notification>"
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "crate 5 different block trade games /agents"
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "open all of them on my browers"
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "i like this draft http://localhost:3000/block-trader-tycoon.html use these details to make changes This is a \u00e2\u20ac\u0153crash\u00e2\u20ac\udc9d gambling game (often called Crash or multiplier game).\n\n* The blue line shows the multiplier rising and then suddenly crashing downward.\n* Players bet money and try to cash out before it crashes.\n* The numbers like 1.63x, 2.30x, 3.91x are past multipliers or possible cash-out points.\n* The white dot shows where the round just crashed (ended).\n\nSo the goal is simple:\n\u00f0\u0178\u2018\u2030 cash out at a higher multiplier before the line drops to zero \u00e2\u20ac\u201d if you wait too long, you lose the bet."
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "BlockTrader is a fast, skill-based prediction game built around timing, spatial strategy, and competitive decision making. Every round centers on a moving price line and a grid of multipliers. Your goal is simple: place a block on the grid before the line reaches it. If the line touches your block, you score. If it misses, you lose the round. There is no real money, no trading, and no financial activity of any kind. BlockTrader is a pure strategy game where your timing and pattern recognition determine your results.\nBlockTrader is played in real time with other players.\nEach round reveals how everyone else chose to position their blocks, allowing you to study strategies, observe trends in placement, and adjust your approach. This multiplayer feedback loop builds a competitive environment where players try to outpredict one another, improve their timing, and climb the global leaderboard. The game rewards consistency and adaptability. If you read the movement well, you rise quickly. If you misread, you adjust and try again.\nAlthough the rules are simple, the skill ceiling is high.\nWith enough rounds, you begin to recognize patterns in the way the line moves. You notice slow climbs, fast drops, sudden reversals, repeating wave formations, and momentum changes. These patterns are not tied to any real-world data and have no connection to actual markets. They exist purely to create an engaging and challenging gameplay experience.\nLearning these movement rhythms gives you a significant advantage and drives long-term progression.\n\nBlockTrader fits both short and long play sessions. A single round takes only seconds, making it ideal when you want a quick challenge. But the combination of competition, skill improvement, and near-miss excitement also makes the game highly replayable.\nMany players find themselves returning for long streaks as they refine their instincts and climb the ranking boards. The game encourages experimentation, letting you test different placements, timing windows, and bidding strategies to find what works best for you.\nBlockTrader appeals to players who enjoy reaction-based games, timing challenges, and competitive strategy. If you like games that require fast thinking, anticipation, risk evaluation, and pattern recognition, you will find BlockTrader rewarding. The gameplay loop is designed to be simple enough for anyone to try, but deep enough for skilled players to unlock advanced strategies. There is no randomness in player actions, no pay-to-win mechanics, and no external systems influencing the outcome. The results of each round come directly from your decisions and your ability to read the line movement.\nThe game's direction is entirely focused on skill expression. Players who learn quickly will rise fast.\nPlayers who take risks will experience dramatic wins and losses. Players who value consistency can climb steadily through disciplined placement. BlockTrader gives you the freedom to play in the style that best fits your personality and approach. Every playstyle can succeed when executed well.\n\nThe overall experience emphasizes clarity, speed, and replay value. BlockTrader offers a continuous cycle of predict, place, watch, and learn that stays engaging even after many rounds. With real-time competition, adjustable risk levels, and a constantly shifting movement pattern, no two rounds ever feel identical.\nThis creates long-term depth while keeping the game simple and accessible at its core.\nIf you are looking for a competitive, skill-based game that rewards timing, pattern recognition, and strategic placement, BlockTrader delivers a clean and modern experience with fast rounds and meaningful progression. Step into the grid, place your block, trust your instincts, and see how high you can climb."
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "complete task"
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make the grind infinite both verticals and horizontal"
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "get rid of the stop and start with the line"
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "give me the ability to type the amount of money i want to put down, so make it ez to spread money across the grind"
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "give me the ability to type the amount of money i want to put down, /agents also so make it ez to drage money across the grind"
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "\u00c2\u00a0make a new repo in github called blocktrade and said me the like to the game"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "https://noahmbrown2-pixel.github.io/finlife-simulator/"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "https://noahmbrown2-pixel.github.io/minecraft-3d/"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "i want to mix the to of the games together"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "https://noahmbrown2-pixel.github.io/finlife-simulator/ /plan i want to make this game a 3d game, i the map to be a small island, all action squares that are on the side of the screen every action a building. the player carries a phone with the 6 apps on the phone, these apps with be the tabs \"life,finances,business,work,invest,assets\""
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "build real buildings for actions"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make the island huge like 25 times bigger,make it look like new york city,roads,stores,parks, luxury houses,condos,2BR/3BR houses skyscrapers,food trucks,appartments,airports, a real big staduim that host all sports events,town hall.police office, firestation, hospital,jail,court  and civals,and the appstore, add the phone feature to the players inventory"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make the map 25 times larger, make the island look more like new york city with roads and corner stores like that, add the phone device (E) to use phone."
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "finish"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "put players imbox into his phone, add maps app that can give your directions to building,work, and people,completely fill the island to the brim with building"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "/plan /agents /fork /meta agents  for the home when you interact with it create a room for the person to stay at, depending on what the house is determins what size your room is,the room must have Roof (protects from weather)\nWalls & foundation (support + safety)\nDoors & windows (entry, light, airflow)\nPlumbing (water in/out)\nElectricity (power for everything)Bed (sleep)\nCouch/chairs (sit)\nTable (eat/work)\nStorage (closet, dresser)Fridge (store food)\nStove/oven (cook)\nSink (clean)\nPots, pans, utensils\nPlates, cupsToilet\nSink\nShower/bath\nTowels\nSoap, toothbrush, toilet paperSmoke detectors\nFire extinguisher\nLocks on doors/windows\nFirst aid kitHeating (furnace/radiator)\nCooling (AC/fans)\nLighting\nInternet/Wi-FiTrash cans\nBroom/mop or vacuum\nLaundry (washer/dryer or access)\nCleaning supplies\n\u00f0\u0178\u00a7\u00a0 Simple way to remember\nLive \u00e2\u2020\u2019 bed, food, water\nStay safe \u00e2\u2020\u2019 locks, alarms\nStay clean \u00e2\u2020\u2019 bathroom, cleaning\nStay comfortable \u00e2\u2020\u2019 heat, lightadd closets and showers,if you don't shower then your (happy)(health) goes down 2 each day, all expences that the player perchases will be played somewere in the house,for example if i got a new coat i can hang that coat in my closet,if i get a new computer i can place it on my desk, if i get a new tool i can use that one my car,add more building in the center parts of the map, and make sure the entrence is facing the road,"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "add all of these store Walmart, Target, Costco, Amazon, Best Buy, Home Depot, Lowe\u00e2\u20ac\u2122s, IKEA, Macy\u00e2\u20ac\u2122s, Kohl\u00e2\u20ac\u2122s, JCPenney, Nordstrom, Nordstrom Rack, TJ Maxx, Marshalls, Ross, Burlington, Dollar Tree, Family Dollar, Dollar General, Walgreens, CVS, Rite Aid, 7-Eleven, Whole Foods, Trader Joe\u00e2\u20ac\u2122s, Aldi, Kroger, Safeway, Publix, Wegmans, Stop & Shop, ShopRite, Giant, Food Lion, Harris Teeter, Meijer, H-E-B, Winn-Dixie, Sprouts, Fresh Market, Piggly Wiggly, Save-A-Lot, Big Lots, Five Below, Petco, PetSmart, Staples, Office Depot, OfficeMax, GameStop, Barnes & Noble, Books-A-Million, Dick\u00e2\u20ac\u2122s Sporting Goods, Academy Sports, REI, Bass Pro Shops, Cabela\u00e2\u20ac\u2122s, Foot Locker, Finish Line, Champs Sports, Nike Store, Adidas Store, Under Armour, Lululemon, Gap, Old Navy, Banana Republic, American Eagle, Hollister, Abercrombie & Fitch, Urban Outfitters, PacSun, Zara, H&M, Uniqlo, Forever 21, Shein, Anthropologie, Free People, Brandy Melville, Aritzia, Express, Ann Taylor, LOFT, Chico\u00e2\u20ac\u2122s, White House Black Market, Talbots, Torrid, Lane Bryant, Victoria\u00e2\u20ac\u2122s Secret, Pink, Savage X Fenty, Sephora, Ulta Beauty, Sally Beauty, Bath & Body Works, The Body Shop, Lush, Glossier, MAC Cosmetics, Clinique, Est\u00c3\u00a9e Lauder, Apple Store, Microsoft Store, Samsung Store, Verizon, AT&T, T-Mobile, Boost Mobile, Cricket Wireless, Metro by T-Mobile, AutoZone, Advance Auto Parts, O\u00e2\u20ac\u2122Reilly Auto Parts, Pep Boys, CarMax, Tesla Store, Harbor Freight, Ace Hardware, True Value, Menards, Floor & Decor, Sherwin-Williams, Benjamin Moore, Ethan Allen, Ashley Furniture, Raymour & Flanigan, Bob\u00e2\u20ac\u2122s Discount Furniture, Mattress Firm, Sleep Number, La-Z-Boy, Pottery Barn, West Elm, Crate & Barrel, CB2, Williams Sonoma, Sur La Table, Bed Bath & Beyond, Buy Buy Baby, Container Store, Party City, Michaels, Joann Fabrics, Hobby Lobby, Blick Art Materials, Staples Print Center, Office Depot Print, FedEx Office, UPS Store, Costco Pharmacy, Walmart Pharmacy, CVS Pharmacy, Walgreens Pharmacy, Rite Aid Pharmacy, 99 Cents Only Stores, Daiso, Miniso, Muji, Tillys, Zumiez, Hot Topic, BoxLunch, Spencer\u00e2\u20ac\u2122s, Claire\u00e2\u20ac\u2122s, Icing, Pandora, Kay Jewelers, Zales, Jared, Tiffany & Co., Cartier, Rolex Boutique, Sunglass Hut, LensCrafters, Warby Parker, Pearle Vision, America\u00e2\u20ac\u2122s Best Contacts, Visionworks, Guitar Center, Sam Ash, Music & Arts, Sweetwater, Lego Store, Disney Store, Build-A-Bear, FAO Schwarz, Toys \u00e2\u20ac\u0153R\u00e2\u20ac\udc9d Us, Babies \u00e2\u20ac\u0153R\u00e2\u20ac\udc9d Us, Carter\u00e2\u20ac\u2122s, OshKosh B\u00e2\u20ac\u2122gosh, Gymboree, Janie and Jack, Crazy 8, Primark, River Island, Mango, Bershka, Pull & Bear, Stradivarius, Massimo Dutti, Decathlon, JD Sports, Sports Direct, Fanatics, Lids, Hat Club, New Era Store, Mitchell & Ness, Champs Outlet, Nike Factory Store, Adidas Outlet, Puma Outlet, Reebok Outlet, Vans Store, Converse Store, Crocs Store, Dr. Martens Store, Skechers, Clarks, Aldo, Steve Madden, Nine West, DSW, Famous Footwear, Payless, Rack Room Shoes, Shoe Carnival, Finish Line Outlet, Amazon Fresh, GoPuff, Instacart Pickup, Costco Wholesale, BJ\u00e2\u20ac\u2122s Wholesale Club, Sam\u00e2\u20ac\u2122s Club, Restaurant Depot, Gordon Food Service, Eataly Market, H Mart, 99 Ranch Market, Patel Brothers, Mitsuwa Marketplace, Uwajimaya, Seafood City, El Super, Vallarta Supermarkets, Fiesta Mart, Cardenas Market, Superior Grocers, Northgate Market, Smart & Final, Grocery Outlet, Market Basket, Price Chopper, Save Mart, Lucky Supermarkets, Food 4 Less, WinCo Foods, Fred Meyer, King Soopers, Fry\u00e2\u20ac\u2122s Food, Ralphs, Vons, Albertsons, Shaw\u00e2\u20ac\u2122s, Acme Markets, Jewel-Osco, Tom Thumb, Randalls, Brookshire\u00e2\u20ac\u2122s, Ingles, Hy-Vee, Fareway, Bashas\u00e2\u20ac\u2122, Coborn\u00e2\u20ac\u2122s, Lunds & Byerlys, Gelson\u00e2\u20ac\u2122s, Bristol Farms, Erewhon, Central Market, Earth Fare, Fresh Thyme, Natural Grocers, Vitamin Shoppe, GNC, Smoothie King, Jamba, Starbucks Store, Dunkin\u00e2\u20ac\u2122 Store, Krispy Kreme Shop, Tim Hortons Store, Cold Stone Creamery, Baskin Robbins, Dairy Queen Store, Insomnia Cookies, Crumbl Cookies, Nothing Bundt Cakes, Edible Arrangements, Total Wine & More, BevMo!, ABC Fine Wine, Spec\u00e2\u20ac\u2122s, Binny\u00e2\u20ac\u2122s Beverage Depot, Goody Goody Liquor, Liquor Barn, Party Source, Walgreens Liquor, CVS Liquor, REI Outlet, Patagonia Store, The North Face Store, Columbia Sportswear, Arc\u00e2\u20ac\u2122teryx Store, Fj\u00c3\u00a4llr\u00c3\u00a4ven Store, Lids Locker Room, Champs Locker Room, House of Hoops, Nike House of Innovation, Apple Authorized Reseller, Micro Center, B&H Photo, Adorama, Newegg Pickup, Fry\u00e2\u20ac\u2122s Electronics, RadioShack, Batteries Plus, uBreakiFix, CPR Cell Phone Repair, GameStop Retro, ThinkGeek, Hot Topic Pop Culture, BoxLunch Gifts, Lego Discovery Store, Disney Outlet, Character Warehouse, Universal Store, Warner Bros Studio Store, NBA Store, NFL Shop, MLB Shop, NHL Shop, MLS Store, Pro Image Sports, Rally House, Soccer Post, Tennis Warehouse, Golf Galaxy, PGA Tour Superstore, Edwin Watts Golf, Bike World, Trek Store, Specialized Store, Giant Bicycles Store, Performance Bike, Cycle Gear, RevZilla Store, Harley-Davidson Shop, Indian Motorcycle Store, Camping World, Gander Outdoors, Tractor Supply Co., Rural King, Fleet Farm, Blain\u00e2\u20ac\u2122s Farm & Fleet, Northern Tool + Equipment, Grainger, Fastenal, Ferguson Plumbing, Sherwin-Williams Paints, Benjamin Moore Paints, PPG Paints, Sherwin Outlet, Benjamin Outlet, Floor & Decor Outlet, IKEA Planning Studio, Ashley Outlet, Bob\u00e2\u20ac\u2122s Outlet, Mattress Firm Outlet, Sleep Number Outlet, La-Z-Boy Outlet, Pottery Barn Outlet, West Elm Outlet, Crate & Barrel Outlet, CB2 Outlet, Williams Sonoma Outlet, Sur La Table Outlet, Container Store Outlet, Bed Bath & Beyond Outlet, Overstock Store, Wayfair Store, At Home, HomeGoods, Homesense, Kirkland\u00e2\u20ac\u2122s, Pier 1 Imports, Tuesday Morning, Big Lots Furniture, Ollie\u00e2\u20ac\u2122s Bargain Outlet, Gabe\u00e2\u20ac\u2122s, Forman Mills, Citi Trends, Rainbow Shops, Burlington Coat Factory, Ross Dress for Less, TJ Maxx Runway, Marshalls Mega, Sierra Trading Post, DSW Warehouse, Shoe Dept Encore, Rack Room Outlet, Payless Outlet, Five Below Outlet, Dollar Tree Plus, Family Dollar Combo, Dollar General Market.spread throughout all of the builds, every store gets a subspace area that actually looks like the inside of that specific store to sell things to you that u may want."
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "add all of these store Walmart, Target, Costco, Amazon, Best Buy, Home Depot, Lowe\u00e2\u20ac\u2122s, IKEA, Macy\u00e2\u20ac\u2122s, Kohl\u00e2\u20ac\u2122s, JCPenney, Nordstrom, Nordstrom Rack, TJ Maxx, Marshalls, Ross, Burlington, Dollar Tree, Family Dollar, Dollar General, Walgreens, CVS, Rite Aid, 7-Eleven, Whole Foods, Trader Joe\u00e2\u20ac\u2122s, Aldi, Kroger, Safeway, Publix, Wegmans, Stop & Shop, ShopRite, Giant, Food Lion, Harris Teeter, Meijer, H-E-B, Winn-Dixie, Sprouts, Fresh Market, Piggly Wiggly, Save-A-Lot, Big Lots, Five Below, Petco, PetSmart, Staples, Office Depot, OfficeMax, GameStop, Barnes & Noble, Books-A-Million, Dick\u00e2\u20ac\u2122s Sporting Goods, Academy Sports, REI, Bass Pro Shops, Cabela\u00e2\u20ac\u2122s, Foot Locker, Finish Line, Champs Sports, Nike Store, Adidas Store, Under Armour, Lululemon, Gap, Old Navy, Banana Republic, American Eagle, Hollister, Abercrombie & Fitch, Urban Outfitters, PacSun, Zara, H&M, Uniqlo, Forever 21, Shein, Anthropologie, Free People, Brandy Melville, Aritzia, Express, Ann Taylor, LOFT, Chico\u00e2\u20ac\u2122s, White House Black Market, Talbots, Torrid, Lane Bryant, Victoria\u00e2\u20ac\u2122s Secret, Pink, Savage X Fenty, Sephora, Ulta Beauty, Sally Beauty, Bath & Body Works, The Body Shop, Lush, Glossier, MAC Cosmetics, Clinique, Est\u00c3\u00a9e Lauder, Apple Store, Microsoft Store, Samsung Store, Verizon, AT&T, T-Mobile, Boost Mobile, Cricket Wireless, Metro by T-Mobile, AutoZone, Advance Auto Parts, O\u00e2\u20ac\u2122Reilly Auto Parts, Pep Boys, CarMax, Tesla Store, Harbor Freight, Ace Hardware, True Value, Menards, Floor & Decor, Sherwin-Williams, Benjamin Moore, Ethan Allen, Ashley Furniture, Raymour & Flanigan, Bob\u00e2\u20ac\u2122s Discount Furniture, Mattress Firm, Sleep Number, La-Z-Boy, Pottery Barn, West Elm, Crate & Barrel, CB2, Williams Sonoma, Sur La Table, Bed Bath & Beyond, Buy Buy Baby, Container Store, Party City, Michaels, Joann Fabrics, Hobby Lobby, Blick Art Materials, Staples Print Center, Office Depot Print, FedEx Office, UPS Store, Costco Pharmacy, Walmart Pharmacy, CVS Pharmacy, Walgreens Pharmacy, Rite Aid Pharmacy, 99 Cents Only Stores, Daiso, Miniso, Muji, Tillys, Zumiez, Hot Topic, BoxLunch, Spencer\u00e2\u20ac\u2122s, Claire\u00e2\u20ac\u2122s, Icing, Pandora, Kay Jewelers, Zales, Jared, Tiffany & Co., Cartier, Rolex Boutique, Sunglass Hut, LensCrafters, Warby Parker, Pearle Vision, America\u00e2\u20ac\u2122s Best Contacts, Visionworks, Guitar Center, Sam Ash, Music & Arts, Sweetwater, Lego Store, Disney Store, Build-A-Bear, FAO Schwarz, Toys \u00e2\u20ac\u0153R\u00e2\u20ac\udc9d Us, Babies \u00e2\u20ac\u0153R\u00e2\u20ac\udc9d Us, Carter\u00e2\u20ac\u2122s, OshKosh B\u00e2\u20ac\u2122gosh, Gymboree, Janie and Jack, Crazy 8, Primark, River Island, Mango, Bershka, Pull & Bear, Stradivarius, Massimo Dutti, Decathlon, JD Sports, Sports Direct, Fanatics, Lids, Hat Club, New Era Store, Mitchell & Ness, Champs Outlet, Nike Factory Store, Adidas Outlet, Puma Outlet, Reebok Outlet, Vans Store, Converse Store, Crocs Store, Dr. Martens Store, Skechers, Clarks, Aldo, Steve Madden, Nine West, DSW, Famous Footwear, Payless, Rack Room Shoes, Shoe Carnival, Finish Line Outlet, Amazon Fresh, GoPuff, Instacart Pickup, Costco Wholesale, BJ\u00e2\u20ac\u2122s Wholesale Club, Sam\u00e2\u20ac\u2122s Club, Restaurant Depot, Gordon Food Service, Eataly Market, H Mart, 99 Ranch Market, Patel Brothers, Mitsuwa Marketplace, Uwajimaya, Seafood City, El Super, Vallarta Supermarkets, Fiesta Mart, Cardenas Market, Superior Grocers, Northgate Market, Smart & Final, Grocery Outlet, Market Basket, Price Chopper, Save Mart, Lucky Supermarkets, Food 4 Less, WinCo Foods, Fred Meyer, King Soopers, Fry\u00e2\u20ac\u2122s Food, Ralphs, Vons, Albertsons, Shaw\u00e2\u20ac\u2122s, Acme Markets, Jewel-Osco, Tom Thumb, Randalls, Brookshire\u00e2\u20ac\u2122s, Ingles, Hy-Vee, Fareway, Bashas\u00e2\u20ac\u2122, Coborn\u00e2\u20ac\u2122s, Lunds & Byerlys, Gelson\u00e2\u20ac\u2122s, Bristol Farms, Erewhon, Central Market, Earth Fare, Fresh Thyme, Natural Grocers, Vitamin Shoppe, GNC, Smoothie King, Jamba, Starbucks Store, Dunkin\u00e2\u20ac\u2122 Store, Krispy Kreme Shop, Tim Hortons Store, Cold Stone Creamery, Baskin Robbins, Dairy Queen Store, Insomnia Cookies, Crumbl Cookies, Nothing Bundt Cakes, Edible Arrangements, Total Wine & More, BevMo!, ABC Fine Wine, Spec\u00e2\u20ac\u2122s, Binny\u00e2\u20ac\u2122s Beverage Depot, Goody Goody Liquor, Liquor Barn, Party Source, Walgreens Liquor, CVS Liquor, REI Outlet, Patagonia Store, The North Face Store, Columbia Sportswear, Arc\u00e2\u20ac\u2122teryx Store, Fj\u00c3\u00a4llr\u00c3\u00a4ven Store, Lids Locker Room, Champs Locker Room, House of Hoops, Nike House of Innovation, Apple Authorized Reseller, Micro Center, B&H Photo, Adorama, Newegg Pickup, Fry\u00e2\u20ac\u2122s Electronics, RadioShack, Batteries Plus, uBreakiFix, CPR Cell Phone Repair, GameStop Retro, ThinkGeek, Hot Topic Pop Culture, BoxLunch Gifts, Lego Discovery Store, Disney Outlet, Character Warehouse, Universal Store, Warner Bros Studio Store, NBA Store, NFL Shop, MLB Shop, NHL Shop, MLS Store, Pro Image Sports, Rally House, Soccer Post, Tennis Warehouse, Golf Galaxy, PGA Tour Superstore, Edwin Watts Golf, Bike World, Trek Store, Specialized Store, Giant Bicycles Store, Performance Bike, Cycle Gear, RevZilla Store, Harley-Davidson Shop, Indian Motorcycle Store, Camping World, Gander Outdoors, Tractor Supply Co., Rural King, Fleet Farm, Blain\u00e2\u20ac\u2122s Farm & Fleet, Northern Tool + Equipment, Grainger, Fastenal, Ferguson Plumbing, Sherwin-Williams Paints, Benjamin Moore Paints, PPG Paints, Sherwin Outlet, Benjamin Outlet, Floor & Decor Outlet, IKEA Planning Studio, Ashley Outlet, Bob\u00e2\u20ac\u2122s Outlet, Mattress Firm Outlet, Sleep Number Outlet, La-Z-Boy Outlet, Pottery Barn Outlet, West Elm Outlet, Crate & Barrel Outlet, CB2 Outlet, Williams Sonoma Outlet, Sur La Table Outlet, Container Store Outlet, Bed Bath & Beyond Outlet, Overstock Store, Wayfair Store, At Home, HomeGoods, Homesense, Kirkland\u00e2\u20ac\u2122s, Pier 1 Imports, Tuesday Morning, Big Lots Furniture, Ollie\u00e2\u20ac\u2122s Bargain Outlet, Gabe\u00e2\u20ac\u2122s, Forman Mills, Citi Trends, Rainbow Shops, Burlington Coat Factory, Ross Dress for Less, TJ Maxx Runway, Marshalls Mega, Sierra Trading Post, DSW Warehouse, Shoe Dept Encore, Rack Room Outlet, Payless Outlet, Five Below Outlet, Dollar Tree Plus, Family Dollar Combo, Dollar General Market.spread throughout all of the builds, every store gets a subspace area that actually looks like the inside of that specific store to sell things to you that u may want.use a sworm of agents and sub agents"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "finish"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make the build actually look like what it does for exampleA stadium rises like a massive bowl carved into the earth, its outer shell a mix of steel beams, glass panels, and concrete ribs. From far away, it looks almost like a spaceship landed in the middle of a city\u00e2\u20ac\u201dhuge, symmetrical, and glowing at night. Wide plazas surround it, filled with fans walking in waves, wearing team colors, holding flags, scarves, and food. The air outside hums with noise: music, vendors shouting, people laughing, and the distant echo of chants bouncing off the walls.\n\nAs you move toward the entrances, tall gates and security lines funnel everyone inward. The doors open into wide concourses that wrap around the entire stadium like rings. Inside, it smells like popcorn, grilled food, soda, and fresh pretzels. Bright screens hang from the ceiling showing highlights, ads, and stats. Lines form at food stands selling everything from burgers and pizza to local specialties. The floor is slightly sticky, the walls covered in team history\u00e2\u20ac\u201dphotos, trophies, retired numbers.\n\nWalking through a tunnel, the stadium suddenly opens up\u00e2\u20ac\u201dand it\u00e2\u20ac\u2122s massive. The field sits perfectly centered, a rectangle of vivid green grass cut in neat stripes. Every blade looks sharp and even, almost glowing under the lights. Surrounding it are tier upon tier of seats, rising steeply upward so even the highest rows still feel connected to the action. Seats are usually plastic or cushioned, colored to match the home team, sometimes forming patterns or logos when empty.\n\nAbove, a partial or full roof stretches over the crowd, made of steel trusses and panels that either open or stay fixed. It traps and amplifies sound, turning chants into thunder. When the crowd roars, it feels physical\u00e2\u20ac\u201dlike the air is vibrating in your chest.\n\nGiant screens (scoreboards) hang above the field or at the ends, showing replays in crystal clarity. Around the stadium edge, LED ribbon boards flash scores, animations, and ads, constantly moving and changing colors. Speakers blast music, announcements, and commentary, filling every corner with sound.\n\nThe crowd itself is alive\u00e2\u20ac\u201dthousands or even tens of thousands of people. Some stand the whole time, chanting in rhythm, waving flags, or beating drums. Others sit, watching closely, reacting to every pass, shot, or play. The noise shifts constantly: quiet tension, sudden explosions of cheering, collective gasps.\n\nDetails are everywhere:\n\nSecurity and staff in bright vests guiding people\nStairways and railings dividing seating sections\nVIP boxes and luxury suites with glass fronts and private seating\nPress boxes high above with cameras and commentators\nBenches and technical areas along the field edges\nLines painted perfectly on the pitch or turf\n\nAt night, the lighting is intense\u00e2\u20ac\u201dhuge floodlights or roof-mounted systems turn the field into a stage, bright as day, while the crowd sits in a slightly dimmer glow. Shadows are sharp, and everything looks crisp.\n\nWhen the game ends, the energy slowly drains. People stream out through the concourses, the noise fading into scattered conversations. Outside, the stadium still stands huge and glowing, but quieter now\u00e2\u20ac\u201dlike it\u00e2\u20ac\u2122s resting after holding all that energy inside."
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "finish task"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "/plan /agents for the phone, add another app called blade trade, use copy and paste this github game https://noahmbrown2-pixel.github.io/blocktrade/ into the coding of the block trade app"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "open game"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "ok now add the app to the phone now"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "get rid of the sponsers building, i only want the sponser to show up in your imbox as a yellow dot for notification, you can only get a notification if you play a sport or on a bisness, if you own a bisness, your bisness can get sponsered, the better the value the better the deal, if you already have a sponser to a bisness every month boost the value of the bisness buy 0.08333333333, you can only start offering sponser if the bisness value is over 250K, for the sports players, the more awards they win the better sponsers they get. last thing, add a joystick so i can play this on mobile"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "finish task"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make a new app on the phone called wordle,copy and paste this file to create the app https://noahmbrown2-pixel.github.io/wordle/"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make a new app on the phone called block blast,copy and paste this file to create the game https://noahmbrown2-pixel.github.io/block-blast/"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "save this to github and send me the link to the game after that"
+  },
+  {
+    "session_id": "d751a285-c8d7-42d3-b65b-08053e3e60e4",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\d751a285-c8d7-42d3-b65b-08053e3e60e4.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "https://apps.apple.com/us/app/rogue-tv/id6502454549 install this app"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "create a boxing game"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "open"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make this 3d"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "open the game everytime"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make the player fight in third person, give both fighters to arm,make them look like human"
+  },
+  {
+    "session_id": "9276c254-7351-4a35-a112-d6210ea2f289",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\9276c254-7351-4a35-a112-d6210ea2f289.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "@agent-builder make sure the task if complete done, if you hit the rate limit just continue the moment you get the credits back"
+  },
+  {
+    "session_id": "9276c254-7351-4a35-a112-d6210ea2f289",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\9276c254-7351-4a35-a112-d6210ea2f289.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": " /plan /fork /agents 1.add real boxing gloves to the fighters 2.make sure the player view is third person 3. give the boxers real human looks and physics 4.give the players to arm to fight with 5.ad a stun mode to the boxers 10% chance 6. add Jab\nCross\nLeft Hook\nRight Hook\nUppercut\nOverhand Right\nOverhand Left\nBody Shot\nLiver Shot\nStraight Right\nStraight Left\nCheck Hook\nShovel Hook\nCorkscrew Punch\nHaymaker,but make sure that anything with left and rights are the same button but they switch arms  7. add a upper body dyagram of you and your oppenent in between round, white me safe, yellow mean in danger, red means critical,any punches landed in those areas that are red and yellow take more damge then a area that is white, yellow is 10% more damage, red is 25%.8 add real circling motion in the fights 9. along with the dyagram add real advise from the corner mens 10. if know one get knocked at after the last round then have a glove raise for who ever took less damage throught out the full fight"
+  },
+  {
+    "session_id": "9276c254-7351-4a35-a112-d6210ea2f289",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\9276c254-7351-4a35-a112-d6210ea2f289.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "how to use auto mode for model selection"
+  },
+  {
+    "session_id": "9276c254-7351-4a35-a112-d6210ea2f289",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\9276c254-7351-4a35-a112-d6210ea2f289.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "open the boxing game"
+  },
+  {
+    "session_id": "9276c254-7351-4a35-a112-d6210ea2f289",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\9276c254-7351-4a35-a112-d6210ea2f289.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make a new repo send the link to the game after"
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "add new feature for boxing game, make their knees bend so they can dodge punches, and they need to take steps as if they need to take steps forwards backward left and right."
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "https://noahmbrown2-pixel.github.io/heavy-hitters-3d/ add new feature for boxing game, make their knees bend so they can dodge punches, and they need to take steps as if they need to take steps forwards backward left and right. don't change anything but adding the knees and feet"
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make the punches do 8 times less damage"
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make all punch do 8 times less damage"
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make sure that the fighters only recover 15% percent of health during the round period"
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "every time i make a change to a file  atomatically open the change file, open the game on my browser"
   }
 ]

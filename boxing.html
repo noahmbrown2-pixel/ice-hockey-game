@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Heavy Hitters — Boxing</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0a0a0a;color:#f0e6d2;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
+
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+canvas{display:block;background:#1a0d0d;image-rendering:pixelated;box-shadow:0 0 0 4px #2c2c2c, 0 12px 60px rgba(0,0,0,.8)}
+
+/* ── HUD overlay screens ── */
+.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);z-index:10;color:#ffd700;text-shadow:0 2px 8px #000;text-align:center;padding:24px}
+.screen.active{display:flex}
+.screen h1{font-size:64px;letter-spacing:4px;font-weight:900;color:#ffd700;text-shadow:0 4px 0 #6b1a00, 0 6px 20px rgba(0,0,0,.8)}
+.screen h2{font-size:28px;letter-spacing:2px;color:#ff6b6b}
+.screen p{font-size:15px;color:#cfc8b8;line-height:1.7;max-width:520px}
+.screen .btn{background:linear-gradient(180deg,#ffd700,#c89a00);color:#1a0d0d;border:0;font-weight:900;font-size:18px;letter-spacing:2px;padding:14px 36px;border-radius:8px;cursor:pointer;box-shadow:0 4px 0 #7a5e00, 0 8px 16px rgba(0,0,0,.5);transition:transform .12s ease}
+.screen .btn:hover{transform:translateY(-2px)}
+.screen .btn:active{transform:translateY(2px);box-shadow:0 2px 0 #7a5e00}
+.controls{font-size:13px;color:#a8a08a;margin-top:8px}
+.controls b{color:#ffd700}
+.controls span{display:inline-block;background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.4);border-radius:4px;padding:2px 8px;margin:2px 4px;font-weight:700;color:#ffd700;font-family:Consolas,monospace}
+
+/* ── Touch controls (mobile) ── */
+#touch-controls{position:absolute;inset:auto 0 0 0;height:0;display:none;z-index:5;pointer-events:none}
+.touch-pad{position:fixed;bottom:18px;width:120px;height:120px;pointer-events:auto;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:4px}
+.touch-pad.left{left:18px}
+.touch-pad.right{right:18px}
+.touch-btn{background:rgba(0,0,0,.55);border:2px solid rgba(255,215,0,.55);border-radius:50%;color:#ffd700;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.touch-btn:active{background:rgba(255,215,0,.35);color:#1a0d0d}
+.touch-btn.empty{background:transparent;border:none}
+@media (pointer:coarse), (max-width:900px) { #touch-controls{display:block} }
+</style>
+</head>
+<body>
+
+<div id="wrap"><canvas id="game" width="1000" height="600"></canvas>
+
+<div class="screen active" id="screen-title">
+  <h1>HEAVY HITTERS</h1>
+  <h2>★ Round 1 ★</h2>
+  <p>Three rounds. Three minutes apiece. Drop your opponent or win the bell on points. The crowd is hungry.</p>
+  <button class="btn" id="btn-fight">FIGHT</button>
+  <div class="controls">
+    <div><b>Move:</b> <span>A</span><span>D</span> &nbsp; <b>Approach/Backstep:</b> <span>W</span><span>S</span></div>
+    <div><b>Jab:</b> <span>J</span> &nbsp; <b>Hook:</b> <span>K</span> &nbsp; <b>Uppercut:</b> <span>L</span> &nbsp; <b>Block:</b> <span>SPACE</span> &nbsp; <b>Dodge:</b> <span>Q</span></div>
+    <div style="font-size:12px;color:#88806a;margin-top:4px">Dodge ducks jabs &amp; hooks — but uppercuts will catch you!</div>
+  </div>
+</div>
+
+<div class="screen" id="screen-end">
+  <h1 id="end-title">VICTORY</h1>
+  <h2 id="end-sub">By KO in Round 1 · 0:42</h2>
+  <p id="end-stats"></p>
+  <button class="btn" id="btn-rematch">REMATCH</button>
+</div>
+
+<div id="touch-controls">
+  <div class="touch-pad left">
+    <span class="touch-btn empty"></span><span class="touch-btn" data-tk="w">▲</span><span class="touch-btn empty"></span>
+    <span class="touch-btn" data-tk="a">◀</span><span class="touch-btn empty"></span><span class="touch-btn" data-tk="d">▶</span>
+    <span class="touch-btn empty"></span><span class="touch-btn" data-tk="s">▼</span><span class="touch-btn empty"></span>
+  </div>
+  <div class="touch-pad right">
+    <span class="touch-btn empty"></span><span class="touch-btn" data-tk="j">JAB</span><span class="touch-btn empty"></span>
+    <span class="touch-btn" data-tk=" ">BLK</span><span class="touch-btn" data-tk="k">HK</span><span class="touch-btn" data-tk="l">UP</span>
+    <span class="touch-btn" data-tk="q">DGE</span><span class="touch-btn empty"></span><span class="touch-btn empty"></span>
+  </div>
+</div>
+</div>
+
+<script>
+'use strict';
+
+const W = 1000, H = 600;
+const FLOOR_Y = 470;     // canvas y where boxers' feet sit
+const RING_LEFT = 110;
+const RING_RIGHT = W - 110;
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+function fitCanvas(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const wrap = document.getElementById('wrap');
+  const scale = Math.min(wrap.clientWidth / W, wrap.clientHeight / H);
+  canvas.style.width  = (W * scale) + 'px';
+  canvas.style.height = (H * scale) + 'px';
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+}
+window.addEventListener('resize', fitCanvas);
+fitCanvas();
+
+// ─────────────────────────────────────────────
+//  Web Audio (simple synth hit / bell sounds)
+// ─────────────────────────────────────────────
+let audioCtx = null;
+function ensureAudio(){
+  if (!audioCtx){
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e){ audioCtx = null; }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playTone({freq=200, dur=0.08, type='sine', vol=0.3, attack=0.005, decay=0.05}){
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + attack);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t + dur);
+}
+function playHit(power){
+  // power: 1=jab, 2=hook, 3=uppercut
+  ensureAudio();
+  if (!audioCtx) return;
+  if (power === 1){ playTone({ freq: 400, dur: 0.06, type: 'square', vol: 0.18 }); }
+  else if (power === 2){ playTone({ freq: 220, dur: 0.10, type: 'square', vol: 0.25 }); playTone({ freq: 110, dur: 0.12, type: 'sine', vol: 0.18 }); }
+  else { playTone({ freq: 90, dur: 0.18, type: 'sawtooth', vol: 0.3 }); playTone({ freq: 50, dur: 0.20, type: 'sine', vol: 0.22 }); }
+}
+function playBlock(){
+  ensureAudio();
+  playTone({ freq: 700, dur: 0.05, type: 'square', vol: 0.12 });
+}
+function playBell(){
+  ensureAudio();
+  for (const f of [880, 1318, 1760]){
+    playTone({ freq: f, dur: 1.2, type: 'sine', vol: 0.16, attack: 0.005 });
+  }
+}
+
+// ─────────────────────────────────────────────
+//  Game state
+// ─────────────────────────────────────────────
+const PUNCH = {
+  jab:      { dmg: 0.75, stam: 5,  range: 78, windup: 0.06, active: 0.06, recover: 0.18, knockback: 4 },
+  hook:     { dmg: 1.5,  stam: 12, range: 70, windup: 0.14, active: 0.08, recover: 0.28, knockback: 8 },
+  uppercut: { dmg: 2.5,  stam: 20, range: 60, windup: 0.22, active: 0.10, recover: 0.36, knockback: 14 },
+};
+
+const ROUND_LEN = 60; // seconds
+const TOTAL_ROUNDS = 3;
+
+let state = 'title';      // 'title' | 'fight' | 'roundover' | 'end'
+let round = 1;
+let roundClock = ROUND_LEN;
+let roundResult = '';     // text shown on round-end overlay
+let scorePlayer = 0, scoreCpu = 0; // rounds won
+let knockdownsPlayer = 0, knockdownsCpu = 0;
+let endTitle = '', endSub = '';
+
+// Slow motion when a KO punch lands
+let slowmoT = 0;
+let screenFlash = 0;
+let screenShake = 0;
+
+// Hit-text bursts (pow/bam)
+const hits = [];
+
+function makeBoxer(opts){
+  return {
+    name: opts.name,
+    isPlayer: !!opts.isPlayer,
+    x: opts.x,
+    y: FLOOR_Y,
+    vx: 0,
+    facing: opts.facing || 1, // +1 = facing right, -1 = facing left
+    hp: 100, maxHp: 100,
+    stamina: 100, maxStam: 100,
+    color: opts.color,
+    trunks: opts.trunks,
+    skin: opts.skin || '#d6a26b',
+    action: 'idle',          // 'idle' | 'jab' | 'hook' | 'uppercut' | 'block' | 'hit' | 'ko'
+    actionT: 0,              // time elapsed in current action
+    actionDur: 0,            // total duration of current action
+    hitFrameDone: false,     // already-applied damage on this active punch
+    moveX: 0,
+    flinch: 0,               // visual flinch timer
+    bob: 0,
+    legPhase: 0,      // 0-1 walking cycle
+    kneesBent: 0,     // 0=straight 1=fully crouched
+    dodgeCooldown: 0, // seconds until next dodge allowed
+    aiTimer: 0,
+    aiState: 'idle',
+    aiAggression: 0.5,
+    aiReaction: 0.4,
+  };
+}
+
+let player, cpu;
+
+function resetMatch(){
+  state = 'fight';
+  round = 1;
+  roundClock = ROUND_LEN;
+  scorePlayer = 0; scoreCpu = 0;
+  knockdownsPlayer = 0; knockdownsCpu = 0;
+  hits.length = 0;
+  setupRound();
+  hideScreen('screen-title');
+  hideScreen('screen-end');
+  playBell();
+}
+
+function setupRound(){
+  player = makeBoxer({ name:'YOU', isPlayer: true, x: 320, facing:  1, color:'#7d2424', trunks:'#cc0000', skin:'#d6a26b' });
+  cpu    = makeBoxer({ name:'BRUNO', x: 680, facing: -1, color:'#1f3d6e', trunks:'#0066ff', skin:'#c08550' });
+  cpu.aiAggression = 0.45 + round*0.12;
+  cpu.aiReaction = 0.35 + round*0.10;
+  roundClock = ROUND_LEN;
+}
+
+// ─────────────────────────────────────────────
+//  Input
+// ─────────────────────────────────────────────
+const keys = {};
+window.addEventListener('keydown', e => {
+  ensureAudio();
+  const k = e.key.toLowerCase();
+  if (['w','a','s','d','j','k','l',' '].includes(k)) e.preventDefault();
+  keys[k] = true;
+});
+window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+// Touch buttons
+document.querySelectorAll('#touch-controls .touch-btn[data-tk]').forEach(btn => {
+  const tk = btn.dataset.tk;
+  btn.addEventListener('touchstart', e => { e.preventDefault(); ensureAudio(); keys[tk] = true; });
+  btn.addEventListener('touchend',   e => { e.preventDefault(); keys[tk] = false; });
+  btn.addEventListener('touchcancel',e => { keys[tk] = false; });
+});
+
+// ─────────────────────────────────────────────
+//  Boxer logic
+// ─────────────────────────────────────────────
+function startAction(b, kind){
+  if (b.hp <= 0) return;
+  if (b.action === 'ko') return;
+  if (b.action !== 'idle' && b.action !== 'block') return; // can't interrupt
+  if (kind in PUNCH){
+    const p = PUNCH[kind];
+    const stamReq = p.stam * (b.stamina < 25 ? 1.0 : 1.0);
+    if (b.stamina < p.stam * 0.5) return; // too gassed
+    b.stamina = Math.max(0, b.stamina - p.stam);
+    b.action = kind;
+    b.actionT = 0;
+    b.actionDur = p.windup + p.active + p.recover;
+    b.hitFrameDone = false;
+  } else if (kind === 'block'){
+    b.action = 'block';
+    b.actionT = 0;
+    b.actionDur = 0.0; // hold-to-block
+  }
+}
+
+function endAction(b){
+  b.action = 'idle';
+  b.actionT = 0;
+}
+
+function startDodge(b){
+  if (b.hp <= 0 || b.action === 'ko') return;
+  if (b.dodgeCooldown > 0) return;
+  if (b.action !== 'idle') return;
+  b.action = 'dodge';
+  b.actionT = 0;
+  b.actionDur = 0.38;
+  b.dodgeCooldown = 0.9;
+}
+
+function takeHit(target, source, kind){
+  const p = PUNCH[kind];
+  const blocked = (target.action === 'block');
+
+  // Dodge check — crouching slips jabs/hooks but uppercuts catch you low
+  if (!blocked && target.kneesBent > 0.5 && target.action === 'dodge'){
+    if (kind !== 'uppercut'){
+      pushHitText(target.x, target.y - 80, 'DODGE!', '#44ff88');
+      return;
+    }
+    // Uppercut punishes the crouch
+    pushHitText(target.x, target.y - 80, 'CAUGHT!', '#ff8800');
+  }
+
+  let dmg = p.dmg;
+  if (blocked){
+    dmg = Math.round(dmg * 0.18);
+    target.stamina = Math.max(0, target.stamina - p.stam * 0.6);
+    playBlock();
+    pushHitText(target.x, target.y - 100, 'BLOCK', '#9fdcff');
+  } else {
+    if (kind === 'uppercut') dmg += 4;
+    target.flinch = 0.35;
+    if (target.action !== 'ko') target.action = 'hit';
+    target.actionT = 0;
+    target.actionDur = p.windup + 0.05;
+    target.x += (target.x < source.x ? -1 : 1) * p.knockback * (blocked ? 0.3 : 1);
+    playHit(kind === 'jab' ? 1 : kind === 'hook' ? 2 : 3);
+    const word = kind === 'jab' ? 'POW' : kind === 'hook' ? 'BAM' : 'BOOM';
+    const col = kind === 'jab' ? '#ffd700' : kind === 'hook' ? '#ff7a00' : '#ff3838';
+    pushHitText(target.x, target.y - 110, word, col);
+    if (kind === 'uppercut') screenFlash = 0.12;
+    screenShake = Math.max(screenShake, kind === 'jab' ? 2 : kind === 'hook' ? 4 : 7);
+  }
+  target.hp -= dmg;
+  if (target.hp <= 0){
+    target.hp = 0;
+    target.action = 'ko';
+    target.actionT = 0;
+    target.actionDur = 1.6;
+    slowmoT = 1.5;
+    screenFlash = 0.2;
+    if (target.isPlayer) knockdownsPlayer++; else knockdownsCpu++;
+  }
+}
+
+function pushHitText(x, y, txt, color){
+  hits.push({ x, y, txt, color, t: 0, life: 0.7, vy: -40 - Math.random()*30 });
+}
+
+// Punch hit testing — during the "active" frame, check distance + facing
+function checkPunchHit(attacker, defender){
+  if (!(attacker.action in PUNCH)) return;
+  const p = PUNCH[attacker.action];
+  const elapsed = attacker.actionT;
+  const inActive = (elapsed >= p.windup && elapsed <= p.windup + p.active);
+  if (!inActive) return;
+  if (attacker.hitFrameDone) return;
+  // Range check: distance between centers, and attacker must be facing defender
+  const dx = defender.x - attacker.x;
+  const dist = Math.abs(dx);
+  if (dist > p.range) return;
+  // Must face the defender
+  if (attacker.facing > 0 && dx < 0) return;
+  if (attacker.facing < 0 && dx > 0) return;
+  attacker.hitFrameDone = true;
+  takeHit(defender, attacker, attacker.action);
+}
+
+// ─────────────────────────────────────────────
+//  Update tick
+// ─────────────────────────────────────────────
+function tickPlayer(b, dt){
+  // Auto-face the opponent
+  b.facing = (cpu.x > b.x) ? 1 : -1;
+  // Movement when no action limits
+  let mx = 0;
+  if (keys['a']) mx -= 1;
+  if (keys['d']) mx += 1;
+  if (keys['w']) mx += b.facing * 0.6;
+  if (keys['s']) mx -= b.facing * 0.6;
+  const speed = (b.action === 'idle' || b.action === 'block') ? 240 : 60;
+  if (b.action !== 'ko' && b.action !== 'hit'){
+    b.x += mx * speed * dt;
+  }
+  b.x = Math.max(RING_LEFT + 30, Math.min(RING_RIGHT - 30, b.x));
+
+  // Leg phase advances when moving
+  if (b.action !== 'ko' && mx !== 0){
+    b.legPhase = (b.legPhase + Math.abs(mx) * 4 * dt) % 1;
+  }
+
+  // Block toggling
+  if (b.action === 'block' && !keys[' ']) endAction(b);
+  // Action triggers
+  if (b.action === 'idle'){
+    if (keys['q'] || keys['shift']) startDodge(b);
+    else if (keys[' '])      startAction(b, 'block');
+    else if (keys['j']) startAction(b, 'jab');
+    else if (keys['k']) startAction(b, 'hook');
+    else if (keys['l']) startAction(b, 'uppercut');
+  }
+  tickAction(b, dt);
+}
+
+function tickAction(b, dt){
+  // Always-running timers
+  if (b.dodgeCooldown > 0) b.dodgeCooldown = Math.max(0, b.dodgeCooldown - dt);
+  if (b.action !== 'dodge') b.kneesBent = Math.max(0, b.kneesBent - dt * 6);
+  if (b.flinch > 0) b.flinch = Math.max(0, b.flinch - dt);
+
+  if (b.action === 'ko'){
+    b.actionT += dt;
+    return;
+  }
+  if (b.action === 'hit'){
+    b.actionT += dt;
+    if (b.actionT >= b.actionDur) endAction(b);
+    return;
+  }
+  if (b.action === 'block'){
+    b.stamina = Math.max(0, b.stamina - 4 * dt);
+    return;
+  }
+  if (b.action === 'dodge'){
+    b.actionT += dt;
+    b.kneesBent = Math.sin((b.actionT / b.actionDur) * Math.PI);
+    if (b.actionT >= b.actionDur){ b.kneesBent = 0; endAction(b); }
+    return;
+  }
+  if (b.action in PUNCH){
+    b.actionT += dt;
+    if (b.actionT >= b.actionDur) endAction(b);
+  }
+  if (b.action === 'idle' && b.stamina < b.maxStam){
+    b.stamina = Math.min(b.maxStam, b.stamina + 18 * dt);
+  }
+}
+
+function tickCpu(c, dt){
+  c.facing = (player.x < c.x) ? -1 : 1;
+  c.aiTimer -= dt;
+  const dx = player.x - c.x;
+  const dist = Math.abs(dx);
+
+  // React to incoming heavy punches — dodge or block
+  const playerThreatening = (player.action === 'hook' || player.action === 'uppercut') && player.actionT < PUNCH[player.action].windup;
+  const playerJabbing = player.action === 'jab' && player.actionT < PUNCH.jab.windup;
+  if (playerThreatening && dist < 120 && Math.random() < c.aiReaction * dt * 50){
+    // Prefer dodge over block sometimes
+    if (c.dodgeCooldown <= 0 && Math.random() < 0.45) startDodge(c);
+    else if (c.action === 'idle') startAction(c, 'block');
+  } else if (playerJabbing && dist < 90 && Math.random() < c.aiReaction * dt * 35){
+    if (c.dodgeCooldown <= 0 && Math.random() < 0.3) startDodge(c);
+  } else if (c.action === 'block' && (!playerThreatening || dist > 130)){
+    endAction(c);
+  }
+
+  if (c.action === 'idle'){
+    if (c.aiTimer <= 0){
+      // Decide
+      c.aiTimer = 0.3 + Math.random() * 0.6;
+      if (dist > 220){
+        c.aiState = 'advance';
+      } else if (dist > 100){
+        // Approach more, or jab
+        if (Math.random() < c.aiAggression) c.aiState = (Math.random() < 0.5 ? 'advance' : 'jab');
+        else c.aiState = 'idle-bob';
+      } else {
+        // In striking range
+        if (c.stamina < 25){
+          c.aiState = 'retreat';
+        } else {
+          const r = Math.random();
+          if (r < c.aiAggression * 0.55){
+            // mix punches
+            if (Math.random() < 0.5) c.aiState = 'jab';
+            else if (Math.random() < 0.6) c.aiState = 'hook';
+            else c.aiState = 'uppercut';
+          } else if (r < 0.85){
+            c.aiState = 'sidestep';
+          } else {
+            c.aiState = 'block-tactical';
+          }
+        }
+      }
+    }
+    // Execute
+    const speed = 180;
+    if (c.aiState === 'advance'){
+      c.x += -c.facing * speed * dt; // move toward player (since facing player)
+      // Actually: player is at dx from c. If dx<0, player to left → move left.
+      // facing is sign of (player.x - c.x). To move toward player, move in +facing? No:
+      // facing=+1 means player to right. To advance, move +1. We had c.x += -c.facing => wrong.
+      // Fix:
+    } else if (c.aiState === 'retreat'){
+      // away from player
+    } else if (c.aiState === 'sidestep'){
+      // small lateral motion
+    }
+  }
+
+  // Simpler movement model: replace block above with this
+  if (c.action === 'idle'){
+    let cmx = 0;
+    if (c.aiState === 'advance') cmx = (dx > 0 ? 1 : -1);
+    else if (c.aiState === 'retreat') cmx = (dx > 0 ? -1 : 1);
+    else if (c.aiState === 'sidestep') cmx = (dx > 0 ? -0.3 : 0.3);
+    else if (c.aiState === 'jab')      { startAction(c, 'jab'); cmx = 0; }
+    else if (c.aiState === 'hook')     { startAction(c, 'hook'); cmx = 0; }
+    else if (c.aiState === 'uppercut') { startAction(c, 'uppercut'); cmx = 0; }
+    else if (c.aiState === 'block-tactical'){ startAction(c, 'block'); cmx = 0; }
+    const speed = 170;
+    c.x += cmx * speed * dt;
+    c.x = Math.max(RING_LEFT + 30, Math.min(RING_RIGHT - 30, c.x));
+    if (cmx !== 0) c.legPhase = (c.legPhase + Math.abs(cmx) * 4 * dt) % 1;
+  }
+
+  tickAction(c, dt);
+}
+
+// ─────────────────────────────────────────────
+//  Main loop
+// ─────────────────────────────────────────────
+let lastT = performance.now();
+function loop(now){
+  requestAnimationFrame(loop);
+  let dt = (now - lastT) / 1000;
+  lastT = now;
+  if (dt > 0.1) dt = 0.1;
+
+  // Slow motion scale
+  if (slowmoT > 0){
+    slowmoT -= dt;
+    dt *= 0.32;
+  }
+
+  if (state === 'fight'){
+    update(dt);
+  }
+  // hit-text decay always (so they fade out on screens too)
+  for (let i = hits.length - 1; i >= 0; i--){
+    const h = hits[i];
+    h.t += dt; h.y += h.vy * dt; h.vy += 60 * dt;
+    if (h.t >= h.life) hits.splice(i, 1);
+  }
+  if (screenFlash > 0) screenFlash = Math.max(0, screenFlash - dt * 1.5);
+  if (screenShake > 0) screenShake = Math.max(0, screenShake - dt * 18);
+
+  draw();
+}
+
+function update(dt){
+  roundClock -= dt;
+  tickPlayer(player, dt);
+  tickCpu(cpu, dt);
+  checkPunchHit(player, cpu);
+  checkPunchHit(cpu, player);
+
+  // Round end conditions
+  if (player.hp <= 0 || cpu.hp <= 0){
+    setTimeout(roundEnd, 1500);
+    state = 'roundover';
+  } else if (roundClock <= 0){
+    roundClock = 0;
+    setTimeout(roundEnd, 800);
+    state = 'roundover';
+  }
+}
+
+function roundEnd(){
+  // Decide round winner
+  let winner = null;
+  if (player.hp <= 0) winner = 'cpu';
+  else if (cpu.hp <= 0) winner = 'player';
+  else if (player.hp > cpu.hp) winner = 'player';
+  else if (cpu.hp > player.hp) winner = 'cpu';
+
+  if (winner === 'player') scorePlayer++;
+  else if (winner === 'cpu') scoreCpu++;
+
+  const matchOver = (round >= TOTAL_ROUNDS) || player.hp <= 0 || cpu.hp <= 0;
+  if (matchOver){
+    finishMatch(winner);
+  } else {
+    round++;
+    setupRound();
+    state = 'fight';
+    playBell();
+  }
+}
+
+function finishMatch(winner){
+  state = 'end';
+  let title = 'DRAW', sub = '';
+  if (player.hp <= 0)      { title = 'KNOCKED OUT'; sub = 'Round ' + round + ' · Bruno wins by KO'; }
+  else if (cpu.hp <= 0)    { title = 'VICTORY!';    sub = 'Round ' + round + ' · You win by KO!'; }
+  else if (scorePlayer > scoreCpu){ title = 'VICTORY!'; sub = 'You win on points · ' + scorePlayer + '-' + scoreCpu; }
+  else if (scoreCpu > scorePlayer){ title = 'DEFEAT'; sub = 'Bruno wins on points · ' + scoreCpu + '-' + scorePlayer; }
+  else { title = 'DRAW'; sub = 'Split decision · ' + scorePlayer + '-' + scoreCpu; }
+  document.getElementById('end-title').textContent = title;
+  document.getElementById('end-sub').textContent = sub;
+  document.getElementById('end-stats').textContent =
+    'Knockdowns: You ' + knockdownsCpu + ' · Bruno ' + knockdownsPlayer + '  •  HP left: You ' + Math.round(player.hp) + ' · Bruno ' + Math.round(cpu.hp);
+  showScreen('screen-end');
+  playBell();
+}
+
+// ─────────────────────────────────────────────
+//  Drawing
+// ─────────────────────────────────────────────
+function draw(){
+  // Screen shake offset
+  const sx = (screenShake > 0) ? (Math.random() - 0.5) * screenShake : 0;
+  const sy = (screenShake > 0) ? (Math.random() - 0.5) * screenShake : 0;
+  ctx.save();
+  ctx.translate(sx, sy);
+
+  drawArena();
+  // Boxers — paint farther one first
+  if (player.x < cpu.x){ drawBoxer(player); drawBoxer(cpu); }
+  else { drawBoxer(cpu); drawBoxer(player); }
+  drawHits();
+  drawHud();
+
+  ctx.restore();
+
+  if (screenFlash > 0){
+    ctx.fillStyle = 'rgba(255,255,255,' + screenFlash + ')';
+    ctx.fillRect(0, 0, W, H);
+  }
+}
+
+function drawArena(){
+  // Sky behind ring
+  const grad = ctx.createLinearGradient(0, 0, 0, FLOOR_Y);
+  grad.addColorStop(0, '#1a0d0d');
+  grad.addColorStop(1, '#3d1818');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, FLOOR_Y);
+
+  // Crowd silhouettes
+  ctx.fillStyle = '#0d0606';
+  for (let x = 0; x < W; x += 18){
+    const h = 60 + Math.sin(x * 0.7) * 6 + Math.sin(x * 0.3 + 1) * 8;
+    ctx.beginPath();
+    ctx.arc(x + 9, FLOOR_Y - 30, h * 0.18, Math.PI, 0);
+    ctx.fill();
+  }
+  // Crowd row 2 (slightly highlighted)
+  ctx.fillStyle = '#1a0a0a';
+  for (let x = 9; x < W; x += 18){
+    const h = 50 + Math.sin(x * 0.5 + 2) * 5;
+    ctx.beginPath();
+    ctx.arc(x + 9, FLOOR_Y - 18, h * 0.16, Math.PI, 0);
+    ctx.fill();
+  }
+
+  // Ring canvas (the floor)
+  const floorGrad = ctx.createLinearGradient(0, FLOOR_Y, 0, H);
+  floorGrad.addColorStop(0, '#c79b6a');
+  floorGrad.addColorStop(1, '#7a5a3a');
+  ctx.fillStyle = floorGrad;
+  ctx.fillRect(0, FLOOR_Y, W, H - FLOOR_Y);
+
+  // Ring perimeter shadow
+  ctx.fillStyle = 'rgba(0,0,0,.35)';
+  ctx.beginPath();
+  ctx.ellipse(W/2, FLOOR_Y + 18, 380, 30, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // Center logo on canvas
+  ctx.save();
+  ctx.translate(W/2, FLOOR_Y + 50);
+  ctx.fillStyle = '#a0703a';
+  ctx.font = 'bold 32px Arial Black, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('★ HEAVY HITTERS ★', 0, 0);
+  ctx.restore();
+
+  // Ring posts (4 corners) + ropes
+  drawPost(RING_LEFT, FLOOR_Y);
+  drawPost(RING_RIGHT, FLOOR_Y);
+  drawPost(RING_LEFT + 30, FLOOR_Y - 8); // mid-back fake-perspective post
+  drawPost(RING_RIGHT - 30, FLOOR_Y - 8);
+
+  // 3 ropes between left-right posts
+  const ropeColors = ['#cc0000', '#ffd700', '#0066cc'];
+  for (let r = 0; r < 3; r++){
+    const y = FLOOR_Y - 30 - r * 35;
+    ctx.strokeStyle = ropeColors[r];
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(RING_LEFT, y);
+    ctx.lineTo(RING_RIGHT, y);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,0,0,.35)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(RING_LEFT, y + 1.5);
+    ctx.lineTo(RING_RIGHT, y + 1.5);
+    ctx.stroke();
+  }
+}
+
+function drawPost(x, y){
+  // Pole
+  ctx.fillStyle = '#3a2a1a';
+  ctx.fillRect(x - 6, y - 130, 12, 130);
+  // Cap
+  ctx.fillStyle = '#ffd700';
+  ctx.fillRect(x - 9, y - 135, 18, 12);
+  ctx.fillStyle = '#bf8a00';
+  ctx.fillRect(x - 9, y - 127, 18, 4);
+}
+
+// ── Leg segment helper ──────────────────────
+// Draws hip→knee→foot as two thick rectangles meeting at a knee joint
+function drawLegSegs(hx, hy, kx, ky, fx, fy, w, color){
+  function seg(ax, ay, bx, by, hw){
+    const a = Math.atan2(by - ay, bx - ax);
+    const px = Math.sin(a) * hw, py = Math.cos(a) * hw;
+    ctx.beginPath();
+    ctx.moveTo(ax - px, ay + py);
+    ctx.lineTo(bx - px, by + py);
+    ctx.lineTo(bx + px, by - py);
+    ctx.lineTo(ax + px, ay - py);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.fillStyle = color;
+  seg(hx, hy, kx, ky, w / 2);       // thigh
+  seg(kx, ky, fx, fy, w / 2 - 1.5); // shin (slightly thinner)
+}
+
+// ── Boxer renderer ──────────────────────────
+function drawBoxer(b){
+  const f = b.facing;
+  const x = Math.round(b.x);
+  const y = Math.round(b.y);
+  const koProg = b.action === 'ko' ? Math.min(1, b.actionT / 0.6) : 0;
+  const flinchY = b.flinch > 0 ? Math.sin(b.flinch * 30) * 2 : 0;
+  const bobY = (b.action === 'idle') ? Math.sin(performance.now() * 0.005) * 2 : 0;
+
+  const bend = b.kneesBent;
+  const crouchDrop = bend * 16; // hip drops up to 16px when crouching
+
+  // Foot X swing for stepping animation
+  const stepAmt = 9;
+  const leftFootDX  =  Math.sin(b.legPhase * Math.PI * 2) * stepAmt;
+  const rightFootDX =  Math.sin(b.legPhase * Math.PI * 2 + Math.PI) * stepAmt;
+
+  ctx.save();
+  ctx.translate(x, y - flinchY - bobY);
+  if (koProg > 0){
+    ctx.translate(0, koProg * 30);
+    ctx.rotate(f * koProg * 0.9);
+  }
+  ctx.scale(f, 1);
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,.45)';
+  ctx.beginPath();
+  ctx.ellipse(0, 4, 30, 6, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // ── Legs with bent knees + stepping feet ──
+  const hipY      = -38 + crouchDrop; // hip drops as boxer crouches
+  const footY     = 0;                // feet always on floor
+  const kneeY     = (hipY + footY) / 2;
+  const leftKneeX  = -9 - bend * 13;  // knees splay outward when bent
+  const rightKneeX =  9 + bend * 13;
+
+  drawLegSegs(-9, hipY, leftKneeX, kneeY, -9 + leftFootDX, footY, 12, b.trunks);
+  drawLegSegs( 9, hipY, rightKneeX, kneeY,  9 + rightFootDX, footY, 12, b.trunks);
+
+  // Knee caps (flesh-toned dots at joint)
+  ctx.fillStyle = b.skin;
+  ctx.beginPath(); ctx.arc(leftKneeX, kneeY, 5, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(rightKneeX, kneeY, 5, 0, Math.PI*2); ctx.fill();
+
+  // Boots (move with feet)
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(-9 + leftFootDX  - 11, footY - 5, 22, 5);
+  ctx.fillRect( 9 + rightFootDX - 11, footY - 5, 22, 5);
+
+  // Trunks waistband (descends with crouch)
+  ctx.fillStyle = '#ffd700';
+  ctx.fillRect(-22, hipY - 6, 44, 8);
+
+  // Torso (relative to hip)
+  ctx.fillStyle = b.skin;
+  ctx.fillRect(-22, hipY - 50, 44, 50);
+  // Chest shadow
+  ctx.fillStyle = 'rgba(0,0,0,.18)';
+  ctx.fillRect(-22, hipY - 50, 44, 6);
+
+  // Head + face (relative to hip)
+  const headCY = hipY - 68;
+  ctx.fillStyle = b.skin;
+  ctx.beginPath();
+  ctx.arc(0, headCY, 18, 0, Math.PI*2);
+  ctx.fill();
+  // Hair
+  ctx.fillStyle = '#1a0d0d';
+  ctx.beginPath();
+  ctx.arc(0, headCY - 7, 18, Math.PI, 0);
+  ctx.fill();
+  // Eyes
+  if (b.action !== 'ko'){
+    ctx.fillStyle = '#000';
+    ctx.fillRect( 4, headCY - 4, 5, 2);
+    ctx.fillRect(-9, headCY - 4, 5, 2);
+  } else {
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(2,headCY-6); ctx.lineTo(8,headCY); ctx.moveTo(8,headCY-6); ctx.lineTo(2,headCY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-10,headCY-6); ctx.lineTo(-4,headCY); ctx.moveTo(-4,headCY-6); ctx.lineTo(-10,headCY); ctx.stroke();
+  }
+  // Mouth
+  ctx.fillStyle = '#5a2a2a';
+  if (b.action === 'hit' || b.flinch > 0){
+    ctx.fillRect(-5, headCY + 8, 10, 4);
+  } else {
+    ctx.fillRect(-3, headCY + 8, 6, 2);
+  }
+
+  drawArms(b, crouchDrop);
+
+  ctx.restore();
+}
+
+function drawArms(b, crouchDrop){
+  crouchDrop = crouchDrop || 0;
+  // Glove color matches trunks accent
+  const glove = b.trunks === '#cc0000' ? '#ff3838' : '#3da2ff';
+  const stroke = '#1a0d0d';
+  const action = b.action;
+  const t = b.actionT;
+  let leadExt = 0, rearExt = 0;
+  let leadAng = 0, rearAng = 0;
+  let leadY = 0, rearY = 0;
+
+  if (action === 'jab'){
+    const p = PUNCH.jab;
+    if (t < p.windup) { leadExt = (t / p.windup) * 30; }
+    else if (t < p.windup + p.active) { leadExt = 30 + 20; }
+    else { const r = (t - p.windup - p.active) / p.recover; leadExt = 50 * (1 - r); }
+  } else if (action === 'hook'){
+    const p = PUNCH.hook;
+    if (t < p.windup){ rearAng = -((t / p.windup) * 0.8); rearExt = 8; }
+    else if (t < p.windup + p.active){ rearAng = 0.4; rearExt = 50; }
+    else { const r = (t - p.windup - p.active) / p.recover; rearAng = 0.4 * (1 - r); rearExt = 50 * (1 - r); }
+  } else if (action === 'uppercut'){
+    const p = PUNCH.uppercut;
+    if (t < p.windup){ rearY = -(t / p.windup) * 18; rearExt = 5; }
+    else if (t < p.windup + p.active){ rearY = -28; rearExt = 38; }
+    else { const r = (t - p.windup - p.active) / p.recover; rearY = -28 * (1 - r); rearExt = 38 * (1 - r); }
+  } else if (action === 'block'){
+    leadExt = 6; rearExt = 6;
+    leadY = -16; rearY = -16;
+    leadAng = 0.4; rearAng = -0.4;
+  } else if (action === 'hit'){
+    leadExt = -4; rearExt = -4;
+    leadY = 6; rearY = 6;
+  }
+
+  // Rear arm (back arm) — drawn first so lead arm is in front
+  ctx.save();
+  ctx.translate(-10, -75 + rearY + crouchDrop);
+  ctx.rotate(rearAng);
+  ctx.fillStyle = '#d6a26b';
+  ctx.fillRect(0, -6, 14 + rearExt, 12);
+  ctx.fillStyle = glove;
+  ctx.beginPath();
+  ctx.arc(14 + rearExt, 0, 10, 0, Math.PI*2);
+  ctx.fill();
+  ctx.strokeStyle = stroke; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.restore();
+
+  // Lead arm
+  ctx.save();
+  ctx.translate(8, -78 + leadY + crouchDrop);
+  ctx.rotate(leadAng);
+  ctx.fillStyle = '#d6a26b';
+  ctx.fillRect(0, -6, 14 + leadExt, 12);
+  ctx.fillStyle = glove;
+  ctx.beginPath();
+  ctx.arc(14 + leadExt, 0, 11, 0, Math.PI*2);
+  ctx.fill();
+  ctx.strokeStyle = stroke; ctx.lineWidth = 1.5; ctx.stroke();
+  // Glove highlight
+  ctx.fillStyle = 'rgba(255,255,255,.35)';
+  ctx.beginPath();
+  ctx.arc(14 + leadExt - 3, -3, 3, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawHits(){
+  for (const h of hits){
+    const a = 1 - (h.t / h.life);
+    const scale = 1 + (1 - a) * 0.8;
+    ctx.save();
+    ctx.translate(h.x, h.y);
+    ctx.scale(scale, scale);
+    ctx.font = 'bold 36px Arial Black, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(0,0,0,' + a + ')';
+    ctx.fillStyle = h.color.replace(')', ',' + a + ')').replace('rgb','rgba');
+    if (!h.color.startsWith('rgb')){
+      // hex colors — use globalAlpha
+      ctx.globalAlpha = a;
+      ctx.fillStyle = h.color;
+    }
+    ctx.strokeText(h.txt, 0, 0);
+    ctx.fillText(h.txt, 0, 0);
+    ctx.restore();
+  }
+}
+
+function drawHud(){
+  // Top HUD bar
+  const barH = 80;
+  ctx.fillStyle = 'rgba(0,0,0,.55)';
+  ctx.fillRect(0, 0, W, barH);
+  ctx.fillStyle = 'rgba(255,215,0,.5)';
+  ctx.fillRect(0, barH - 2, W, 2);
+
+  // Player health bar
+  drawHealthBar(40, 14, 360, 22, player.hp / player.maxHp, '#ff3838', 'YOU');
+  drawStaminaBar(40, 42, 280, 8, player.stamina / player.maxStam);
+
+  // CPU health bar (right-aligned)
+  drawHealthBar(W - 400, 14, 360, 22, cpu.hp / cpu.maxHp, '#3da2ff', 'BRUNO', true);
+  drawStaminaBar(W - 320, 42, 280, 8, cpu.stamina / cpu.maxStam, true);
+
+  // Round + timer (center)
+  ctx.fillStyle = '#ffd700';
+  ctx.font = 'bold 32px Arial Black, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('R' + round, W/2, 28);
+  ctx.font = 'bold 22px Consolas, monospace';
+  ctx.fillStyle = roundClock < 10 ? '#ff3838' : '#ffe066';
+  const m = Math.floor(roundClock / 60);
+  const s = Math.floor(roundClock % 60);
+  ctx.fillText(m + ':' + (s < 10 ? '0' : '') + s, W/2, 56);
+  // Score dots
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillStyle = '#cfc8b8';
+  ctx.fillText(scorePlayer + '-' + scoreCpu, W/2, 72);
+
+  // Round-over flash text
+  if (state === 'roundover'){
+    ctx.fillStyle = 'rgba(0,0,0,.6)';
+    ctx.fillRect(0, H/2 - 60, W, 120);
+    ctx.fillStyle = '#ffd700';
+    ctx.font = 'bold 64px Arial Black';
+    ctx.textAlign = 'center';
+    if (player.hp <= 0) ctx.fillText('YOU GOT KO\'D', W/2, H/2 + 18);
+    else if (cpu.hp <= 0) ctx.fillText('KNOCKOUT!', W/2, H/2 + 18);
+    else ctx.fillText('END OF ROUND ' + round, W/2, H/2 + 18);
+  }
+}
+
+function drawHealthBar(x, y, w, h, frac, color, label, rightAlign){
+  // Background
+  ctx.fillStyle = 'rgba(0,0,0,.65)';
+  ctx.fillRect(x, y, w, h);
+  // Fill
+  ctx.fillStyle = color;
+  const fillW = Math.max(0, w * frac);
+  if (rightAlign) ctx.fillRect(x + (w - fillW), y, fillW, h);
+  else ctx.fillRect(x, y, fillW, h);
+  // Border
+  ctx.strokeStyle = '#ffd700';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y, w, h);
+  // Label
+  ctx.fillStyle = '#ffd700';
+  ctx.font = 'bold 14px sans-serif';
+  ctx.textAlign = rightAlign ? 'right' : 'left';
+  ctx.fillText(label, rightAlign ? x + w : x, y - 4);
+  // HP value
+  ctx.textAlign = rightAlign ? 'left' : 'right';
+  ctx.fillStyle = '#cfc8b8';
+  ctx.font = 'bold 12px Consolas';
+  ctx.fillText(Math.round(frac * 100), rightAlign ? x : x + w, y - 4);
+}
+
+function drawStaminaBar(x, y, w, h, frac, rightAlign){
+  ctx.fillStyle = 'rgba(0,0,0,.65)';
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = '#43b02a';
+  const fillW = Math.max(0, w * frac);
+  if (rightAlign) ctx.fillRect(x + (w - fillW), y, fillW, h);
+  else ctx.fillRect(x, y, fillW, h);
+  ctx.strokeStyle = 'rgba(255,255,255,.35)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y, w, h);
+}
+
+// ─────────────────────────────────────────────
+//  Screens
+// ─────────────────────────────────────────────
+function showScreen(id){ document.getElementById(id).classList.add('active'); }
+function hideScreen(id){ document.getElementById(id).classList.remove('active'); }
+
+// Initial dummy boxers so draw doesn't crash on title screen
+player = makeBoxer({ name:'YOU', isPlayer: true, x: 320, facing:  1, color:'#7d2424', trunks:'#cc0000' });
+cpu    = makeBoxer({ name:'BRUNO', x: 680, facing: -1, color:'#1f3d6e', trunks:'#0066ff' });
+
+document.getElementById('btn-fight').onclick   = () => { ensureAudio(); resetMatch(); };
+document.getElementById('btn-rematch').onclick = () => { resetMatch(); };
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

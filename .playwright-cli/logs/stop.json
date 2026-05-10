@@ -52,5 +52,41 @@
     "hook_event_name": "Stop",
     "stop_hook_active": false,
     "last_assistant_message": "# \u00f0\u0178\u017d\u00af Job Swarm Test Report\n\n**Result: 226/226 passed** \u00e2\u0153\u2026 (every job in the game)\n\n## Per-sector results\n\n| Sector | Passed | Notes |\n|--------|--------|-------|\n| Healthcare | 24/24 \u00e2\u0153\u2026 | Doctor $339k, Surgeon $397k |\n| Finance | 22/22 \u00e2\u0153\u2026 | Accountant, Financial Advisor |\n| Tech | 26/26 \u00e2\u0153\u2026 | Software Dev, Data Scientist |\n| Education | 14/14 \u00e2\u0153\u2026 | Teacher, Professor, Tutor |\n| Law | 20/20 \u00e2\u0153\u2026 | Lawyer, Police Officer |\n| Creative | 20/20 \u00e2\u0153\u2026 | Actor, Photographer |\n| Trades | 25/25 \u00e2\u0153\u2026 | Electrician, Plumber |\n| Service | 22/22 \u00e2\u0153\u2026 | Chef, Waiter, Barber |\n| Transport | 15/15 \u00e2\u0153\u2026 | Pilot $254k, Truck Driver |\n| Other (env/agri) | 21/21 \u00e2\u0153\u2026 | Architect, Civil Engineer |\n| Sports | 17/17 \u00e2\u0153\u2026 | All season cycles ran clean |\n\n## What was checked per job\n- `applyForJob` correctly sets `employed`, `jobId`, `jobTitle`, `jobSector`, `careerTierId`, and `bossMorale`\n- Salary lands inside the smarts-modified band `[min\u00c3\u20141.15, max\u00c3\u20141.15]`\n- 3 monthly career ticks complete without throwing\n- Sports jobs additionally exercised 30 sports-offer ticks; soccer/football/hockey players ran their season cycles (`tickSoccerSeason`, `tickNFLSeason`, `tickNHLSeason`) without crashing\n\n## Bugs found / fixed during the sweep\n- **Test-harness bug** (now fixed in `.playwright-cli/job-swarm-runner.js`): originally passed `{}` instead of `[]` to `tickCareerNew(char, ev)`. Two jobs (`physical_therapist`, `wildlife_biologist`) hit a promotion branch that calls `ev.push(...)` and crashed. After the fix, both pass.\n- **Random layoffs** (game working as designed): with default boss morale, ~1\u00e2\u20ac\u201c2 jobs per run randomly hit a layoff during 3 ticks. The harness now treats layoff as a valid outcome (no crash = pass) and reports it via `laidOffAfterTicks`.\n\n**No real game-code bugs surfaced.** Swarm dispatched 11 parallel agents (one per sector); all reported back within ~25s."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "**Partners (athlete)** \u00e2\u20ac\u201d Manchester United squad: Lucas Jackson as Head Coach (Boss's Office), then Captain \"Remy\" from Canada at the Senior Table. Regular coworker round table (teammates) sits below.\n\nAll 5 screenshots show the new feature working. Live at https://noahmbrown2-pixel.github.io/finlife-simulator/."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Server is running. Open this in your browser:\n\n**http://localhost:3000/bitlife-finance.html**\n\nIf you already had it open with an old save:\n1. Hard refresh: **Ctrl+Shift+R** (or Ctrl+F5)\n2. The save persists in localStorage, so to see the new Work tab and Table button you may also need to start a new life \u00e2\u20ac\u201d or just open DevTools console and run `localStorage.removeItem('finlife_save')` then refresh.\n\nThen look for:\n- **Work** tab in the left panel (between Business and Invest)\n- **\u00f0\u0178\u201c\u0160 Table** button in the right panel grid (top row, where Work used to be)\n\nIf the page won't load at all, the dev server may have stopped. Let me know and I'll restart it."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "Done. Open the inbox once and all three dots vanish. They only come back when a *new* item arrives. Per-item unread state (gold border inside the modal) is unchanged \u00e2\u20ac\u201d it still marks messages you haven't actually opened yet."
+  },
+  {
+    "session_id": "e791a149-a17b-4b24-b2d4-90d3c14e1a95",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e791a149-a17b-4b24-b2d4-90d3c14e1a95.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project\\.playwright-cli",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "All saved. Latest commit `439d063` is live at https://noahmbrown2-pixel.github.io/finlife-simulator/. Last 3 deploys:\n\n- `439d063` \u00e2\u20ac\u201d clear inbox dots on open\n- `b779f88` \u00e2\u20ac\u201d inbox redesign (sections + colored dots + toggles)\n- `f526188` \u00e2\u20ac\u201d Work tab + Table action (Standings + Partners)"
   }
 ]

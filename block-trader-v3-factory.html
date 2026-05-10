@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Block Factory Tycoon</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#0e1320; color:#e6ecff;
+    font-family: 'Segoe UI', system-ui, sans-serif; user-select:none; -webkit-user-select:none; }
+  #wrap { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  canvas { background:#0a0e18; box-shadow:0 0 40px #000a; image-rendering: pixelated; }
+  #hud { position:absolute; top:8px; left:8px; right:8px; display:flex; justify-content:space-between;
+    pointer-events:none; font-size:14px; }
+  .stat { background:#0008; padding:6px 12px; border-radius:6px; border:1px solid #2a3550; }
+  #goal { color:#ffd35a; }
+  #toast { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:#0008; padding:20px 30px; border-radius:12px; font-size:24px; display:none;
+    border:2px solid #ffd35a; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c"></canvas></div>
+<div id="hud">
+  <div class="stat">💰 <span id="money">$50</span> &nbsp; ⚡ <span id="rate">$0/s</span></div>
+  <div class="stat" id="goal">🎯 Goal: $1,000,000</div>
+</div>
+<div id="toast"></div>
+<script>
+(() => {
+  const W = 1200, H = 760;
+  const cvs = document.getElementById('c');
+  const ctx = cvs.getContext('2d');
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+  function fitCanvas() {
+    const s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    cvs.style.width = (W*s) + 'px';
+    cvs.style.height = (H*s) + 'px';
+    cvs.width = W * dpr;
+    cvs.height = H * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', fitCanvas);
+  fitCanvas();
+
+  const COLS = 14, ROWS = 8;
+  const GRID_X = 30, GRID_Y = 60, CELL = 64;
+
+  // Tier definitions
+  const TIERS = [
+    { name:'dirt',    color:'#8b6b3a', edge:'#5a4422', value:1   },
+    { name:'stone',   color:'#9aa3b0', edge:'#5a6473', value:5   },
+    { name:'iron',    color:'#d4d8df', edge:'#6e7480', value:25  },
+    { name:'gold',    color:'#ffd35a', edge:'#a07a00', value:125 },
+    { name:'diamond', color:'#7af0ff', edge:'#1f8ea0', value:625 },
+  ];
+
+  // Building types
+  const BUILDINGS = {
+    miner:    { cost:50,  color:'#b06a3a', label:'Miner'   },
+    conveyor: { cost:10,  color:'#3a4a6a', label:'Conveyor'},
+    combiner: { cost:200, color:'#6a3a8a', label:'Combiner'},
+    seller:   { cost:30,  color:'#3a8a4a', label:'Seller'  },
+  };
+
+  // game state
+  const save = JSON.parse(localStorage.getItem('bt_factory') || 'null');
+  const state = {
+    money: save ? save.money : 50,
+    grid: makeGrid(),
+    selectedTool: 'miner',
+    rotation: 0, // 0=right, 1=down, 2=left, 3=up
+    blocks: [], // traveling blocks
+    earned: save ? save.earned : 0,
+    sec: 0,
+    earnedThisSec: 0,
+    rate: 0,
+    won: false,
+  };
+
+  function makeGrid() {
+    const g = [];
+    for (let y=0; y<ROWS; y++) {
+      g[y] = [];
+      for (let x=0; x<COLS; x++) g[y][x] = null;
+    }
+    return g;
+  }
+
+  function saveGame() {
+    localStorage.setItem('bt_factory', JSON.stringify({
+      money: state.money,
+      earned: state.earned,
+    }));
+  }
+
+  // Hotbar
+  const HOTBAR_Y = GRID_Y + ROWS*CELL + 16;
+  const HOT_W = 130, HOT_H = 70;
+  const hotbarItems = [
+    { tool:'miner',    key:'1', desc:'Spawns dirt every 2s' },
+    { tool:'conveyor', key:'2', desc:'Moves blocks 1 cell' },
+    { tool:'combiner', key:'3', desc:'2 same → 1 next tier' },
+    { tool:'seller',   key:'4', desc:'Sells block for $$' },
+    { tool:'rotate',   key:'R', desc:'Rotate next placement' },
+    { tool:'delete',   key:'X', desc:'Remove (50% refund)' },
+  ];
+
+  function hotbarRect(i) {
+    const startX = GRID_X + (COLS*CELL - hotbarItems.length*HOT_W - (hotbarItems.length-1)*8) / 2;
+    return { x: startX + i*(HOT_W+8), y: HOTBAR_Y, w: HOT_W, h: HOT_H };
+  }
+
+  function gridCell(px, py) {
+    const x = Math.floor((px - GRID_X) / CELL);
+    const y = Math.floor((py - GRID_Y) / CELL);
+    if (x<0||x>=COLS||y<0||y>=ROWS) return null;
+    return {x,y};
+  }
+
+  // Rotation -> dx,dy
+  function rotDir(r) {
+    return [{dx:1,dy:0},{dx:0,dy:1},{dx:-1,dy:0},{dx:0,dy:-1}][r%4];
+  }
+
+  function placeBuilding(x, y) {
+    const tool = state.selectedTool;
+    if (tool === 'rotate' || tool === 'delete') return;
+    if (state.grid[y][x]) return;
+    const cost = BUILDINGS[tool].cost;
+    if (state.money < cost) { flashToast('Not enough $'); return; }
+    state.money -= cost;
+    state.grid[y][x] = {
+      type: tool,
+      rotation: state.rotation,
+      timer: 0,
+      input: [], // for combiners: stored block tiers
+    };
+    saveGame();
+  }
+
+  function deleteBuilding(x, y) {
+    const b = state.grid[y][x];
+    if (!b) return;
+    state.money += Math.floor(BUILDINGS[b.type].cost * 0.5);
+    state.grid[y][x] = null;
+    // remove blocks on this cell
+    state.blocks = state.blocks.filter(bl => !(bl.cx===x && bl.cy===y));
+    saveGame();
+  }
+
+  // Input
+  let mx = 0, my = 0, hoverCell = null;
+  function evPt(e) {
+    const r = cvs.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return {
+      x: (t.clientX - r.left) * (W / r.width),
+      y: (t.clientY - r.top) * (H / r.height),
+    };
+  }
+
+  function handleClick(p) {
+    // hotbar
+    for (let i=0; i<hotbarItems.length; i++) {
+      const r = hotbarRect(i);
+      if (p.x>=r.x && p.x<=r.x+r.w && p.y>=r.y && p.y<=r.y+r.h) {
+        const it = hotbarItems[i];
+        if (it.tool === 'rotate') {
+          state.rotation = (state.rotation+1)%4;
+        } else {
+          state.selectedTool = it.tool;
+        }
+        return;
+      }
+    }
+    // grid
+    const c = gridCell(p.x, p.y);
+    if (c) {
+      if (state.selectedTool === 'delete') deleteBuilding(c.x, c.y);
+      else placeBuilding(c.x, c.y);
+    }
+  }
+
+  cvs.addEventListener('mousedown', e => { handleClick(evPt(e)); });
+  cvs.addEventListener('contextmenu', e => { e.preventDefault(); state.rotation = (state.rotation+1)%4; });
+  cvs.addEventListener('mousemove', e => { const p=evPt(e); mx=p.x; my=p.y; hoverCell=gridCell(p.x,p.y); });
+  cvs.addEventListener('touchstart', e => { e.preventDefault(); handleClick(evPt(e)); }, {passive:false});
+
+  window.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if (k==='1') state.selectedTool='miner';
+    else if (k==='2') state.selectedTool='conveyor';
+    else if (k==='3') state.selectedTool='combiner';
+    else if (k==='4') state.selectedTool='seller';
+    else if (k==='r') state.rotation=(state.rotation+1)%4;
+    else if (k==='x') state.selectedTool='delete';
+  });
+
+  // Game logic — tick step
+  let last = performance.now();
+  let secAccum = 0;
+
+  function update(dt) {
+    secAccum += dt;
+    if (secAccum >= 1) {
+      state.rate = state.earnedThisSec / secAccum;
+      state.earnedThisSec = 0;
+      secAccum = 0;
+    }
+
+    // Buildings
+    for (let y=0; y<ROWS; y++) {
+      for (let x=0; x<COLS; x++) {
+        const b = state.grid[y][x];
+        if (!b) continue;
+        b.timer += dt;
+        if (b.type === 'miner') {
+          if (b.timer >= 2.0) {
+            b.timer = 0;
+            spawnBlock(x, y, 0, b.rotation);
+          }
+        }
+      }
+    }
+
+    // Move blocks
+    for (let i = state.blocks.length-1; i>=0; i--) {
+      const bl = state.blocks[i];
+      bl.t += dt * 1.2; // travel speed: 1.2s per cell
+      if (bl.t >= 1) {
+        // arrived at next cell
+        bl.cx = bl.tx;
+        bl.cy = bl.ty;
+        bl.t = 0;
+        if (bl.cx<0||bl.cx>=COLS||bl.cy<0||bl.cy>=ROWS) { state.blocks.splice(i,1); continue; }
+        const dest = state.grid[bl.cy][bl.cx];
+        if (!dest) { state.blocks.splice(i,1); continue; }
+        if (dest.type === 'seller') {
+          state.money += TIERS[bl.tier].value;
+          state.earned += TIERS[bl.tier].value;
+          state.earnedThisSec += TIERS[bl.tier].value;
+          state.blocks.splice(i,1);
+          if (state.money >= 1000000 && !state.won) { state.won = true; flashToast('🏆 YOU REACHED $1,000,000!'); }
+          saveGame();
+          continue;
+        }
+        if (dest.type === 'combiner') {
+          dest.input.push(bl.tier);
+          state.blocks.splice(i,1);
+          // check for combine
+          for (let t=0; t<TIERS.length-1; t++) {
+            const matches = dest.input.filter(v=>v===t);
+            if (matches.length >= 2) {
+              dest.input.splice(dest.input.indexOf(t),1);
+              dest.input.splice(dest.input.indexOf(t),1);
+              spawnBlock(bl.cx, bl.cy, t+1, dest.rotation);
+              break;
+            }
+          }
+          continue;
+        }
+        if (dest.type === 'conveyor') {
+          const d = rotDir(dest.rotation);
+          bl.tx = bl.cx + d.dx;
+          bl.ty = bl.cy + d.dy;
+        } else {
+          // miner: just keep moving in same direction
+          const d = rotDir(bl.dir);
+          bl.tx = bl.cx + d.dx;
+          bl.ty = bl.cy + d.dy;
+        }
+      }
+    }
+  }
+
+  function spawnBlock(x, y, tier, rotation) {
+    const d = rotDir(rotation);
+    state.blocks.push({
+      cx: x, cy: y, tx: x+d.dx, ty: y+d.dy, t: 0, tier, dir: rotation
+    });
+  }
+
+  // Drawing
+  function draw() {
+    ctx.fillStyle = '#0a0e18';
+    ctx.fillRect(0,0,W,H);
+
+    // grid background
+    ctx.fillStyle = '#141a2a';
+    ctx.fillRect(GRID_X-2, GRID_Y-2, COLS*CELL+4, ROWS*CELL+4);
+
+    // cells
+    for (let y=0; y<ROWS; y++) {
+      for (let x=0; x<COLS; x++) {
+        const px = GRID_X + x*CELL;
+        const py = GRID_Y + y*CELL;
+        ctx.fillStyle = (x+y)%2===0 ? '#1a2238' : '#162033';
+        ctx.fillRect(px, py, CELL, CELL);
+      }
+    }
+
+    // buildings
+    for (let y=0; y<ROWS; y++) {
+      for (let x=0; x<COLS; x++) {
+        const b = state.grid[y][x];
+        if (!b) continue;
+        drawBuilding(b, x, y);
+      }
+    }
+
+    // blocks
+    for (const bl of state.blocks) drawBlock(bl);
+
+    // grid hover
+    if (hoverCell) {
+      const px = GRID_X + hoverCell.x*CELL;
+      const py = GRID_Y + hoverCell.y*CELL;
+      ctx.strokeStyle = '#fff7';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(px+1, py+1, CELL-2, CELL-2);
+      // ghost preview
+      if (state.selectedTool !== 'delete' && state.selectedTool !== 'rotate' && !state.grid[hoverCell.y][hoverCell.x]) {
+        ctx.globalAlpha = 0.4;
+        drawBuildingShape(state.selectedTool, state.rotation, px, py);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    drawHotbar();
+    drawSelectedInfo();
+
+    // money/rate update via DOM
+    document.getElementById('money').textContent = '$' + Math.floor(state.money).toLocaleString();
+    document.getElementById('rate').textContent = '$' + state.rate.toFixed(1) + '/s';
+  }
+
+  function drawBuilding(b, x, y) {
+    const px = GRID_X + x*CELL;
+    const py = GRID_Y + y*CELL;
+    drawBuildingShape(b.type, b.rotation, px, py);
+  }
+
+  function drawBuildingShape(type, rot, px, py) {
+    const cx = px + CELL/2, cy = py + CELL/2;
+    if (type === 'conveyor') {
+      ctx.fillStyle = '#2a3550';
+      ctx.fillRect(px+4, py+4, CELL-8, CELL-8);
+      // arrow
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot * Math.PI/2);
+      ctx.fillStyle = '#7a8aa8';
+      ctx.beginPath();
+      ctx.moveTo(-12, -8);
+      ctx.lineTo(8, 0);
+      ctx.lineTo(-12, 8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    } else if (type === 'miner') {
+      ctx.fillStyle = '#7a4a2a';
+      ctx.fillRect(px+4, py+4, CELL-8, CELL-8);
+      ctx.fillStyle = '#b06a3a';
+      ctx.fillRect(px+12, py+12, CELL-24, CELL-24);
+      // arrow direction
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot * Math.PI/2);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(CELL/2-12, -2, 8, 4);
+      ctx.restore();
+      // pickaxe icon
+      ctx.fillStyle = '#fff';
+      ctx.font = '20px sans-serif';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText('⛏', cx, cy);
+    } else if (type === 'combiner') {
+      ctx.fillStyle = '#4a2a6a';
+      ctx.fillRect(px+4, py+4, CELL-8, CELL-8);
+      ctx.fillStyle = '#8a5aaa';
+      ctx.fillRect(px+10, py+10, CELL-20, CELL-20);
+      // arrow output
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot * Math.PI/2);
+      ctx.fillStyle = '#ffd35a';
+      ctx.beginPath();
+      ctx.moveTo(8, -6);
+      ctx.lineTo(20, 0);
+      ctx.lineTo(8, 6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      ctx.fillStyle = '#fff';
+      ctx.font = '18px sans-serif';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText('⚙', cx, cy);
+    } else if (type === 'seller') {
+      ctx.fillStyle = '#1a5a2a';
+      ctx.fillRect(px+4, py+4, CELL-8, CELL-8);
+      ctx.fillStyle = '#3a8a4a';
+      ctx.fillRect(px+10, py+10, CELL-20, CELL-20);
+      ctx.fillStyle = '#ffd35a';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText('$', cx, cy);
+    }
+  }
+
+  function drawBlock(bl) {
+    const sx = GRID_X + bl.cx*CELL + CELL/2 + (bl.tx-bl.cx)*bl.t*CELL;
+    const sy = GRID_Y + bl.cy*CELL + CELL/2 + (bl.ty-bl.cy)*bl.t*CELL;
+    const tier = TIERS[bl.tier];
+    const sz = 22;
+    ctx.fillStyle = tier.edge;
+    ctx.fillRect(sx-sz/2-1, sy-sz/2-1, sz+2, sz+2);
+    ctx.fillStyle = tier.color;
+    ctx.fillRect(sx-sz/2, sy-sz/2, sz, sz);
+    // shine
+    ctx.fillStyle = '#fff5';
+    ctx.fillRect(sx-sz/2+2, sy-sz/2+2, 4, 4);
+  }
+
+  function drawHotbar() {
+    for (let i=0; i<hotbarItems.length; i++) {
+      const r = hotbarRect(i);
+      const it = hotbarItems[i];
+      const isSel = state.selectedTool === it.tool;
+      ctx.fillStyle = isSel ? '#2e3a58' : '#1a2238';
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      ctx.strokeStyle = isSel ? '#ffd35a' : '#3a4a6a';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(r.x+1, r.y+1, r.w-2, r.h-2);
+
+      // icon area
+      const ix = r.x+8, iy = r.y+8;
+      if (it.tool === 'miner' || it.tool === 'conveyor' || it.tool === 'combiner' || it.tool === 'seller') {
+        ctx.save();
+        const oldGX = GRID_X, oldGY = GRID_Y;
+        // mini render at smaller scale: just call shape with translate, easier to just draw 32x32 box
+        ctx.translate(ix, iy);
+        ctx.scale(0.5, 0.5);
+        // need to fake the px/py for buildingShape which uses CELL constant — easier: just inline
+        ctx.translate(-ix*0+0,0);
+        // re-draw via direct approach
+        ctx.restore();
+      }
+
+      // simpler: text icon
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      const icon = {miner:'⛏', conveyor:'➡', combiner:'⚙', seller:'$', rotate:'↻', delete:'✕'}[it.tool];
+      ctx.font = 'bold 28px sans-serif';
+      ctx.fillText(icon, r.x+10, r.y+8);
+
+      ctx.font = 'bold 13px sans-serif';
+      ctx.fillStyle = '#cfd6e8';
+      ctx.fillText(BUILDINGS[it.tool]?.label || (it.tool==='rotate'?'Rotate':'Delete'), r.x+44, r.y+10);
+
+      ctx.font = '11px sans-serif';
+      ctx.fillStyle = '#8a93a8';
+      ctx.fillText('['+it.key+']', r.x+44, r.y+28);
+
+      if (BUILDINGS[it.tool]) {
+        ctx.fillStyle = '#ffd35a';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('$'+BUILDINGS[it.tool].cost, r.x+44, r.y+46);
+      }
+    }
+  }
+
+  function drawSelectedInfo() {
+    const tool = state.selectedTool;
+    const txt = (BUILDINGS[tool]?.label || (tool==='delete'?'Delete (50% refund)':tool)) +
+      (tool==='conveyor' || tool==='miner' || tool==='combiner' ?
+        ' • Rotation: ' + ['→','↓','←','↑'][state.rotation] : '');
+    ctx.fillStyle = '#0008';
+    ctx.fillRect(GRID_X, HOTBAR_Y+HOT_H+10, 400, 24);
+    ctx.fillStyle = '#cfd6e8';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign='left';
+    ctx.textBaseline='middle';
+    ctx.fillText(txt, GRID_X+10, HOTBAR_Y+HOT_H+22);
+
+    const help = '[1-4] tools  [R] rotate  [X] delete  [right-click] rotate';
+    ctx.fillStyle = '#8a93a8';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign='right';
+    ctx.fillText(help, W-10, HOTBAR_Y+HOT_H+22);
+
+    // tier legend
+    let tx = GRID_X+420;
+    ctx.fillStyle = '#8a93a8';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign='left';
+    ctx.fillText('Tiers:', tx, HOTBAR_Y+HOT_H+22);
+    tx += 50;
+    for (let i=0; i<TIERS.length; i++) {
+      ctx.fillStyle = TIERS[i].edge;
+      ctx.fillRect(tx-1, HOTBAR_Y+HOT_H+13, 16, 16);
+      ctx.fillStyle = TIERS[i].color;
+      ctx.fillRect(tx, HOTBAR_Y+HOT_H+14, 14, 14);
+      ctx.fillStyle = '#cfd6e8';
+      ctx.font = '11px sans-serif';
+      ctx.fillText(TIERS[i].name + ' $' + TIERS[i].value, tx+18, HOTBAR_Y+HOT_H+22);
+      tx += 90;
+    }
+  }
+
+  let toastTimer = 0;
+  function flashToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display='block';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>{ t.style.display='none'; }, 2200);
+  }
+
+  function loop(now) {
+    const dt = Math.min(0.1, (now - last)/1000);
+    last = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(now => { last = now; loop(now); });
+})();
+</script>
+</body>
+</html>

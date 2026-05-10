@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Crypto Block Trader</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#0a0e18; color:#e6ecff;
+    font-family: 'Segoe UI', system-ui, sans-serif; user-select:none; -webkit-user-select:none; }
+  #wrap { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  canvas { background:#0a0e18; box-shadow:0 0 40px #000a; }
+  #hud { position:absolute; top:8px; left:8px; right:8px; display:flex; justify-content:space-between;
+    pointer-events:none; font-size:14px; flex-wrap:wrap; gap:6px; }
+  .stat { background:#0008; padding:6px 12px; border-radius:6px; border:1px solid #2a3550; }
+  #goal { color:#ffd35a; }
+  .pos { color:#7af7a0; }
+  .neg { color:#ff6e7a; }
+  #toast { position:absolute; top:18%; left:50%; transform:translate(-50%,-50%);
+    background:#0a0e18ee; padding:18px 28px; border-radius:12px; font-size:22px; display:none;
+    border:2px solid #ffd35a; text-align:center; box-shadow:0 0 30px #ffd35a55; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c"></canvas></div>
+<div id="hud">
+  <div class="stat">Net Worth: <span id="net">$500</span></div>
+  <div class="stat">Cash: <span id="cash">$500</span></div>
+  <div class="stat">P/L: <span id="pl">$0</span></div>
+  <div class="stat" id="goal">Goal: $1,000,000</div>
+</div>
+<div id="toast"></div>
+<script>
+(() => {
+  const W = 1200, H = 760;
+  const cvs = document.getElementById('c');
+  const ctx = cvs.getContext('2d');
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+  function fitCanvas() {
+    const s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    cvs.style.width = (W*s) + 'px';
+    cvs.style.height = (H*s) + 'px';
+    cvs.width = W * dpr;
+    cvs.height = H * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', fitCanvas);
+  fitCanvas();
+
+  const COINS = [
+    { sym:'BTC',  name:'Bitcoin',  color:'#ffb84a', edge:'#a06a00', glow:'#ffd35a', vol:0.018, base:42000 },
+    { sym:'ETH',  name:'Ether',    color:'#b07cff', edge:'#5a3aa0', glow:'#c8a4ff', vol:0.024, base:2400 },
+    { sym:'SOL',  name:'Solana',   color:'#5af0ff', edge:'#1a8a9e', glow:'#9af6ff', vol:0.030, base:140 },
+    { sym:'DOGE', name:'Dogecoin', color:'#ffe44a', edge:'#a08a00', glow:'#fff2a0', vol:0.045, base:0.18 },
+    { sym:'PEPE', name:'Pepe',     color:'#6aff7a', edge:'#1a6a2a', glow:'#a8ffb4', vol:0.060, base:0.0000012 },
+    { sym:'SHIB', name:'Shiba',    color:'#ff8a3a', edge:'#a04a00', glow:'#ffb87a', vol:0.055, base:0.000024 },
+  ];
+
+  const save = JSON.parse(localStorage.getItem('bt_crypto') || 'null');
+
+  const state = {
+    cash: save ? save.cash : 500,
+    coins: COINS.map((c,i) => {
+      const sv = save?.coins?.[i];
+      return {
+        ...c,
+        price: sv?.price ?? c.base,
+        prevPrice: sv?.price ?? c.base,
+        spark: sv?.spark ?? Array(40).fill(c.base),
+        history24: sv?.history24 ?? c.base,
+        flash: 0,
+        eventTimer: 0,
+        eventType: null,
+        eventDelay: 0,
+        eventMag: 0,
+      };
+    }),
+    positions: save?.positions ?? [],
+    nextPosId: save?.nextPosId ?? 1,
+    won: false,
+    lost: false,
+    modalCoin: null,
+    modalSide: 'buy',
+    modalAmt: 0,
+    modalLev: 1,
+    tickAccum: 0,
+  };
+
+  function netWorth() {
+    let v = state.cash;
+    for (const p of state.positions) {
+      v += positionEquity(p);
+    }
+    return v;
+  }
+
+  function positionEquity(p) {
+    const c = state.coins[p.coinIdx];
+    const priceDelta = (c.price - p.entry) / p.entry;
+    const dir = p.side === 'buy' ? 1 : -1;
+    const pnlPct = priceDelta * dir * p.lev;
+    const equity = p.margin * (1 + pnlPct);
+    return Math.max(0, equity);
+  }
+
+  function positionPnL(p) {
+    return positionEquity(p) - p.margin;
+  }
+
+  function liquidationPrice(p) {
+    const drop = 1 / p.lev;
+    if (p.side === 'buy') return p.entry * (1 - drop);
+    return p.entry * (1 + drop);
+  }
+
+  function saveGame() {
+    localStorage.setItem('bt_crypto', JSON.stringify({
+      cash: state.cash,
+      coins: state.coins.map(c => ({ price: c.price, spark: c.spark, history24: c.history24 })),
+      positions: state.positions,
+      nextPosId: state.nextPosId,
+    }));
+  }
+
+  function fmtPrice(p) {
+    if (p >= 1000) return '$' + p.toLocaleString(undefined, {maximumFractionDigits:0});
+    if (p >= 1) return '$' + p.toFixed(2);
+    if (p >= 0.01) return '$' + p.toFixed(4);
+    if (p >= 0.0001) return '$' + p.toFixed(6);
+    return '$' + p.toExponential(2);
+  }
+
+  function fmtMoney(n) {
+    const sign = n < 0 ? '-' : '';
+    n = Math.abs(n);
+    if (n >= 1e6) return sign + '$' + (n/1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return sign + '$' + (n/1e3).toFixed(1) + 'K';
+    return sign + '$' + n.toFixed(2);
+  }
+
+  // Card layout
+  const CARD_W = 360, CARD_H = 200;
+  const CARD_COLS = 3, CARD_ROWS = 2;
+  const CARD_GAP = 14;
+  const GRID_X = (W - (CARD_COLS*CARD_W + (CARD_COLS-1)*CARD_GAP)) / 2;
+  const GRID_Y = 56;
+
+  function cardRect(i) {
+    const cx = i % CARD_COLS;
+    const cy = Math.floor(i / CARD_COLS);
+    return {
+      x: GRID_X + cx*(CARD_W + CARD_GAP),
+      y: GRID_Y + cy*(CARD_H + CARD_GAP),
+      w: CARD_W, h: CARD_H,
+    };
+  }
+
+  // Portfolio panel
+  const PORT_X = 30, PORT_Y = GRID_Y + CARD_ROWS*(CARD_H+CARD_GAP) + 8;
+  const PORT_W = W - 60, PORT_H = H - PORT_Y - 30;
+
+  // Modal
+  const MODAL_W = 520, MODAL_H = 460;
+  function modalRect() {
+    return { x: (W-MODAL_W)/2, y: (H-MODAL_H)/2, w: MODAL_W, h: MODAL_H };
+  }
+
+  // ----- price tick -----
+  function tickPrices() {
+    for (const c of state.coins) {
+      let pct = (Math.random() - 0.5) * 2 * c.vol;
+
+      if (c.eventType && c.eventDelay > 0) {
+        c.eventDelay -= 0.3;
+        if (c.eventDelay <= 0) {
+          pct += c.eventType === 'pump' ? c.eventMag : -c.eventMag;
+          c.flash = 1;
+          c.eventType = null;
+        }
+      }
+
+      if (!c.eventType && c.eventDelay <= 0 && Math.random() < 0.012) {
+        c.eventType = Math.random() < 0.5 ? 'pump' : 'dump';
+        c.eventDelay = 1.5 + Math.random()*0.8;
+        c.eventMag = 0.08 + Math.random()*0.15;
+      }
+
+      c.prevPrice = c.price;
+      c.price = Math.max(c.base * 0.05, c.price * (1 + pct));
+      c.spark.push(c.price);
+      if (c.spark.length > 40) c.spark.shift();
+    }
+
+    // check liquidations
+    for (let i = state.positions.length - 1; i >= 0; i--) {
+      const p = state.positions[i];
+      const eq = positionEquity(p);
+      if (eq <= p.margin * 0.02) {
+        state.positions.splice(i, 1);
+        flashToast('LIQUIDATED ' + state.coins[p.coinIdx].sym + ' (' + p.lev + 'x)');
+      }
+    }
+
+    saveGame();
+  }
+
+  // ----- input -----
+  function evPt(e) {
+    const r = cvs.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return {
+      x: (t.clientX - r.left) * (W / r.width),
+      y: (t.clientY - r.top) * (H / r.height),
+    };
+  }
+
+  function inRect(p, r) {
+    return p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
+  }
+
+  function handleDown(p) {
+    if (state.won || state.lost) {
+      state.cash = 500;
+      state.positions = [];
+      state.coins.forEach((c,i) => {
+        c.price = COINS[i].base;
+        c.prevPrice = COINS[i].base;
+        c.spark = Array(40).fill(COINS[i].base);
+        c.history24 = COINS[i].base;
+      });
+      state.won = false;
+      state.lost = false;
+      saveGame();
+      return;
+    }
+
+    if (state.modalCoin !== null) {
+      handleModalClick(p);
+      return;
+    }
+
+    // close button on positions
+    for (let i = 0; i < state.positions.length; i++) {
+      const r = closeBtnRect(i);
+      if (r && inRect(p, r)) {
+        closePosition(i);
+        return;
+      }
+    }
+
+    // coin cards
+    for (let i = 0; i < state.coins.length; i++) {
+      const r = cardRect(i);
+      if (inRect(p, r)) {
+        openModal(i);
+        return;
+      }
+    }
+  }
+
+  let dragging = null;
+  function handleMove(p) {
+    if (dragging === 'amt') {
+      const r = sliderRect();
+      const t = Math.max(0, Math.min(1, (p.x - r.x) / r.w));
+      const maxAmt = state.modalSide === 'buy' ? state.cash : computeMaxSell();
+      state.modalAmt = Math.round(t * maxAmt * 100) / 100;
+    }
+  }
+  function handleUp() {
+    dragging = null;
+  }
+
+  function computeMaxSell() {
+    if (state.modalCoin === null) return 0;
+    const own = state.positions.filter(p => p.coinIdx === state.modalCoin && p.side === 'buy' && p.lev === 1);
+    return own.reduce((s,p) => s + positionEquity(p), 0);
+  }
+
+  function sliderRect() {
+    const m = modalRect();
+    return { x: m.x + 40, y: m.y + 230, w: m.w - 80, h: 22 };
+  }
+  function levButtonRect(i) {
+    const m = modalRect();
+    const w = 70, gap = 10;
+    const total = 4*w + 3*gap;
+    const sx = m.x + (m.w - total)/2;
+    return { x: sx + i*(w+gap), y: m.y + 290, w, h: 36 };
+  }
+  function buyButtonRect() { const m = modalRect(); return { x: m.x + 40, y: m.y + 150, w: (m.w-90)/2, h: 36 }; }
+  function sellButtonRect() { const m = modalRect(); return { x: m.x + 50 + (m.w-90)/2, y: m.y + 150, w: (m.w-90)/2, h: 36 }; }
+  function confirmButtonRect() { const m = modalRect(); return { x: m.x + 40, y: m.y + 360, w: m.w - 80, h: 50 }; }
+  function closeModalBtn() { const m = modalRect(); return { x: m.x + m.w - 38, y: m.y + 10, w: 28, h: 28 }; }
+
+  function handleModalClick(p) {
+    if (inRect(p, closeModalBtn())) { state.modalCoin = null; return; }
+    if (inRect(p, buyButtonRect())) { state.modalSide = 'buy'; state.modalAmt = 0; return; }
+    if (inRect(p, sellButtonRect())) { state.modalSide = 'sell'; state.modalAmt = 0; state.modalLev = 1; return; }
+    for (let i = 0; i < 4; i++) {
+      if (inRect(p, levButtonRect(i))) {
+        if (state.modalSide === 'sell') return;
+        state.modalLev = [1,2,5,10][i];
+        return;
+      }
+    }
+    const sr = sliderRect();
+    if (inRect(p, { x:sr.x-6, y:sr.y-10, w:sr.w+12, h:sr.h+20 })) {
+      dragging = 'amt';
+      const t = Math.max(0, Math.min(1, (p.x - sr.x) / sr.w));
+      const maxAmt = state.modalSide === 'buy' ? state.cash : computeMaxSell();
+      state.modalAmt = Math.round(t * maxAmt * 100) / 100;
+      return;
+    }
+    if (inRect(p, confirmButtonRect())) {
+      executeTrade();
+      return;
+    }
+  }
+
+  function openModal(i) {
+    state.modalCoin = i;
+    state.modalSide = 'buy';
+    state.modalAmt = 0;
+    state.modalLev = 1;
+  }
+
+  function executeTrade() {
+    const i = state.modalCoin;
+    if (i === null) return;
+    const c = state.coins[i];
+    const amt = state.modalAmt;
+    if (amt <= 0) return;
+    const fee = amt * 0.01;
+
+    if (state.modalSide === 'buy') {
+      if (amt > state.cash) return;
+      state.cash -= amt;
+      const margin = amt - fee;
+      state.positions.push({
+        id: state.nextPosId++,
+        coinIdx: i,
+        side: 'buy',
+        margin,
+        entry: c.price,
+        lev: state.modalLev,
+        opened: Date.now(),
+      });
+      flashToast('BOUGHT ' + c.sym + ' ' + state.modalLev + 'x — ' + fmtMoney(margin));
+    } else {
+      // sell: close 1x long positions of this coin
+      let toLiquidate = amt;
+      for (let pi = state.positions.length - 1; pi >= 0 && toLiquidate > 0; pi--) {
+        const p = state.positions[pi];
+        if (p.coinIdx !== i || p.side !== 'buy' || p.lev !== 1) continue;
+        const eq = positionEquity(p);
+        if (eq <= toLiquidate) {
+          state.cash += eq * 0.99;
+          toLiquidate -= eq;
+          state.positions.splice(pi, 1);
+        } else {
+          const ratio = toLiquidate / eq;
+          state.cash += toLiquidate * 0.99;
+          p.margin *= (1 - ratio);
+          toLiquidate = 0;
+        }
+      }
+      flashToast('SOLD ' + c.sym + ' — ' + fmtMoney(amt));
+    }
+    state.modalCoin = null;
+    saveGame();
+  }
+
+  function closePosition(i) {
+    const p = state.positions[i];
+    if (!p) return;
+    const eq = positionEquity(p);
+    state.cash += eq * 0.99;
+    state.positions.splice(i, 1);
+    flashToast('CLOSED ' + state.coins[p.coinIdx].sym + ' — ' + fmtMoney(eq*0.99));
+    saveGame();
+  }
+
+  cvs.addEventListener('mousedown', e => { handleDown(evPt(e)); });
+  cvs.addEventListener('mousemove', e => { handleMove(evPt(e)); });
+  cvs.addEventListener('mouseup', handleUp);
+  cvs.addEventListener('touchstart', e => { e.preventDefault(); handleDown(evPt(e)); }, {passive:false});
+  cvs.addEventListener('touchmove', e => { e.preventDefault(); handleMove(evPt(e)); }, {passive:false});
+  cvs.addEventListener('touchend', e => { e.preventDefault(); handleUp(); }, {passive:false});
+
+  // ----- drawing -----
+  function drawNeonBlock(x, y, w, h, color, edge, glow, glowAmt = 1) {
+    ctx.save();
+    ctx.shadowBlur = 18 * glowAmt;
+    ctx.shadowColor = glow;
+    ctx.fillStyle = edge;
+    ctx.fillRect(x, y, w, h);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = color;
+    ctx.fillRect(x+3, y+3, w-6, h-6);
+    // inner shading
+    ctx.fillStyle = '#fff2';
+    ctx.fillRect(x+3, y+3, w-6, 4);
+    ctx.fillStyle = '#0004';
+    ctx.fillRect(x+3, y+h-7, w-6, 4);
+    ctx.restore();
+  }
+
+  function drawCoinCard(i) {
+    const c = state.coins[i];
+    const r = cardRect(i);
+    const change = ((c.price - c.history24) / c.history24) * 100;
+
+    // background block
+    ctx.fillStyle = '#0e1424';
+    ctx.fillRect(r.x, r.y, r.w, r.h);
+    ctx.save();
+    ctx.shadowBlur = c.flash > 0 ? 22 + c.flash*15 : 12;
+    ctx.shadowColor = c.glow;
+    ctx.strokeStyle = c.color;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(r.x+1, r.y+1, r.w-2, r.h-2);
+    ctx.restore();
+
+    // upcoming event banner
+    if (c.eventType && c.eventDelay > 0) {
+      const ev = c.eventType;
+      const col = ev === 'pump' ? '#7af7a0' : '#ff6e7a';
+      ctx.fillStyle = col + '33';
+      ctx.fillRect(r.x+4, r.y+4, r.w-8, 22);
+      ctx.fillStyle = col;
+      ctx.font = 'bold 13px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(ev.toUpperCase() + ' INCOMING ' + c.eventDelay.toFixed(1) + 's', r.x + r.w/2, r.y + 15);
+    }
+
+    // glowing block icon
+    drawNeonBlock(r.x + 16, r.y + 36, 56, 56, c.color, c.edge, c.glow, 1 + c.flash);
+
+    // symbol + name
+    ctx.fillStyle = '#e6ecff';
+    ctx.font = 'bold 26px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(c.sym, r.x + 84, r.y + 38);
+    ctx.fillStyle = '#8a93a8';
+    ctx.font = '13px sans-serif';
+    ctx.fillText(c.name, r.x + 84, r.y + 68);
+
+    // price
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(fmtPrice(c.price), r.x + r.w - 14, r.y + 38);
+
+    // 24h change
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillStyle = change >= 0 ? '#7af7a0' : '#ff6e7a';
+    ctx.fillText((change >= 0 ? '+' : '') + change.toFixed(2) + '%', r.x + r.w - 14, r.y + 66);
+
+    // sparkline
+    drawSparkline(c, r.x + 14, r.y + 110, r.w - 28, 70);
+
+    // tap hint
+    ctx.fillStyle = '#8a93a8';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Click to trade', r.x + 14, r.y + r.h - 16);
+
+    // holdings on this coin
+    const holdings = state.positions.filter(p => p.coinIdx === i);
+    if (holdings.length) {
+      ctx.fillStyle = '#ffd35a';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('Holding ' + holdings.length, r.x + r.w - 14, r.y + r.h - 16);
+    }
+  }
+
+  function drawSparkline(c, x, y, w, h) {
+    const min = Math.min(...c.spark);
+    const max = Math.max(...c.spark);
+    const range = max - min || 1;
+    ctx.strokeStyle = c.color;
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = c.glow;
+    ctx.beginPath();
+    for (let i = 0; i < c.spark.length; i++) {
+      const px = x + (i / (c.spark.length-1)) * w;
+      const py = y + h - ((c.spark[i] - min) / range) * h;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // baseline tint
+    ctx.fillStyle = c.color + '22';
+    ctx.beginPath();
+    for (let i = 0; i < c.spark.length; i++) {
+      const px = x + (i / (c.spark.length-1)) * w;
+      const py = y + h - ((c.spark[i] - min) / range) * h;
+      if (i === 0) ctx.moveTo(px, y + h);
+      ctx.lineTo(px, py);
+    }
+    ctx.lineTo(x + w, y + h);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function closeBtnRect(i) {
+    const rowH = 38;
+    const headerH = 32;
+    const py = PORT_Y + headerH + i*rowH + 4;
+    if (py + rowH > PORT_Y + PORT_H) return null;
+    return { x: PORT_X + PORT_W - 90, y: py, w: 76, h: 28 };
+  }
+
+  function drawPortfolio() {
+    ctx.fillStyle = '#0e1424';
+    ctx.fillRect(PORT_X, PORT_Y, PORT_W, PORT_H);
+    ctx.strokeStyle = '#2a3550';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(PORT_X+0.5, PORT_Y+0.5, PORT_W-1, PORT_H-1);
+
+    ctx.fillStyle = '#ffd35a';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('POSITIONS', PORT_X + 12, PORT_Y + 8);
+
+    // header columns
+    const cols = [
+      { label:'Coin',   x: 12 },
+      { label:'Side',   x: 90 },
+      { label:'Lev',    x: 150 },
+      { label:'Entry',  x: 210 },
+      { label:'Margin', x: 320 },
+      { label:'Equity', x: 420 },
+      { label:'P/L',    x: 520 },
+      { label:'Liq',    x: 640 },
+    ];
+    ctx.fillStyle = '#8a93a8';
+    ctx.font = 'bold 11px sans-serif';
+    for (const co of cols) ctx.fillText(co.label.toUpperCase(), PORT_X + co.x, PORT_Y + 30);
+
+    if (!state.positions.length) {
+      ctx.fillStyle = '#5a6478';
+      ctx.font = 'italic 13px sans-serif';
+      ctx.fillText('No positions. Click a coin above to trade.', PORT_X + 12, PORT_Y + 60);
+      return;
+    }
+
+    const rowH = 38;
+    for (let i = 0; i < state.positions.length; i++) {
+      const p = state.positions[i];
+      const c = state.coins[p.coinIdx];
+      const py = PORT_Y + 32 + i*rowH;
+      if (py + rowH > PORT_Y + PORT_H - 4) break;
+
+      if (i % 2 === 0) {
+        ctx.fillStyle = '#141a2a';
+        ctx.fillRect(PORT_X+4, py, PORT_W-8, rowH-2);
+      }
+
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillStyle = c.color;
+      ctx.fillText(c.sym, PORT_X + cols[0].x, py + 12);
+
+      ctx.fillStyle = p.side === 'buy' ? '#7af7a0' : '#ff6e7a';
+      ctx.fillText(p.side === 'buy' ? 'LONG' : 'SHORT', PORT_X + cols[1].x, py + 12);
+
+      ctx.fillStyle = p.lev > 1 ? '#ffd35a' : '#cfd6e8';
+      ctx.fillText(p.lev + 'x', PORT_X + cols[2].x, py + 12);
+
+      ctx.fillStyle = '#cfd6e8';
+      ctx.font = '13px sans-serif';
+      ctx.fillText(fmtPrice(p.entry), PORT_X + cols[3].x, py + 12);
+      ctx.fillText(fmtMoney(p.margin), PORT_X + cols[4].x, py + 12);
+
+      const eq = positionEquity(p);
+      ctx.fillText(fmtMoney(eq), PORT_X + cols[5].x, py + 12);
+
+      const pnl = eq - p.margin;
+      ctx.fillStyle = pnl >= 0 ? '#7af7a0' : '#ff6e7a';
+      ctx.fillText((pnl>=0?'+':'') + fmtMoney(pnl), PORT_X + cols[6].x, py + 12);
+
+      ctx.fillStyle = '#ff6e7a';
+      ctx.font = '12px sans-serif';
+      ctx.fillText(fmtPrice(liquidationPrice(p)), PORT_X + cols[7].x, py + 12);
+
+      // close button
+      const r = closeBtnRect(i);
+      if (r) {
+        ctx.fillStyle = '#3a2a3a';
+        ctx.fillRect(r.x, r.y, r.w, r.h);
+        ctx.strokeStyle = '#ff6e7a';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(r.x+0.5, r.y+0.5, r.w-1, r.h-1);
+        ctx.fillStyle = '#ff6e7a';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('CLOSE', r.x + r.w/2, r.y + r.h/2);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+      }
+    }
+  }
+
+  function drawModal() {
+    if (state.modalCoin === null) return;
+    const i = state.modalCoin;
+    const c = state.coins[i];
+    const m = modalRect();
+
+    ctx.fillStyle = '#000a';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = '#0e1424';
+    ctx.fillRect(m.x, m.y, m.w, m.h);
+    ctx.save();
+    ctx.shadowBlur = 24;
+    ctx.shadowColor = c.glow;
+    ctx.strokeStyle = c.color;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(m.x+1, m.y+1, m.w-2, m.h-2);
+    ctx.restore();
+
+    // header
+    drawNeonBlock(m.x + 20, m.y + 16, 40, 40, c.color, c.edge, c.glow, 1.2);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 24px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(c.sym + ' — ' + c.name, m.x + 70, m.y + 22);
+    ctx.fillStyle = '#cfd6e8';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText(fmtPrice(c.price), m.x + 70, m.y + 50);
+
+    // close X
+    const cb = closeModalBtn();
+    ctx.fillStyle = '#2a3550';
+    ctx.fillRect(cb.x, cb.y, cb.w, cb.h);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('X', cb.x + cb.w/2, cb.y + cb.h/2);
+
+    // buy/sell tabs
+    const bb = buyButtonRect();
+    const sb = sellButtonRect();
+    ctx.fillStyle = state.modalSide === 'buy' ? '#1a5a3a' : '#1a2238';
+    ctx.fillRect(bb.x, bb.y, bb.w, bb.h);
+    ctx.strokeStyle = state.modalSide === 'buy' ? '#7af7a0' : '#3a4a6a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bb.x+1, bb.y+1, bb.w-2, bb.h-2);
+    ctx.fillStyle = state.modalSide === 'buy' ? '#7af7a0' : '#cfd6e8';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('BUY / LONG', bb.x + bb.w/2, bb.y + bb.h/2);
+
+    ctx.fillStyle = state.modalSide === 'sell' ? '#5a1a2a' : '#1a2238';
+    ctx.fillRect(sb.x, sb.y, sb.w, sb.h);
+    ctx.strokeStyle = state.modalSide === 'sell' ? '#ff6e7a' : '#3a4a6a';
+    ctx.strokeRect(sb.x+1, sb.y+1, sb.w-2, sb.h-2);
+    ctx.fillStyle = state.modalSide === 'sell' ? '#ff6e7a' : '#cfd6e8';
+    ctx.fillText('SELL', sb.x + sb.w/2, sb.y + sb.h/2);
+
+    // amount label
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#cfd6e8';
+    ctx.font = 'bold 13px sans-serif';
+    const maxAmt = state.modalSide === 'buy' ? state.cash : computeMaxSell();
+    ctx.fillText('Amount: ' + fmtMoney(state.modalAmt) + '  /  Max: ' + fmtMoney(maxAmt),
+      m.x + 40, m.y + 210);
+
+    // slider
+    const sr = sliderRect();
+    ctx.fillStyle = '#1a2238';
+    ctx.fillRect(sr.x, sr.y, sr.w, sr.h);
+    ctx.strokeStyle = '#3a4a6a';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(sr.x+0.5, sr.y+0.5, sr.w-1, sr.h-1);
+    const t = maxAmt > 0 ? state.modalAmt / maxAmt : 0;
+    ctx.fillStyle = c.color;
+    ctx.fillRect(sr.x, sr.y, sr.w * t, sr.h);
+    // handle
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(sr.x + sr.w*t - 4, sr.y - 4, 8, sr.h + 8);
+
+    // leverage selector
+    ctx.fillStyle = '#cfd6e8';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Leverage:', m.x + 40, m.y + 272);
+    const levs = [1,2,5,10];
+    for (let i2 = 0; i2 < 4; i2++) {
+      const lr = levButtonRect(i2);
+      const sel = state.modalLev === levs[i2];
+      const dis = state.modalSide === 'sell';
+      ctx.fillStyle = dis ? '#0e1424' : (sel ? '#3a3a1a' : '#1a2238');
+      ctx.fillRect(lr.x, lr.y, lr.w, lr.h);
+      ctx.strokeStyle = dis ? '#2a3550' : (sel ? '#ffd35a' : '#3a4a6a');
+      ctx.lineWidth = 2;
+      ctx.strokeRect(lr.x+1, lr.y+1, lr.w-2, lr.h-2);
+      ctx.fillStyle = dis ? '#5a6478' : (sel ? '#ffd35a' : '#cfd6e8');
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(levs[i2] + 'x', lr.x + lr.w/2, lr.y + lr.h/2);
+    }
+
+    // liq preview
+    if (state.modalSide === 'buy' && state.modalAmt > 0) {
+      const liqDrop = (100 / state.modalLev).toFixed(1);
+      const liqP = c.price * (1 - 1/state.modalLev);
+      ctx.fillStyle = '#ff6e7a';
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Liquidates if price drops ' + liqDrop + '% to ' + fmtPrice(liqP),
+        m.x + m.w/2, m.y + 340);
+    }
+
+    // confirm
+    const cr = confirmButtonRect();
+    const canExec = state.modalAmt > 0 && state.modalAmt <= maxAmt;
+    ctx.fillStyle = canExec ? (state.modalSide === 'buy' ? '#1a6a3a' : '#6a1a2a') : '#1a2238';
+    ctx.fillRect(cr.x, cr.y, cr.w, cr.h);
+    ctx.strokeStyle = canExec ? (state.modalSide === 'buy' ? '#7af7a0' : '#ff6e7a') : '#3a4a6a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cr.x+1, cr.y+1, cr.w-2, cr.h-2);
+    ctx.fillStyle = canExec ? '#fff' : '#5a6478';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const fee = state.modalAmt * 0.01;
+    const label = (state.modalSide === 'buy' ? 'BUY ' : 'SELL ') + fmtMoney(state.modalAmt) +
+                  '   (gas ' + fmtMoney(fee) + ')';
+    ctx.fillText(label, cr.x + cr.w/2, cr.y + cr.h/2);
+  }
+
+  let toastTimer = 0;
+  function flashToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.style.display = 'none'; }, 2200);
+  }
+
+  function drawEndScreen() {
+    if (!state.won && !state.lost) return;
+    ctx.fillStyle = '#000c';
+    ctx.fillRect(0,0,W,H);
+    const win = state.won;
+    ctx.save();
+    ctx.shadowBlur = 30;
+    ctx.shadowColor = win ? '#ffd35a' : '#ff6e7a';
+    ctx.fillStyle = win ? '#ffd35a' : '#ff6e7a';
+    ctx.font = 'bold 64px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(win ? 'YOU MADE IT!' : 'WIPED OUT', W/2, H/2 - 40);
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(win ? '$1,000,000 net worth reached' : 'Cash and positions are zero', W/2, H/2 + 20);
+    ctx.font = '18px sans-serif';
+    ctx.fillStyle = '#cfd6e8';
+    ctx.fillText('Click anywhere to restart with $500', W/2, H/2 + 70);
+    ctx.restore();
+  }
+
+  // ----- main loop -----
+  let last = performance.now();
+  let history24Timer = 0;
+
+  function update(dt) {
+    state.tickAccum += dt;
+    if (state.tickAccum >= 0.3) {
+      state.tickAccum = 0;
+      tickPrices();
+    }
+
+    history24Timer += dt;
+    if (history24Timer >= 30) {
+      history24Timer = 0;
+      for (const c of state.coins) c.history24 = c.spark[0];
+    }
+
+    for (const c of state.coins) c.flash = Math.max(0, c.flash - dt * 1.5);
+
+    const nw = netWorth();
+    if (nw >= 1_000_000 && !state.won) {
+      state.won = true;
+      flashToast('JACKPOT — you hit $1M!');
+    } else if (nw <= 0.01 && !state.lost) {
+      state.lost = true;
+      flashToast('Game over — wiped out');
+    }
+  }
+
+  function draw() {
+    ctx.fillStyle = '#0a0e18';
+    ctx.fillRect(0, 0, W, H);
+
+    // subtle grid
+    ctx.strokeStyle = '#10182a';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 40) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let y = 0; y < H; y += 40) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    for (let i = 0; i < state.coins.length; i++) drawCoinCard(i);
+
+    drawPortfolio();
+    drawModal();
+    drawEndScreen();
+
+    // HUD
+    const nw = netWorth();
+    const pl = nw - 500;
+    document.getElementById('net').textContent = fmtMoney(nw);
+    document.getElementById('cash').textContent = fmtMoney(state.cash);
+    const plEl = document.getElementById('pl');
+    plEl.textContent = (pl >= 0 ? '+' : '') + fmtMoney(pl);
+    plEl.className = pl >= 0 ? 'pos' : 'neg';
+  }
+
+  function loop(now) {
+    const dt = Math.min(0.1, (now - last) / 1000);
+    last = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(now => { last = now; loop(now); });
+})();
+</script>
+</body>
+</html>

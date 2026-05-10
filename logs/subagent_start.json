@@ -16,5 +16,158 @@
     "agent_type": "general-purpose",
     "hook_event_name": "SubagentStart",
     "logged_at": "2026-04-19T00:13:44.137018"
+  },
+  {
+    "session_id": "9ea8dfa5-6a72-4012-8090-08202ebf439e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\9ea8dfa5-6a72-4012-8090-08202ebf439e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "ab3ca7c48b33c28b6",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-04-29T23:01:57.519945"
+  },
+  {
+    "session_id": "9ea8dfa5-6a72-4012-8090-08202ebf439e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\9ea8dfa5-6a72-4012-8090-08202ebf439e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "aa58140f033533681",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-04-29T23:02:07.853981"
+  },
+  {
+    "session_id": "9ea8dfa5-6a72-4012-8090-08202ebf439e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\9ea8dfa5-6a72-4012-8090-08202ebf439e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "af0774c009b7b242f",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-04-29T23:02:18.506364"
+  },
+  {
+    "session_id": "9ea8dfa5-6a72-4012-8090-08202ebf439e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\9ea8dfa5-6a72-4012-8090-08202ebf439e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a9d00c9421d168590",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-04-29T23:02:29.409081"
+  },
+  {
+    "session_id": "9ea8dfa5-6a72-4012-8090-08202ebf439e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\9ea8dfa5-6a72-4012-8090-08202ebf439e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a5bb8653f5ab142b0",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-04-29T23:02:41.615054"
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "ad2179ed0d2adccd7",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-04-30T16:39:31.726976"
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a704c2cd1d99a43a7",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-04-30T16:39:41.645399"
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a5ee20b209efc44c5",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-04-30T16:39:53.612762"
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "ac13f131cc8697b41",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-04-30T16:40:05.714318"
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a1c04c4c4fc7155d4",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-04-30T16:40:19.198400"
+  },
+  {
+    "session_id": "e51997ef-5d35-4ed0-944c-98f439702139",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\e51997ef-5d35-4ed0-944c-98f439702139.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a7b36861b670b9d49",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-04-30T23:40:35.871357"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a891b66a3e231ae36",
+    "agent_type": "Explore",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-05-01T22:33:04.338341"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "addbb7c2eebb5a644",
+    "agent_type": "general-purpose",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-05-02T10:51:32.446771"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a3899af62f257a2d8",
+    "agent_type": "general-purpose",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-05-02T10:51:49.473769"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a58bea07d07faa0d8",
+    "agent_type": "general-purpose",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-05-02T10:52:11.863292"
+  },
+  {
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a3954b06fcb0a5215",
+    "agent_type": "general-purpose",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-05-02T10:52:34.632943"
+  },
+  {
+    "session_id": "9276c254-7351-4a35-a112-d6210ea2f289",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\9276c254-7351-4a35-a112-d6210ea2f289.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "ac32271f508cf99a5",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-05-06T19:16:05.601613"
   }
 ]

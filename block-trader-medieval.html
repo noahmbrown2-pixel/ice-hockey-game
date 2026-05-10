@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Medieval Merchant Block Trader</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#1f1810; color:#e8dcc4;
+    font-family: 'Georgia', 'Times New Roman', serif; user-select:none; -webkit-user-select:none; }
+  #wrap { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  canvas { background:#15100a; box-shadow:0 0 40px #000a; image-rendering: pixelated; }
+  #hud { position:absolute; top:8px; left:8px; right:8px; display:flex; justify-content:space-between;
+    pointer-events:none; font-size:14px; gap:8px; flex-wrap:wrap; }
+  .stat { background:#0008; padding:6px 12px; border-radius:6px; border:1px solid #4a3a20; }
+  #goal { color:#ffd35a; }
+  #toast { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:#1f1810ee; padding:20px 30px; border-radius:12px; font-size:24px; display:none;
+    border:2px solid #ffd35a; color:#e8dcc4; text-align:center; max-width:80%; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c"></canvas></div>
+<div id="hud">
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <div class="stat">Gold <span id="gold">100</span></div>
+    <div class="stat">Cargo <span id="cargo">0/10</span></div>
+    <div class="stat">At <span id="loc">Riverford</span></div>
+  </div>
+  <div class="stat" id="goal">Goal: 1,000,000 Gold</div>
+</div>
+<div id="toast"></div>
+<script>
+(() => {
+  const W = 1200, H = 760;
+  const cvs = document.getElementById('c');
+  const ctx = cvs.getContext('2d');
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+  function fitCanvas() {
+    const s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    cvs.style.width = (W*s) + 'px';
+    cvs.style.height = (H*s) + 'px';
+    cvs.width = W * dpr;
+    cvs.height = H * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', fitCanvas);
+  fitCanvas();
+
+  const COMMODITIES = [
+    { id:'grain',  name:'Grain',  color:'#e8c84a', edge:'#8a7218', base:8,   range:[3,18],  vol:0.15 },
+    { id:'wool',   name:'Wool',   color:'#f0ead4', edge:'#8a8068', base:18,  range:[8,38],  vol:0.18 },
+    { id:'iron',   name:'Iron',   color:'#9aa3b0', edge:'#5a6473', base:45,  range:[20,90], vol:0.20 },
+    { id:'spice',  name:'Spice',  color:'#c8331f', edge:'#6a1810', base:120, range:[55,260],vol:0.25 },
+    { id:'gold',   name:'Gold',   color:'#ffd35a', edge:'#a07a00', base:380, range:[180,820],vol:0.30 },
+  ];
+
+  const CITIES = [
+    { id:'riverford',  name:'Riverford',  x:200,  y:280, edge:'#3a8a4a', color:'#5aae5a', desc:'Grain & Wool hub' },
+    { id:'highmere',   name:'Highmere',   x:520,  y:170, edge:'#6e7480', color:'#aab2c0', desc:'Highland wool' },
+    { id:'saltport',   name:'Saltport',   x:330,  y:520, edge:'#1f4a7a', color:'#3a6aa0', desc:'Spice from the seas' },
+    { id:'ironhold',   name:'Ironhold',   x:820,  y:380, edge:'#5a6473', color:'#7a8492', desc:'Mountain forges' },
+    { id:'dragonspire',name:'Dragonspire',x:1040, y:200, edge:'#8a4a1a', color:'#c8723a', desc:'Gold & rare goods' },
+  ];
+
+  const ROADS = [
+    ['riverford','highmere'],
+    ['riverford','saltport'],
+    ['riverford','ironhold'],
+    ['highmere','ironhold'],
+    ['highmere','dragonspire'],
+    ['saltport','ironhold'],
+    ['ironhold','dragonspire'],
+  ];
+
+  const CAPS = [10, 25, 50, 100, 250, 500];
+  const CAP_COSTS = [0, 200, 800, 3500, 15000, 75000];
+
+  const SAVE_KEY = 'bt_medieval';
+  const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+
+  const state = {
+    gold: saved ? saved.gold : 100,
+    capLevel: saved ? saved.capLevel : 0,
+    inv: saved ? saved.inv : { grain:0, wool:0, iron:0, spice:0, gold:0 },
+    city: saved ? saved.city : 'riverford',
+    prices: saved ? saved.prices : null,
+    view: 'map',
+    travel: null,
+    won: false,
+    lost: false,
+    eventTimer: 0,
+  };
+
+  if (!state.prices) {
+    state.prices = {};
+    for (const c of CITIES) {
+      state.prices[c.id] = {};
+      for (const com of COMMODITIES) {
+        const r = com.range;
+        state.prices[c.id][com.id] = Math.round(r[0] + Math.random()*(r[1]-r[0]));
+      }
+    }
+    biasPrices();
+  }
+
+  function biasPrices() {
+    const bias = {
+      riverford:  { grain:0.55, wool:0.7,  iron:1.1, spice:1.1, gold:1.1 },
+      highmere:   { grain:0.9,  wool:0.55, iron:1.0, spice:1.05,gold:1.0 },
+      saltport:   { grain:1.0,  wool:1.0,  iron:1.05,spice:0.6, gold:1.05 },
+      ironhold:   { grain:1.1,  wool:1.05, iron:0.55,spice:1.0, gold:0.95 },
+      dragonspire:{ grain:1.15, wool:1.1,  iron:0.95,spice:1.05,gold:0.6 },
+    };
+    for (const c of CITIES) {
+      for (const com of COMMODITIES) {
+        const b = bias[c.id][com.id];
+        const cur = state.prices[c.id][com.id];
+        const target = Math.round(com.base * b);
+        state.prices[c.id][com.id] = Math.max(com.range[0], Math.min(com.range[1], Math.round(cur*0.4 + target*0.6)));
+      }
+    }
+  }
+
+  function totalCargo() {
+    let n = 0;
+    for (const com of COMMODITIES) n += state.inv[com.id];
+    return n;
+  }
+
+  function cap() { return CAPS[state.capLevel]; }
+
+  function saveGame() {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      gold: state.gold, capLevel: state.capLevel, inv: state.inv,
+      city: state.city, prices: state.prices,
+    }));
+  }
+
+  function driftPrices(dt, intensity) {
+    intensity = intensity || 1;
+    for (const c of CITIES) {
+      for (const com of COMMODITIES) {
+        const cur = state.prices[c.id][com.id];
+        const driftAmt = cur * com.vol * intensity * (Math.random()*2 - 1) * dt * 0.5;
+        let next = cur + driftAmt;
+        const r = com.range;
+        if (next < r[0]) next = r[0] + Math.random()*2;
+        if (next > r[1]) next = r[1] - Math.random()*2;
+        state.prices[c.id][com.id] = Math.round(next);
+      }
+    }
+  }
+
+  function cityById(id) { return CITIES.find(c => c.id === id); }
+
+  function roadConnects(a, b) {
+    return ROADS.some(r => (r[0]===a && r[1]===b) || (r[0]===b && r[1]===a));
+  }
+
+  function cityDist(a, b) {
+    const ca = cityById(a), cb = cityById(b);
+    return Math.hypot(ca.x - cb.x, ca.y - cb.y);
+  }
+
+  function travelTo(destId) {
+    if (destId === state.city) return;
+    if (!roadConnects(state.city, destId)) { flashToast('No direct road there.'); return; }
+    if (state.travel) return;
+    const dist = cityDist(state.city, destId);
+    const dur = 1.0 + Math.min(2.0, dist / 500);
+    state.travel = {
+      from: state.city, to: destId, t: 0, dur,
+      eventDone: false, message: null,
+    };
+    state.view = 'map';
+  }
+
+  function tickTravel(dt) {
+    if (!state.travel) return;
+    const tr = state.travel;
+    tr.t += dt;
+    driftPrices(dt, 1.5);
+    if (!tr.eventDone && tr.t > tr.dur * 0.4) {
+      tr.eventDone = true;
+      const roll = Math.random();
+      if (roll < 0.18 && totalCargo() > 0) {
+        let stolen = 0;
+        const lossPct = 0.15 + Math.random()*0.2;
+        for (const com of COMMODITIES) {
+          const lose = Math.floor(state.inv[com.id] * lossPct);
+          state.inv[com.id] -= lose;
+          stolen += lose;
+        }
+        if (stolen > 0) {
+          tr.message = 'Bandits! Lost ' + stolen + ' cargo.';
+          flashToast(tr.message);
+        }
+      } else if (roll < 0.30) {
+        tr.dur = Math.max(0.4, tr.dur * 0.5);
+        tr.message = 'Favorable winds! Speedy arrival.';
+        flashToast(tr.message);
+      } else if (roll < 0.42) {
+        const com = COMMODITIES[Math.floor(Math.random()*COMMODITIES.length)];
+        const r = com.range;
+        state.prices[tr.to][com.id] = Math.round(r[0] + Math.random()*(r[1]-r[0])*0.35);
+        tr.message = 'Market crash in ' + cityById(tr.to).name + '! ' + com.name + ' prices plunge.';
+        flashToast(tr.message);
+      } else if (roll < 0.54) {
+        const com = COMMODITIES[Math.floor(Math.random()*COMMODITIES.length)];
+        const r = com.range;
+        state.prices[tr.to][com.id] = Math.round(r[1] - Math.random()*(r[1]-r[0])*0.25);
+        tr.message = 'Shortage in ' + cityById(tr.to).name + '! ' + com.name + ' soars.';
+        flashToast(tr.message);
+      }
+    }
+    if (tr.t >= tr.dur) {
+      state.city = tr.to;
+      state.travel = null;
+      saveGame();
+    }
+  }
+
+  function buy(comId) {
+    if (state.travel) return;
+    const com = COMMODITIES.find(c => c.id === comId);
+    const price = state.prices[state.city][comId];
+    if (state.gold < price) { flashToast('Not enough gold.'); return; }
+    if (totalCargo() >= cap()) { flashToast('Cart is full.'); return; }
+    state.gold -= price;
+    state.inv[comId] += 1;
+    saveGame();
+  }
+
+  function buyMax(comId) {
+    if (state.travel) return;
+    const price = state.prices[state.city][comId];
+    let bought = 0;
+    while (state.gold >= price && totalCargo() < cap()) {
+      state.gold -= price;
+      state.inv[comId] += 1;
+      bought++;
+    }
+    if (bought > 0) saveGame();
+  }
+
+  function sell(comId) {
+    if (state.travel) return;
+    if (state.inv[comId] <= 0) return;
+    const price = state.prices[state.city][comId];
+    state.gold += price;
+    state.inv[comId] -= 1;
+    saveGame();
+    checkWin();
+  }
+
+  function sellAll(comId) {
+    if (state.travel) return;
+    const price = state.prices[state.city][comId];
+    const n = state.inv[comId];
+    if (n <= 0) return;
+    state.gold += price * n;
+    state.inv[comId] = 0;
+    saveGame();
+    checkWin();
+  }
+
+  function upgradeCart() {
+    if (state.travel) return;
+    if (state.capLevel >= CAPS.length - 1) { flashToast('Cart fully upgraded.'); return; }
+    const cost = CAP_COSTS[state.capLevel + 1];
+    if (state.gold < cost) { flashToast('Need ' + cost + ' gold.'); return; }
+    state.gold -= cost;
+    state.capLevel++;
+    saveGame();
+    flashToast('Cart upgraded to ' + cap() + ' capacity!');
+  }
+
+  function checkWin() {
+    if (state.gold >= 1000000 && !state.won) {
+      state.won = true;
+      flashToast('VICTORY! You amassed 1,000,000 gold!');
+    }
+    if (state.gold <= 0 && totalCargo() === 0 && !state.won && !state.lost) {
+      state.lost = true;
+      flashToast('Bankrupt! Resetting cart...');
+      setTimeout(()=>{
+        state.gold = 50;
+        state.lost = false;
+        saveGame();
+      }, 2000);
+    }
+  }
+
+  function resetGame() {
+    localStorage.removeItem(SAVE_KEY);
+    state.gold = 100;
+    state.capLevel = 0;
+    state.inv = { grain:0, wool:0, iron:0, spice:0, gold:0 };
+    state.city = 'riverford';
+    state.won = false;
+    state.lost = false;
+    state.travel = null;
+    state.view = 'map';
+    state.prices = {};
+    for (const c of CITIES) {
+      state.prices[c.id] = {};
+      for (const com of COMMODITIES) {
+        const r = com.range;
+        state.prices[c.id][com.id] = Math.round(r[0] + Math.random()*(r[1]-r[0]));
+      }
+    }
+    biasPrices();
+    saveGame();
+  }
+
+  let mx = 0, my = 0;
+  function evPt(e) {
+    const r = cvs.getBoundingClientRect();
+    const t = e.touches ? (e.touches[0] || e.changedTouches[0]) : e;
+    return {
+      x: (t.clientX - r.left) * (W / r.width),
+      y: (t.clientY - r.top) * (H / r.height),
+    };
+  }
+
+  const buttons = [];
+
+  function btn(x, y, w, h, label, action, opts) {
+    buttons.push({ x, y, w, h, label, action, opts: opts || {} });
+  }
+
+  function handleClick(p) {
+    for (let i = buttons.length - 1; i >= 0; i--) {
+      const b = buttons[i];
+      if (p.x >= b.x && p.x <= b.x+b.w && p.y >= b.y && p.y <= b.y+b.h) {
+        if (b.opts.disabled) return;
+        b.action();
+        return;
+      }
+    }
+    if (state.view === 'map' && !state.travel) {
+      for (const c of CITIES) {
+        const dx = p.x - c.x, dy = p.y - c.y;
+        if (Math.abs(dx) < 50 && Math.abs(dy) < 50) {
+          if (c.id === state.city) {
+            state.view = 'market';
+          } else if (roadConnects(state.city, c.id)) {
+            travelTo(c.id);
+          } else {
+            flashToast('No direct road to ' + c.name);
+          }
+          return;
+        }
+      }
+    }
+  }
+
+  cvs.addEventListener('mousedown', e => { handleClick(evPt(e)); });
+  cvs.addEventListener('mousemove', e => { const p=evPt(e); mx=p.x; my=p.y; });
+  cvs.addEventListener('touchstart', e => { e.preventDefault(); const p=evPt(e); mx=p.x; my=p.y; handleClick(p); }, {passive:false});
+  cvs.addEventListener('touchmove', e => { e.preventDefault(); const p=evPt(e); mx=p.x; my=p.y; }, {passive:false});
+
+  window.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if (k === 'escape' || k === 'm') { state.view = 'map'; }
+    else if (k === 'r' && e.shiftKey) { resetGame(); }
+  });
+
+  let last = performance.now();
+  let driftTimer = 0;
+
+  function update(dt) {
+    driftTimer += dt;
+    if (driftTimer > 1.5) {
+      driftPrices(driftTimer, 0.6);
+      driftTimer = 0;
+    }
+    if (state.travel) tickTravel(dt);
+    state.eventTimer += dt;
+  }
+
+  function drawBlock(x, y, w, h, color, edge) {
+    ctx.fillStyle = edge;
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = color;
+    ctx.fillRect(x+3, y+3, w-6, h-6);
+    ctx.fillStyle = '#fff3';
+    ctx.fillRect(x+3, y+3, w-6, 3);
+    ctx.fillStyle = '#0003';
+    ctx.fillRect(x+3, y+h-6, w-6, 3);
+  }
+
+  function drawCity(c, isCurrent, isReachable) {
+    const sz = 80;
+    const x = c.x - sz/2, y = c.y - sz/2;
+    ctx.fillStyle = c.edge;
+    ctx.fillRect(x-2, y-2, sz+4, sz+4);
+    ctx.fillStyle = c.color;
+    ctx.fillRect(x, y, sz, sz);
+    ctx.fillStyle = '#0004';
+    ctx.fillRect(x, y+sz-12, sz, 12);
+    ctx.fillStyle = '#fff2';
+    ctx.fillRect(x, y, sz, 8);
+    ctx.fillStyle = c.edge;
+    ctx.fillRect(x+10, y+12, 12, 18);
+    ctx.fillRect(x+sz-22, y+12, 12, 18);
+    ctx.fillRect(x+30, y+18, 8, 12);
+    ctx.fillStyle = '#1f1810';
+    ctx.fillRect(x+sz/2-8, y+sz-26, 16, 18);
+    ctx.fillStyle = c.edge;
+    ctx.fillRect(x+sz/2-8, y+sz-26, 16, 4);
+
+    if (isCurrent) {
+      ctx.strokeStyle = '#ffd35a';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(x-5, y-5, sz+10, sz+10);
+    } else if (isReachable) {
+      ctx.strokeStyle = '#e8dcc488';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6,4]);
+      ctx.strokeRect(x-3, y-3, sz+6, sz+6);
+      ctx.setLineDash([]);
+    }
+
+    ctx.fillStyle = '#e8dcc4';
+    ctx.font = 'bold 16px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(c.name, c.x, c.y + sz/2 + 8);
+    ctx.fillStyle = '#a8987a';
+    ctx.font = 'italic 11px Georgia, serif';
+    ctx.fillText(c.desc, c.x, c.y + sz/2 + 28);
+  }
+
+  function drawMap() {
+    ctx.fillStyle = '#2a1f12';
+    ctx.fillRect(0, 60, W, H-60);
+
+    for (let i = 0; i < 60; i++) {
+      const px = (i * 137) % W;
+      const py = 60 + ((i * 91) % (H-60));
+      ctx.fillStyle = '#3a2a18';
+      ctx.fillRect(px, py, 2, 2);
+    }
+
+    for (const r of ROADS) {
+      const a = cityById(r[0]), b = cityById(r[1]);
+      const isActive = state.travel && ((state.travel.from === r[0] && state.travel.to === r[1]) || (state.travel.from === r[1] && state.travel.to === r[0]));
+      ctx.strokeStyle = isActive ? '#ffd35a' : '#5a4626';
+      ctx.lineWidth = isActive ? 6 : 5;
+      ctx.setLineDash(isActive ? [] : [8,8]);
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    for (const c of CITIES) {
+      const isCurrent = c.id === state.city && !state.travel;
+      const isReachable = !state.travel && roadConnects(state.city, c.id);
+      drawCity(c, isCurrent, isReachable);
+    }
+
+    if (state.travel) {
+      const tr = state.travel;
+      const a = cityById(tr.from), b = cityById(tr.to);
+      const t = tr.t / tr.dur;
+      const cx = a.x + (b.x - a.x) * t;
+      const cy = a.y + (b.y - a.y) * t;
+      ctx.fillStyle = '#5a4626';
+      ctx.fillRect(cx-18, cy-12, 36, 24);
+      ctx.fillStyle = '#8a6a3a';
+      ctx.fillRect(cx-15, cy-9, 30, 18);
+      ctx.fillStyle = '#3a2a18';
+      ctx.beginPath();
+      ctx.arc(cx-10, cy+12, 6, 0, Math.PI*2);
+      ctx.arc(cx+10, cy+12, 6, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#1f1810';
+      ctx.beginPath();
+      ctx.arc(cx-10, cy+12, 3, 0, Math.PI*2);
+      ctx.arc(cx+10, cy+12, 3, 0, Math.PI*2);
+      ctx.fill();
+
+      const bx = 320, by = H - 160, bw = 560, bh = 80;
+      ctx.fillStyle = '#0008';
+      ctx.fillRect(bx, by, bw, bh);
+      ctx.strokeStyle = '#4a3a20';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bx, by, bw, bh);
+      ctx.fillStyle = '#e8dcc4';
+      ctx.font = 'bold 18px Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Traveling: ' + cityById(tr.from).name + ' to ' + cityById(tr.to).name, bx + bw/2, by + 26);
+      const pbx = bx + 30, pby = by + 44, pbw = bw - 60, pbh = 14;
+      ctx.fillStyle = '#1f1810';
+      ctx.fillRect(pbx, pby, pbw, pbh);
+      ctx.fillStyle = '#ffd35a';
+      ctx.fillRect(pbx, pby, pbw * t, pbh);
+      ctx.strokeStyle = '#4a3a20';
+      ctx.strokeRect(pbx, pby, pbw, pbh);
+      if (tr.message) {
+        ctx.fillStyle = '#ffae3a';
+        ctx.font = 'italic 13px Georgia, serif';
+        ctx.fillText(tr.message, bx + bw/2, by + bh - 6);
+      }
+    } else {
+      ctx.fillStyle = '#e8dcc4';
+      ctx.font = 'italic 14px Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Click your city to open its market — click a connected city to travel.', W/2, H - 40);
+      ctx.fillStyle = '#a8987a';
+      ctx.font = '12px Georgia, serif';
+      ctx.fillText('Shift+R to reset save', W/2, H - 22);
+    }
+  }
+
+  function drawMarket() {
+    buttons.length = 0;
+    const c = cityById(state.city);
+    ctx.fillStyle = '#2a1f12';
+    ctx.fillRect(0, 60, W, H-60);
+
+    const px = 40, py = 80;
+    const pw = W - 80, ph = H - 120;
+    ctx.fillStyle = '#1a120a';
+    ctx.fillRect(px, py, pw, ph);
+    ctx.strokeStyle = '#4a3a20';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(px, py, pw, ph);
+
+    ctx.fillStyle = c.color;
+    ctx.fillRect(px, py, pw, 50);
+    ctx.fillStyle = c.edge;
+    ctx.fillRect(px, py + 50, pw, 4);
+    ctx.fillStyle = '#1f1810';
+    ctx.font = 'bold 28px Georgia, serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(c.name + ' Market', px + 20, py + 25);
+    ctx.fillStyle = '#1f1810cc';
+    ctx.font = 'italic 14px Georgia, serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(c.desc, px + pw - 20, py + 25);
+
+    ctx.fillStyle = '#e8dcc4';
+    ctx.font = 'bold 14px Georgia, serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    const headerY = py + 78;
+    ctx.fillText('Commodity', px + 80, headerY);
+    ctx.fillText('Price', px + 280, headerY);
+    ctx.fillText('In Cart', px + 400, headerY);
+    ctx.textAlign = 'center';
+    ctx.fillText('Buy', px + 540, headerY);
+    ctx.fillText('Sell', px + 760, headerY);
+
+    ctx.strokeStyle = '#4a3a20';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(px + 20, headerY + 14);
+    ctx.lineTo(px + pw - 20, headerY + 14);
+    ctx.stroke();
+
+    for (let i = 0; i < COMMODITIES.length; i++) {
+      const com = COMMODITIES[i];
+      const rowY = headerY + 30 + i * 70;
+      ctx.fillStyle = i%2===0 ? '#22180e' : '#1a120a';
+      ctx.fillRect(px + 20, rowY - 6, pw - 40, 64);
+
+      drawBlock(px + 30, rowY + 4, 40, 40, com.color, com.edge);
+      ctx.fillStyle = '#e8dcc4';
+      ctx.font = 'bold 16px Georgia, serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(com.name, px + 80, rowY + 24);
+
+      const price = state.prices[state.city][com.id];
+      const r = com.range;
+      const ratio = (price - r[0]) / (r[1] - r[0]);
+      let pcol = '#e8dcc4';
+      if (ratio < 0.33) pcol = '#7aff7a';
+      else if (ratio > 0.66) pcol = '#ff7a4a';
+      ctx.fillStyle = pcol;
+      ctx.font = 'bold 18px Georgia, serif';
+      ctx.fillText(price + ' g', px + 280, rowY + 24);
+
+      ctx.fillStyle = '#e8dcc4';
+      ctx.font = '15px Georgia, serif';
+      ctx.fillText(state.inv[com.id] + '', px + 400, rowY + 24);
+
+      const buyDis = state.gold < price || totalCargo() >= cap();
+      const sellDis = state.inv[com.id] <= 0;
+      btn(px + 500, rowY + 8, 60, 30, 'Buy 1', () => buy(com.id), { color:'#3a8a4a', disabled:buyDis });
+      btn(px + 570, rowY + 8, 80, 30, 'Buy Max', () => buyMax(com.id), { color:'#3a8a4a', disabled:buyDis });
+      btn(px + 720, rowY + 8, 60, 30, 'Sell 1', () => sell(com.id), { color:'#8a4a3a', disabled:sellDis });
+      btn(px + 790, rowY + 8, 80, 30, 'Sell All', () => sellAll(com.id), { color:'#8a4a3a', disabled:sellDis });
+    }
+
+    const upY = py + ph - 70;
+    ctx.fillStyle = '#0006';
+    ctx.fillRect(px + 20, upY - 8, pw - 40, 56);
+    ctx.strokeStyle = '#4a3a20';
+    ctx.strokeRect(px + 20, upY - 8, pw - 40, 56);
+    ctx.fillStyle = '#ffd35a';
+    ctx.font = 'bold 16px Georgia, serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Cart Upgrade', px + 40, upY + 12);
+    ctx.fillStyle = '#e8dcc4';
+    ctx.font = '14px Georgia, serif';
+    if (state.capLevel >= CAPS.length - 1) {
+      ctx.fillText('Capacity: ' + cap() + ' (MAX)', px + 200, upY + 12);
+    } else {
+      const nextCap = CAPS[state.capLevel + 1];
+      const nextCost = CAP_COSTS[state.capLevel + 1];
+      ctx.fillText('Capacity: ' + cap() + ' to ' + nextCap + ' for ' + nextCost + ' gold', px + 200, upY + 12);
+      const upDis = state.gold < nextCost;
+      btn(px + pw - 180, upY, 140, 32, 'Upgrade Cart', upgradeCart, { color:'#ffd35a', text:'#1f1810', disabled:upDis });
+    }
+
+    btn(px + pw - 130, py + 12, 110, 30, 'Back to Map', () => { state.view = 'map'; }, { color:'#1f1810', text:'#e8dcc4' });
+
+    drawButtons();
+  }
+
+  function drawButtons() {
+    for (const b of buttons) {
+      const col = b.opts.color || '#3a8a4a';
+      const tcol = b.opts.text || '#e8dcc4';
+      const dis = b.opts.disabled;
+      const hov = !dis && mx >= b.x && mx <= b.x+b.w && my >= b.y && my <= b.y+b.h;
+      ctx.fillStyle = dis ? '#3a3024' : (hov ? lighten(col) : col);
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+      ctx.strokeStyle = dis ? '#4a3a20' : '#1f1810';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(b.x, b.y, b.w, b.h);
+      ctx.fillStyle = dis ? '#7a6a52' : tcol;
+      ctx.font = 'bold 13px Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(b.label, b.x + b.w/2, b.y + b.h/2);
+    }
+  }
+
+  function lighten(hex) {
+    const h = hex.replace('#','');
+    const r = Math.min(255, parseInt(h.slice(0,2),16) + 30);
+    const g = Math.min(255, parseInt(h.slice(2,4),16) + 30);
+    const b = Math.min(255, parseInt(h.slice(4,6),16) + 30);
+    return '#' + r.toString(16).padStart(2,'0') + g.toString(16).padStart(2,'0') + b.toString(16).padStart(2,'0');
+  }
+
+  function draw() {
+    buttons.length = 0;
+    ctx.fillStyle = '#15100a';
+    ctx.fillRect(0, 0, W, H);
+
+    if (state.view === 'market' && !state.travel) {
+      drawMarket();
+    } else {
+      drawMap();
+      drawButtons();
+    }
+
+    document.getElementById('gold').textContent = Math.floor(state.gold).toLocaleString();
+    document.getElementById('cargo').textContent = totalCargo() + '/' + cap();
+    document.getElementById('loc').textContent = state.travel
+      ? ('On road to ' + cityById(state.travel.to).name)
+      : cityById(state.city).name;
+  }
+
+  let toastTimer = 0;
+  function flashToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.style.display = 'none'; }, 2400);
+  }
+
+  function loop(now) {
+    const dt = Math.min(0.1, (now - last)/1000);
+    last = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(now => { last = now; loop(now); });
+})();
+</script>
+</body>
+</html>

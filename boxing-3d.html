@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Heavy Hitters 3D — Boxing</title>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0a0a0a;color:#f0e6d2;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
+canvas{display:block}
+#game3d{position:fixed;inset:0;width:100vw;height:100vh}
+
+#hud{position:fixed;inset:0;pointer-events:none;z-index:5}
+.hud-bar{position:absolute;top:0;left:0;right:0;height:88px;background:linear-gradient(180deg,rgba(0,0,0,.78),rgba(0,0,0,.0));pointer-events:none;display:flex;align-items:center;padding:14px 24px;gap:24px;color:#ffd700}
+.hud-side{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+.hud-side.left{align-items:flex-start}
+.hud-side.right{align-items:flex-end}
+.hud-name{font-weight:900;letter-spacing:2px;font-size:13px;color:#ffd700;text-shadow:0 1px 2px #000}
+.bar{position:relative;width:360px;height:22px;background:rgba(0,0,0,.7);border:2px solid #ffd700;border-radius:4px;overflow:hidden}
+.bar-fill{position:absolute;top:0;bottom:0;transition:width .12s ease}
+.bar.right .bar-fill{right:0}
+.bar.left  .bar-fill{left:0}
+.bar-fill.player{background:#ff3838}
+.bar-fill.cpu{background:#3da2ff}
+.bar-num{position:absolute;top:-18px;font-size:11px;font-family:Consolas,monospace;color:#cfc8b8;font-weight:700}
+.bar.left .bar-num{right:0} .bar.right .bar-num{left:0}
+.stam{position:relative;width:280px;height:8px;background:rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.3);border-radius:2px;overflow:hidden}
+.stam-fill{position:absolute;top:0;bottom:0;background:#43b02a;transition:width .14s ease}
+.stam.right .stam-fill{right:0}
+.center{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px;color:#ffd700}
+.round-num{font-size:34px;font-weight:900;letter-spacing:3px;font-family:'Arial Black',sans-serif;color:#ffd700;text-shadow:0 2px 0 #6b1a00}
+.round-time{font-size:22px;font-family:Consolas,monospace;font-weight:700;color:#ffe066}
+.round-time.danger{color:#ff3838}
+.round-score{font-size:11px;color:#cfc8b8;font-weight:700}
+
+/* Hit-text bursts (positioned in screen space) */
+.hit-burst{position:absolute;font-family:'Arial Black',sans-serif;font-weight:900;font-size:48px;letter-spacing:2px;text-shadow:0 4px 0 #000, 0 0 12px rgba(0,0,0,.8);pointer-events:none;transform:translate(-50%,-50%);will-change:transform,opacity}
+
+/* Round-over banner */
+#round-banner{position:fixed;top:50%;left:0;right:0;text-align:center;color:#ffd700;font-family:'Arial Black',sans-serif;font-weight:900;font-size:64px;letter-spacing:4px;transform:translateY(-50%);text-shadow:0 4px 0 #6b1a00,0 0 24px rgba(0,0,0,.8);background:rgba(0,0,0,.5);padding:20px 0;display:none;z-index:6}
+#round-banner.show{display:block;animation:bannerPop .4s ease}
+@keyframes bannerPop{from{transform:translateY(-50%) scale(.7);opacity:0}to{transform:translateY(-50%) scale(1);opacity:1}}
+
+/* White flash overlay */
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:7;transition:opacity .12s ease}
+
+/* Title / end screens */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);z-index:10;color:#ffd700;text-shadow:0 2px 8px #000;text-align:center;padding:24px}
+.screen.active{display:flex}
+.screen h1{font-size:64px;letter-spacing:4px;font-weight:900;color:#ffd700;text-shadow:0 4px 0 #6b1a00, 0 6px 20px rgba(0,0,0,.8)}
+.screen h2{font-size:28px;letter-spacing:2px;color:#ff6b6b}
+.screen p{font-size:15px;color:#cfc8b8;line-height:1.7;max-width:560px}
+.screen .btn{background:linear-gradient(180deg,#ffd700,#c89a00);color:#1a0d0d;border:0;font-weight:900;font-size:18px;letter-spacing:2px;padding:14px 36px;border-radius:8px;cursor:pointer;box-shadow:0 4px 0 #7a5e00, 0 8px 16px rgba(0,0,0,.5);transition:transform .12s ease}
+.screen .btn:hover{transform:translateY(-2px)}
+.screen .btn:active{transform:translateY(2px);box-shadow:0 2px 0 #7a5e00}
+.controls{font-size:13px;color:#a8a08a;margin-top:8px;line-height:1.9}
+.controls b{color:#ffd700}
+.controls span{display:inline-block;background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.4);border-radius:4px;padding:2px 8px;margin:2px 4px;font-weight:700;color:#ffd700;font-family:Consolas,monospace}
+
+/* Between-round overlay (damage diagrams + corner advice) */
+#interlude{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(0,0,0,.86);backdrop-filter:blur(8px);z-index:11;color:#ffd700;text-align:center;padding:18px}
+#interlude.active{display:flex}
+#interlude h2{font-size:32px;font-weight:900;letter-spacing:3px;color:#ffd700;text-shadow:0 3px 0 #6b1a00}
+#interlude .diagrams{display:flex;gap:36px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+#interlude .diag{display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(20,10,10,.6);padding:10px 14px;border:2px solid #ffd700;border-radius:8px}
+#interlude .diag .who{font-weight:900;letter-spacing:2px;font-size:14px;color:#ffd700}
+#interlude svg{display:block}
+#interlude .advice{max-width:680px;font-size:15px;color:#f0e6d2;background:rgba(20,10,10,.6);border-left:4px solid #ffd700;padding:10px 16px;border-radius:4px;text-align:left;line-height:1.55}
+#interlude .advice b{color:#ffd700}
+#interlude .btn{background:linear-gradient(180deg,#ffd700,#c89a00);color:#1a0d0d;border:0;font-weight:900;font-size:16px;letter-spacing:2px;padding:10px 28px;border-radius:8px;cursor:pointer;box-shadow:0 4px 0 #7a5e00, 0 8px 16px rgba(0,0,0,.5)}
+#interlude .timer{font-size:12px;color:#cfc8b8;font-family:Consolas,monospace}
+
+/* Mobile touch d-pad */
+#touch-controls{position:fixed;inset:auto 0 0 0;height:0;display:none;z-index:8;pointer-events:none}
+.touch-pad{position:fixed;bottom:14px;pointer-events:auto;display:grid;gap:4px}
+.touch-pad.left{left:12px;width:130px;height:130px;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.touch-pad.right{right:8px;width:228px;height:174px;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(4,1fr)}
+.touch-btn{background:rgba(0,0,0,.6);border:2px solid rgba(255,215,0,.55);border-radius:50%;color:#ffd700;font-weight:900;font-size:11px;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;text-align:center;line-height:1}
+.touch-btn:active{background:rgba(255,215,0,.35);color:#1a0d0d}
+.touch-btn.empty{background:transparent;border:none}
+.touch-btn.blk{background:rgba(60,90,160,.55);border-color:rgba(160,200,255,.7);color:#dcefff}
+@media (pointer:coarse), (max-width:900px) { #touch-controls{display:block} .bar{width:42vw} .stam{width:36vw} }
+</style>
+</head>
+<body>
+
+<canvas id="game3d"></canvas>
+
+<div id="hud">
+  <div class="hud-bar">
+    <div class="hud-side left">
+      <div class="hud-name" id="name-p">YOU</div>
+      <div class="bar left"><div class="bar-fill player" id="hp-p" style="width:100%"></div><div class="bar-num" id="hp-p-num">100</div></div>
+      <div class="stam left"><div class="stam-fill" id="stam-p" style="width:100%"></div></div>
+    </div>
+    <div class="center">
+      <div class="round-num" id="round-num">R1</div>
+      <div class="round-time" id="round-time">1:00</div>
+      <div class="round-score" id="round-score">0-0</div>
+    </div>
+    <div class="hud-side right">
+      <div class="hud-name" id="name-c">BRUNO</div>
+      <div class="bar right"><div class="bar-fill cpu" id="hp-c" style="width:100%"></div><div class="bar-num" id="hp-c-num">100</div></div>
+      <div class="stam right"><div class="stam-fill" id="stam-c" style="width:100%"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="round-banner"></div>
+<div id="flash"></div>
+
+<div class="screen active" id="screen-title">
+  <h1>HEAVY HITTERS 3D</h1>
+  <h2>★ Round 1 ★</h2>
+  <p>Three rounds. One minute apiece. Drop your opponent or win on damage. Now in glorious 3D — third-person, two-arm combat.</p>
+  <button class="btn" id="btn-fight">FIGHT</button>
+  <div class="controls">
+    <div><b>Move:</b> <span>W</span><span>A</span><span>S</span><span>D</span> &nbsp; <b>Block:</b> <span>SPACE</span> &nbsp; <b>Dodge:</b> <span>Q</span></div>
+    <div><b>Jab:</b><span>J</span> <b>Cross:</b><span>K</span> <b>Hook:</b><span>U</span> <b>Uppercut:</b><span>I</span> <b>Overhand:</b><span>O</span></div>
+    <div><b>Body:</b><span>B</span> <b>Liver:</b><span>V</span> <b>Straight:</b><span>Y</span> <b>Check Hook:</b><span>H</span></div>
+    <div><b>Shovel:</b><span>G</span> <b>Corkscrew:</b><span>C</span> <b>Haymaker:</b><span>X</span></div>
+    <div style="font-size:11px;color:#7a7060;margin-top:6px">Same-button presses alternate Left/Right arm.</div>
+  </div>
+</div>
+
+<div class="screen" id="screen-end">
+  <h1 id="end-title">VICTORY</h1>
+  <h2 id="end-sub">By KO in Round 1</h2>
+  <p id="end-stats"></p>
+  <button class="btn" id="btn-rematch">REMATCH</button>
+</div>
+
+<div id="interlude">
+  <h2 id="interlude-title">END OF ROUND</h2>
+  <div class="diagrams" id="diagrams"></div>
+  <div class="advice" id="advice"></div>
+  <button class="btn" id="btn-continue">CONTINUE</button>
+  <div class="timer" id="interlude-timer">Auto-advance in 6s</div>
+</div>
+
+<div id="touch-controls">
+  <div class="touch-pad left">
+    <span class="touch-btn empty"></span><span class="touch-btn" data-tk="w">▲</span><span class="touch-btn empty"></span>
+    <span class="touch-btn" data-tk="a">◀</span><span class="touch-btn empty"></span><span class="touch-btn" data-tk="d">▶</span>
+    <span class="touch-btn empty"></span><span class="touch-btn" data-tk="s">▼</span><span class="touch-btn empty"></span>
+  </div>
+  <div class="touch-pad right">
+    <span class="touch-btn" data-tk="j">JAB</span>
+    <span class="touch-btn" data-tk="k">CRS</span>
+    <span class="touch-btn" data-tk="u">HK</span>
+    <span class="touch-btn" data-tk="i">UP</span>
+    <span class="touch-btn" data-tk="o">OVR</span>
+
+    <span class="touch-btn" data-tk="y">STR</span>
+    <span class="touch-btn" data-tk="h">CHK</span>
+    <span class="touch-btn" data-tk="g">SHV</span>
+    <span class="touch-btn" data-tk="c">CRK</span>
+    <span class="touch-btn" data-tk="x">HAY</span>
+
+    <span class="touch-btn" data-tk="b">BDY</span>
+    <span class="touch-btn" data-tk="v">LIV</span>
+    <span class="touch-btn empty"></span>
+    <span class="touch-btn empty"></span>
+    <span class="touch-btn blk" data-tk=" ">BLK</span>
+
+    <span class="touch-btn empty"></span>
+    <span class="touch-btn empty"></span>
+    <span class="touch-btn empty"></span>
+    <span class="touch-btn empty"></span>
+    <span class="touch-btn empty"></span>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ─────────────────────────────────────────────
+//  Config
+// ─────────────────────────────────────────────
+const RING_HALF = 3.0;
+const FLOOR_Y = 0;
+
+// Punch table.  Zone field is which body region the punch targets.
+// For zone "RIBS" the side (LEFT_RIBS / RIGHT_RIBS) is decided by which arm threw it.
+const PUNCH = {
+  jab:        { dmg: 0.75, stam: 5,  range: 1.6, windup:0.06, active:0.06, recover:0.18, knockback:0.12, zone:'HEAD',  word:'POW',   col:'#ffd700', power:1, family:'jab' },
+  cross:      { dmg: 1.38, stam:10,  range: 1.6, windup:0.10, active:0.07, recover:0.22, knockback:0.20, zone:'HEAD',  word:'CRACK', col:'#ff7a00', power:2, family:'cross' },
+  hook:       { dmg: 1.5,  stam:12,  range: 1.4, windup:0.14, active:0.08, recover:0.28, knockback:0.22, zone:'HEAD',  word:'BAM',   col:'#ff7a00', power:2, family:'hook' },
+  uppercut:   { dmg: 2.5,  stam:20,  range: 1.2, windup:0.22, active:0.10, recover:0.36, knockback:0.36, zone:'CHEST', word:'BOOM',  col:'#ff3838', power:3, family:'uppercut' },
+  overhand:   { dmg: 2.0,  stam:16,  range: 1.5, windup:0.16, active:0.09, recover:0.30, knockback:0.28, zone:'HEAD',  word:'WHAM',  col:'#ff3838', power:3, family:'overhand' },
+  bodyShot:   { dmg: 1.13, stam: 8,  range: 1.3, windup:0.10, active:0.07, recover:0.22, knockback:0.16, zone:'ABS',   word:'THUD',  col:'#ff9a3a', power:2, family:'body' },
+  liverShot:  { dmg: 1.75, stam:14,  range: 1.3, windup:0.12, active:0.08, recover:0.26, knockback:0.22, zone:'LIVER', word:'OOF',   col:'#ff5e3a', power:2, family:'body' },
+  straight:   { dmg: 1.25, stam: 9,  range: 1.7, windup:0.09, active:0.07, recover:0.22, knockback:0.18, zone:'HEAD',  word:'POW',   col:'#ffd700', power:2, family:'straight' },
+  checkHook:  { dmg: 1.38, stam:10,  range: 1.4, windup:0.10, active:0.07, recover:0.20, knockback:0.18, zone:'HEAD',  word:'SNAP',  col:'#ff7a00', power:2, family:'hook' },
+  shovelHook: { dmg: 1.63, stam:12,  range: 1.3, windup:0.12, active:0.08, recover:0.26, knockback:0.22, zone:'RIBS',  word:'CRUNCH',col:'#ff7a00', power:2, family:'hook' },
+  corkscrew:  { dmg: 1.5,  stam:11,  range: 1.5, windup:0.10, active:0.08, recover:0.24, knockback:0.20, zone:'HEAD',  word:'TWIST', col:'#ff7a00', power:2, family:'cross' },
+  haymaker:   { dmg: 3.0,  stam:26,  range: 1.3, windup:0.30, active:0.12, recover:0.50, knockback:0.46, zone:'HEAD',  word:'KO!!!', col:'#ff3838', power:3, family:'haymaker' },
+};
+
+// Which punches use the lead arm always, the rear arm always, or alternate L/R per press.
+// "lead" / "rear" map to a fighter's lead/rear stance.  Player = lead-left orthodox.
+const PUNCH_HAND = {
+  jab:'lead', cross:'rear', hook:'alt', uppercut:'alt', overhand:'alt',
+  bodyShot:'alt', liverShot:'alt', straight:'alt', checkHook:'lead',
+  shovelHook:'alt', corkscrew:'alt', haymaker:'alt',
+};
+
+// Key → punch.  Buttons that share L/R use the same key.
+const KEY_PUNCH = {
+  'j':'jab', 'k':'cross', 'u':'hook', 'i':'uppercut', 'o':'overhand',
+  'b':'bodyShot', 'v':'liverShot', 'y':'straight', 'h':'checkHook',
+  'g':'shovelHook', 'c':'corkscrew', 'x':'haymaker',
+};
+
+const ROUND_LEN = 60;
+const TOTAL_ROUNDS = 3;
+
+// ─────────────────────────────────────────────
+//  Three.js scene
+// ─────────────────────────────────────────────
+const canvas = document.getElementById('game3d');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.setClearColor(0x0a0a0a);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+
+// Camera state for third-person follow
+const camPos = new THREE.Vector3(0, 3.0, 8.5);
+const camTarget = new THREE.Vector3(0, 1.5, 0);
+const camDesiredPos = new THREE.Vector3();
+const camDesiredTarget = new THREE.Vector3();
+camera.position.copy(camPos);
+camera.lookAt(camTarget);
+
+function fitRenderer(){
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', fitRenderer);
+fitRenderer();
+
+// Lighting
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const sun = new THREE.DirectionalLight(0xfff2c8, 0.85);
+sun.position.set(6, 14, 8);
+scene.add(sun);
+const spot = new THREE.PointLight(0xfff2c8, 0.8, 16);
+spot.position.set(0, 5, 0);
+scene.add(spot);
+const back = new THREE.PointLight(0xff7a3a, 0.35, 18);
+back.position.set(0, 3, -5);
+scene.add(back);
+const backBaseIntensity = 0.35;
+let backPulse = 0;
+
+// Sky
+const sky = new THREE.Mesh(
+  new THREE.SphereGeometry(50, 24, 12),
+  new THREE.MeshBasicMaterial({ color: 0x1a0d0d, side: THREE.BackSide })
+);
+scene.add(sky);
+
+// Crowd
+function buildCrowd(){
+  const grp = new THREE.Group();
+  for (let i = 0; i < 200; i++){
+    const a = (i / 200) * Math.PI * 2;
+    const r = 7.5 + Math.random() * 2.5;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    const tier = Math.floor(Math.random() * 3);
+    const yBase = 0.5 + tier * 0.6;
+    const col = Math.random() < 0.4 ? 0x331a1a : (Math.random() < 0.5 ? 0x222 : 0x442222);
+    const body = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.18, 0.18, 0.55, 6),
+      new THREE.MeshLambertMaterial({ color: col })
+    );
+    body.position.set(x, yBase + 0.27, z);
+    grp.add(body);
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(0.13, 6, 5),
+      new THREE.MeshLambertMaterial({ color: 0xc88a55 })
+    );
+    head.position.set(x, yBase + 0.65, z);
+    grp.add(head);
+  }
+  scene.add(grp);
+  return grp;
+}
+const crowd = buildCrowd();
+
+// Arena floor
+const arenaFloor = new THREE.Mesh(
+  new THREE.CircleGeometry(15, 48),
+  new THREE.MeshLambertMaterial({ color: 0x0d0606 })
+);
+arenaFloor.rotation.x = -Math.PI/2;
+arenaFloor.position.y = -0.02;
+scene.add(arenaFloor);
+
+// Ring
+function buildRing(){
+  const grp = new THREE.Group();
+  const base = new THREE.Mesh(
+    new THREE.BoxGeometry(7.4, 0.4, 7.4),
+    new THREE.MeshLambertMaterial({ color: 0x2a1a14 })
+  );
+  base.position.y = -0.2;
+  grp.add(base);
+  const apronCanvas = document.createElement('canvas');
+  apronCanvas.width = 256; apronCanvas.height = 32;
+  const ax = apronCanvas.getContext('2d');
+  ax.fillStyle = '#cc0000'; ax.fillRect(0, 0, 256, 32);
+  ax.fillStyle = '#ffd700';
+  ax.font = 'bold 22px Arial Black, sans-serif';
+  ax.textAlign = 'center'; ax.textBaseline = 'middle';
+  ax.fillText('★ HEAVY HITTERS ★ HEAVY HITTERS ★ HEAVY HITTERS ★', 128, 17);
+  const apronTex = new THREE.CanvasTexture(apronCanvas);
+  apronTex.wrapS = THREE.RepeatWrapping;
+  apronTex.repeat.x = 2;
+  const apron = new THREE.Mesh(
+    new THREE.BoxGeometry(7.45, 0.4, 7.45),
+    new THREE.MeshLambertMaterial({ map: apronTex })
+  );
+  apron.position.y = -0.2;
+  apron.scale.set(1.001, 1.0, 1.001);
+  grp.add(apron);
+  const matCanvas = document.createElement('canvas');
+  matCanvas.width = 512; matCanvas.height = 512;
+  const mc = matCanvas.getContext('2d');
+  mc.fillStyle = '#1a4a8a'; mc.fillRect(0, 0, 512, 512);
+  mc.strokeStyle = '#ffd700'; mc.lineWidth = 8;
+  mc.beginPath(); mc.arc(256, 256, 100, 0, Math.PI*2); mc.stroke();
+  mc.fillStyle = '#ffd700';
+  mc.font = 'bold 64px Arial Black, sans-serif';
+  mc.textAlign = 'center'; mc.textBaseline = 'middle';
+  mc.fillText('HH', 256, 256);
+  mc.fillStyle = '#cc0000';
+  mc.beginPath(); mc.moveTo(0, 0); mc.lineTo(140, 0); mc.lineTo(0, 140); mc.fill();
+  mc.beginPath(); mc.moveTo(512, 512); mc.lineTo(372, 512); mc.lineTo(512, 372); mc.fill();
+  mc.fillStyle = '#0066cc';
+  mc.beginPath(); mc.moveTo(512, 0); mc.lineTo(372, 0); mc.lineTo(512, 140); mc.fill();
+  mc.beginPath(); mc.moveTo(0, 512); mc.lineTo(140, 512); mc.lineTo(0, 372); mc.fill();
+  const matTex = new THREE.CanvasTexture(matCanvas);
+  const mat = new THREE.Mesh(
+    new THREE.PlaneGeometry(6, 6),
+    new THREE.MeshLambertMaterial({ map: matTex })
+  );
+  mat.rotation.x = -Math.PI/2;
+  mat.position.y = 0.005;
+  grp.add(mat);
+  const postPositions = [[ 3.1, 3.1], [-3.1, 3.1], [-3.1, -3.1], [3.1, -3.1]];
+  for (const [px, pz] of postPositions){
+    const post = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.10, 1.85, 8),
+      new THREE.MeshLambertMaterial({ color: 0x3a2614 })
+    );
+    post.position.set(px, 0.92, pz);
+    grp.add(post);
+    const cap = new THREE.Mesh(
+      new THREE.BoxGeometry(0.32, 0.18, 0.32),
+      new THREE.MeshLambertMaterial({ color: 0xffd700 })
+    );
+    cap.position.set(px, 1.93, pz);
+    grp.add(cap);
+    const pad = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.16, 0.16, 1.6, 8),
+      new THREE.MeshLambertMaterial({ color: (px > 0 ? 0x0066cc : 0xcc0000) })
+    );
+    pad.position.set(px, 0.85, pz);
+    grp.add(pad);
+  }
+  const ropeColors = [0xcc0000, 0xffd700, 0x0066cc];
+  for (let lvl = 0; lvl < 3; lvl++){
+    const y = 0.85 + lvl * 0.42;
+    const col = ropeColors[lvl];
+    const frontRope = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.04, 0.04, 6.2, 8),
+      new THREE.MeshLambertMaterial({ color: col })
+    );
+    frontRope.rotation.z = Math.PI/2;
+    frontRope.position.set(0, y, 3.1);
+    grp.add(frontRope);
+    const backRope = frontRope.clone();
+    backRope.position.set(0, y, -3.1);
+    grp.add(backRope);
+    const leftRope = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.04, 0.04, 6.2, 8),
+      new THREE.MeshLambertMaterial({ color: col })
+    );
+    leftRope.rotation.x = Math.PI/2;
+    leftRope.position.set(-3.1, y, 0);
+    grp.add(leftRope);
+    const rightRope = leftRope.clone();
+    rightRope.position.set(3.1, y, 0);
+    grp.add(rightRope);
+  }
+  scene.add(grp);
+  return grp;
+}
+const ring = buildRing();
+
+// Overhead lamps
+for (const pos of [[-2, 5, -2], [2, 5, -2], [-2, 5, 2], [2, 5, 2]]){
+  const lampHousing = new THREE.Mesh(
+    new THREE.ConeGeometry(0.3, 0.4, 8),
+    new THREE.MeshLambertMaterial({ color: 0x222 })
+  );
+  lampHousing.position.set(...pos);
+  scene.add(lampHousing);
+  const lamp = new THREE.Mesh(
+    new THREE.SphereGeometry(0.14, 8, 6),
+    new THREE.MeshBasicMaterial({ color: 0xfff2c8 })
+  );
+  lamp.position.set(pos[0], pos[1] - 0.2, pos[2]);
+  scene.add(lamp);
+}
+
+// ─────────────────────────────────────────────
+//  Boxer rig (3D)
+//  Default-facing direction is +X.  Facing flipped via root.rotation.y.
+// ─────────────────────────────────────────────
+function createBoxer3D(opts){
+  const root = new THREE.Group();
+  const skinMat   = new THREE.MeshLambertMaterial({ color: opts.skin });
+  const trunkMat  = new THREE.MeshLambertMaterial({ color: opts.trunks });
+  const beltMat   = new THREE.MeshLambertMaterial({ color: 0xffd700 });
+  const bootMat   = new THREE.MeshLambertMaterial({ color: 0x111111 });
+  const gloveMat  = new THREE.MeshLambertMaterial({ color: opts.gloveColor });
+  const cuffMat   = new THREE.MeshLambertMaterial({ color: 0xffffff });
+  const stripeMat = new THREE.MeshLambertMaterial({ color: 0xffd700 });
+  const hairMat   = new THREE.MeshLambertMaterial({ color: 0x1a0d0d });
+  const eyeMat    = new THREE.MeshBasicMaterial({ color: 0x000 });
+  const detailMat = new THREE.MeshLambertMaterial({ color: 0x6a4a30 });
+  const mouthMat  = new THREE.MeshLambertMaterial({ color: 0x4a1a1a });
+  const laceMat   = new THREE.MeshLambertMaterial({ color: 0xffffff });
+
+  // ═══ LEGS ═══
+  function buildLeg(side){
+    const grp = new THREE.Group();
+    grp.position.set(0, 0.92, side * 0.13);
+    const thighTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.135, 0.32, 12), trunkMat);
+    thighTrunk.position.y = -0.15;
+    grp.add(thighTrunk);
+    const thighSkin = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.115, 0.18, 10), skinMat);
+    thighSkin.position.y = -0.40;
+    grp.add(thighSkin);
+    const knee = new THREE.Mesh(new THREE.SphereGeometry(0.105, 8, 6), skinMat);
+    knee.position.y = -0.51;
+    grp.add(knee);
+    // Knee pivot group — lower leg rotates around this joint
+    const kneeGroup = new THREE.Group();
+    kneeGroup.position.y = -0.51;
+    grp.add(kneeGroup);
+    const calf = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.085, 0.32, 10), skinMat);
+    calf.position.y = -0.17;   // relative to kneeGroup
+    kneeGroup.add(calf);
+    const boot = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.12, 0.32), bootMat);
+    boot.position.set(0.04, -0.37, 0);  // relative to kneeGroup
+    kneeGroup.add(boot);
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.02, 0.33), beltMat);
+    stripe.position.set(0.04, -0.33, 0); // relative to kneeGroup
+    kneeGroup.add(stripe);
+    root.add(grp);
+    return { grp, kneeGroup };
+  }
+  const legLData = buildLeg(-1);
+  const legRData = buildLeg(+1);
+  const legL = legLData.grp;
+  const legR = legRData.grp;
+
+  // ═══ HIPS ═══
+  const hipsGroup = new THREE.Group();
+  hipsGroup.position.y = 0;
+  root.add(hipsGroup);
+  const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.20, 0.18, 0.10, 14), beltMat);
+  belt.position.y = 0.95;
+  hipsGroup.add(belt);
+
+  // ═══ TORSO ═══ (group so we can lean it)
+  const torso = new THREE.Group();
+  torso.position.y = 0;
+  root.add(torso);
+
+  const chest = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.36, 0.55), skinMat);
+  chest.position.y = 1.30;
+  torso.add(chest);
+  const waist = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.20, 0.44), skinMat);
+  waist.position.y = 1.04;
+  torso.add(waist);
+  const rib = new THREE.Mesh(new THREE.BoxGeometry(0.30, 0.06, 0.50), skinMat);
+  rib.position.y = 1.14;
+  torso.add(rib);
+  const pecV = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.30, 0.02), detailMat);
+  pecV.position.set(0.16, 1.30, 0);
+  torso.add(pecV);
+  const pecH = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.005, 0.36), detailMat);
+  pecH.position.set(0.155, 1.16, 0);
+  torso.add(pecH);
+  for (let i = 0; i < 3; i++){
+    const ab = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.005, 0.18), detailMat);
+    ab.position.set(0.135, 1.10 - i * 0.05, 0);
+    torso.add(ab);
+  }
+
+  // ═══ NECK ═══
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.085, 0.12, 10), skinMat);
+  neck.position.y = 1.55;
+  torso.add(neck);
+
+  // ═══ HEAD ═══
+  const headGroup = new THREE.Group();
+  headGroup.position.y = 1.78;
+  torso.add(headGroup);
+  const headSphere = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12), skinMat);
+  headSphere.scale.set(1.0, 1.05, 0.95);
+  headGroup.add(headSphere);
+  const hair = new THREE.Mesh(
+    new THREE.SphereGeometry(0.186, 16, 10, 0, Math.PI*2, 0, Math.PI/2.3),
+    hairMat
+  );
+  hair.scale.set(1.0, 1.0, 0.95);
+  hair.position.y = 0.011;
+  headGroup.add(hair);
+  const earL = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), skinMat);
+  earL.position.set(0, 0, -0.18);
+  earL.scale.set(0.5, 1, 1);
+  headGroup.add(earL);
+  const earR = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), skinMat);
+  earR.position.set(0, 0, 0.18);
+  earR.scale.set(0.5, 1, 1);
+  headGroup.add(earR);
+  const nose = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.06, 8), skinMat);
+  nose.position.set(0.18, -0.02, 0);
+  nose.rotation.z = -Math.PI/2;
+  headGroup.add(nose);
+  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 6), eyeMat);
+  eyeL.position.set(0.155, 0.04, -0.06);
+  headGroup.add(eyeL);
+  const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 6), eyeMat);
+  eyeR.position.set(0.155, 0.04, 0.06);
+  headGroup.add(eyeR);
+  const browL = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.015, 0.05), hairMat);
+  browL.position.set(0.165, 0.085, -0.06);
+  browL.rotation.x = -0.15;
+  headGroup.add(browL);
+  const browR = browL.clone();
+  browR.position.z = 0.06;
+  headGroup.add(browR);
+  const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.012, 0.06), mouthMat);
+  mouth.position.set(0.166, -0.07, 0);
+  headGroup.add(mouth);
+  const chin = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), skinMat);
+  chin.position.set(0.135, -0.13, 0);
+  chin.scale.set(0.6, 0.5, 0.85);
+  headGroup.add(chin);
+
+  // ═══ ARMS ═══
+  // Each arm has: shoulder (group, rotates at the shoulder joint),
+  //               forearmRot (group at end of upper arm, rotates at the elbow),
+  //               glove (group at end of forearm).
+  function buildArm(side){
+    const shoulder = new THREE.Group();
+    shoulder.position.set(0, 1.50, side * 0.22);
+    // Bicep / upper arm
+    const upper = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.085, 0.07, 0.32, 10),
+      skinMat
+    );
+    upper.position.y = -0.16;
+    shoulder.add(upper);
+    const bicep = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 8), skinMat);
+    bicep.position.y = -0.11;
+    bicep.scale.set(1, 1.4, 1);
+    shoulder.add(bicep);
+    // Elbow / forearm pivot
+    const forearmRot = new THREE.Group();
+    forearmRot.position.y = -0.32;
+    shoulder.add(forearmRot);
+    const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), skinMat);
+    forearmRot.add(elbow);
+    const forearm = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.07, 0.058, 0.26, 10),
+      skinMat
+    );
+    forearm.position.y = -0.13;
+    forearmRot.add(forearm);
+
+    // ─── BOXING GLOVE ───
+    const gloveGroup = new THREE.Group();
+    gloveGroup.position.y = -0.30;
+    forearmRot.add(gloveGroup);
+    // Wrist cuff (white) — the tube of laces around the wrist
+    const cuff = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.085, 0.085, 0.10, 14),
+      cuffMat
+    );
+    cuff.position.y = 0.10;
+    gloveGroup.add(cuff);
+    // Tiny lace marks across the cuff
+    for (let i = 0; i < 4; i++){
+      const lace = new THREE.Mesh(
+        new THREE.BoxGeometry(0.018, 0.006, 0.005),
+        laceMat
+      );
+      lace.position.set(0.083, 0.13 - i * 0.018, 0);
+      gloveGroup.add(lace);
+      const lace2 = lace.clone();
+      lace2.position.x = -0.083;
+      gloveGroup.add(lace2);
+    }
+    // Main fist — a squashed sphere
+    const fist = new THREE.Mesh(
+      new THREE.SphereGeometry(0.155, 14, 10),
+      gloveMat
+    );
+    fist.scale.set(1.0, 0.95, 1.05);
+    fist.position.y = -0.05;
+    gloveGroup.add(fist);
+    // Knuckle ridge (slim box across the front of the fist)
+    const knuckle = new THREE.Mesh(
+      new THREE.BoxGeometry(0.02, 0.10, 0.20),
+      gloveMat
+    );
+    knuckle.position.set(0.14, -0.04, 0);
+    gloveGroup.add(knuckle);
+    // Brand stripe — a band across the back-of-hand area
+    const brand = new THREE.Mesh(
+      new THREE.BoxGeometry(0.02, 0.04, 0.22),
+      stripeMat
+    );
+    brand.position.set(-0.13, -0.01, 0);
+    gloveGroup.add(brand);
+    // Thumb (visible bump on the inside of the fist toward the body)
+    const thumb = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8), gloveMat);
+    thumb.scale.set(0.9, 1.2, 1.0);
+    thumb.position.set(0.06, 0.02, -side * 0.12);
+    gloveGroup.add(thumb);
+
+    root.add(shoulder);
+    return { shoulder, forearmRot, glove: gloveGroup };
+  }
+  const armL = buildArm(-1);
+  const armR = buildArm(+1);
+
+  // ─── Default guard pose ───
+  function setGuardPose(){
+    armL.shoulder.rotation.set(-0.4, 0, 1.45);
+    armL.forearmRot.rotation.set(0, 0, 1.30);
+    armR.shoulder.rotation.set( 0.4, 0, 1.45);
+    armR.forearmRot.rotation.set(0, 0, 1.30);
+  }
+  setGuardPose();
+
+  // ─── Stun stars (hidden until triggered) ───
+  const stunGroup = new THREE.Group();
+  stunGroup.position.y = 2.15;
+  stunGroup.visible = false;
+  torso.add(stunGroup);
+  const starColors = [0xfff44a, 0xffd700, 0xffe066];
+  const stars = [];
+  for (let i = 0; i < 3; i++){
+    const s = new THREE.Mesh(
+      new THREE.SphereGeometry(0.045, 8, 6),
+      new THREE.MeshBasicMaterial({ color: starColors[i] })
+    );
+    stars.push(s);
+    stunGroup.add(s);
+  }
+
+  // Shadow
+  const shadow = new THREE.Mesh(
+    new THREE.CircleGeometry(0.5, 18),
+    new THREE.MeshBasicMaterial({ color: 0x000, transparent: true, opacity: 0.55 })
+  );
+  shadow.rotation.x = -Math.PI/2;
+  shadow.position.y = 0.012;
+  root.add(shadow);
+
+  return {
+    root, torso, headGroup, neck, chest,
+    armL, armR, legL, legR,
+    legLKnee: legLData.kneeGroup,
+    legRKnee: legRData.kneeGroup,
+    setGuardPose,
+    stunGroup, stars,
+  };
+}
+
+// Generic per-arm pose helper.
+function setArmPose(armSide, pose){
+  if (pose.shoulderRot) armSide.shoulder.rotation.set(pose.shoulderRot[0], pose.shoulderRot[1], pose.shoulderRot[2]);
+  if (pose.forearmRot)  armSide.forearmRot.rotation.set(pose.forearmRot[0], pose.forearmRot[1], pose.forearmRot[2]);
+  if (pose.offset)      armSide.shoulder.position.set(pose.offset[0], pose.offset[1], pose.offset[2]);
+}
+
+// ─────────────────────────────────────────────
+//  Game state
+// ─────────────────────────────────────────────
+let state = 'title';
+let round = 1;
+let roundClock = ROUND_LEN;
+let scorePlayer = 0, scoreCpu = 0;
+let knockdownsPlayer = 0, knockdownsCpu = 0;
+let slowmoT = 0;
+let cameraShake = 0;
+let flashAmount = 0;
+let gloveRaiseMode = null; // {who:'player'|'cpu', t:0}
+
+function makeBoxer(opts){
+  const b = {
+    name: opts.name,
+    isPlayer: !!opts.isPlayer,
+    pos: new THREE.Vector3(opts.x || 0, FLOOR_Y, opts.z || 0),
+    facing: opts.facing || 1,
+    yaw: (opts.facing > 0) ? 0 : Math.PI,
+    targetYaw: 0,
+    hp: 100, maxHp: 100,
+    stamina: 100, maxStam: 100,
+    color: opts.color,
+    trunks: opts.trunks,
+    skin: opts.skin || 0xd6a26b,
+    gloveColor: opts.gloveColor,
+    action: 'idle',
+    actionT: 0, actionDur: 0,
+    activeArm: 'lead',
+    actionKind: null,
+    hitFrameDone: false,
+    flinch: 0, flinchDir: 0, flinchHistory: 0,
+    aiTimer: 0, aiState: 'idle',
+    aiAggression: 0.5, aiReaction: 0.4,
+    circleDir: Math.random() < 0.5 ? -1 : 1,
+    circleTimer: 1.5 + Math.random() * 1.5,
+    stunned: false, stunT: 0,
+    koStaggered: false,
+    legPhase: 0,      // 0-1 walking cycle
+    kneesBent: 0,     // 0=straight 1=fully crouched
+    dodgeCooldown: 0, // seconds until next dodge allowed
+    nextSide: { jab:'lead', cross:'rear', hook:'lead', uppercut:'rear', overhand:'rear',
+                bodyShot:'lead', liverShot:'lead', straight:'rear', checkHook:'lead',
+                shovelHook:'lead', corkscrew:'rear', haymaker:'rear' },
+    // Punch animation state
+    armTimers: { lead: 0, rear: 0 },
+    // Stats
+    punchesThrown: 0, punchesLanded: 0, lowStaminaTicks: 0,
+    // Damage taken by zone
+    zoneDmg: { HEAD:0, CHEST:0, ABS:0, LIVER:0, LEFT_RIBS:0, RIGHT_RIBS:0 },
+    rig: createBoxer3D({ trunks: opts.trunks, skin: opts.skin, gloveColor: opts.gloveColor }),
+  };
+  // Lead = left arm (orthodox), Rear = right arm.
+  return b;
+}
+
+let player, cpu;
+
+function getArm(b, which){
+  return (which === 'lead') ? b.rig.armL : b.rig.armR;
+}
+
+function resetMatch(){
+  state = 'fight';
+  round = 1;
+  roundClock = ROUND_LEN;
+  scorePlayer = 0; scoreCpu = 0;
+  knockdownsPlayer = 0; knockdownsCpu = 0;
+  setupRound(true);
+  hideScreen('screen-title');
+  hideScreen('screen-end');
+  hideScreen('interlude');
+  playBell();
+}
+
+function setupRound(freshMatch){
+  if (player) scene.remove(player.rig.root);
+  if (cpu)    scene.remove(cpu.rig.root);
+  player = makeBoxer({ name:'YOU', isPlayer:true, x:-1.6, z:0, facing:1, color:0x7d2424, trunks:0xcc0000, gloveColor:0xff3838, skin:0xd6a26b });
+  cpu    = makeBoxer({ name:'BRUNO',                x:1.6, z:0, facing:-1, color:0x1f3d6e, trunks:0x0066cc, gloveColor:0x3da2ff, skin:0xc08550 });
+  cpu.aiAggression = 0.45 + round*0.12;
+  cpu.aiReaction   = 0.35 + round*0.10;
+  scene.add(player.rig.root);
+  scene.add(cpu.rig.root);
+  player.rig.root.position.copy(player.pos);
+  cpu.rig.root.position.copy(cpu.pos);
+  player.rig.root.rotation.y = 0;
+  cpu.rig.root.rotation.y = Math.PI;
+  roundClock = ROUND_LEN;
+  document.getElementById('round-num').textContent = 'R' + round;
+  // Carry zone-damage forward across rounds (cumulative for the whole match).
+  if (!freshMatch && window._matchZone){
+    player.zoneDmg = window._matchZone.player;
+    cpu.zoneDmg    = window._matchZone.cpu;
+  } else {
+    window._matchZone = { player: player.zoneDmg, cpu: cpu.zoneDmg };
+  }
+}
+
+// ─────────────────────────────────────────────
+//  Audio
+// ─────────────────────────────────────────────
+let audioCtx = null;
+function ensureAudio(){
+  if (!audioCtx){
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e){ audioCtx = null; }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playTone({freq=200, dur=0.08, type='sine', vol=0.3, attack=0.005}){
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + attack);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t + dur);
+}
+function playHit(power){
+  ensureAudio();
+  if (!audioCtx) return;
+  if (power === 1){ playTone({ freq: 400, dur: 0.06, type: 'square', vol: 0.18 }); }
+  else if (power === 2){ playTone({ freq: 220, dur: 0.10, type: 'square', vol: 0.25 }); playTone({ freq: 110, dur: 0.12, type: 'sine', vol: 0.18 }); }
+  else { playTone({ freq: 90, dur: 0.18, type: 'sawtooth', vol: 0.3 }); playTone({ freq: 50, dur: 0.20, type: 'sine', vol: 0.22 }); }
+}
+function playBlock(){ ensureAudio(); playTone({ freq: 700, dur: 0.05, type: 'square', vol: 0.12 }); }
+function playBell(){
+  ensureAudio();
+  for (const f of [880, 1318, 1760]) playTone({ freq: f, dur: 1.2, type: 'sine', vol: 0.16 });
+}
+
+// ─────────────────────────────────────────────
+//  Input
+// ─────────────────────────────────────────────
+const keys = {};
+const keyEdge = {}; // single-frame edge-triggered presses for punch keys
+const PUNCH_KEYS = Object.keys(KEY_PUNCH);
+const RESERVED = new Set(['w','a','s','d',' ', ...PUNCH_KEYS]);
+
+window.addEventListener('keydown', e => {
+  ensureAudio();
+  const k = e.key.toLowerCase();
+  if (RESERVED.has(k)) e.preventDefault();
+  if (!keys[k]) keyEdge[k] = true;
+  keys[k] = true;
+});
+window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+document.querySelectorAll('#touch-controls .touch-btn[data-tk]').forEach(btn => {
+  const tk = btn.dataset.tk;
+  btn.addEventListener('touchstart', e => { e.preventDefault(); ensureAudio(); if (!keys[tk]) keyEdge[tk] = true; keys[tk] = true; });
+  btn.addEventListener('touchend',   e => { e.preventDefault(); keys[tk] = false; });
+  btn.addEventListener('touchcancel',e => { keys[tk] = false; });
+  // Mouse fallback for testing
+  btn.addEventListener('mousedown', e => { e.preventDefault(); ensureAudio(); if (!keys[tk]) keyEdge[tk] = true; keys[tk] = true; });
+  btn.addEventListener('mouseup',   e => { e.preventDefault(); keys[tk] = false; });
+  btn.addEventListener('mouseleave',e => { keys[tk] = false; });
+});
+
+function consumeEdge(k){
+  if (keyEdge[k]){ keyEdge[k] = false; return true; }
+  return false;
+}
+
+// ─────────────────────────────────────────────
+//  Boxer logic
+// ─────────────────────────────────────────────
+function startAction(b, kind, sideOverride){
+  if (b.hp <= 0) return;
+  if (b.action === 'ko') return;
+  if (b.stunned && kind !== 'block') return;
+  if (b.action !== 'idle' && b.action !== 'block') return;
+  if (kind in PUNCH){
+    const p = PUNCH[kind];
+    if (b.stamina < p.stam * 0.5) return;
+    b.stamina = Math.max(0, b.stamina - p.stam);
+    let arm;
+    const handRule = PUNCH_HAND[kind];
+    if (sideOverride) arm = sideOverride;
+    else if (handRule === 'lead') arm = 'lead';
+    else if (handRule === 'rear') arm = 'rear';
+    else {
+      arm = b.nextSide[kind] || 'lead';
+      b.nextSide[kind] = (arm === 'lead') ? 'rear' : 'lead';
+    }
+    b.action = kind;
+    b.actionKind = kind;
+    b.actionT = 0;
+    b.actionDur = p.windup + p.active + p.recover;
+    b.activeArm = arm;
+    b.hitFrameDone = false;
+    b.punchesThrown++;
+  } else if (kind === 'block'){
+    b.action = 'block'; b.actionT = 0; b.actionDur = 0;
+  }
+}
+function endAction(b){ b.action = 'idle'; b.actionT = 0; b.actionKind = null; }
+
+function startDodge(b){
+  if (b.hp <= 0 || b.action === 'ko') return;
+  if (b.dodgeCooldown > 0) return;
+  if (b.action !== 'idle') return;
+  b.action = 'dodge';
+  b.actionT = 0;
+  b.actionDur = 0.38;
+  b.dodgeCooldown = 0.9;
+}
+
+function zoneForHit(attacker, kind){
+  const p = PUNCH[kind];
+  if (p.zone !== 'RIBS') return p.zone;
+  // Shovel hook: which side of opponent's torso depending on attacker's arm.
+  // Attacker's left arm hits opponent's right ribs, and vice-versa.
+  return (attacker.activeArm === 'lead') ? 'RIGHT_RIBS' : 'LEFT_RIBS';
+  // (Lead = left arm in orthodox stance; "left arm hits right side" of opp.)
+}
+
+function zoneColorClass(amount){
+  if (amount > 28) return 'red';
+  if (amount > 12) return 'yellow';
+  return 'white';
+}
+function zoneMultiplier(amount){
+  if (amount > 28) return 1.25;
+  if (amount > 12) return 1.10;
+  return 1.0;
+}
+
+function takeHit(target, source, kind){
+  const p = PUNCH[kind];
+  const zone = zoneForHit(source, kind);
+  const blocked = (target.action === 'block');
+
+  // Dodge check — crouching slips jabs/hooks/most punches; uppercut punishes
+  if (!blocked && target.kneesBent > 0.5 && target.action === 'dodge'){
+    if (kind !== 'uppercut'){
+      spawnHitText('DODGE!', target, '#44ff88');
+      return;
+    }
+    spawnHitText('CAUGHT!', target, '#ff8800');
+  }
+
+  let dmg = p.dmg;
+  // Check-hook bonus when hitting a target mid-windup
+  if (kind === 'checkHook' && target.actionKind && target.action in PUNCH){
+    const tp = PUNCH[target.action];
+    if (target.actionT < tp.windup) dmg += 4;
+  }
+  // Liver = crit modifier
+  if (kind === 'liverShot') dmg += 2;
+  // Pre-existing zone damage multiplier (BEFORE we add this hit)
+  dmg = dmg * zoneMultiplier(target.zoneDmg[zone] || 0);
+
+  if (blocked){
+    dmg = Math.round(dmg * 0.18);
+    target.stamina = Math.max(0, target.stamina - p.stam * 0.6);
+    playBlock();
+    spawnHitText('BLOCK', target, '#9fdcff');
+  } else {
+    source.punchesLanded++;
+    target.flinch = 0.35;
+    target.flinchDir = (Math.random() < 0.5 ? -1 : 1);
+    if (target.action !== 'ko') target.action = 'hit';
+    target.actionT = 0;
+    target.actionDur = p.windup + 0.05;
+    // Knockback in 3D — push along the source-to-target vector (XZ plane only)
+    const kbDir = new THREE.Vector3().subVectors(target.pos, source.pos);
+    kbDir.y = 0;
+    if (kbDir.lengthSq() < 0.0001) kbDir.set(target.facing, 0, 0);
+    kbDir.normalize();
+    target.pos.x += kbDir.x * p.knockback;
+    target.pos.z += kbDir.z * p.knockback;
+    playHit(p.power);
+    spawnHitText(p.word, target, p.col);
+    if (p.power >= 3) flashAmount = Math.max(flashAmount, 0.32);
+    cameraShake = Math.max(cameraShake, p.power === 1 ? 0.05 : p.power === 2 ? 0.10 : 0.18);
+    target.zoneDmg[zone] = (target.zoneDmg[zone] || 0) + dmg;
+    // Stun roll — 10% per clean hit
+    if (Math.random() < 0.10 && target.action !== 'ko'){
+      target.stunned = true;
+      target.stunT = 1.4;
+      spawnHitText('STUNNED!', target, '#ff5e3a');
+    }
+  }
+  target.hp -= dmg;
+  if (target.hp <= 0){
+    target.hp = 0;
+    target.action = 'ko';
+    target.actionT = 0;
+    target.actionDur = 1.6;
+    target.koStaggered = false;
+    slowmoT = 1.5;
+    flashAmount = 0.45;
+    if (target.isPlayer) knockdownsPlayer++; else knockdownsCpu++;
+  }
+}
+
+function checkPunchHit(attacker, defender){
+  if (!(attacker.action in PUNCH)) return;
+  const p = PUNCH[attacker.action];
+  if (attacker.actionT < p.windup || attacker.actionT > p.windup + p.active) return;
+  if (attacker.hitFrameDone) return;
+  // 3D distance
+  const dx = defender.pos.x - attacker.pos.x;
+  const dz = defender.pos.z - attacker.pos.z;
+  const dist = Math.sqrt(dx*dx + dz*dz);
+  if (dist > p.range) return;
+  if (dist < 0.05) return;
+  // Forward cone: defender must be in front of attacker (yaw-based).
+  const fwdX = Math.cos(attacker.yaw);
+  const fwdZ = -Math.sin(attacker.yaw); // because root.rotation.y rotates around +Y
+  const dot = (dx * fwdX + dz * fwdZ);
+  if (dot < 0.6 * dist) return;
+  attacker.hitFrameDone = true;
+  takeHit(defender, attacker, attacker.action);
+}
+
+// Set yaw so defender's forward vector points toward target.
+function aimYawAt(b, target){
+  const dx = target.pos.x - b.pos.x;
+  const dz = target.pos.z - b.pos.z;
+  // forward = (cos(yaw), -sin(yaw)).  yaw = atan2(-dz, dx)
+  b.targetYaw = Math.atan2(-dz, dx);
+  // initialize current facing label for legacy bits
+  b.facing = (Math.cos(b.targetYaw) >= 0) ? 1 : -1;
+}
+
+function clampToRing(b){
+  const r = RING_HALF - 0.4;
+  if (b.pos.x >  r) b.pos.x =  r;
+  if (b.pos.x < -r) b.pos.x = -r;
+  if (b.pos.z >  r) b.pos.z =  r;
+  if (b.pos.z < -r) b.pos.z = -r;
+}
+
+function tickPlayer(b, dt){
+  aimYawAt(b, cpu);
+  // Forward / right vectors based on yaw
+  const fwdX = Math.cos(b.yaw),  fwdZ = -Math.sin(b.yaw);
+  const rgtX = Math.sin(b.yaw),  rgtZ =  Math.cos(b.yaw);
+
+  let fIn = 0, sIn = 0;
+  if (keys['w']) fIn += 1;
+  if (keys['s']) fIn -= 1;
+  if (keys['a']) sIn -= 1;
+  if (keys['d']) sIn += 1;
+
+  let speed = (b.action === 'idle' || b.action === 'block') ? 2.4 : 0.6;
+  if (b.stunned) speed *= 0.4;
+
+  if (b.action !== 'ko' && b.action !== 'hit'){
+    // W = approach (toward enemy = forward). S = retreat (back).
+    // A/D = strafe — that's how we circle.
+    b.pos.x += (fIn * fwdX + sIn * rgtX) * speed * dt;
+    b.pos.z += (fIn * fwdZ + sIn * rgtZ) * speed * dt;
+  }
+  clampToRing(b);
+
+  // Leg phase advances when moving
+  if (b.action !== 'ko' && (fIn !== 0 || sIn !== 0)){
+    b.legPhase = (b.legPhase + dt * 3.8) % 1;
+  }
+
+  if (b.action === 'block' && !keys[' ']) endAction(b);
+
+  if ((b.action === 'idle' || b.action === 'block') && !b.stunned){
+    if (keys[' ']){
+      if (b.action !== 'block') startAction(b, 'block');
+    } else {
+      // Dodge (edge-triggered so a held key fires once)
+      if (b.action === 'idle' && consumeEdge('q')) {
+        startDodge(b);
+      } else {
+        // Edge-triggered punches so a held key only fires once.
+        for (const k of PUNCH_KEYS){
+          if (consumeEdge(k)){
+            startAction(b, KEY_PUNCH[k]);
+            break;
+          }
+        }
+      }
+    }
+  } else {
+    // Drain edge events that came in while we were locked out.
+    for (const k of PUNCH_KEYS) keyEdge[k] = false;
+  }
+  tickAction(b, dt);
+}
+
+function tickAction(b, dt){
+  // Always-running timers
+  if (b.dodgeCooldown > 0) b.dodgeCooldown = Math.max(0, b.dodgeCooldown - dt);
+  if (b.action !== 'dodge') b.kneesBent = Math.max(0, b.kneesBent - dt * 6);
+  if (b.flinch > 0) b.flinch = Math.max(0, b.flinch - dt);
+
+  // Stun timer
+  if (b.stunned){
+    b.stunT -= dt;
+    b.stamina = Math.max(0, b.stamina - 4 * dt);
+    if (b.stunT <= 0){ b.stunned = false; b.stunT = 0; }
+  }
+
+  if (b.action === 'ko'){ b.actionT += dt; return; }
+  if (b.action === 'hit'){
+    b.actionT += dt;
+    if (b.actionT >= b.actionDur) endAction(b);
+    return;
+  }
+  if (b.action === 'block'){
+    b.stamina = Math.max(0, b.stamina - 4 * dt);
+    return;
+  }
+  if (b.action === 'dodge'){
+    b.actionT += dt;
+    b.kneesBent = Math.sin((b.actionT / b.actionDur) * Math.PI);
+    if (b.actionT >= b.actionDur){ b.kneesBent = 0; endAction(b); }
+    return;
+  }
+  if (b.action in PUNCH){
+    b.actionT += dt;
+    if (b.actionT >= b.actionDur) endAction(b);
+  }
+  if (b.action === 'idle' && b.stamina < b.maxStam){
+    const regen = b.stunned ? 6 : 18;
+    b.stamina = Math.min(b.maxStam, b.stamina + regen * dt);
+  }
+  // Track low-stamina ticks for corner advice
+  if (b.stamina < 30) b.lowStaminaTicks += dt;
+}
+
+// CPU AI — circling, 2D motion, varied punches.
+function tickCpu(c, dt){
+  aimYawAt(c, player);
+  c.aiTimer    -= dt;
+  c.circleTimer -= dt;
+  if (c.circleTimer <= 0){
+    c.circleTimer = 1.5 + Math.random() * 1.5;
+    c.circleDir   = (Math.random() < 0.5 ? -1 : 1);
+  }
+
+  const dx = player.pos.x - c.pos.x;
+  const dz = player.pos.z - c.pos.z;
+  const dist = Math.sqrt(dx*dx + dz*dz);
+
+  const playerThreatening =
+    (player.action === 'hook' || player.action === 'uppercut' || player.action === 'haymaker' || player.action === 'overhand')
+    && player.actionT < (PUNCH[player.action]?.windup || 0);
+  if (playerThreatening && dist < 1.7 && Math.random() < c.aiReaction * dt * 60){
+    if (c.dodgeCooldown <= 0 && Math.random() < 0.38) startDodge(c);
+    else if (c.action === 'idle') startAction(c, 'block');
+  } else if (c.action === 'block' && (!playerThreatening || dist > 2.0)){
+    endAction(c);
+  }
+
+  if (c.action === 'idle' && !c.stunned){
+    if (c.aiTimer <= 0){
+      c.aiTimer = 0.3 + Math.random() * 0.6;
+      if (dist > 3.0)         c.aiState = 'advance';
+      else if (dist > 1.6){
+        if (Math.random() < c.aiAggression) c.aiState = (Math.random() < 0.5 ? 'advance' : 'jab');
+        else c.aiState = 'circle';
+      } else {
+        if (c.stamina < 25) c.aiState = 'retreat';
+        else {
+          const r = Math.random();
+          if (r < c.aiAggression * 0.55){
+            // Pick a random punch — wider variety than 3 originally.
+            const choices = ['jab','cross','hook','uppercut','overhand','bodyShot','liverShot','straight','shovelHook','corkscrew'];
+            c.aiState = choices[Math.floor(Math.random() * choices.length)];
+            if (Math.random() < 0.07) c.aiState = 'haymaker';
+          } else if (r < 0.85) c.aiState = 'circle';
+          else c.aiState = 'block-tactical';
+        }
+      }
+    }
+    // Compute movement
+    let fIn = 0, sIn = 0;
+    if (c.aiState === 'advance')      fIn = 1;
+    else if (c.aiState === 'retreat') fIn = -1;
+    else if (c.aiState === 'circle')  fIn = 0;
+    else if (c.aiState in PUNCH){ startAction(c, c.aiState); }
+    else if (c.aiState === 'block-tactical'){ startAction(c, 'block'); }
+    // Always add a circling component
+    sIn += c.circleDir * 0.7;
+
+    const fwdX = Math.cos(c.yaw),  fwdZ = -Math.sin(c.yaw);
+    const rgtX = Math.sin(c.yaw),  rgtZ =  Math.cos(c.yaw);
+    let speed = 1.7;
+    if (c.stunned) speed *= 0.4;
+    c.pos.x += (fIn * fwdX + sIn * rgtX) * speed * dt;
+    c.pos.z += (fIn * fwdZ + sIn * rgtZ) * speed * dt;
+    clampToRing(c);
+    // CPU leg phase
+    if ((fIn !== 0 || sIn !== 0) && c.action !== 'ko'){
+      c.legPhase = (c.legPhase + dt * 3.8) % 1;
+    }
+  }
+  tickAction(c, dt);
+}
+
+// ─────────────────────────────────────────────
+//  Boxer animation
+// ─────────────────────────────────────────────
+const _v3 = new THREE.Vector3();
+
+function animateBoxer(b, dt){
+  const r = b.rig;
+  // Position root from b.pos
+  r.root.position.x = b.pos.x;
+  r.root.position.z = b.pos.z;
+
+  // Smoothly turn to targetYaw
+  let dy = b.targetYaw - b.yaw;
+  while (dy > Math.PI) dy -= Math.PI * 2;
+  while (dy < -Math.PI) dy += Math.PI * 2;
+  b.yaw += dy * Math.min(1, dt * 10);
+  r.root.rotation.y = b.yaw;
+
+  // KO fall
+  if (b.action === 'ko'){
+    if (!b.koStaggered){
+      // brief stagger lasting ~0.25s before topple — root.position.x wobble
+      const staggerT = Math.min(1, b.actionT / 0.25);
+      r.root.position.x += Math.sin(b.actionT * 60) * 0.08 * (1 - staggerT);
+      if (b.actionT > 0.25) b.koStaggered = true;
+    }
+    const t = Math.min(1, Math.max(0, (b.actionT - 0.25)) / 0.6);
+    r.root.rotation.x = t * (Math.PI/2);
+    r.root.position.y = -t * 0.15;
+  } else {
+    r.root.rotation.x = 0;
+    r.root.position.y = -b.kneesBent * 0.18; // crouch down during dodge
+  }
+
+  // Idle breathing & weight shift
+  const tNow = performance.now() * 0.001;
+  let breath = 0;
+  let lateralShift = 0;
+  if (b.action === 'idle' && b.hp > 0){
+    breath = Math.sin(tNow * 2.2) * 0.025;
+    lateralShift = Math.sin(tNow * 1.4) * 0.012;
+  }
+  r.chest.scale.y = 1.0 + breath * 0.4;
+  r.torso.position.x = lateralShift;
+
+  // Stun sway
+  if (b.stunned){
+    r.torso.position.x += Math.sin(tNow * 6) * 0.06;
+    r.torso.rotation.z = Math.sin(tNow * 6) * 0.10;
+    r.stunGroup.visible = true;
+    for (let i = 0; i < r.stars.length; i++){
+      const a = tNow * 1.2 + i * (Math.PI*2/3);
+      r.stars[i].position.set(Math.cos(a) * 0.22, Math.sin(tNow * 4 + i) * 0.04, Math.sin(a) * 0.22);
+    }
+  } else {
+    r.stunGroup.visible = false;
+    if (b.action !== 'hit') r.torso.rotation.z *= (1 - dt * 8);
+  }
+
+  // Lean: forward when advancing (player W key / cpu advance), back when retreat
+  let targetLeanX = 0;
+  if (b.action === 'idle'){
+    if (b.isPlayer){
+      if (keys['w']) targetLeanX = 0.10;
+      else if (keys['s']) targetLeanX = -0.10;
+    } else {
+      if (b.aiState === 'advance') targetLeanX = 0.08;
+      else if (b.aiState === 'retreat') targetLeanX = -0.10;
+    }
+  }
+  if (b.action in PUNCH) targetLeanX = 0.18; // lean into punches
+  // Apply lean as torso rotation around its local Z (forward axis) — actually lean is rotation around side-axis (X).
+  // We lean forward → rotate torso around its local Z by negative? In our model X is the forward axis; lean forward = tilt around Z (side).
+  r.torso.rotation.x = (r.torso.rotation.x || 0) + (targetLeanX - (r.torso.rotation.x || 0)) * Math.min(1, dt * 6);
+
+  // Hip counter-rotate slightly during punches
+  // (we don't have hip pivot — fake it on legs)
+  let hipTwist = 0;
+  if (b.action in PUNCH){
+    const p = PUNCH[b.action];
+    const tp = b.actionT / Math.max(0.001, b.actionDur);
+    hipTwist = Math.sin(tp * Math.PI) * 0.18 * (b.activeArm === 'lead' ? 1 : -1);
+  }
+  r.legL.rotation.y = hipTwist * 0.6;
+  r.legR.rotation.y = hipTwist * 0.6;
+
+  // ── Stepping animation ──
+  // Leg groups pivot at the hip; rotation.z swings the whole leg forward/backward.
+  const isMoving = b.action !== 'ko' && (
+    b.isPlayer
+      ? (keys['w'] || keys['a'] || keys['s'] || keys['d'])
+      : (b.aiState === 'advance' || b.aiState === 'retreat' || b.aiState === 'circle')
+  );
+  if (isMoving){
+    r.legL.rotation.z = Math.sin(b.legPhase * Math.PI * 2) * 0.30;
+    r.legR.rotation.z = Math.sin(b.legPhase * Math.PI * 2 + Math.PI) * 0.30;
+  } else {
+    r.legL.rotation.z = (r.legL.rotation.z || 0) * (1 - Math.min(1, dt * 12));
+    r.legR.rotation.z = (r.legR.rotation.z || 0) * (1 - Math.min(1, dt * 12));
+  }
+
+  // ── Knee bend (dodge / crouch) ──
+  // kneeGroup.rotation.z = negative angle bends lower leg backward = crouch.
+  const kneeBend = -b.kneesBent * 0.92;
+  if (r.legLKnee) r.legLKnee.rotation.z = kneeBend;
+  if (r.legRKnee) r.legRKnee.rotation.z = kneeBend;
+
+  // Head tracking — subtle look toward opponent
+  const opp = b.isPlayer ? cpu : player;
+  if (opp){
+    _v3.subVectors(opp.pos, b.pos);
+    // local angle relative to body forward
+    const localAngle = Math.atan2(-_v3.z, _v3.x) - b.yaw;
+    let la = localAngle;
+    while (la > Math.PI) la -= Math.PI*2;
+    while (la < -Math.PI) la += Math.PI*2;
+    r.headGroup.rotation.y = la * 0.35;
+  }
+
+  // Flinch — head jerk in hit direction
+  if (b.flinch > 0 && b.action !== 'ko'){
+    const t = b.flinch;
+    // First 0.15s: head jerks; recoil afterwards.
+    const jerk = Math.min(1, (0.35 - t) / 0.15);
+    const recoil = Math.max(0, 1 - jerk);
+    r.headGroup.rotation.z = (-b.flinchDir) * (jerk * 0.4 + recoil * 0.15);
+    r.neck.rotation.z = (-b.flinchDir) * 0.12 * (jerk + recoil*0.5);
+  } else {
+    r.headGroup.rotation.z *= (1 - dt * 10);
+    r.neck.rotation.z = (r.neck.rotation.z || 0) * (1 - dt * 10);
+  }
+
+  // Default guard pose
+  r.setGuardPose();
+
+  // Per-punch arm animation
+  if (b.action in PUNCH){
+    const kind = b.action;
+    const p = PUNCH[kind];
+    const tt = b.actionT / Math.max(0.001, b.actionDur);
+    const phase =
+      (b.actionT < p.windup) ? (b.actionT / p.windup) :                                                 // 0..1 windup
+      (b.actionT < p.windup + p.active) ? (1 + (b.actionT - p.windup) / Math.max(0.001, p.active)) :    // 1..2 active
+      (2 + (b.actionT - p.windup - p.active) / Math.max(0.001, p.recover));                              // 2..3 recover
+
+    animatePunch(b, kind, phase);
+  } else if (b.action === 'block'){
+    setArmPose(r.armL, { shoulderRot:[-0.2, 0, 1.55], forearmRot:[0, 0.4, 1.55] });
+    setArmPose(r.armR, { shoulderRot:[ 0.2, 0, 1.55], forearmRot:[0,-0.4, 1.55] });
+  } else if (b.action === 'hit'){
+    setArmPose(r.armL, { shoulderRot:[-0.2, 0, 1.20], forearmRot:[0, 0, 1.10] });
+    setArmPose(r.armR, { shoulderRot:[ 0.2, 0, 1.20], forearmRot:[0, 0, 1.10] });
+  }
+}
+
+// Drive an arm by punch family + phase (0..3).
+function animatePunch(b, kind, phase){
+  const r = b.rig;
+  const arm = (b.activeArm === 'lead') ? r.armL : r.armR;
+  const otherArm = (b.activeArm === 'lead') ? r.armR : r.armL;
+  // Other arm stays in guard (already set by setGuardPose above).
+  const sign = (b.activeArm === 'lead') ? -1 : 1; // L arm = -z, R arm = +z
+
+  // ext: 0 fully retracted, 1 fully extended.  Built from phase.
+  const ext = (phase < 1) ? (phase * 0.25) :
+              (phase < 2) ? (0.25 + 0.75 * (phase - 1)) :
+              Math.max(0, 1 - (phase - 2));
+
+  // Default starting rotations (each punch overrides).
+  let shoulderX = -0.4 + sign * 0.0;
+  let shoulderY = 0;
+  let shoulderZ = 1.45;
+  let forearmX  = 0;
+  let forearmY  = 0;
+  let forearmZ  = 1.30;
+
+  switch (kind){
+    case 'jab':
+    case 'straight':
+    case 'cross': {
+      // Straight punch — shoulder swings forward (around Y), forearm extends.
+      shoulderZ = 1.45 - ext * 1.45;          // arm comes down/out
+      shoulderY = -sign * (0.2 + ext * 0.7);  // rotate arm forward
+      shoulderX = -0.4 + ext * 0.55;
+      forearmZ  = 1.30 - ext * 1.20;
+      break;
+    }
+    case 'hook':
+    case 'checkHook': {
+      // Hook — arm parallel to ground, swings around Y.
+      shoulderZ = 1.45 - ext * 0.85;
+      shoulderY = -sign * (0.6 + ext * 1.4);
+      shoulderX = -0.2 + ext * 0.4;
+      forearmZ  = 1.30 - ext * 0.55;
+      break;
+    }
+    case 'uppercut': {
+      shoulderZ = 1.45 - ext * 1.65;          // drive up
+      shoulderX = -0.7 + ext * 1.0;
+      shoulderY = -sign * (0.1 + ext * 0.4);
+      forearmZ  = 1.30 - ext * 0.95;
+      forearmX  = ext * 0.3;
+      break;
+    }
+    case 'overhand': {
+      shoulderZ = 1.45 - ext * 1.05;
+      shoulderY = -sign * (0.4 + ext * 1.0);
+      shoulderX = -0.9 + ext * 0.5;            // big arc over the top
+      forearmZ  = 1.30 - ext * 0.85;
+      break;
+    }
+    case 'bodyShot': {
+      shoulderZ = 1.45 - ext * 0.95;
+      shoulderY = -sign * (0.3 + ext * 0.7);
+      shoulderX = -0.1 - ext * 0.2;            // aim down
+      forearmZ  = 1.30 - ext * 1.05;
+      break;
+    }
+    case 'liverShot': {
+      shoulderZ = 1.45 - ext * 0.95;
+      shoulderY = -sign * (0.2 + ext * 0.6);
+      shoulderX = -0.05 - ext * 0.30;
+      forearmZ  = 1.30 - ext * 1.10;
+      break;
+    }
+    case 'shovelHook': {
+      // Mid-arc between hook & uppercut
+      shoulderZ = 1.45 - ext * 1.10;
+      shoulderY = -sign * (0.5 + ext * 1.1);
+      shoulderX = -0.5 + ext * 0.8;
+      forearmZ  = 1.30 - ext * 0.85;
+      break;
+    }
+    case 'corkscrew': {
+      shoulderZ = 1.45 - ext * 1.20;
+      shoulderY = -sign * (0.3 + ext * 0.85);
+      shoulderX = -0.3 + ext * 0.55;
+      forearmZ  = 1.30 - ext * 1.20;
+      forearmY  = sign * ext * 0.9;            // twisting in
+      break;
+    }
+    case 'haymaker': {
+      shoulderZ = 1.45 - ext * 1.0;
+      shoulderY = -sign * (0.9 + ext * 1.6);
+      shoulderX = -0.7 + ext * 0.6;
+      forearmZ  = 1.30 - ext * 0.4;
+      break;
+    }
+  }
+  arm.shoulder.rotation.set(shoulderX, shoulderY, shoulderZ);
+  arm.forearmRot.rotation.set(forearmX, forearmY, forearmZ);
+}
+
+// ─────────────────────────────────────────────
+//  Hit-text bursts
+// ─────────────────────────────────────────────
+const hitBursts = [];
+function spawnHitText(word, target, color){
+  const el = document.createElement('div');
+  el.className = 'hit-burst';
+  el.textContent = word;
+  el.style.color = color;
+  document.body.appendChild(el);
+  hitBursts.push({ el, t: 0, life: 0.7, color, follow: target });
+}
+function updateHitBursts(dt){
+  for (let i = hitBursts.length - 1; i >= 0; i--){
+    const h = hitBursts[i];
+    h.t += dt;
+    const a = 1 - (h.t / h.life);
+    if (a <= 0){ h.el.remove(); hitBursts.splice(i, 1); continue; }
+    const target = h.follow;
+    const v = new THREE.Vector3(target.pos.x, 2.4, target.pos.z);
+    v.project(camera);
+    const x = (v.x * 0.5 + 0.5) * window.innerWidth;
+    const y = (-v.y * 0.5 + 0.5) * window.innerHeight - (1 - a) * 60;
+    h.el.style.transform = 'translate(-50%,-50%) scale(' + (1 + (1 - a) * 0.4) + ')';
+    h.el.style.left = x + 'px';
+    h.el.style.top  = y + 'px';
+    h.el.style.opacity = a;
+  }
+}
+
+// ─────────────────────────────────────────────
+//  HUD
+// ─────────────────────────────────────────────
+function updateHud(){
+  if (!player || !cpu) return;
+  document.getElementById('hp-p').style.width = (player.hp / player.maxHp * 100) + '%';
+  document.getElementById('hp-c').style.width = (cpu.hp / cpu.maxHp * 100) + '%';
+  document.getElementById('stam-p').style.width = (player.stamina / player.maxStam * 100) + '%';
+  document.getElementById('stam-c').style.width = (cpu.stamina / cpu.maxStam * 100) + '%';
+  document.getElementById('hp-p-num').textContent = Math.round(player.hp);
+  document.getElementById('hp-c-num').textContent = Math.round(cpu.hp);
+  const m = Math.floor(roundClock / 60);
+  const s = Math.floor(roundClock % 60);
+  document.getElementById('round-time').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  document.getElementById('round-time').classList.toggle('danger', roundClock < 10);
+  document.getElementById('round-score').textContent = scorePlayer + '-' + scoreCpu;
+}
+
+// ─────────────────────────────────────────────
+//  Main loop
+// ─────────────────────────────────────────────
+let lastT = performance.now();
+function loop(now){
+  requestAnimationFrame(loop);
+  let dt = (now - lastT) / 1000;
+  lastT = now;
+  if (dt > 0.1) dt = 0.1;
+  if (slowmoT > 0){ slowmoT -= dt; dt *= 0.32; }
+
+  if (state === 'fight') update(dt);
+
+  if (player) animateBoxer(player, dt);
+  if (cpu)    animateBoxer(cpu,    dt);
+
+  updateHitBursts(dt);
+  updateHud();
+  updateCamera(dt);
+
+  // Glove raise celebration
+  if (gloveRaiseMode){
+    gloveRaiseMode.t += dt;
+    const winner = gloveRaiseMode.who === 'player' ? player : cpu;
+    if (winner && winner.rig){
+      const t = Math.min(1, gloveRaiseMode.t / 0.8);
+      const eased = 1 - Math.pow(1 - t, 3);
+      // Raise the rear arm overhead.
+      const rear = winner.rig.armR;
+      rear.shoulder.rotation.set(-0.1, -0.6, -2.6 + eased * 0.6);
+      rear.forearmRot.rotation.set(0, 0, -0.2);
+    }
+  }
+
+  // Crowd backlight pulse
+  back.intensity = backBaseIntensity + Math.max(0, backPulse);
+  backPulse = Math.max(0, backPulse - dt * 0.8);
+
+  // Flash
+  if (flashAmount > 0){
+    document.getElementById('flash').style.opacity = flashAmount;
+    flashAmount = Math.max(0, flashAmount - dt * 1.6);
+  } else {
+    document.getElementById('flash').style.opacity = 0;
+  }
+
+  renderer.render(scene, camera);
+}
+
+// Third-person follow camera.
+function updateCamera(dt){
+  if (!player) return;
+  // Anchor the "view subject".  Normally the player; during glove raise, the winner.
+  const subject = (gloveRaiseMode && gloveRaiseMode.who === 'cpu') ? cpu : player;
+  const otherFighter = (subject === player) ? cpu : player;
+
+  // Forward (subject) → opponent direction in XZ.
+  const dirX = (otherFighter.pos.x - subject.pos.x);
+  const dirZ = (otherFighter.pos.z - subject.pos.z);
+  const len = Math.max(0.001, Math.sqrt(dirX*dirX + dirZ*dirZ));
+  const fX = dirX / len, fZ = dirZ / len;
+
+  let backDist = 3.0;
+  let upHeight = 2.2;
+  let lookAhead = 0.8;
+  if (gloveRaiseMode){
+    backDist = 1.8;
+    upHeight = 1.9;
+    lookAhead = 0.0;
+  }
+
+  // Camera sits behind the subject (opposite of forward), slightly elevated.
+  camDesiredPos.set(
+    subject.pos.x - fX * backDist,
+    subject.pos.y + upHeight,
+    subject.pos.z - fZ * backDist
+  );
+  // Look toward the opponent / subject head height.
+  camDesiredTarget.set(
+    subject.pos.x + fX * lookAhead,
+    subject.pos.y + 1.5,
+    subject.pos.z + fZ * lookAhead
+  );
+
+  const k = Math.min(1, dt * 6);
+  camPos.lerp(camDesiredPos, k);
+  camTarget.lerp(camDesiredTarget, k);
+
+  const shakeX = cameraShake > 0 ? (Math.random() - 0.5) * cameraShake : 0;
+  const shakeY = cameraShake > 0 ? (Math.random() - 0.5) * cameraShake : 0;
+  if (cameraShake > 0) cameraShake = Math.max(0, cameraShake - dt * 1.6);
+
+  camera.position.set(camPos.x + shakeX, camPos.y + shakeY, camPos.z);
+  camera.lookAt(camTarget);
+}
+
+function update(dt){
+  roundClock -= dt;
+  tickPlayer(player, dt);
+  tickCpu(cpu, dt);
+  checkPunchHit(player, cpu);
+  checkPunchHit(cpu, player);
+  if (player.hp <= 0 || cpu.hp <= 0){
+    state = 'roundover';
+    showBanner(player.hp <= 0 ? 'YOU GOT KO\'D' : 'KNOCKOUT!');
+    setTimeout(roundEnd, 1700);
+  } else if (roundClock <= 0){
+    roundClock = 0;
+    state = 'roundover';
+    showBanner('END OF ROUND ' + round);
+    setTimeout(roundEnd, 1100);
+  }
+}
+
+function showBanner(text){
+  const b = document.getElementById('round-banner');
+  b.textContent = text;
+  b.classList.add('show');
+  setTimeout(() => b.classList.remove('show'), 1600);
+}
+
+// ─────────────────────────────────────────────
+//  Damage diagram + corner advice (between rounds)
+// ─────────────────────────────────────────────
+function totalZoneDamage(zoneDmg){
+  let s = 0;
+  for (const k in zoneDmg) s += zoneDmg[k] || 0;
+  return s;
+}
+
+function buildBodySvg(zoneDmg){
+  // Six zones as colored regions.
+  const col = {
+    HEAD:       zoneFill(zoneDmg.HEAD),
+    CHEST:      zoneFill(zoneDmg.CHEST),
+    ABS:        zoneFill(zoneDmg.ABS),
+    LIVER:      zoneFill(zoneDmg.LIVER),
+    LEFT_RIBS:  zoneFill(zoneDmg.LEFT_RIBS),
+    RIGHT_RIBS: zoneFill(zoneDmg.RIGHT_RIBS),
+  };
+  // Numbers shown as small labels.
+  const n = (z)=> Math.round(zoneDmg[z] || 0);
+  return `
+  <svg viewBox="0 0 160 230" width="160" height="230">
+    <!-- Head -->
+    <ellipse cx="80" cy="32" rx="22" ry="26" fill="${col.HEAD}" stroke="#ffd700" stroke-width="1.5"/>
+    <text x="80" y="35" text-anchor="middle" font-size="9" fill="#000" font-weight="bold">HEAD ${n('HEAD')}</text>
+    <!-- Neck -->
+    <rect x="71" y="56" width="18" height="10" fill="#c89a55" stroke="#5a3f24" stroke-width="1"/>
+    <!-- Shoulders -->
+    <rect x="38" y="66" width="84" height="14" rx="6" fill="#c89a55" stroke="#5a3f24" stroke-width="1"/>
+    <!-- Chest (split into chest, ribs L/R) -->
+    <!-- Chest (center) -->
+    <path d="M55 80 L105 80 L105 120 L55 120 Z" fill="${col.CHEST}" stroke="#ffd700" stroke-width="1.5"/>
+    <text x="80" y="103" text-anchor="middle" font-size="9" fill="#000" font-weight="bold">CHEST ${n('CHEST')}</text>
+    <!-- LEFT ribs (viewer's left = opponent's right = LEFT_RIBS label) -->
+    <path d="M38 80 L55 80 L55 130 L42 132 Z" fill="${col.LEFT_RIBS}" stroke="#ffd700" stroke-width="1.5"/>
+    <text x="48" y="106" text-anchor="middle" font-size="6" fill="#000" font-weight="bold">L-RIB</text>
+    <text x="48" y="116" text-anchor="middle" font-size="7" fill="#000" font-weight="bold">${n('LEFT_RIBS')}</text>
+    <!-- RIGHT ribs (viewer's right) -->
+    <path d="M105 80 L122 80 L118 132 L105 130 Z" fill="${col.RIGHT_RIBS}" stroke="#ffd700" stroke-width="1.5"/>
+    <text x="113" y="106" text-anchor="middle" font-size="6" fill="#000" font-weight="bold">R-RIB</text>
+    <text x="113" y="116" text-anchor="middle" font-size="7" fill="#000" font-weight="bold">${n('RIGHT_RIBS')}</text>
+    <!-- Abs -->
+    <path d="M55 120 L105 120 L100 165 L60 165 Z" fill="${col.ABS}" stroke="#ffd700" stroke-width="1.5"/>
+    <text x="80" y="148" text-anchor="middle" font-size="9" fill="#000" font-weight="bold">ABS ${n('ABS')}</text>
+    <!-- Liver (lower right of viewer = opponent's right side = LIVER) -->
+    <path d="M100 130 L118 132 L114 168 L100 165 Z" fill="${col.LIVER}" stroke="#ff6a00" stroke-width="2"/>
+    <text x="108" y="150" text-anchor="middle" font-size="6" fill="#000" font-weight="bold">LIVER</text>
+    <text x="108" y="160" text-anchor="middle" font-size="7" fill="#000" font-weight="bold">${n('LIVER')}</text>
+    <!-- Belt -->
+    <rect x="55" y="165" width="50" height="10" fill="#ffd700" stroke="#000" stroke-width="0.5"/>
+    <!-- Shorts -->
+    <path d="M55 175 L105 175 L100 215 L60 215 Z" fill="#552020" stroke="#000" stroke-width="0.5"/>
+  </svg>`;
+}
+function zoneFill(amount){
+  amount = amount || 0;
+  if (amount > 28) return '#e64545';
+  if (amount > 12) return '#f4d35a';
+  return '#f6efe2';
+}
+
+function generateAdvice(){
+  const lines = [];
+  const pZones = player.zoneDmg, cZones = cpu.zoneDmg;
+  // Player-side advice (priority order: defense red, low stamina, low offense, opp hurt)
+  if (pZones.HEAD > 28) lines.push("<b>Hands UP, kid.</b> Your chin is a bullseye out there — tighten that guard and quit eating jabs.");
+  if (pZones.LIVER > 28 || pZones.ABS > 28) lines.push("<b>Elbows in.</b> He's parking shots on your body. Tuck those elbows and stop dropping the right hand.");
+  if (player.lowStaminaTicks > 6) lines.push("<b>Pace yourself.</b> You're loading up on every shot. Stick the jab, breathe, and stay light on the toes.");
+  if (player.punchesThrown < 6) lines.push("<b>Let your hands GO.</b> Doubles, triples on the jab — make him respect your range.");
+  if (cZones.LIVER > 24 || cZones.ABS > 24) lines.push("<b>He's hurt to the body.</b> Dig in — shovel hooks, liver shots, finish the job.");
+  if (cZones.HEAD > 24) lines.push("<b>You've found his chin.</b> Set up the right hand behind that jab and put him out.");
+  if (lines.length === 0) lines.push("<b>Good round.</b> Cleaner footwork next, keep circling left, work behind that jab.");
+  // Pick top 2.
+  return lines.slice(0, 2);
+}
+
+function showInterlude(onContinue){
+  const wrap = document.getElementById('interlude');
+  document.getElementById('interlude-title').textContent = 'END OF ROUND ' + round;
+  const diagrams = document.getElementById('diagrams');
+  diagrams.innerHTML = `
+    <div class="diag">
+      <div class="who">YOU</div>
+      ${buildBodySvg(player.zoneDmg)}
+      <div style="font-size:11px;color:#cfc8b8">Total: ${Math.round(totalZoneDamage(player.zoneDmg))}</div>
+    </div>
+    <div class="diag">
+      <div class="who">BRUNO</div>
+      ${buildBodySvg(cpu.zoneDmg)}
+      <div style="font-size:11px;color:#cfc8b8">Total: ${Math.round(totalZoneDamage(cpu.zoneDmg))}</div>
+    </div>
+  `;
+  const adviceEl = document.getElementById('advice');
+  adviceEl.innerHTML = '<div style="margin-bottom:6px;font-size:13px;color:#ffd700;letter-spacing:1px">CORNER:</div>' +
+    generateAdvice().map(l => '<div>• ' + l + '</div>').join('');
+  wrap.classList.add('active');
+  let elapsed = 0;
+  const tEl = document.getElementById('interlude-timer');
+  const intervalId = setInterval(() => {
+    elapsed += 0.25;
+    const left = Math.max(0, Math.ceil(6 - elapsed));
+    tEl.textContent = 'Auto-advance in ' + left + 's';
+    if (elapsed >= 6){
+      clearInterval(intervalId);
+      finish();
+    }
+  }, 250);
+  function finish(){
+    clearInterval(intervalId);
+    wrap.classList.remove('active');
+    document.getElementById('btn-continue').onclick = null;
+    onContinue();
+  }
+  document.getElementById('btn-continue').onclick = () => finish();
+}
+
+function roundEnd(){
+  let winner = null;
+  if (player.hp <= 0) winner = 'cpu';
+  else if (cpu.hp <= 0) winner = 'player';
+  else if (player.hp > cpu.hp) winner = 'player';
+  else if (cpu.hp > player.hp) winner = 'cpu';
+  if (winner === 'player') scorePlayer++;
+  else if (winner === 'cpu') scoreCpu++;
+  const matchOver = (round >= TOTAL_ROUNDS) || player.hp <= 0 || cpu.hp <= 0;
+  if (matchOver){
+    finishMatch();
+  } else {
+    showInterlude(() => {
+      round++;
+      const prevPlayerHp = player.hp;
+      const prevCpuHp    = cpu.hp;
+      setupRound(false);
+      // Corner recovery: restore only 15% of max HP
+      player.hp = Math.min(player.maxHp, prevPlayerHp + player.maxHp * 0.15);
+      cpu.hp    = Math.min(cpu.maxHp,    prevCpuHp    + cpu.maxHp    * 0.15);
+      state = 'fight';
+      playBell();
+    });
+  }
+}
+
+function finishMatch(){
+  state = 'end';
+  let title = 'DRAW', sub = '';
+  let damageWinner = null;
+  const pTotal = totalZoneDamage(player.zoneDmg);
+  const cTotal = totalZoneDamage(cpu.zoneDmg);
+
+  if (player.hp <= 0)              { title = 'KNOCKED OUT'; sub = 'Round ' + round + ' · Bruno wins by KO'; }
+  else if (cpu.hp <= 0)            { title = 'VICTORY!';    sub = 'Round ' + round + ' · You win by KO!'; }
+  else {
+    // Final round non-KO: cumulative damage tiebreaker.
+    if (pTotal < cTotal){ title = 'VICTORY!'; sub = 'Cleaner work — less damage taken'; damageWinner = 'player'; }
+    else if (cTotal < pTotal){ title = 'DEFEAT'; sub = 'You took more damage'; damageWinner = 'cpu'; }
+    else {
+      if (scorePlayer > scoreCpu){ title = 'VICTORY!'; sub = 'You win on points · ' + scorePlayer + '-' + scoreCpu; damageWinner = 'player'; }
+      else if (scoreCpu > scorePlayer){ title = 'DEFEAT'; sub = 'Bruno wins on points · ' + scoreCpu + '-' + scorePlayer; damageWinner = 'cpu'; }
+      else { title = 'DRAW'; sub = 'Split decision'; damageWinner = null; }
+    }
+  }
+  document.getElementById('end-title').textContent = title;
+  document.getElementById('end-sub').textContent = sub;
+  document.getElementById('end-stats').textContent =
+    'Damage taken: You ' + Math.round(pTotal) + ' · Bruno ' + Math.round(cTotal) +
+    '  •  Knockdowns: You ' + knockdownsCpu + ' · Bruno ' + knockdownsPlayer +
+    '  •  HP left: You ' + Math.round(player.hp) + ' · Bruno ' + Math.round(cpu.hp);
+
+  // Glove raise if not by KO and we have a damage winner.
+  if (damageWinner && player.hp > 0 && cpu.hp > 0){
+    gloveRaiseMode = { who: damageWinner, t: 0 };
+    backPulse = 1.2;
+    setTimeout(() => {
+      showScreen('screen-end');
+      playBell();
+    }, 2200);
+  } else {
+    showScreen('screen-end');
+    playBell();
+  }
+}
+
+function showScreen(id){ document.getElementById(id).classList.add('active'); }
+function hideScreen(id){ document.getElementById(id).classList.remove('active'); }
+
+document.getElementById('btn-fight').onclick   = () => { ensureAudio(); gloveRaiseMode = null; resetMatch(); };
+document.getElementById('btn-rematch').onclick = () => { gloveRaiseMode = null; resetMatch(); };
+
+// Spawn placeholder boxers so the title screen renders the ring with both fighters in view
+setupRound(true);
+state = 'title';
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

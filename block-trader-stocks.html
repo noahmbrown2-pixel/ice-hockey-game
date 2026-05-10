@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Block Trader: Wall Street</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#0e1320; color:#e6ecff;
+    font-family: 'Segoe UI', system-ui, sans-serif; user-select:none; -webkit-user-select:none; }
+  #wrap { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  canvas { background:#0a0e18; box-shadow:0 0 40px #000a; }
+  #hud { position:absolute; top:8px; left:8px; right:8px; display:flex; justify-content:space-between;
+    pointer-events:none; font-size:14px; gap:8px; flex-wrap:wrap; }
+  .stat { background:#0008; padding:6px 12px; border-radius:6px; border:1px solid #2a3550; }
+  #goal { color:#ffd35a; }
+  #toast { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:#0008; padding:20px 30px; border-radius:12px; font-size:24px; display:none;
+    border:2px solid #ffd35a; text-align:center; pointer-events:auto; }
+  #toast button { margin-top:14px; padding:10px 22px; font-size:16px; background:#ffd35a;
+    color:#0e1320; border:none; border-radius:6px; cursor:pointer; font-weight:bold; }
+  #news { position:absolute; left:50%; top:54px; transform:translateX(-50%);
+    background:#0008; border:1px solid #ffd35a; color:#ffd35a; padding:6px 14px;
+    border-radius:6px; font-size:14px; display:none; pointer-events:none; max-width:90%; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c"></canvas></div>
+<div id="hud">
+  <div class="stat">CASH <span id="cash">$1,000</span> &nbsp; NET <span id="net">$1,000</span> &nbsp; P/L <span id="pl">$0</span></div>
+  <div class="stat" id="goal">GOAL: $1,000,000</div>
+</div>
+<div id="news"></div>
+<div id="toast"></div>
+<script>
+(() => {
+  const W = 1200, H = 760;
+  const cvs = document.getElementById('c');
+  const ctx = cvs.getContext('2d');
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+  function fitCanvas() {
+    const s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    cvs.style.width = (W*s) + 'px';
+    cvs.style.height = (H*s) + 'px';
+    cvs.width = W * dpr;
+    cvs.height = H * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', fitCanvas);
+  fitCanvas();
+
+  const STOCK_DEFS = [
+    { sym:'AAPL', name:'Apple',     color:'#e74c3c', edge:'#7a1f1f', start: 175, vol: 0.018 },
+    { sym:'GOOG', name:'Alphabet',  color:'#3498db', edge:'#1a4f72', start: 140, vol: 0.020 },
+    { sym:'TSLA', name:'Tesla',     color:'#27ae60', edge:'#155c33', start: 240, vol: 0.045 },
+    { sym:'NVDA', name:'Nvidia',    color:'#9b59b6', edge:'#5b2f70', start: 480, vol: 0.035 },
+    { sym:'AMZN', name:'Amazon',    color:'#f39c12', edge:'#7a4c08', start: 155, vol: 0.022 },
+    { sym:'DOGE', name:'Doge Co.',  color:'#f1c40f', edge:'#7a6206', start:  35, vol: 0.080 },
+  ];
+
+  const NEWS_POS = [
+    {sym:'AAPL', msg:'AAPL earnings beat! +12%', mult:1.12},
+    {sym:'GOOG', msg:'GOOG launches new AI model. +9%', mult:1.09},
+    {sym:'TSLA', msg:'TSLA delivery numbers surge. +15%', mult:1.15},
+    {sym:'NVDA', msg:'NVDA chip demand explodes! +18%', mult:1.18},
+    {sym:'AMZN', msg:'AMZN cloud revenue soars. +10%', mult:1.10},
+    {sym:'DOGE', msg:'DOGE goes viral on social media! +25%', mult:1.25},
+  ];
+  const NEWS_NEG = [
+    {sym:'AAPL', msg:'AAPL faces antitrust suit. -10%', mult:0.90},
+    {sym:'GOOG', msg:'GOOG ad revenue slips. -8%',     mult:0.92},
+    {sym:'TSLA', msg:'TSLA recall announced. -14%',    mult:0.86},
+    {sym:'NVDA', msg:'NVDA hit by export ban. -12%',   mult:0.88},
+    {sym:'AMZN', msg:'AMZN warehouse strike! -9%',     mult:0.91},
+    {sym:'DOGE', msg:'DOGE crashes hard. -22%',        mult:0.78},
+  ];
+  const NEWS_MARKET = [
+    {msg:'MARKET CRASH! All stocks tumble.', mult:0.85, all:true},
+    {msg:'Fed cuts rates! Market rallies.',  mult:1.10, all:true},
+    {msg:'Recession fears spread.',          mult:0.92, all:true},
+    {msg:'Bull market! Stocks rip higher.',  mult:1.08, all:true},
+  ];
+
+  const save = JSON.parse(localStorage.getItem('bt_stocks') || 'null');
+
+  const state = {
+    cash: save ? save.cash : 1000,
+    holdings: save ? save.holdings : {},
+    stocks: STOCK_DEFS.map(d => ({
+      ...d,
+      price: (save && save.prices && save.prices[d.sym]) ? save.prices[d.sym] : d.start,
+      history: (save && save.history && save.history[d.sym]) ? save.history[d.sym].slice() : [d.start],
+      avgCost: (save && save.avgCost && save.avgCost[d.sym]) || 0,
+    })),
+    selected: null,
+    won: false,
+    lost: false,
+    tickAccum: 0,
+    newsAccum: 0,
+    nextNewsIn: 8 + Math.random()*8,
+    flashSym: null,
+    flashTimer: 0,
+    flashUp: true,
+  };
+  STOCK_DEFS.forEach(d => { if (state.holdings[d.sym] == null) state.holdings[d.sym] = 0; });
+
+  function saveGame() {
+    const prices = {}, history = {}, avgCost = {};
+    state.stocks.forEach(s => {
+      prices[s.sym] = s.price;
+      history[s.sym] = s.history.slice(-60);
+      avgCost[s.sym] = s.avgCost;
+    });
+    localStorage.setItem('bt_stocks', JSON.stringify({
+      cash: state.cash, holdings: state.holdings, prices, history, avgCost,
+    }));
+  }
+
+  function netWorth() {
+    let n = state.cash;
+    for (const s of state.stocks) n += (state.holdings[s.sym]||0) * s.price;
+    return n;
+  }
+
+  function totalPL() {
+    let pl = 0;
+    for (const s of state.stocks) {
+      const h = state.holdings[s.sym]||0;
+      if (h>0) pl += (s.price - s.avgCost) * h;
+    }
+    return pl;
+  }
+
+  // Layout
+  const GRID_X = 30, GRID_Y = 80;
+  const COLS = 3, ROWS = 2;
+  const CARD_W = 370, CARD_H = 250;
+  const CARD_GAP = 14;
+
+  function cardRect(i) {
+    const cx = i % COLS, cy = Math.floor(i / COLS);
+    return { x: GRID_X + cx*(CARD_W+CARD_GAP), y: GRID_Y + cy*(CARD_H+CARD_GAP), w: CARD_W, h: CARD_H };
+  }
+
+  // Buy/sell panel
+  const PANEL_X = GRID_X + COLS*(CARD_W+CARD_GAP) + 4;
+  const PANEL_Y = GRID_Y;
+  const PANEL_W = W - PANEL_X - 30;
+  const PANEL_H = ROWS*(CARD_H+CARD_GAP) - CARD_GAP;
+
+  const ACT_BUTTONS = ['Buy 1','Buy 10','Buy Max','Sell 1','Sell 10','Sell All'];
+
+  function actionRect(i) {
+    const bw = PANEL_W - 24;
+    const bh = 44;
+    return { x: PANEL_X+12, y: PANEL_Y+170 + i*(bh+8), w: bw, h: bh };
+  }
+
+  function evPt(e) {
+    const r = cvs.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return {
+      x: (t.clientX - r.left) * (W / r.width),
+      y: (t.clientY - r.top) * (H / r.height),
+    };
+  }
+
+  function flashPrice(sym, up) {
+    state.flashSym = sym; state.flashUp = up; state.flashTimer = 0.6;
+  }
+
+  function buy(sym, qty) {
+    const s = state.stocks.find(x=>x.sym===sym);
+    if (!s) return;
+    const cost = s.price * qty;
+    if (qty<=0 || cost > state.cash) { flashToast('Not enough cash'); return; }
+    const oldQ = state.holdings[sym]||0;
+    const oldAvg = s.avgCost || 0;
+    state.holdings[sym] = oldQ + qty;
+    s.avgCost = ((oldAvg*oldQ) + cost) / (oldQ+qty);
+    state.cash -= cost;
+    saveGame();
+  }
+
+  function sell(sym, qty) {
+    const s = state.stocks.find(x=>x.sym===sym);
+    if (!s) return;
+    const have = state.holdings[sym]||0;
+    qty = Math.min(qty, have);
+    if (qty<=0) { flashToast('No shares to sell'); return; }
+    state.holdings[sym] = have - qty;
+    state.cash += s.price * qty;
+    if (state.holdings[sym] === 0) s.avgCost = 0;
+    saveGame();
+    checkLose();
+  }
+
+  function buyMax(sym) {
+    const s = state.stocks.find(x=>x.sym===sym);
+    const q = Math.floor(state.cash / s.price);
+    if (q>0) buy(sym, q);
+  }
+
+  function handleClick(p) {
+    if (state.lost || state.won) return;
+    // action buttons (if a stock is selected)
+    if (state.selected) {
+      for (let i=0;i<ACT_BUTTONS.length;i++) {
+        const r = actionRect(i);
+        if (p.x>=r.x && p.x<=r.x+r.w && p.y>=r.y && p.y<=r.y+r.h) {
+          const sym = state.selected;
+          if (i===0) buy(sym, 1);
+          else if (i===1) buy(sym, 10);
+          else if (i===2) buyMax(sym);
+          else if (i===3) sell(sym, 1);
+          else if (i===4) sell(sym, 10);
+          else if (i===5) sell(sym, state.holdings[sym]||0);
+          return;
+        }
+      }
+    }
+    // stock cards
+    for (let i=0;i<state.stocks.length;i++) {
+      const r = cardRect(i);
+      if (p.x>=r.x && p.x<=r.x+r.w && p.y>=r.y && p.y<=r.y+r.h) {
+        state.selected = state.stocks[i].sym;
+        return;
+      }
+    }
+  }
+
+  cvs.addEventListener('mousedown', e => { handleClick(evPt(e)); });
+  cvs.addEventListener('touchstart', e => { e.preventDefault(); handleClick(evPt(e)); }, {passive:false});
+
+  window.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if (!state.selected) return;
+    if (k==='b') buy(state.selected, 1);
+    else if (k==='s') sell(state.selected, 1);
+    else if (k==='m') buyMax(state.selected);
+    else if (k==='a') sell(state.selected, state.holdings[state.selected]||0);
+  });
+
+  // Tick price updates
+  function priceTick() {
+    for (const s of state.stocks) {
+      const drift = 0.0002;
+      const shock = (Math.random() - 0.5) * 2 * s.vol;
+      let next = s.price * (1 + drift + shock);
+      if (next < 1) next = 1 + Math.random()*2;
+      if (next > 100000) next = 100000;
+      s.price = next;
+      s.history.push(next);
+      if (s.history.length > 60) s.history.shift();
+    }
+    saveGame();
+    checkWin();
+    checkLose();
+  }
+
+  function fireNews() {
+    const r = Math.random();
+    let n;
+    if (r < 0.18) {
+      n = NEWS_MARKET[Math.floor(Math.random()*NEWS_MARKET.length)];
+      for (const s of state.stocks) {
+        s.price = Math.max(1, s.price * (n.mult + (Math.random()-0.5)*0.04));
+      }
+      flashNews(n.msg);
+    } else if (r < 0.6) {
+      n = NEWS_POS[Math.floor(Math.random()*NEWS_POS.length)];
+      const s = state.stocks.find(x=>x.sym===n.sym);
+      s.price = s.price * n.mult;
+      flashNews(n.msg);
+      flashPrice(n.sym, true);
+    } else {
+      n = NEWS_NEG[Math.floor(Math.random()*NEWS_NEG.length)];
+      const s = state.stocks.find(x=>x.sym===n.sym);
+      s.price = Math.max(1, s.price * n.mult);
+      flashNews(n.msg);
+      flashPrice(n.sym, false);
+    }
+    saveGame();
+  }
+
+  function checkWin() {
+    if (!state.won && netWorth() >= 1000000) {
+      state.won = true;
+      showToast('YOU WIN! Net worth $1,000,000+', true);
+    }
+  }
+
+  function checkLose() {
+    if (state.lost) return;
+    let totalShares = 0;
+    for (const s of state.stocks) totalShares += (state.holdings[s.sym]||0);
+    if (state.cash < 1 && totalShares === 0) {
+      state.lost = true;
+      showToast('GAME OVER — You went broke', false);
+    }
+  }
+
+  function update(dt) {
+    if (state.won || state.lost) return;
+    state.tickAccum += dt;
+    if (state.tickAccum >= 0.5) {
+      state.tickAccum = 0;
+      priceTick();
+    }
+    state.newsAccum += dt;
+    if (state.newsAccum >= state.nextNewsIn) {
+      state.newsAccum = 0;
+      state.nextNewsIn = 8 + Math.random()*10;
+      fireNews();
+    }
+    if (state.flashTimer > 0) state.flashTimer -= dt;
+  }
+
+  // Drawing
+  function fmt(n) {
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(2) + 'M';
+    if (n >= 10000) return '$' + (n/1000).toFixed(1) + 'K';
+    return '$' + n.toFixed(2);
+  }
+  function fmtInt(n) { return '$' + Math.floor(n).toLocaleString(); }
+
+  function draw() {
+    ctx.fillStyle = '#0a0e18';
+    ctx.fillRect(0,0,W,H);
+
+    // floor banner
+    ctx.fillStyle = '#141a2a';
+    ctx.fillRect(0, 40, W, 30);
+    ctx.fillStyle = '#ffd35a';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign='left';
+    ctx.textBaseline='middle';
+    ctx.fillText('TRADING FLOOR', 14, 55);
+    ctx.fillStyle = '#8a93a8';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign='right';
+    ctx.fillText('Tick every 0.5s • Click a stock to trade • [B]uy [S]ell [M]ax [A]ll', W-14, 55);
+
+    for (let i=0;i<state.stocks.length;i++) drawCard(i);
+    drawPanel();
+    drawTicker();
+
+    document.getElementById('cash').textContent = fmtInt(state.cash);
+    document.getElementById('net').textContent = fmtInt(netWorth());
+    const pl = totalPL();
+    const plEl = document.getElementById('pl');
+    plEl.textContent = (pl>=0?'+':'-') + '$' + Math.abs(Math.floor(pl)).toLocaleString();
+    plEl.style.color = pl>=0 ? '#27ae60' : '#e74c3c';
+  }
+
+  function drawCard(i) {
+    const r = cardRect(i);
+    const s = state.stocks[i];
+    const sel = state.selected === s.sym;
+    const owned = state.holdings[s.sym]||0;
+
+    // chunky outer edge
+    ctx.fillStyle = s.edge;
+    ctx.fillRect(r.x-2, r.y-2, r.w+4, r.h+4);
+    ctx.fillStyle = '#141a2a';
+    ctx.fillRect(r.x, r.y, r.w, r.h);
+
+    if (sel) {
+      ctx.strokeStyle = '#ffd35a';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(r.x+1, r.y+1, r.w-2, r.h-2);
+    }
+
+    // colored block on left
+    const bx = r.x + 14, by = r.y + 14;
+    const bw = 70, bh = 70;
+    ctx.fillStyle = s.edge;
+    ctx.fillRect(bx-3, by-3, bw+6, bh+6);
+    ctx.fillStyle = s.color;
+    ctx.fillRect(bx, by, bw, bh);
+    // shine
+    ctx.fillStyle = '#fff5';
+    ctx.fillRect(bx+6, by+6, 14, 14);
+    // ticker on block
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(s.sym, bx+bw/2, by+bh/2+2);
+
+    // price
+    const prev = s.history.length>1 ? s.history[s.history.length-2] : s.price;
+    const up = s.price >= prev;
+    const flash = state.flashSym===s.sym && state.flashTimer>0;
+    ctx.textAlign='left';
+    ctx.fillStyle = '#cfd6e8';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText(s.name, bx+bw+14, by+10);
+
+    ctx.fillStyle = flash ? (state.flashUp?'#27ae60':'#e74c3c') : (up?'#27ae60':'#e74c3c');
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillText(fmt(s.price), bx+bw+14, by+38);
+
+    const pct = ((s.price - prev) / prev) * 100;
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillStyle = up ? '#27ae60' : '#e74c3c';
+    ctx.fillText((up?'▲ +':'▼ ')+pct.toFixed(2)+'%', bx+bw+14, by+62);
+
+    // chart
+    drawChart(s, r.x+14, r.y+100, r.w-28, 90);
+
+    // holdings row
+    ctx.fillStyle = '#0a0e18';
+    ctx.fillRect(r.x+8, r.y+r.h-44, r.w-16, 36);
+    ctx.fillStyle = '#8a93a8';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign='left';
+    ctx.textBaseline='middle';
+    ctx.fillText('OWN', r.x+18, r.y+r.h-32);
+    ctx.fillStyle = owned>0 ? '#ffd35a' : '#cfd6e8';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText(owned + ' sh', r.x+50, r.y+r.h-32);
+
+    if (owned>0) {
+      ctx.fillStyle = '#8a93a8';
+      ctx.font = '12px sans-serif';
+      ctx.fillText('AVG '+fmt(s.avgCost), r.x+130, r.y+r.h-32);
+      const pl = (s.price - s.avgCost) * owned;
+      ctx.fillStyle = pl>=0 ? '#27ae60' : '#e74c3c';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.textAlign='right';
+      ctx.fillText((pl>=0?'+':'-')+'$'+Math.abs(Math.floor(pl)).toLocaleString(), r.x+r.w-18, r.y+r.h-32);
+      ctx.fillStyle = '#8a93a8';
+      ctx.font = '11px sans-serif';
+      ctx.fillText('VAL '+fmt(s.price*owned), r.x+r.w-18, r.y+r.h-16);
+    } else {
+      ctx.fillStyle = '#8a93a8';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign='right';
+      ctx.fillText('click to trade', r.x+r.w-18, r.y+r.h-26);
+    }
+  }
+
+  function drawChart(s, x, y, w, h) {
+    ctx.fillStyle = '#0a0e18';
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#1f2940';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x+0.5, y+0.5, w-1, h-1);
+
+    if (s.history.length < 2) return;
+    let min = Infinity, max = -Infinity;
+    for (const v of s.history) { if (v<min) min=v; if (v>max) max=v; }
+    if (max === min) { max = min + 1; }
+    const pad = (max-min)*0.1;
+    min -= pad; max += pad;
+
+    // gridlines
+    ctx.strokeStyle = '#1a2238';
+    for (let i=1;i<4;i++) {
+      const gy = y + (h*i)/4;
+      ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x+w, gy); ctx.stroke();
+    }
+
+    // candlesticks: each "candle" = pair of consecutive ticks
+    const stride = 2;
+    const n = Math.floor((s.history.length-1)/stride);
+    if (n < 1) return;
+    const cw = Math.max(2, Math.floor(w / Math.max(1,n)) - 2);
+    for (let i=0;i<n;i++) {
+      const i0 = i*stride;
+      const o = s.history[i0];
+      const c = s.history[Math.min(s.history.length-1, i0+stride)];
+      let hi = Math.max(o,c), lo = Math.min(o,c);
+      for (let k=i0;k<=i0+stride && k<s.history.length;k++) {
+        if (s.history[k]>hi) hi = s.history[k];
+        if (s.history[k]<lo) lo = s.history[k];
+      }
+      const px = x + 4 + i*(cw+2);
+      const yO = y + h - ((o-min)/(max-min))*h;
+      const yC = y + h - ((c-min)/(max-min))*h;
+      const yH = y + h - ((hi-min)/(max-min))*h;
+      const yL = y + h - ((lo-min)/(max-min))*h;
+      const up = c >= o;
+      ctx.strokeStyle = up ? '#27ae60' : '#e74c3c';
+      ctx.fillStyle = up ? '#27ae60' : '#e74c3c';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(px+cw/2+0.5, yH);
+      ctx.lineTo(px+cw/2+0.5, yL);
+      ctx.stroke();
+      const top = Math.min(yO, yC);
+      const bh2 = Math.max(2, Math.abs(yO - yC));
+      ctx.fillRect(px, top, cw, bh2);
+    }
+
+    // current price label
+    ctx.fillStyle = '#ffd35a';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign='right';
+    ctx.textBaseline='top';
+    ctx.fillText(fmt(s.price), x+w-4, y+4);
+
+    ctx.fillStyle = '#8a93a8';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign='left';
+    ctx.fillText('hi '+fmt(max-pad), x+4, y+4);
+    ctx.textBaseline='bottom';
+    ctx.fillText('lo '+fmt(min+pad), x+4, y+h-4);
+  }
+
+  function drawPanel() {
+    // panel background
+    ctx.fillStyle = '#141a2a';
+    ctx.fillRect(PANEL_X, PANEL_Y, PANEL_W, PANEL_H);
+    ctx.strokeStyle = '#2a3550';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(PANEL_X+1, PANEL_Y+1, PANEL_W-2, PANEL_H-2);
+
+    ctx.fillStyle = '#ffd35a';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign='center';
+    ctx.textBaseline='top';
+    ctx.fillText('TRADE TERMINAL', PANEL_X+PANEL_W/2, PANEL_Y+12);
+
+    if (!state.selected) {
+      ctx.fillStyle = '#8a93a8';
+      ctx.font = '13px sans-serif';
+      ctx.textAlign='center';
+      const lines = ['Select a stock','to start trading.','','Goal: $1M net worth','Lose: $0 cash','+ no shares.'];
+      for (let i=0;i<lines.length;i++) ctx.fillText(lines[i], PANEL_X+PANEL_W/2, PANEL_Y+50+i*22);
+      return;
+    }
+
+    const s = state.stocks.find(x=>x.sym===state.selected);
+    const owned = state.holdings[s.sym]||0;
+
+    // selected stock badge
+    ctx.fillStyle = s.edge;
+    ctx.fillRect(PANEL_X+12, PANEL_Y+38, 50, 50);
+    ctx.fillStyle = s.color;
+    ctx.fillRect(PANEL_X+15, PANEL_Y+41, 44, 44);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(s.sym, PANEL_X+37, PANEL_Y+63);
+
+    ctx.textAlign='left';
+    ctx.fillStyle = '#cfd6e8';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText(s.name, PANEL_X+72, PANEL_Y+50);
+    ctx.fillStyle = '#27ae60';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText(fmt(s.price), PANEL_X+72, PANEL_Y+74);
+
+    // owned info
+    ctx.fillStyle = '#8a93a8';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('Owned: '+owned+' sh', PANEL_X+12, PANEL_Y+108);
+    ctx.fillText('Value: '+fmt(owned*s.price), PANEL_X+12, PANEL_Y+126);
+    if (owned>0) {
+      const pl = (s.price - s.avgCost) * owned;
+      ctx.fillStyle = pl>=0?'#27ae60':'#e74c3c';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('P/L: '+(pl>=0?'+':'-')+'$'+Math.abs(Math.floor(pl)).toLocaleString(), PANEL_X+12, PANEL_Y+144);
+    }
+
+    // action buttons
+    for (let i=0;i<ACT_BUTTONS.length;i++) {
+      const r = actionRect(i);
+      const isBuy = i<3;
+      const canBuy = state.cash >= s.price;
+      const canSell = owned > 0;
+      const enabled = isBuy ? canBuy : canSell;
+      ctx.fillStyle = enabled ? (isBuy ? '#1a3a2a' : '#3a1a1a') : '#1a2238';
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      ctx.strokeStyle = enabled ? (isBuy ? '#27ae60' : '#e74c3c') : '#2a3550';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(r.x+1, r.y+1, r.w-2, r.h-2);
+      ctx.fillStyle = enabled ? '#fff' : '#5a6478';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText(ACT_BUTTONS[i], r.x+r.w/2, r.y+r.h/2);
+    }
+  }
+
+  function drawTicker() {
+    const ty = H - 36;
+    ctx.fillStyle = '#141a2a';
+    ctx.fillRect(0, ty, W, 36);
+    ctx.strokeStyle = '#2a3550';
+    ctx.beginPath(); ctx.moveTo(0,ty+0.5); ctx.lineTo(W,ty+0.5); ctx.stroke();
+    let tx = 14;
+    ctx.textAlign='left';
+    ctx.textBaseline='middle';
+    for (const s of state.stocks) {
+      const prev = s.history.length>1 ? s.history[s.history.length-2] : s.price;
+      const up = s.price >= prev;
+      ctx.fillStyle = s.color;
+      ctx.fillRect(tx, ty+10, 16, 16);
+      ctx.fillStyle = s.edge;
+      ctx.strokeStyle = s.edge;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(tx+0.5, ty+10.5, 15, 15);
+      tx += 22;
+      ctx.fillStyle = '#cfd6e8';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.fillText(s.sym, tx, ty+18);
+      tx += 50;
+      ctx.fillStyle = up ? '#27ae60' : '#e74c3c';
+      ctx.font = '13px sans-serif';
+      ctx.fillText(fmt(s.price)+(up?' ▲':' ▼'), tx, ty+18);
+      tx += 110;
+    }
+    // net worth bar progress
+    const net = netWorth();
+    const pct = Math.min(1, net / 1000000);
+    const bw = 240, bx = W - bw - 14, by = ty + 10;
+    ctx.fillStyle = '#0a0e18';
+    ctx.fillRect(bx, by, bw, 16);
+    ctx.fillStyle = '#ffd35a';
+    ctx.fillRect(bx, by, bw*pct, 16);
+    ctx.strokeStyle = '#ffd35a';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx+0.5, by+0.5, bw-1, 15);
+    ctx.fillStyle = '#0e1320';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText((pct*100).toFixed(2)+'% to $1M', bx+bw/2, by+8);
+  }
+
+  let toastTimer = 0;
+  function flashToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerHTML = msg;
+    t.style.display='block';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>{ t.style.display='none'; }, 1600);
+  }
+
+  function showToast(msg, isWin) {
+    const t = document.getElementById('toast');
+    t.innerHTML = msg + '<br><button id="restartBtn">Restart</button>';
+    t.style.display='block';
+    t.style.borderColor = isWin ? '#27ae60' : '#e74c3c';
+    setTimeout(()=>{
+      const b = document.getElementById('restartBtn');
+      if (b) b.onclick = () => {
+        localStorage.removeItem('bt_stocks');
+        location.reload();
+      };
+    }, 0);
+  }
+
+  let newsTimer = 0;
+  function flashNews(msg) {
+    const n = document.getElementById('news');
+    n.textContent = msg;
+    n.style.display='block';
+    clearTimeout(newsTimer);
+    newsTimer = setTimeout(()=>{ n.style.display='none'; }, 3500);
+  }
+
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.1, (now - last)/1000);
+    last = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(now => { last = now; loop(now); });
+})();
+</script>
+</body>
+</html>

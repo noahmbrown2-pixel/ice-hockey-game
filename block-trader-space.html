@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Galactic Cargo Block Trader</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#04060e; color:#e6ecff;
+    font-family: 'Segoe UI', system-ui, sans-serif; user-select:none; -webkit-user-select:none; }
+  #wrap { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  canvas { background:#04060e; box-shadow:0 0 60px #000a; image-rendering: pixelated; cursor:crosshair; }
+  #hud { position:absolute; top:8px; left:8px; right:8px; display:flex; justify-content:space-between;
+    pointer-events:none; font-size:14px; gap:8px; flex-wrap:wrap; }
+  .stat { background:#0008; padding:6px 12px; border-radius:6px; border:1px solid #2a3550; }
+  #goal { color:#ffd35a; }
+  #toast { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:#0008; padding:18px 28px; border-radius:12px; font-size:22px; display:none;
+    border:2px solid #ffd35a; pointer-events:none; text-align:center; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c"></canvas></div>
+<div id="hud">
+  <div class="stat">CR <span id="cr">1,000</span></div>
+  <div class="stat">FUEL <span id="fu">100</span></div>
+  <div class="stat">CARGO <span id="cg">0/10</span></div>
+  <div class="stat">LOC <span id="loc">Terra</span></div>
+  <div class="stat" id="goal">Goal: 1,000,000 CR</div>
+</div>
+<div id="toast"></div>
+<script>
+(() => {
+  const W = 1200, H = 760;
+  const cvs = document.getElementById('c');
+  const ctx = cvs.getContext('2d');
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+  function fitCanvas() {
+    const s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    cvs.style.width = (W*s) + 'px';
+    cvs.style.height = (H*s) + 'px';
+    cvs.width = W * dpr;
+    cvs.height = H * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', fitCanvas);
+  fitCanvas();
+
+  const RES = [
+    { k:'h2o',   name:'H2O',        color:'#3aa8ff', edge:'#1a5a9a', base:8   },
+    { k:'ore',   name:'Ore',        color:'#a07a55', edge:'#5a4226', base:18  },
+    { k:'plasma',name:'Plasma',     color:'#ff4adf', edge:'#9a1a7a', base:55  },
+    { k:'crys',  name:'Crystal',    color:'#7afaff', edge:'#1f8aa6', base:140 },
+    { k:'anti',  name:'Antimatter', color:'#a35aff', edge:'#4a1a8a', base:380 },
+    { k:'spice', name:'Spice',      color:'#ff9a3a', edge:'#9a4a1a', base:90  },
+  ];
+
+  const STATIONS = [
+    { name:'Terra',             x: 180, y: 440, r: 44, color:'#3aa8ff', ring:false, biases:{ h2o:0.5,  ore:1.1, plasma:1.1, crys:1.0, anti:1.2, spice:1.0 } },
+    { name:'Mars Colony',       x: 420, y: 220, r: 36, color:'#c8593a', ring:false, biases:{ h2o:1.4,  ore:0.6, plasma:1.1, crys:1.0, anti:1.1, spice:0.9 } },
+    { name:'Asteroid Belt Hub', x: 660, y: 520, r: 30, color:'#9a8a6a', ring:true,  biases:{ h2o:1.2,  ore:0.5, plasma:1.0, crys:0.8, anti:1.2, spice:1.1 } },
+    { name:'Europa Ice',        x: 880, y: 200, r: 34, color:'#c0e0ff', ring:false, biases:{ h2o:0.4,  ore:1.2, plasma:1.2, crys:0.9, anti:1.1, spice:1.3 } },
+    { name:'Titan Refinery',    x: 1020,y: 460, r: 38, color:'#d8a85a', ring:true,  biases:{ h2o:1.1,  ore:1.0, plasma:0.6, crys:1.1, anti:0.8, spice:0.7 } },
+    { name:'Deep Space Outpost',x: 280, y: 660, r: 28, color:'#7a55ff', ring:false, biases:{ h2o:1.3,  ore:1.3, plasma:0.9, crys:0.5, anti:0.6, spice:1.2 } },
+  ];
+
+  const UPGRADES = {
+    cargo:   { name:'Cargo Hold', tiers:[10,25,60,150], costs:[400,1500,6000,25000] },
+    fuel:    { name:'Fuel Tank',  tiers:[100,180,300,500], costs:[300,1200,5000,18000] },
+    weapons: { name:'Weapons',    tiers:[1,2,3,5], costs:[500,2000,8000,30000] },
+    engine:  { name:'Engine',     tiers:[1,1.4,1.9,2.6], costs:[600,2500,10000,40000] },
+  };
+
+  const stars = [];
+  for (let i=0;i<260;i++) {
+    stars.push({ x: Math.random()*W, y: Math.random()*H, s: Math.random()*1.6+0.3, p: Math.random()*Math.PI*2 });
+  }
+
+  const save = JSON.parse(localStorage.getItem('bt_space') || 'null');
+  const state = save ? save : {
+    credits: 1000,
+    fuel: 100,
+    cargo: {},
+    locIdx: 0,
+    upg: { cargo:0, fuel:0, weapons:0, engine:0 },
+    prices: {},
+    won: false,
+    over: false,
+  };
+  if (!state.upg) state.upg = { cargo:0, fuel:0, weapons:0, engine:0 };
+  if (!state.cargo) state.cargo = {};
+  if (!state.prices) state.prices = {};
+
+  function priceTick() {
+    for (let i=0;i<STATIONS.length;i++) {
+      const st = STATIONS[i];
+      if (!state.prices[i]) state.prices[i] = {};
+      for (const r of RES) {
+        const bias = st.biases[r.k];
+        const drift = 0.85 + Math.random()*0.30;
+        const target = r.base * bias * drift;
+        const cur = state.prices[i][r.k] || target;
+        state.prices[i][r.k] = Math.max(1, Math.round(cur*0.6 + target*0.4));
+      }
+    }
+    saveGame();
+  }
+  priceTick();
+
+  function cargoCap() { return UPGRADES.cargo.tiers[state.upg.cargo]; }
+  function fuelCap()  { return UPGRADES.fuel.tiers[state.upg.fuel]; }
+  function weapons()  { return UPGRADES.weapons.tiers[state.upg.weapons]; }
+  function engine()   { return UPGRADES.engine.tiers[state.upg.engine]; }
+  function cargoUsed() { let t=0; for (const k in state.cargo) t += state.cargo[k]; return t; }
+
+  function saveGame() {
+    localStorage.setItem('bt_space', JSON.stringify(state));
+  }
+
+  let mode = 'map';
+  let tradeStation = null;
+  let upgradePanel = false;
+  let travel = null;
+  let combat = null;
+  let event = null;
+
+  let toastTimer = 0;
+  function flashToast(msg, ms=2000) {
+    const t = document.getElementById('toast');
+    t.innerHTML = msg;
+    t.style.display='block';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>{ t.style.display='none'; }, ms);
+  }
+
+  function evPt(e) {
+    const r = cvs.getBoundingClientRect();
+    const t = e.touches ? (e.touches[0] || e.changedTouches[0]) : e;
+    return {
+      x: (t.clientX - r.left) * (W / r.width),
+      y: (t.clientY - r.top) * (H / r.height),
+    };
+  }
+
+  let mx=0, my=0;
+  cvs.addEventListener('mousemove', e => { const p=evPt(e); mx=p.x; my=p.y; });
+  cvs.addEventListener('mousedown', e => { const p=evPt(e); handleClick(p); });
+  cvs.addEventListener('touchstart', e => { e.preventDefault(); const p=evPt(e); mx=p.x; my=p.y; handleClick(p); }, {passive:false});
+  cvs.addEventListener('touchmove', e => { e.preventDefault(); const p=evPt(e); mx=p.x; my=p.y; }, {passive:false});
+
+  window.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if (k === 'escape') {
+      if (upgradePanel) upgradePanel = false;
+      else if (tradeStation !== null) tradeStation = null;
+    }
+  });
+
+  function dist(a, b) { const dx=a.x-b.x, dy=a.y-b.y; return Math.sqrt(dx*dx+dy*dy); }
+
+  function startTravel(toIdx) {
+    if (toIdx === state.locIdx) return;
+    const from = STATIONS[state.locIdx], to = STATIONS[toIdx];
+    const d = dist(from, to);
+    const fuelCost = Math.max(5, Math.round(d/14));
+    if (state.fuel < fuelCost) { flashToast('Not enough fuel'); return; }
+    state.fuel -= fuelCost;
+    const baseTime = 1.0 + (d/300)*2.0;
+    const dur = baseTime / engine();
+    travel = { fromIdx: state.locIdx, toIdx, t: 0, dur, fuelCost, x: from.x, y: from.y };
+    saveGame();
+  }
+
+  function maybeTriggerHazard() {
+    const r = Math.random();
+    if (r < 0.18) startCombat();
+    else if (r < 0.28) doAsteroidStorm();
+    else if (r < 0.34) doWormhole();
+    else if (r < 0.46) doTradeShip();
+  }
+
+  function startCombat() {
+    combat = {
+      pirateHp: 3 + Math.floor(Math.random()*3),
+      myHp: 3,
+      px: 800, py: 280,
+      pvx: (Math.random()-0.5)*60, pvy: (Math.random()-0.5)*40,
+      shots: [],
+      shake: 0,
+      msg: 'Pirates! Click to fire',
+      cd: 0,
+      pirateCd: 1.4,
+      done: false,
+    };
+  }
+
+  function doAsteroidStorm() {
+    let lost = 0;
+    const used = cargoUsed();
+    if (used > 0) {
+      const lose = Math.max(1, Math.floor(used * 0.25));
+      let toLose = lose;
+      const keys = Object.keys(state.cargo).filter(k=>state.cargo[k]>0);
+      while (toLose > 0 && keys.length>0) {
+        const k = keys[Math.floor(Math.random()*keys.length)];
+        state.cargo[k]--;
+        toLose--; lost++;
+        if (state.cargo[k]<=0) { delete state.cargo[k]; keys.splice(keys.indexOf(k),1); }
+      }
+    }
+    flashToast('Asteroid Storm! Lost ' + lost + ' cargo', 2400);
+    saveGame();
+  }
+
+  function doWormhole() {
+    flashToast('Wormhole! Free fast travel', 2000);
+    if (travel) travel.t = travel.dur - 0.3;
+  }
+
+  function doTradeShip() {
+    const r = RES[Math.floor(Math.random()*RES.length)];
+    const isBuy = Math.random()<0.5;
+    if (isBuy) {
+      const price = Math.round(r.base * 0.4);
+      const max = Math.min(5, cargoCap()-cargoUsed(), Math.floor(state.credits/price));
+      if (max>0) {
+        state.credits -= price*max;
+        state.cargo[r.k] = (state.cargo[r.k]||0) + max;
+        flashToast('Trade ship! Bought ' + max + ' ' + r.name + ' @ ' + price + ' CR', 2400);
+        saveGame();
+      }
+    } else {
+      const price = Math.round(r.base * 2.0);
+      const have = state.cargo[r.k]||0;
+      const sell = Math.min(have, 5);
+      if (sell>0) {
+        state.credits += price*sell;
+        state.cargo[r.k] -= sell;
+        if (state.cargo[r.k]<=0) delete state.cargo[r.k];
+        flashToast('Trade ship! Sold ' + sell + ' ' + r.name + ' @ ' + price + ' CR', 2400);
+        saveGame();
+      }
+    }
+  }
+
+  function arriveAt(idx) {
+    state.locIdx = idx;
+    travel = null;
+    priceTick();
+    checkLose();
+  }
+
+  function checkWin() {
+    if (state.credits >= 1000000 && !state.won) {
+      state.won = true;
+      flashToast('VICTORY! You reached 1,000,000 CR', 4000);
+      saveGame();
+    }
+  }
+
+  function checkLose() {
+    const hasCargo = cargoUsed() > 0;
+    const hasUpg = state.upg.cargo>0 || state.upg.fuel>0 || state.upg.weapons>0 || state.upg.engine>0;
+    if (state.credits <= 0 && !hasCargo && !hasUpg && state.fuel < 5) {
+      state.over = true;
+      flashToast('GAME OVER<br><span style="font-size:14px">Click to restart</span>', 99999);
+    }
+  }
+
+  function resetGame() {
+    state.credits = 1000;
+    state.fuel = 100;
+    state.cargo = {};
+    state.locIdx = 0;
+    state.upg = { cargo:0, fuel:0, weapons:0, engine:0 };
+    state.prices = {};
+    state.won = false;
+    state.over = false;
+    priceTick();
+    document.getElementById('toast').style.display = 'none';
+    saveGame();
+  }
+
+  function handleClick(p) {
+    if (state.over) { resetGame(); return; }
+    if (combat) { handleCombatClick(p); return; }
+    if (travel) return;
+
+    if (tradeStation !== null) { handleTradeClick(p); return; }
+    if (upgradePanel) { handleUpgradeClick(p); return; }
+
+    for (let i=0; i<STATIONS.length; i++) {
+      const s = STATIONS[i];
+      const d = Math.hypot(p.x-s.x, p.y-s.y);
+      if (d <= s.r + 6) {
+        if (i === state.locIdx) {
+          tradeStation = i;
+        } else {
+          startTravel(i);
+        }
+        return;
+      }
+    }
+
+    if (p.x >= W-160 && p.x <= W-20 && p.y >= H-50 && p.y <= H-12) {
+      upgradePanel = true;
+      return;
+    }
+  }
+
+  const TRADE = { x: 200, y: 90, w: 800, h: 580 };
+
+  function tradeRowRect(i) {
+    return { x: TRADE.x+20, y: TRADE.y+90 + i*70, w: TRADE.w-40, h: 60 };
+  }
+
+  function handleTradeClick(p) {
+    if (p.x < TRADE.x-20 || p.x > TRADE.x+TRADE.w+20 || p.y < TRADE.y-20 || p.y > TRADE.y+TRADE.h+20) {
+      tradeStation = null; return;
+    }
+    if (p.x >= TRADE.x+TRADE.w-40 && p.x <= TRADE.x+TRADE.w-10 && p.y >= TRADE.y+10 && p.y <= TRADE.y+40) {
+      tradeStation = null; return;
+    }
+    if (p.x >= TRADE.x+TRADE.w-200 && p.x <= TRADE.x+TRADE.w-50 && p.y >= TRADE.y+TRADE.h-50 && p.y <= TRADE.y+TRADE.h-15) {
+      upgradePanel = true; return;
+    }
+    if (p.x >= TRADE.x+20 && p.x <= TRADE.x+150 && p.y >= TRADE.y+TRADE.h-50 && p.y <= TRADE.y+TRADE.h-15) {
+      const cost = Math.max(1, Math.round((fuelCap()-state.fuel)*2));
+      if (state.fuel >= fuelCap()) { flashToast('Fuel full'); return; }
+      if (state.credits < cost) { flashToast('Not enough CR'); return; }
+      state.credits -= cost;
+      state.fuel = fuelCap();
+      flashToast('Refueled (-' + cost + ' CR)');
+      saveGame();
+      return;
+    }
+
+    for (let i=0; i<RES.length; i++) {
+      const r = tradeRowRect(i);
+      const buyX = r.x + r.w - 200;
+      const sellX = r.x + r.w - 90;
+      if (p.y >= r.y && p.y <= r.y+r.h) {
+        if (p.x >= buyX && p.x <= buyX + 90) { tradeBuy(i, e_qty(p, r)); return; }
+        if (p.x >= sellX && p.x <= sellX + 90) { tradeSell(i, e_qty(p, r)); return; }
+      }
+    }
+  }
+
+  function e_qty(p, r) {
+    return 1;
+  }
+
+  function tradeBuy(i, qty) {
+    const r = RES[i];
+    const price = state.prices[tradeStation][r.k];
+    const space = cargoCap() - cargoUsed();
+    if (space <= 0) { flashToast('Cargo full'); return; }
+    if (state.credits < price) { flashToast('Not enough CR'); return; }
+    state.credits -= price;
+    state.cargo[r.k] = (state.cargo[r.k]||0) + 1;
+    saveGame();
+  }
+
+  function tradeSell(i, qty) {
+    const r = RES[i];
+    const have = state.cargo[r.k]||0;
+    if (have <= 0) { flashToast('None to sell'); return; }
+    const price = state.prices[tradeStation][r.k];
+    state.credits += price;
+    state.cargo[r.k]--;
+    if (state.cargo[r.k]<=0) delete state.cargo[r.k];
+    checkWin();
+    saveGame();
+  }
+
+  const UP = { x: 250, y: 110, w: 700, h: 540 };
+  function handleUpgradeClick(p) {
+    if (p.x >= UP.x+UP.w-40 && p.x <= UP.x+UP.w-10 && p.y >= UP.y+10 && p.y <= UP.y+40) {
+      upgradePanel = false; return;
+    }
+    if (p.x < UP.x || p.x > UP.x+UP.w || p.y < UP.y || p.y > UP.y+UP.h) {
+      upgradePanel = false; return;
+    }
+    const keys = Object.keys(UPGRADES);
+    for (let i=0;i<keys.length;i++) {
+      const k = keys[i];
+      const ry = UP.y + 90 + i*100;
+      const rx = UP.x + UP.w - 180;
+      if (p.x >= rx && p.x <= rx+150 && p.y >= ry && p.y <= ry+70) {
+        const cur = state.upg[k];
+        if (cur >= UPGRADES[k].costs.length) { flashToast('Maxed'); return; }
+        const cost = UPGRADES[k].costs[cur];
+        if (state.credits < cost) { flashToast('Not enough CR'); return; }
+        state.credits -= cost;
+        state.upg[k]++;
+        if (k === 'fuel') state.fuel = fuelCap();
+        flashToast(UPGRADES[k].name + ' upgraded');
+        saveGame();
+        return;
+      }
+    }
+  }
+
+  function handleCombatClick(p) {
+    if (combat.done) {
+      combat = null;
+      return;
+    }
+    if (combat.cd > 0) return;
+    combat.cd = 0.18;
+    combat.shots.push({ x: 600, y: 600, tx: p.x, ty: p.y, life: 0.6 });
+  }
+
+  let last = performance.now();
+  let priceTimer = 0;
+
+  function update(dt) {
+    priceTimer += dt;
+    if (priceTimer > 8) { priceTimer = 0; priceTick(); }
+
+    for (const s of stars) s.p += dt*2;
+
+    if (travel) {
+      travel.t += dt;
+      const tt = Math.min(1, travel.t / travel.dur);
+      const f = STATIONS[travel.fromIdx], to = STATIONS[travel.toIdx];
+      travel.x = f.x + (to.x-f.x)*tt;
+      travel.y = f.y + (to.y-f.y)*tt;
+      if (!travel.hazard && travel.t > travel.dur*0.4 && Math.random() < dt*0.6) {
+        travel.hazard = true;
+        maybeTriggerHazard();
+      }
+      if (travel.t >= travel.dur && !combat) {
+        arriveAt(travel.toIdx);
+      }
+    }
+
+    if (combat) {
+      combat.cd = Math.max(0, combat.cd - dt);
+      combat.shake = Math.max(0, combat.shake - dt*4);
+      combat.px += combat.pvx*dt;
+      combat.py += combat.pvy*dt;
+      if (combat.px < 600 || combat.px > 1100) combat.pvx *= -1;
+      if (combat.py < 150 || combat.py > 450) combat.pvy *= -1;
+
+      for (let i=combat.shots.length-1;i>=0;i--) {
+        const sh = combat.shots[i];
+        sh.life -= dt;
+        const t = 1 - sh.life/0.6;
+        sh.cx = sh.x + (sh.tx-sh.x)*t;
+        sh.cy = sh.y + (sh.ty-sh.y)*t;
+        if (Math.hypot(sh.cx-combat.px, sh.cy-combat.py) < 28 && !sh.hit) {
+          sh.hit = true;
+          combat.pirateHp -= weapons();
+          combat.shake = 0.4;
+          if (combat.pirateHp <= 0) {
+            const reward = 200 + Math.floor(Math.random()*400);
+            state.credits += reward;
+            combat.msg = 'Pirate destroyed! +' + reward + ' CR — click to continue';
+            combat.done = true;
+            saveGame();
+          }
+        }
+        if (sh.life <= 0) combat.shots.splice(i,1);
+      }
+
+      if (!combat.done) {
+        combat.pirateCd -= dt;
+        if (combat.pirateCd <= 0) {
+          combat.pirateCd = 1.6;
+          combat.myHp -= 1;
+          combat.shake = 0.5;
+          if (combat.myHp <= 0) {
+            const lost = Math.min(state.credits, 200 + Math.floor(Math.random()*300));
+            state.credits -= lost;
+            const used = cargoUsed();
+            const dropN = Math.floor(used*0.5);
+            let n = dropN;
+            const keys = Object.keys(state.cargo).filter(k=>state.cargo[k]>0);
+            while (n>0 && keys.length>0) {
+              const k = keys[Math.floor(Math.random()*keys.length)];
+              state.cargo[k]--;
+              n--;
+              if (state.cargo[k]<=0) { delete state.cargo[k]; keys.splice(keys.indexOf(k),1); }
+            }
+            combat.msg = 'Defeated! Lost ' + lost + ' CR + cargo — click to continue';
+            combat.done = true;
+            saveGame();
+          }
+        }
+      }
+    }
+
+    document.getElementById('cr').textContent = Math.floor(state.credits).toLocaleString();
+    document.getElementById('fu').textContent = Math.floor(state.fuel) + '/' + fuelCap();
+    document.getElementById('cg').textContent = cargoUsed() + '/' + cargoCap();
+    document.getElementById('loc').textContent = travel ? '...transit...' : STATIONS[state.locIdx].name;
+  }
+
+  function drawStars() {
+    for (const s of stars) {
+      const a = 0.3 + 0.7*Math.abs(Math.sin(s.p));
+      ctx.globalAlpha = a;
+      ctx.fillStyle = '#dfe7ff';
+      ctx.fillRect(s.x, s.y, s.s, s.s);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawNebula() {
+    const grd = ctx.createRadialGradient(300, 600, 20, 300, 600, 400);
+    grd.addColorStop(0, 'rgba(120,40,160,0.18)');
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0,0,W,H);
+    const g2 = ctx.createRadialGradient(950, 200, 20, 950, 200, 400);
+    g2.addColorStop(0, 'rgba(40,120,200,0.16)');
+    g2.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g2;
+    ctx.fillRect(0,0,W,H);
+  }
+
+  function drawPlanet(s, isCurrent) {
+    ctx.save();
+    if (s.ring) {
+      ctx.strokeStyle = '#9a8a6a';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.ellipse(s.x, s.y, s.r+18, s.r*0.35, 0.25, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.strokeStyle = '#3a2a1a';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(s.x, s.y, s.r+12, s.r*0.25, 0.25, 0, Math.PI*2);
+      ctx.stroke();
+    }
+    const grd = ctx.createRadialGradient(s.x-s.r*0.4, s.y-s.r*0.4, s.r*0.2, s.x, s.y, s.r);
+    grd.addColorStop(0, lighten(s.color, 0.3));
+    grd.addColorStop(1, darken(s.color, 0.4));
+    ctx.fillStyle = grd;
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = darken(s.color, 0.5);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    if (isCurrent) {
+      ctx.strokeStyle = '#ffd35a';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5,4]);
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r+10, 0, Math.PI*2); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+
+    ctx.fillStyle = '#04060e';
+    ctx.fillRect(s.x-s.name.length*4 - 6, s.y+s.r+8, s.name.length*8+12, 18);
+    ctx.fillStyle = '#e6ecff';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(s.name, s.x, s.y+s.r+17);
+  }
+
+  function lighten(hex, p) {
+    const c = parseInt(hex.slice(1),16);
+    const r = Math.min(255,((c>>16)&255)+255*p);
+    const g = Math.min(255,((c>>8)&255)+255*p);
+    const b = Math.min(255,(c&255)+255*p);
+    return 'rgb('+(r|0)+','+(g|0)+','+(b|0)+')';
+  }
+  function darken(hex, p) {
+    const c = parseInt(hex.slice(1),16);
+    const r = Math.max(0,((c>>16)&255)*(1-p));
+    const g = Math.max(0,((c>>8)&255)*(1-p));
+    const b = Math.max(0,(c&255)*(1-p));
+    return 'rgb('+(r|0)+','+(g|0)+','+(b|0)+')';
+  }
+
+  function drawShip(x, y, angle) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.fillStyle = '#1a3a5a';
+    ctx.fillRect(-8, -5, 16, 10);
+    ctx.fillStyle = '#3a8acf';
+    ctx.fillRect(-6, -4, 12, 8);
+    ctx.fillStyle = '#ffd35a';
+    ctx.fillRect(4, -2, 4, 4);
+    ctx.fillStyle = '#1a3a5a';
+    ctx.fillRect(-9, -7, 4, 3);
+    ctx.fillRect(-9, 4, 4, 3);
+    ctx.fillStyle = '#ff7a3a';
+    ctx.fillRect(-12, -2, 4, 4);
+    ctx.fillStyle = '#ffd35a';
+    ctx.fillRect(-11, -1, 2, 2);
+    ctx.restore();
+  }
+
+  function drawPirateShip(x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = '#3a1a1a';
+    ctx.fillRect(-22, -14, 44, 28);
+    ctx.fillStyle = '#8a3a3a';
+    ctx.fillRect(-18, -10, 36, 20);
+    ctx.fillStyle = '#ff4a4a';
+    ctx.fillRect(-12, -4, 8, 8);
+    ctx.fillRect(4, -4, 8, 8);
+    ctx.fillStyle = '#3a1a1a';
+    ctx.fillRect(-26, -18, 8, 6);
+    ctx.fillRect(18, -18, 8, 6);
+    ctx.fillRect(-26, 12, 8, 6);
+    ctx.fillRect(18, 12, 8, 6);
+    ctx.restore();
+  }
+
+  function drawResIcon(r, x, y, sz) {
+    ctx.fillStyle = r.edge;
+    ctx.fillRect(x-1, y-1, sz+2, sz+2);
+    ctx.fillStyle = r.color;
+    ctx.fillRect(x, y, sz, sz);
+    ctx.fillStyle = '#fff7';
+    ctx.fillRect(x+2, y+2, Math.max(2, sz/4), Math.max(2, sz/4));
+    ctx.strokeStyle = lighten(r.edge, 0.2);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x+0.5, y+0.5, sz-1, sz-1);
+  }
+
+  function drawMap() {
+    drawStars();
+    drawNebula();
+
+    ctx.strokeStyle = '#1a2240';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4,6]);
+    for (let i=0;i<STATIONS.length;i++) {
+      for (let j=i+1;j<STATIONS.length;j++) {
+        ctx.beginPath();
+        ctx.moveTo(STATIONS[i].x, STATIONS[i].y);
+        ctx.lineTo(STATIONS[j].x, STATIONS[j].y);
+        ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]);
+
+    for (let i=0;i<STATIONS.length;i++) {
+      drawPlanet(STATIONS[i], i === state.locIdx && !travel);
+    }
+
+    if (travel) {
+      const f = STATIONS[travel.fromIdx], to = STATIONS[travel.toIdx];
+      ctx.strokeStyle = '#ffd35a';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6,6]);
+      ctx.beginPath();
+      ctx.moveTo(f.x, f.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      const ang = Math.atan2(to.y-f.y, to.x-f.x);
+      drawShip(travel.x, travel.y, ang);
+    } else {
+      const cur = STATIONS[state.locIdx];
+      drawShip(cur.x + cur.r + 18, cur.y - cur.r - 8, -0.6);
+    }
+
+    let hover = -1;
+    for (let i=0;i<STATIONS.length;i++) {
+      if (Math.hypot(mx-STATIONS[i].x, my-STATIONS[i].y) <= STATIONS[i].r+6) { hover = i; break; }
+    }
+    if (hover >= 0 && !travel && !combat) {
+      const s = STATIONS[hover];
+      const isHere = hover === state.locIdx;
+      const tip = [];
+      tip.push(s.name);
+      if (!isHere) {
+        const d = dist(STATIONS[state.locIdx], s);
+        const fc = Math.max(5, Math.round(d/14));
+        tip.push('Fuel: ' + fc);
+        tip.push('Click to travel');
+      } else {
+        tip.push('Click to trade');
+      }
+      drawTooltip(s.x, s.y - s.r - 10, tip);
+    }
+
+    ctx.fillStyle = '#0008';
+    ctx.fillRect(W-160, H-50, 140, 38);
+    ctx.strokeStyle = '#ffd35a';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(W-160+0.5, H-50+0.5, 139, 37);
+    ctx.fillStyle = '#ffd35a';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('UPGRADES', W-90, H-31);
+
+    ctx.fillStyle = '#8a93a8';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign='left';
+    ctx.fillText('Click your planet to TRADE — click another to TRAVEL', 20, H-26);
+  }
+
+  function drawTooltip(x, y, lines) {
+    ctx.font = '12px sans-serif';
+    let w = 0;
+    for (const l of lines) w = Math.max(w, ctx.measureText(l).width);
+    w += 16;
+    const h = lines.length*16 + 8;
+    ctx.fillStyle = '#0009';
+    ctx.fillRect(x - w/2, y - h - 4, w, h);
+    ctx.strokeStyle = '#2a3550';
+    ctx.strokeRect(x - w/2 + 0.5, y - h - 4 + 0.5, w-1, h-1);
+    ctx.fillStyle = '#e6ecff';
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    for (let i=0;i<lines.length;i++) {
+      ctx.fillText(lines[i], x, y - h + i*16);
+    }
+  }
+
+  function drawTradePanel() {
+    drawMap();
+    ctx.fillStyle = '#0009';
+    ctx.fillRect(0,0,W,H);
+
+    ctx.fillStyle = '#0c1428';
+    ctx.fillRect(TRADE.x, TRADE.y, TRADE.w, TRADE.h);
+    ctx.strokeStyle = '#2a3550';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(TRADE.x+1, TRADE.y+1, TRADE.w-2, TRADE.h-2);
+
+    const st = STATIONS[tradeStation];
+    ctx.fillStyle = '#ffd35a';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillText('TRADE — ' + st.name, TRADE.x+20, TRADE.y+15);
+
+    ctx.fillStyle = '#8a93a8';
+    ctx.font = '13px sans-serif';
+    ctx.fillText('CR: ' + Math.floor(state.credits).toLocaleString() + '   Cargo: ' + cargoUsed() + '/' + cargoCap(), TRADE.x+20, TRADE.y+50);
+
+    ctx.fillStyle = '#8a93a8';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign='left';
+    ctx.fillText('Resource', TRADE.x+70, TRADE.y+72);
+    ctx.fillText('Have', TRADE.x+220, TRADE.y+72);
+    ctx.fillText('Price', TRADE.x+340, TRADE.y+72);
+    ctx.textAlign='center';
+    ctx.fillText('BUY (+1)', TRADE.x+TRADE.w-200+45, TRADE.y+72);
+    ctx.fillText('SELL (-1)', TRADE.x+TRADE.w-90+45, TRADE.y+72);
+
+    for (let i=0;i<RES.length;i++) {
+      const r = RES[i];
+      const row = tradeRowRect(i);
+      ctx.fillStyle = i%2===0 ? '#10182a' : '#141d33';
+      ctx.fillRect(row.x, row.y, row.w, row.h);
+
+      drawResIcon(r, row.x+12, row.y+18, 24);
+      ctx.fillStyle = '#e6ecff';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign='left'; ctx.textBaseline='middle';
+      ctx.fillText(r.name, row.x+50, row.y+row.h/2);
+
+      ctx.fillStyle = '#cfd6e8';
+      ctx.font = '14px sans-serif';
+      ctx.fillText(String(state.cargo[r.k]||0), row.x+200, row.y+row.h/2);
+
+      const price = state.prices[tradeStation][r.k];
+      const tone = price < r.base*0.85 ? '#7aff8a' : (price > r.base*1.15 ? '#ff8a7a' : '#ffd35a');
+      ctx.fillStyle = tone;
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillText(price + ' CR', row.x+320, row.y+row.h/2);
+
+      drawButton(row.x+row.w-200, row.y+15, 90, 30, 'BUY ' + price, '#1a4a2a', '#3a8a4a');
+      drawButton(row.x+row.w-90,  row.y+15, 90, 30, 'SELL ' + price, '#4a2a1a', '#8a4a2a');
+    }
+
+    const fuelCost = Math.max(1, Math.round((fuelCap()-state.fuel)*2));
+    drawButton(TRADE.x+20, TRADE.y+TRADE.h-50, 130, 35, 'REFUEL ' + fuelCost, '#1a3a5a', '#3a6a9a');
+    drawButton(TRADE.x+TRADE.w-200, TRADE.y+TRADE.h-50, 150, 35, 'UPGRADES', '#3a2a5a', '#6a4a8a');
+    drawButton(TRADE.x+TRADE.w-40, TRADE.y+10, 30, 30, 'X', '#3a1a1a', '#8a3a3a');
+  }
+
+  function drawButton(x, y, w, h, label, bg, edge) {
+    ctx.fillStyle = bg;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = edge;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x+0.5, y+0.5, w-1, h-1);
+    ctx.fillStyle = '#ffd35a';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(label, x+w/2, y+h/2);
+  }
+
+  function drawUpgradePanel() {
+    drawMap();
+    ctx.fillStyle = '#0009';
+    ctx.fillRect(0,0,W,H);
+
+    ctx.fillStyle = '#0c1428';
+    ctx.fillRect(UP.x, UP.y, UP.w, UP.h);
+    ctx.strokeStyle = '#2a3550';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(UP.x+1, UP.y+1, UP.w-2, UP.h-2);
+
+    ctx.fillStyle = '#ffd35a';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillText('SHIP UPGRADES', UP.x+20, UP.y+15);
+
+    ctx.fillStyle = '#8a93a8';
+    ctx.font = '13px sans-serif';
+    ctx.fillText('CR: ' + Math.floor(state.credits).toLocaleString(), UP.x+20, UP.y+50);
+
+    const keys = Object.keys(UPGRADES);
+    for (let i=0;i<keys.length;i++) {
+      const k = keys[i];
+      const u = UPGRADES[k];
+      const ry = UP.y + 90 + i*100;
+      ctx.fillStyle = i%2===0 ? '#10182a' : '#141d33';
+      ctx.fillRect(UP.x+20, ry, UP.w-40, 80);
+
+      ctx.fillStyle = '#e6ecff';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign='left'; ctx.textBaseline='top';
+      ctx.fillText(u.name, UP.x+40, ry+12);
+
+      const cur = state.upg[k];
+      ctx.fillStyle = '#cfd6e8';
+      ctx.font = '13px sans-serif';
+      const curVal = u.tiers[cur];
+      const nextVal = cur+1 < u.tiers.length ? u.tiers[cur+1] : null;
+      ctx.fillText('Current: ' + curVal + (nextVal !== null ? '   →   Next: ' + nextVal : '   (MAX)'), UP.x+40, ry+38);
+
+      for (let t=0;t<u.tiers.length;t++) {
+        const dotX = UP.x + 40 + t*16;
+        ctx.fillStyle = t < cur+1 ? '#ffd35a' : '#3a4a6a';
+        ctx.fillRect(dotX, ry+62, 12, 12);
+      }
+
+      const rx = UP.x + UP.w - 180;
+      if (cur >= u.costs.length) {
+        drawButton(rx, ry+8, 150, 64, 'MAX', '#1a2238', '#3a4a6a');
+      } else {
+        const cost = u.costs[cur];
+        const can = state.credits >= cost;
+        drawButton(rx, ry+8, 150, 64, 'BUY  ' + cost + ' CR', can?'#1a4a2a':'#2a2a3a', can?'#3a8a4a':'#3a3a4a');
+      }
+    }
+
+    drawButton(UP.x+UP.w-40, UP.y+10, 30, 30, 'X', '#3a1a1a', '#8a3a3a');
+  }
+
+  function drawTravel() {
+    drawStars();
+    drawNebula();
+
+    const f = STATIONS[travel.fromIdx], to = STATIONS[travel.toIdx];
+    ctx.globalAlpha = 0.4;
+    drawPlanet(f, false);
+    drawPlanet(to, false);
+    ctx.globalAlpha = 1;
+
+    ctx.strokeStyle = '#ffd35a';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6,6]);
+    ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(to.x, to.y); ctx.stroke();
+    ctx.setLineDash([]);
+
+    const ang = Math.atan2(to.y-f.y, to.x-f.x);
+    drawShip(travel.x, travel.y, ang);
+
+    ctx.fillStyle = '#0008';
+    ctx.fillRect(W/2-200, H-60, 400, 40);
+    ctx.fillStyle = '#ffd35a';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('Traveling: ' + f.name + ' → ' + to.name, W/2, H-48);
+    const pct = Math.min(1, travel.t/travel.dur);
+    ctx.fillStyle = '#1a2238';
+    ctx.fillRect(W/2-180, H-32, 360, 8);
+    ctx.fillStyle = '#ffd35a';
+    ctx.fillRect(W/2-180, H-32, 360*pct, 8);
+  }
+
+  function drawCombat() {
+    ctx.fillStyle = '#04060e';
+    ctx.fillRect(0,0,W,H);
+    drawStars();
+    drawNebula();
+
+    const sk = combat.shake > 0 ? (Math.random()-0.5)*combat.shake*12 : 0;
+    ctx.save();
+    ctx.translate(sk, 0);
+
+    drawShip(200, 600, -0.4);
+    if (!combat.done || combat.pirateHp > 0) drawPirateShip(combat.px, combat.py);
+
+    for (const sh of combat.shots) {
+      const t = 1 - sh.life/0.6;
+      const cx = sh.x + (sh.tx-sh.x)*t;
+      const cy = sh.y + (sh.ty-sh.y)*t;
+      ctx.fillStyle = '#7aff8a';
+      ctx.fillRect(cx-3, cy-3, 6, 6);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(cx-1, cy-1, 2, 2);
+    }
+
+    ctx.fillStyle = '#0008';
+    ctx.fillRect(20, 20, 240, 60);
+    ctx.fillStyle = '#7aff8a';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillText('SHIP HP', 32, 30);
+    ctx.fillStyle = '#1a2238';
+    ctx.fillRect(32, 50, 200, 14);
+    ctx.fillStyle = '#7aff8a';
+    ctx.fillRect(32, 50, 200*Math.max(0,combat.myHp/3), 14);
+
+    ctx.fillStyle = '#0008';
+    ctx.fillRect(W-260, 20, 240, 60);
+    ctx.fillStyle = '#ff7a7a';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('PIRATE HP', W-248, 30);
+    ctx.fillStyle = '#1a2238';
+    ctx.fillRect(W-248, 50, 200, 14);
+    ctx.fillStyle = '#ff7a7a';
+    const ph = Math.max(0, combat.pirateHp / (3 + 3));
+    ctx.fillRect(W-248, 50, 200*Math.min(1,combat.pirateHp/5), 14);
+
+    ctx.fillStyle = '#0008';
+    ctx.fillRect(W/2-260, H-60, 520, 40);
+    ctx.fillStyle = '#ffd35a';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(combat.msg, W/2, H-40);
+
+    ctx.fillStyle = '#8a93a8';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('Weapons: ' + weapons() + ' dmg', 32, 92);
+
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.fillStyle = '#04060e';
+    ctx.fillRect(0,0,W,H);
+
+    if (combat) {
+      drawCombat();
+      return;
+    }
+    if (travel) {
+      drawTravel();
+      return;
+    }
+    if (upgradePanel) {
+      drawUpgradePanel();
+      return;
+    }
+    if (tradeStation !== null) {
+      drawTradePanel();
+      return;
+    }
+    drawMap();
+  }
+
+  function loop(now) {
+    const dt = Math.min(0.1, (now-last)/1000);
+    last = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(now => { last = now; loop(now); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>BlockTrader</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#0e1320; color:#e6ecff;
+    font-family: 'Segoe UI', system-ui, sans-serif; user-select:none; -webkit-user-select:none; }
+  #wrap { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  canvas { background:#0a0e18; box-shadow:0 0 40px #000a; cursor:crosshair; }
+  #hud { position:absolute; top:8px; left:8px; right:8px; display:flex; justify-content:space-between;
+    pointer-events:none; font-size:14px; gap:6px; flex-wrap:wrap; }
+  .stat { background:#0008; padding:6px 12px; border-radius:6px; border:1px solid #2a3550; }
+  #goal { color:#ffd35a; }
+  #toast { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:#0008; padding:20px 30px; border-radius:12px; font-size:24px; display:none;
+    border:2px solid #ffd35a; text-align:center; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c"></canvas></div>
+<div id="hud">
+  <div class="stat">🟦 Score <span id="score">0</span></div>
+  <div class="stat" id="phase">▶ Live · place a block ahead of the line</div>
+  <div class="stat">🎯 Hit Rate <span id="hr">0%</span></div>
+  <div class="stat" id="goal">🏆 Endless · climb the leaderboard</div>
+</div>
+<div id="toast"></div>
+<script>
+(() => {
+  const W = 1200, H = 760;
+  const cvs = document.getElementById('c');
+  const ctx = cvs.getContext('2d');
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+  function fitCanvas() {
+    const s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    cvs.style.width = (W*s) + 'px';
+    cvs.style.height = (H*s) + 'px';
+    cvs.width = W * dpr;
+    cvs.height = H * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', fitCanvas);
+  fitCanvas();
+
+  // ---------- layout ----------
+  const LB_X = 20,  LB_Y = 60,  LB_W = 220, LB_H = 620;
+  const GR_X = 260, GR_Y = 60,  GR_W = 920, GR_H = 520;
+  const BC_X = 260, BC_Y = 600, BC_W = 920, BC_H = 80;
+  const VIS_COLS = 14, VIS_ROWS = 8;
+  const CW = GR_W / VIS_COLS, CH_ = GR_H / VIS_ROWS;
+  const SPEED = 2.0; // cols / second
+
+  // ---------- multipliers ----------
+  function cellMult(col, row) {
+    const ar = Math.abs(row);
+    if (ar < 1) return 1.5;
+    return Math.round(1.5 * Math.pow(1.32, ar) * 10) / 10;
+  }
+  function fmtMult(m) {
+    if (m >= 10000) return (m/1000).toFixed(0) + 'k';
+    if (m >= 1000)  return (m/1000).toFixed(1) + 'k';
+    if (m >= 10)    return Math.round(m) + 'x';
+    return m.toFixed(1) + 'x';
+  }
+
+  // ---------- continuous curve (deterministic per session) ----------
+  // Sum of multiple harmonics + slow drifts. No segments → no kinks, no resets.
+  const SEED = Math.random() * 1000;
+  function rng(i) {
+    const x = Math.sin(SEED * 17 + i * 31.7) * 43758.5453;
+    return x - Math.floor(x);
+  }
+  const HARMONICS = [
+    { a: 1.6, f: 0.30, p: rng(1) * Math.PI * 2 },
+    { a: 0.9, f: 0.74, p: rng(2) * Math.PI * 2 },
+    { a: 0.5, f: 1.42, p: rng(3) * Math.PI * 2 },
+    { a: 0.3, f: 2.65, p: rng(4) * Math.PI * 2 },
+    { a: 3.5, f: 0.024, p: rng(5) * Math.PI * 2 }, // slow drift (~260 cols / cycle)
+    { a: 5.5, f: 0.008, p: rng(6) * Math.PI * 2 }, // very slow (~785 cols / cycle)
+  ];
+  function curveRowAt(col) {
+    let y = 0;
+    for (const h of HARMONICS) y += h.a * Math.sin(h.f * col + h.p);
+    return y;
+  }
+  function cellHit(col, row) {
+    const samples = 18;
+    for (let s = 0; s <= samples; s++) {
+      const x = col + s / samples;
+      if (Math.floor(curveRowAt(x)) === row) return true;
+    }
+    return false;
+  }
+
+  // ---------- bots ----------
+  const BOTS = [
+    { name:'Apex',  color:'#ff7eb6', strat:'edge',   total:0, hits:0, plays:0, cd: 1.5 + Math.random() * 2 },
+    { name:'Nova',  color:'#5dd66a', strat:'safe',   total:0, hits:0, plays:0, cd: 1.5 + Math.random() * 2 },
+    { name:'Vex',   color:'#ffd35a', strat:'follow', total:0, hits:0, plays:0, cd: 1.5 + Math.random() * 2 },
+    { name:'Echo',  color:'#7af0ff', strat:'random', total:0, hits:0, plays:0, cd: 1.5 + Math.random() * 2 },
+    { name:'Drift', color:'#ff9352', strat:'mid',    total:0, hits:0, plays:0, cd: 1.5 + Math.random() * 2 },
+    { name:'Slick', color:'#a06aff', strat:'flip',   total:0, hits:0, plays:0, cd: 1.5 + Math.random() * 2 },
+    { name:'Volt',  color:'#ff5d5d', strat:'follow', total:0, hits:0, plays:0, cd: 1.5 + Math.random() * 2 },
+  ];
+  function botPick(bot) {
+    const lc = state.lineCol;
+    const minCol = Math.ceil(lc + 0.8);
+    const maxCol = Math.floor(lc + 7);
+    const col = minCol + Math.floor(Math.random() * (maxCol - minCol + 1));
+    const headRow = curveRowAt(lc);
+    let row;
+    switch (bot.strat) {
+      case 'safe':
+        row = Math.floor(headRow + (Math.random() - 0.5) * 2.5); break;
+      case 'edge': {
+        const off = 6 + Math.floor(Math.random() * 8);
+        row = Math.floor(headRow) + (Math.random() < 0.5 ? -off : off); break;
+      }
+      case 'mid': {
+        const off = 2 + Math.floor(Math.random() * 4);
+        row = Math.floor(headRow) + (Math.random() < 0.5 ? -off : off); break;
+      }
+      case 'random':
+        row = Math.floor(headRow) + Math.floor((Math.random() - 0.5) * 14); break;
+      case 'flip': {
+        if (Math.random() < 0.5) {
+          row = Math.floor(headRow) + (Math.random() < 0.5 ? -7 : 7);
+        } else {
+          row = Math.floor(headRow + (Math.random() - 0.5) * 2);
+        }
+        break;
+      }
+      case 'follow': {
+        const guess = curveRowAt(col + 0.5);
+        row = Math.floor(guess + (Math.random() - 0.5) * 3); break;
+      }
+    }
+    return { col, row };
+  }
+
+  // ---------- state ----------
+  const save = JSON.parse(localStorage.getItem('bt_blocktrader_live') || 'null');
+  const state = {
+    score: save ? save.score : 0,
+    hits: save ? save.hits : 0,
+    plays: save ? save.plays : 0,
+    history: save ? save.history : [],
+    leaderboard: save ? save.leaderboard : null,
+    bet: save && save.bet ? save.bet : 100,
+    lineCol: 0,
+    blocks: [],   // { actor:'you'|'bot', botIdx?, col, row, mult, bet, hit?, resolvedAt? }
+    hover: null,
+    pop: null,
+    betEditing: false,
+    betEditBuf: '',
+    dragging: false,
+    dragCell: null,
+    dragPt: null,
+  };
+  if (state.leaderboard) {
+    for (let i = 0; i < BOTS.length; i++) {
+      BOTS[i].total = state.leaderboard[i]?.total || 0;
+      BOTS[i].hits  = state.leaderboard[i]?.hits  || 0;
+      BOTS[i].plays = state.leaderboard[i]?.plays || 0;
+    }
+  }
+  const cam = { x: -VIS_COLS * 0.3, y: -VIS_ROWS / 2 };
+
+  function save_() {
+    localStorage.setItem('bt_blocktrader_live', JSON.stringify({
+      score: state.score, hits: state.hits, plays: state.plays,
+      history: state.history,
+      bet: state.bet,
+      leaderboard: BOTS.map(b => ({ total: b.total, hits: b.hits, plays: b.plays })),
+    }));
+  }
+
+  function pop(text, color) { state.pop = { text, color, t: 1.6 }; }
+
+  // ---------- input ----------
+  const buttons = [];
+  let betField = null;
+  function evPt(e) {
+    const r = cvs.getBoundingClientRect();
+    const t = e.touches ? (e.touches[0] || e.changedTouches[0]) : e;
+    return {
+      x: (t.clientX - r.left) * (W / r.width),
+      y: (t.clientY - r.top)  * (H / r.height),
+    };
+  }
+  function cellAt(p) {
+    if (p.x < GR_X || p.x > GR_X + GR_W || p.y < GR_Y || p.y > GR_Y + GR_H) return null;
+    return {
+      col: Math.floor(cam.x + (p.x - GR_X) / CW),
+      row: Math.floor(cam.y + (p.y - GR_Y) / CH_),
+    };
+  }
+  function tryPlace(p) {
+    const c = cellAt(p);
+    if (!c) return null;
+    if (c.col < state.lineCol + 0.2) { pop('Too late — line already there', '#ff9352'); return null; }
+    const dup = state.blocks.find(b => b.actor === 'you' && b.hit === undefined && b.col === c.col && b.row === c.row);
+    if (dup) return c;
+    state.blocks.push({
+      actor: 'you',
+      col: c.col,
+      row: c.row,
+      mult: cellMult(c.col, c.row),
+      bet: state.bet,
+    });
+    pop(`Locked R${c.row}·C${c.col}  →  ${fmtMult(cellMult(c.col, c.row))}`, '#7af0ff');
+    return c;
+  }
+  function commitBetEdit() {
+    if (!state.betEditing) return;
+    const n = parseInt(state.betEditBuf, 10);
+    if (Number.isFinite(n) && n >= 1) state.bet = n;
+    state.betEditing = false;
+    state.betEditBuf = '';
+    save_();
+  }
+  function cancelBetEdit() {
+    state.betEditing = false;
+    state.betEditBuf = '';
+  }
+  function inBetField(p) {
+    if (!betField) return false;
+    return p.x >= betField.x && p.x <= betField.x + betField.w && p.y >= betField.y && p.y <= betField.y + betField.h;
+  }
+  function onPress(p) {
+    for (let i = buttons.length - 1; i >= 0; i--) {
+      const b = buttons[i];
+      if (p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h) {
+        if (state.betEditing) commitBetEdit();
+        b.fn();
+        return;
+      }
+    }
+    if (inBetField(p)) {
+      state.betEditing = true;
+      state.betEditBuf = String(state.bet);
+      return;
+    }
+    if (state.betEditing) commitBetEdit();
+    const c = tryPlace(p);
+    if (c) {
+      state.dragging = true;
+      state.dragCell = c;
+      state.dragPt = p;
+    }
+  }
+  function onMove(p) {
+    state.hover = cellAt(p);
+    if (state.dragging) {
+      state.dragPt = p;
+      const c = cellAt(p);
+      if (c && (!state.dragCell || c.col !== state.dragCell.col || c.row !== state.dragCell.row)) {
+        if (c.col >= state.lineCol + 0.2) {
+          const exists = state.blocks.find(b => b.actor === 'you' && b.hit === undefined && b.col === c.col && b.row === c.row);
+          if (!exists) {
+            state.blocks.push({
+              actor: 'you',
+              col: c.col,
+              row: c.row,
+              mult: cellMult(c.col, c.row),
+              bet: state.bet,
+            });
+          }
+          state.dragCell = c;
+        }
+      }
+    }
+  }
+  function onRelease() {
+    state.dragging = false;
+    state.dragCell = null;
+    state.dragPt = null;
+  }
+  cvs.addEventListener('mousedown', e => { e.preventDefault(); onPress(evPt(e)); });
+  cvs.addEventListener('mousemove', e => { onMove(evPt(e)); });
+  cvs.addEventListener('mouseup',   e => { e.preventDefault(); onRelease(); });
+  cvs.addEventListener('mouseleave', () => { state.hover = null; onRelease(); });
+  cvs.addEventListener('touchstart', e => { e.preventDefault(); onPress(evPt(e)); }, { passive:false });
+  cvs.addEventListener('touchmove',  e => { e.preventDefault(); onMove(evPt(e)); }, { passive:false });
+  cvs.addEventListener('touchend',   e => { e.preventDefault(); onRelease(); }, { passive:false });
+  cvs.addEventListener('touchcancel',e => { e.preventDefault(); onRelease(); }, { passive:false });
+  window.addEventListener('keydown', e => {
+    if (state.betEditing) {
+      if (e.key >= '0' && e.key <= '9') {
+        if (state.betEditBuf.length < 10) state.betEditBuf += e.key;
+        e.preventDefault();
+      } else if (e.key === 'Backspace') {
+        state.betEditBuf = state.betEditBuf.slice(0, -1);
+        e.preventDefault();
+      } else if (e.key === 'Enter') {
+        commitBetEdit();
+        e.preventDefault();
+      } else if (e.key === 'Escape') {
+        cancelBetEdit();
+        e.preventDefault();
+      }
+      return;
+    }
+    if (e.key === '1') state.bet = 50;
+    else if (e.key === '2') state.bet = 100;
+    else if (e.key === '3') state.bet = 250;
+    else if (e.key === '4') state.bet = 500;
+    else if (e.key === '5') state.bet = 1000;
+    else if (e.key.toLowerCase() === 'r') {
+      if (confirm('Reset progress?')) { localStorage.removeItem('bt_blocktrader_live'); location.reload(); }
+    }
+  });
+
+  // ---------- update ----------
+  function resolveBlock(blk) {
+    blk.hit = cellHit(blk.col, blk.row);
+    blk.resolvedAt = performance.now();
+    if (blk.actor === 'you') {
+      state.plays++;
+      if (blk.hit) {
+        const won = Math.floor(blk.bet * blk.mult);
+        state.score += won;
+        state.hits++;
+        pop(`+${won.toLocaleString()}  HIT @ ${fmtMult(blk.mult)}`, '#5dd66a');
+      } else {
+        state.score -= blk.bet;
+        pop(`−${blk.bet}  miss`, '#ff5d5d');
+      }
+      state.history.unshift({ hit: blk.hit, mult: blk.mult, bet: blk.bet });
+      if (state.history.length > 18) state.history.length = 18;
+    } else {
+      const b = BOTS[blk.botIdx];
+      b.plays++;
+      if (blk.hit) { b.total += Math.floor(blk.bet * blk.mult); b.hits++; }
+      else { b.total -= blk.bet; }
+    }
+    save_();
+  }
+
+  function update(dt) {
+    state.lineCol += SPEED * dt;
+
+    // bots place periodically
+    BOTS.forEach((b, i) => {
+      b.cd -= dt;
+      if (b.cd <= 0) {
+        b.cd = 1.4 + Math.random() * 2.6;
+        // remove existing pending block from this bot
+        state.blocks = state.blocks.filter(x => !(x.actor === 'bot' && x.botIdx === i && x.hit === undefined));
+        const pick = botPick(b);
+        state.blocks.push({
+          actor: 'bot', botIdx: i,
+          col: pick.col, row: pick.row,
+          mult: cellMult(pick.col, pick.row),
+          bet: 100,
+        });
+      }
+    });
+
+    // resolve any block whose column the line has fully crossed
+    for (const blk of state.blocks) {
+      if (blk.hit !== undefined) continue;
+      if (state.lineCol >= blk.col + 1) resolveBlock(blk);
+    }
+
+    // remove resolved blocks after a brief fade
+    const now = performance.now();
+    state.blocks = state.blocks.filter(b => {
+      if (b.resolvedAt === undefined) return true;
+      return (now - b.resolvedAt) < 1400;
+    });
+
+    // camera lerp — bias toward midpoint of line and closest unresolved player block
+    const lc = state.lineCol;
+    const lr = curveRowAt(lc);
+    let me = null;
+    for (const b of state.blocks) {
+      if (b.actor !== 'you' || b.hit !== undefined) continue;
+      if (!me || b.col < me.col) me = b;
+    }
+    let tx, ty;
+    if (me) {
+      const px = me.col + 0.5, py = me.row + 0.5;
+      tx = ((lc + px) / 2) - VIS_COLS / 2;
+      ty = ((lr + py) / 2) - VIS_ROWS / 2;
+    } else {
+      tx = lc - VIS_COLS * 0.3;
+      ty = lr - VIS_ROWS / 2;
+    }
+    const k = Math.min(1, 4 * dt);
+    cam.x += (tx - cam.x) * k;
+    cam.y += (ty - cam.y) * k;
+
+    if (state.pop) { state.pop.t -= dt; if (state.pop.t <= 0) state.pop = null; }
+  }
+
+  // ---------- draw ----------
+  function fmt(n) { return Math.floor(n).toLocaleString('en-US'); }
+  function multColor(m) {
+    if (m >= 100) return '#ff7eb6';
+    if (m >= 10)  return '#ffd35a';
+    if (m >= 3)   return '#7af0ff';
+    return '#5da9ff';
+  }
+  function w2sX(col) { return GR_X + (col - cam.x) * CW; }
+  function w2sY(row) { return GR_Y + (row - cam.y) * CH_; }
+
+  function drawButton(x, y, w, h, label, fn, opt = {}) {
+    const fill = opt.fill || '#1a2740';
+    const edge = opt.edge || '#3a5070';
+    const text = opt.text || '#e6ecff';
+    const active = opt.active;
+    ctx.globalAlpha = opt.disabled ? 0.45 : 1;
+    ctx.fillStyle = active ? '#2a4060' : fill;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = active ? '#7af0ff' : edge;
+    ctx.lineWidth = active ? 2 : 1.5;
+    ctx.strokeRect(x, y, w, h);
+    ctx.fillStyle = text;
+    ctx.font = 'bold ' + (opt.fs || 16) + 'px system-ui';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, x + w/2, y + h/2);
+    ctx.textBaseline = 'alphabetic';
+    ctx.globalAlpha = 1;
+    if (!opt.disabled) buttons.push({ x, y, w, h, fn });
+  }
+
+  function drawLeaderboard() {
+    ctx.fillStyle = '#0c1322';
+    ctx.fillRect(LB_X, LB_Y, LB_W, LB_H);
+    ctx.strokeStyle = '#2a3550';
+    ctx.strokeRect(LB_X, LB_Y, LB_W, LB_H);
+
+    ctx.font = 'bold 16px system-ui';
+    ctx.fillStyle = '#aab';
+    ctx.textAlign = 'left';
+    ctx.fillText('LEADERBOARD', LB_X + 14, LB_Y + 26);
+
+    const playerRow = { name:'YOU', color:'#5da9ff', total:state.score, hits:state.hits, plays:state.plays, isYou:true };
+    const all = [playerRow, ...BOTS.map(b => ({ ...b, isYou:false }))];
+    all.sort((a, b) => b.total - a.total);
+
+    let y = LB_Y + 50;
+    all.forEach((row, i) => {
+      const h = 38;
+      if (row.isYou) {
+        ctx.fillStyle = '#1a2a45';
+        ctx.fillRect(LB_X + 6, y - 4, LB_W - 12, h);
+        ctx.strokeStyle = '#5da9ff';
+        ctx.strokeRect(LB_X + 6, y - 4, LB_W - 12, h);
+      }
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = i === 0 ? '#ffd35a' : '#aab';
+      ctx.textAlign = 'left';
+      ctx.fillText('#' + (i + 1), LB_X + 14, y + 14);
+      ctx.fillStyle = row.color;
+      ctx.beginPath();
+      ctx.arc(LB_X + 50, y + 10, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = row.isYou ? '#fff' : '#e6ecff';
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillText(row.name, LB_X + 62, y + 14);
+      ctx.fillStyle = row.total >= 0 ? '#5dd66a' : '#ff5d5d';
+      ctx.textAlign = 'right';
+      ctx.fillText((row.total >= 0 ? '+' : '−') + fmt(Math.abs(row.total)), LB_X + LB_W - 14, y + 14);
+      ctx.fillStyle = '#789';
+      ctx.font = '11px system-ui';
+      ctx.textAlign = 'left';
+      const pct = row.plays ? Math.round(row.hits / row.plays * 100) : 0;
+      ctx.fillText(`${pct}% hit · ${row.plays} plays`, LB_X + 62, y + 28);
+      y += h + 4;
+    });
+
+    const ry = LB_Y + LB_H - 90;
+    ctx.font = 'bold 12px system-ui';
+    ctx.fillStyle = '#aab';
+    ctx.textAlign = 'left';
+    ctx.fillText('YOUR LAST PLAYS', LB_X + 14, ry);
+    let rx = LB_X + 14;
+    for (let i = 0; i < state.history.length && i < 10; i++) {
+      const r = state.history[i];
+      ctx.fillStyle = r.hit ? '#5dd66a' : '#ff5d5d';
+      ctx.fillRect(rx, ry + 8, 16, 16);
+      ctx.strokeStyle = '#0008';
+      ctx.strokeRect(rx, ry + 8, 16, 16);
+      rx += 19;
+    }
+    let streak = 0;
+    for (const r of state.history) { if (r.hit) streak++; else break; }
+    ctx.fillStyle = '#7af0ff';
+    ctx.font = 'bold 13px system-ui';
+    ctx.fillText(streak > 0 ? `🔥 ${streak} in a row` : '— start a streak —', LB_X + 14, ry + 50);
+  }
+
+  function drawGrid() {
+    ctx.fillStyle = '#070b14';
+    ctx.fillRect(GR_X, GR_Y, GR_W, GR_H);
+    ctx.strokeStyle = '#2a3550';
+    ctx.strokeRect(GR_X, GR_Y, GR_W, GR_H);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(GR_X, GR_Y, GR_W, GR_H);
+    ctx.clip();
+
+    const lc = state.lineCol;
+    const pastX = w2sX(lc);
+    if (pastX > GR_X) {
+      ctx.fillStyle = 'rgba(255,255,255,0.025)';
+      ctx.fillRect(GR_X, GR_Y, Math.min(GR_W, pastX - GR_X), GR_H);
+    }
+
+    const c0 = Math.floor(cam.x) - 1;
+    const c1 = Math.ceil(cam.x + VIS_COLS) + 1;
+    const r0 = Math.floor(cam.y) - 1;
+    const r1 = Math.ceil(cam.y + VIS_ROWS) + 1;
+
+    for (let r = r0; r <= r1; r++) {
+      for (let c = c0; c <= c1; c++) {
+        const x = w2sX(c), y = w2sY(r);
+        const m = cellMult(c, r);
+        const isPast = c + 0.5 < lc;
+        const me = state.blocks.find(b => b.actor === 'you' && b.col === c && b.row === r && b.hit === undefined);
+        const isPicked = !!me;
+        const isHover = !isPicked && state.hover && state.hover.col === c && state.hover.row === r && c >= Math.floor(lc) + 1;
+
+        ctx.fillStyle = m >= 100 ? '#221220' : m >= 25 ? '#1c1428' : m >= 8 ? '#1c1f0c' : m >= 3 ? '#0c1c20' : '#0e1424';
+        ctx.fillRect(x + 1, y + 1, CW - 2, CH_ - 2);
+
+        if (isPast) {
+          ctx.fillStyle = 'rgba(0,0,0,0.35)';
+          ctx.fillRect(x + 1, y + 1, CW - 2, CH_ - 2);
+        }
+        if (isHover) {
+          ctx.fillStyle = 'rgba(125,240,255,0.18)';
+          ctx.fillRect(x + 1, y + 1, CW - 2, CH_ - 2);
+          ctx.strokeStyle = '#7af0ff';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x + 1, y + 1, CW - 2, CH_ - 2);
+        }
+
+        if (r === 0) {
+          ctx.strokeStyle = 'rgba(125,240,255,0.18)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x, y); ctx.lineTo(x + CW, y);
+          ctx.stroke();
+        }
+
+        ctx.font = 'bold ' + (m >= 100 ? 13 : m >= 10 ? 14 : 12) + 'px system-ui';
+        ctx.fillStyle = isPast ? '#445' : multColor(m);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(fmtMult(m), x + CW / 2, y + CH_ / 2);
+
+        ctx.strokeStyle = '#1a2233';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, CW, CH_);
+      }
+    }
+
+    drawCurveTrail();
+    drawBlocks();
+    drawLineHead();
+
+    ctx.restore();
+
+    // off-screen pick indicator (closest unresolved player block)
+    let myBlock = null;
+    for (const b of state.blocks) {
+      if (b.actor !== 'you' || b.hit !== undefined) continue;
+      if (!myBlock || b.col < myBlock.col) myBlock = b;
+    }
+    if (myBlock) {
+      const x = w2sX(myBlock.col + 0.5);
+      const y = w2sY(myBlock.row + 0.5);
+      const onScreen = x >= GR_X && x <= GR_X + GR_W && y >= GR_Y && y <= GR_Y + GR_H;
+      if (!onScreen) drawOffScreenPick(myBlock, x, y);
+    }
+  }
+
+  function drawCurveTrail() {
+    const trailCols = 18;
+    const startCol = state.lineCol - trailCols;
+    const endCol = state.lineCol;
+    ctx.shadowColor = '#5da9ff';
+    ctx.shadowBlur = 14;
+    ctx.strokeStyle = '#5da9ff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    const steps = 220;
+    for (let i = 0; i <= steps; i++) {
+      const x = startCol + (endCol - startCol) * (i / steps);
+      const y = curveRowAt(x);
+      const px = w2sX(x), py = w2sY(y);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  function drawLineHead() {
+    const lc = state.lineCol;
+    const lr = curveRowAt(lc);
+    const px = w2sX(lc), py = w2sY(lr);
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = '#7af0ff';
+    ctx.shadowBlur = 16;
+    ctx.beginPath();
+    ctx.arc(px, py, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(px, GR_Y);
+    ctx.lineTo(px, GR_Y + GR_H);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  function drawBlocks() {
+    const now = performance.now();
+    state.blocks.forEach(blk => {
+      const x = w2sX(blk.col), y = w2sY(blk.row);
+      if (x + CW < GR_X || x > GR_X + GR_W || y + CH_ < GR_Y || y > GR_Y + GR_H) return;
+      const isResolved = blk.resolvedAt !== undefined;
+      const age = isResolved ? (now - blk.resolvedAt) / 1000 : 0;
+      const fade = isResolved ? Math.max(0, 1 - age / 1.4) : 1;
+      ctx.globalAlpha = fade;
+
+      if (blk.actor === 'you') {
+        const fillCol = isResolved
+          ? (blk.hit ? 'rgba(93,214,106,0.55)' : 'rgba(255,93,93,0.55)')
+          : 'rgba(93,169,255,0.45)';
+        const edgeCol = isResolved ? (blk.hit ? '#5dd66a' : '#ff5d5d') : '#5da9ff';
+        ctx.fillStyle = fillCol;
+        ctx.fillRect(x + 2, y + 2, CW - 4, CH_ - 4);
+        ctx.strokeStyle = edgeCol;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x + 2, y + 2, CW - 4, CH_ - 4);
+        ctx.font = 'bold 13px system-ui';
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('YOU', x + CW / 2, y + CH_ / 2 - 8);
+        ctx.fillText(fmtMult(blk.mult), x + CW / 2, y + CH_ / 2 + 8);
+      } else {
+        const b = BOTS[blk.botIdx];
+        const fillCol = isResolved
+          ? (blk.hit ? 'rgba(93,214,106,0.30)' : 'rgba(255,93,93,0.20)')
+          : (b.color + '40');
+        const edgeCol = isResolved ? (blk.hit ? '#5dd66a' : '#ff5d5d') : b.color;
+        ctx.fillStyle = fillCol;
+        ctx.fillRect(x + 4, y + 4, CW - 8, CH_ - 8);
+        ctx.strokeStyle = edgeCol;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x + 4, y + 4, CW - 8, CH_ - 8);
+        ctx.font = 'bold 11px system-ui';
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(b.name, x + CW / 2, y + CH_ / 2);
+      }
+      ctx.globalAlpha = 1;
+    });
+  }
+
+  function drawOffScreenPick(blk, targetX, targetY) {
+    const cx = GR_X + GR_W / 2, cy = GR_Y + GR_H / 2;
+    const dx = targetX - cx, dy = targetY - cy;
+    const halfW = GR_W / 2 - 24, halfH = GR_H / 2 - 24;
+    const t = Math.min(halfW / Math.abs(dx || 1), halfH / Math.abs(dy || 1));
+    const ex = cx + dx * t, ey = cy + dy * t;
+    const ang = Math.atan2(dy, dx);
+    ctx.save();
+    ctx.translate(ex, ey);
+    ctx.rotate(ang);
+    ctx.fillStyle = '#5da9ff';
+    ctx.shadowColor = '#5da9ff';
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-18, -10);
+    ctx.lineTo(-14, 0);
+    ctx.lineTo(-18, 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+    const lbl = `R${blk.row > 0 ? '+' : ''}${blk.row} · ${fmtMult(blk.mult)}`;
+    ctx.font = 'bold 12px system-ui';
+    const tw = ctx.measureText(lbl).width + 14;
+    let lx = ex - tw / 2, ly = ey + (dy > 0 ? 18 : -32);
+    lx = Math.max(GR_X + 4, Math.min(GR_X + GR_W - tw - 4, lx));
+    ly = Math.max(GR_Y + 4, Math.min(GR_Y + GR_H - 22, ly));
+    ctx.fillStyle = '#0008';
+    ctx.fillRect(lx, ly, tw, 20);
+    ctx.strokeStyle = '#5da9ff';
+    ctx.strokeRect(lx, ly, tw, 20);
+    ctx.fillStyle = '#7af0ff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(lbl, lx + tw / 2, ly + 10);
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function drawControls() {
+    ctx.fillStyle = '#0c1322';
+    ctx.fillRect(BC_X, BC_Y, BC_W, BC_H);
+    ctx.strokeStyle = '#2a3550';
+    ctx.strokeRect(BC_X, BC_Y, BC_W, BC_H);
+
+    ctx.font = 'bold 13px system-ui';
+    ctx.fillStyle = '#aab';
+    ctx.textAlign = 'left';
+    ctx.fillText('BET', BC_X + 16, BC_Y + 18);
+    const amts = [50, 100, 250, 500, 1000];
+    amts.forEach((v, i) => {
+      drawButton(BC_X + 16 + i * 56, BC_Y + 28, 50, 36, '$' + v, () => { state.bet = v; commitBetEdit(); save_(); },
+        { active: state.bet === v && !state.betEditing, fs: 13 });
+    });
+
+    // CUSTOM BET field
+    const bfX = BC_X + 16 + 5 * 56 + 8;
+    const bfY = BC_Y + 28;
+    const bfW = 150;
+    const bfH = 36;
+    betField = { x: bfX, y: bfY, w: bfW, h: bfH };
+    ctx.font = 'bold 11px system-ui';
+    ctx.fillStyle = '#aab';
+    ctx.textAlign = 'left';
+    ctx.fillText('CUSTOM BET', bfX, BC_Y + 18);
+    ctx.fillStyle = state.betEditing ? '#0a1628' : '#0e1424';
+    ctx.fillRect(bfX, bfY, bfW, bfH);
+    ctx.strokeStyle = state.betEditing ? '#7af0ff' : '#3a5070';
+    ctx.lineWidth = state.betEditing ? 2 : 1.5;
+    ctx.strokeRect(bfX, bfY, bfW, bfH);
+    ctx.font = 'bold 16px system-ui';
+    ctx.fillStyle = state.betEditing ? '#7af0ff' : '#e6ecff';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    const shown = state.betEditing ? ('$' + (state.betEditBuf || '0')) : ('$' + state.bet);
+    ctx.fillText(shown, bfX + 10, bfY + bfH / 2);
+    if (state.betEditing) {
+      const tw = ctx.measureText(shown).width;
+      const blink = (Math.floor(performance.now() / 500) % 2) === 0;
+      if (blink) {
+        ctx.fillStyle = '#7af0ff';
+        ctx.fillRect(bfX + 10 + tw + 2, bfY + 8, 2, bfH - 16);
+      }
+    }
+    ctx.textBaseline = 'alphabetic';
+
+    const sx = BC_X + 16 + 5 * 56 + 8 + bfW + 20;
+    ctx.font = 'bold 13px system-ui';
+    ctx.fillStyle = '#aab';
+    ctx.textAlign = 'left';
+    ctx.fillText('STATUS', sx, BC_Y + 18);
+    let line1, line2, col1 = '#fff', col2 = '#aab';
+    const pending = state.blocks.filter(b => b.actor === 'you' && b.hit === undefined);
+    let next = null;
+    for (const b of pending) { if (!next || b.col < next.col) next = b; }
+    if (pending.length === 1) {
+      const myBlock = pending[0];
+      const dist = Math.max(0, (myBlock.col - state.lineCol)).toFixed(1);
+      line1 = `Active R${myBlock.row}·C${myBlock.col} → win $${fmt(myBlock.bet * myBlock.mult)}`;
+      col1 = '#7af0ff';
+      line2 = `${dist} cols away · click or drag more cells`;
+    } else if (pending.length >= 2) {
+      const dist = Math.max(0, (next.col - state.lineCol)).toFixed(1);
+      line1 = `${pending.length} active blocks · next resolves in ${dist} cols`;
+      col1 = '#7af0ff';
+      line2 = `Drag across cells to add more`;
+    } else if (state.hover && state.hover.col >= Math.floor(state.lineCol) + 1) {
+      const m = cellMult(state.hover.col, state.hover.row);
+      line1 = `Preview R${state.hover.row}·C${state.hover.col}`;
+      col1 = '#7af0ff';
+      line2 = `→ $${fmt(state.bet * m)} on hit (${fmtMult(m)})`;
+    } else {
+      line1 = 'Place a block';
+      col1 = '#fff';
+      line2 = 'Click or drag across cells ahead of the line';
+    }
+    ctx.fillStyle = col1; ctx.font = 'bold 18px system-ui'; ctx.fillText(line1, sx, BC_Y + 44);
+    ctx.fillStyle = col2; ctx.font = '13px system-ui'; ctx.fillText(line2, sx, BC_Y + 64);
+
+    ctx.font = '11px system-ui';
+    ctx.fillStyle = '#789';
+    ctx.textAlign = 'right';
+    ctx.fillText('1-5 set bet · R reset', BC_X + BC_W - 14, BC_Y + 18);
+  }
+
+  function drawDragChip() {
+    if (!state.dragging || !state.dragPt) return;
+    const txt = '$' + state.bet;
+    ctx.font = 'bold 14px system-ui';
+    const tw = ctx.measureText(txt).width + 18;
+    const th = 24;
+    const cx = state.dragPt.x - tw / 2;
+    const cy = state.dragPt.y - 36;
+    ctx.fillStyle = '#0008';
+    ctx.shadowColor = '#7af0ff';
+    ctx.shadowBlur = 12;
+    ctx.fillRect(cx, cy, tw, th);
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#7af0ff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cx, cy, tw, th);
+    ctx.fillStyle = '#7af0ff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(txt, cx + tw / 2, cy + th / 2);
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function drawPop() {
+    if (!state.pop) return;
+    const a = Math.min(1, state.pop.t / 0.4);
+    ctx.globalAlpha = a;
+    ctx.font = 'bold 22px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = state.pop.color;
+    ctx.shadowColor = state.pop.color;
+    ctx.shadowBlur = 12;
+    const lift = (1.6 - state.pop.t) * 24;
+    ctx.fillText(state.pop.text, GR_X + GR_W / 2, GR_Y + 36 - lift);
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+  }
+
+  function draw() {
+    buttons.length = 0;
+    ctx.clearRect(0, 0, W, H);
+    drawLeaderboard();
+    drawGrid();
+    drawControls();
+    drawDragChip();
+    drawPop();
+
+    document.getElementById('score').textContent = (state.score >= 0 ? '+' : '−') + fmt(Math.abs(state.score));
+    document.getElementById('hr').textContent = state.plays ? Math.round(state.hits / state.plays * 100) + '%' : '0%';
+    const phaseEl = document.getElementById('phase');
+    const pending = state.blocks.filter(b => b.actor === 'you' && b.hit === undefined);
+    if (pending.length === 1) {
+      const myBlock = pending[0];
+      const dist = Math.max(0, (myBlock.col - state.lineCol)).toFixed(1);
+      phaseEl.textContent = `▶ Live · block at R${myBlock.row}·C${myBlock.col} (${dist} away)`;
+    } else if (pending.length >= 2) {
+      phaseEl.textContent = `▶ Live · ${pending.length} blocks pending`;
+    } else {
+      phaseEl.textContent = '▶ Live · place a block ahead of the line';
+    }
+  }
+
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

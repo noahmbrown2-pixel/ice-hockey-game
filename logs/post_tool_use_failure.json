@@ -428,5 +428,163 @@
       "is_interrupt": false,
       "logged_at": "2026-04-21T19:36:26.400294"
     }
+  },
+  {
+    "timestamp": "2026-04-29T15:13:44.832578",
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "WebFetch",
+    "tool_use_id": "toolu_01Rn3TTgi3BjnHgY9w47xcgz",
+    "tool_input": {
+      "url": "https://docs.google.com/presentation/d/12365YGC04I6YyFXqpIjT73YKj-FvTNDFky3L8IiA21w/edit?slide=id.g2d467398c2c_0_96#slide=id.g2d467398c2c_0_96",
+      "prompt": "What is the content and main message of this slide?"
+    },
+    "error": "Request failed with status code 401",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "raw_input": {
+      "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "default",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "WebFetch",
+      "tool_input": {
+        "url": "https://docs.google.com/presentation/d/12365YGC04I6YyFXqpIjT73YKj-FvTNDFky3L8IiA21w/edit?slide=id.g2d467398c2c_0_96#slide=id.g2d467398c2c_0_96",
+        "prompt": "What is the content and main message of this slide?"
+      },
+      "tool_use_id": "toolu_01Rn3TTgi3BjnHgY9w47xcgz",
+      "error": "Request failed with status code 401",
+      "is_interrupt": false,
+      "duration_ms": 383,
+      "logged_at": "2026-04-29T15:13:44.832578"
+    }
+  },
+  {
+    "timestamp": "2026-05-01T22:33:18.906510",
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01Fu6dzWVuV5WKTvQsW4btrm",
+    "tool_input": {
+      "command": "Get-Content \"C:\\Users\\noahm\\Project\\bitlife-finance.html\" | Measure-Object -Line | Select-Object Lines"
+    },
+    "error": "Exit code 127\n/usr/bin/bash: line 1: Get-Content: command not found\n/usr/bin/bash: line 1: Measure-Object: command not found\n/usr/bin/bash: line 1: Select-Object: command not found",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "plan",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "raw_input": {
+      "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "plan",
+      "agent_id": "a891b66a3e231ae36",
+      "agent_type": "Explore",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "Get-Content \"C:\\Users\\noahm\\Project\\bitlife-finance.html\" | Measure-Object -Line | Select-Object Lines"
+      },
+      "tool_use_id": "toolu_01Fu6dzWVuV5WKTvQsW4btrm",
+      "error": "Exit code 127\n/usr/bin/bash: line 1: Get-Content: command not found\n/usr/bin/bash: line 1: Measure-Object: command not found\n/usr/bin/bash: line 1: Select-Object: command not found",
+      "is_interrupt": false,
+      "duration_ms": 546,
+      "logged_at": "2026-05-01T22:33:18.906510"
+    }
+  },
+  {
+    "timestamp": "2026-05-01T22:33:22.251792",
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Read",
+    "tool_use_id": "toolu_019vDBuMTL67p9iibCinED9a",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html"
+    },
+    "error": "File content (361.3KB) exceeds maximum allowed size (256KB). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "plan",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "raw_input": {
+      "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "plan",
+      "agent_id": "a891b66a3e231ae36",
+      "agent_type": "Explore",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Read",
+      "tool_input": {
+        "file_path": "C:\\Users\\noahm\\Project\\bitlife-finance.html"
+      },
+      "tool_use_id": "toolu_019vDBuMTL67p9iibCinED9a",
+      "error": "File content (361.3KB) exceeds maximum allowed size (256KB). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.",
+      "is_interrupt": false,
+      "duration_ms": 11,
+      "logged_at": "2026-05-01T22:33:22.251792"
+    }
+  },
+  {
+    "timestamp": "2026-05-04T06:12:42.597860",
+    "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01FuK8zoHHbBD5JFEQ6t1uF1",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\noahm\\Project\" && node .test-sp.js",
+      "description": "Run sponsor system smoke test"
+    },
+    "error": "Exit code 1\nsponsors still in BUILDINGS array: false\ninjected: {\"biz\":1,\"job\":\"NBA Point Guard\",\"awards\":2}\nsponsor inbox state: {\"totalSponsorMessages\":7,\"pendingCount\":7,\"sample\":{\"name\":\"Spotify wants to sponsor Test Cafe\",\"kind\":\"business\",\"deal\":24871}}\nyellow badge: {\"count\":\"7\",\"visible\":true}\nFAIL page.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#phone-home button.inbox .spons-badge')\u001b[22m\n\u001b[2m    - locator resolved to <span class=\"spons-badge\">7</span>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 \u00c3\u2014 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div id=\"m-body\" class=\"modal-body\">Four items caught your eye this month. Pick one t\u00e2\u20ac\u00a6</div> from <div class=\"open\" id=\"modal-overlay\">\u00e2\u20ac\u00a6</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 \u00c3\u2014 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div id=\"m-body\" class=\"modal-body\">Four items caught your eye this month. Pick one t\u00e2\u20ac\u00a6</div> from <div class=\"open\" id=\"modal-overlay\">\u00e2\u20ac\u00a6</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    34 \u00c3\u2014 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div id=\"m-body\" class=\"modal-body\">Four items caught your eye this month. Pick one t\u00e2\u20ac\u00a6</div> from <div class=\"open\" id=\"modal-overlay\">\u00e2\u20ac\u00a6</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+    "raw_input": {
+      "session_id": "944d1b6c-1488-4061-96d5-8c95cfeedd2d",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\944d1b6c-1488-4061-96d5-8c95cfeedd2d.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "acceptEdits",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "cd \"C:\\Users\\noahm\\Project\" && node .test-sp.js",
+        "description": "Run sponsor system smoke test"
+      },
+      "tool_use_id": "toolu_01FuK8zoHHbBD5JFEQ6t1uF1",
+      "error": "Exit code 1\nsponsors still in BUILDINGS array: false\ninjected: {\"biz\":1,\"job\":\"NBA Point Guard\",\"awards\":2}\nsponsor inbox state: {\"totalSponsorMessages\":7,\"pendingCount\":7,\"sample\":{\"name\":\"Spotify wants to sponsor Test Cafe\",\"kind\":\"business\",\"deal\":24871}}\nyellow badge: {\"count\":\"7\",\"visible\":true}\nFAIL page.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#phone-home button.inbox .spons-badge')\u001b[22m\n\u001b[2m    - locator resolved to <span class=\"spons-badge\">7</span>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 \u00c3\u2014 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div id=\"m-body\" class=\"modal-body\">Four items caught your eye this month. Pick one t\u00e2\u20ac\u00a6</div> from <div class=\"open\" id=\"modal-overlay\">\u00e2\u20ac\u00a6</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 \u00c3\u2014 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div id=\"m-body\" class=\"modal-body\">Four items caught your eye this month. Pick one t\u00e2\u20ac\u00a6</div> from <div class=\"open\" id=\"modal-overlay\">\u00e2\u20ac\u00a6</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    34 \u00c3\u2014 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div id=\"m-body\" class=\"modal-body\">Four items caught your eye this month. Pick one t\u00e2\u20ac\u00a6</div> from <div class=\"open\" id=\"modal-overlay\">\u00e2\u20ac\u00a6</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m",
+      "is_interrupt": false,
+      "duration_ms": 46051,
+      "logged_at": "2026-05-04T06:12:42.597860"
+    }
+  },
+  {
+    "timestamp": "2026-05-09T19:16:05.582122",
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Read",
+    "tool_use_id": "toolu_01YRRFPukXnVHMS9HSEQQRvz",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\boxing-3d.html"
+    },
+    "error": "File content (28713 tokens) exceeds maximum allowed tokens (25000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "raw_input": {
+      "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "acceptEdits",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Read",
+      "tool_input": {
+        "file_path": "C:\\Users\\noahm\\Project\\boxing-3d.html"
+      },
+      "tool_use_id": "toolu_01YRRFPukXnVHMS9HSEQQRvz",
+      "error": "File content (28713 tokens) exceeds maximum allowed tokens (25000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.",
+      "is_interrupt": false,
+      "duration_ms": 466,
+      "logged_at": "2026-05-09T19:16:05.582122"
+    }
   }
 ]

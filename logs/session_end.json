@@ -14,5 +14,21 @@
     "hook_event_name": "SessionEnd",
     "reason": "clear",
     "logged_at": "2026-04-17T19:41:22.948603"
+  },
+  {
+    "session_id": "da814130-b3f0-4d46-9658-946bce11cfa8",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\da814130-b3f0-4d46-9658-946bce11cfa8.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionEnd",
+    "reason": "clear",
+    "logged_at": "2026-04-29T16:47:25.541641"
+  },
+  {
+    "session_id": "22bf776d-7e00-42f6-8be6-7338c94f2623",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\22bf776d-7e00-42f6-8be6-7338c94f2623.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionEnd",
+    "reason": "clear",
+    "logged_at": "2026-04-29T17:49:49.368364"
   }
 ]
