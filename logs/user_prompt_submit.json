@@ -1367,5 +1367,101 @@
     "permission_mode": "acceptEdits",
     "hook_event_name": "UserPromptSubmit",
     "prompt": "every time i make a change to a file  atomatically open the change file, open the game on my browser"
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "open the boxing game"
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "open the the game for me"
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "open game"
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "save this to git hub and send me the link to the game"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "https://noahmbrown2-pixel.github.io/heavy-hitters-3d/"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "@agent-builder make sure that nothing goes off task and if it runs into any problem guide them to the oringal objective"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "/plan take this in to consideration for heavy hitters. my goal is to make the fighters look real, use this to fix the stiff fighting that i am seeing, Here\u00e2\u20ac\u2122s your comprehensive report on human joints, detailing classifications, structures, major joints of each region, and common disorders. The report includes an easy-to-follow table, a visual diagram of joint types, and numerous citations for further reading. If you need any updates or additional focus (e.g., specific disorders, rehabilitation), just let me know.\n\n{{file:file-4HXF1VqxtBZGCQEu2phTGf}}"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "/plan take this in to consideration for heavy hitters.read this file:///C:/Users/noahm/Downloads/Joint%20Function%20Explanation.pdf my goal is to make the fighters look real,"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": " build this"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "@agent-builder create the animation for the punches, make sure the arms joints bend in the correct way to land the punch, create the animation off of the information given below \rJab: Quick straight punch from front hand with shoulder turn.\rCross: Strong straight punch from back hand with hip rotation.\rUppercut: Punch travels upward from low position toward chin or body.\rOverhand: Curved punch thrown over opponent\u00e2\u20ac\u2122s guard onto head.\rBody Punch: Punch aimed at ribs or stomach with lowered level. \rLiver Punch: Hook or straight shot aimed under right rib cage.\rStraight: Direct punch traveling in straight line to target.\rCheck Hook: Hook thrown while stepping or pivoting away defensively.\rShovel Punch: Mix between hook and uppercut thrown diagonally upward.\rCorkscrew Punch: Straight punch twisting fist during impact for power.\rHaymaker: Wide swinging punch using full arm and body momentum."
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "tell me where the code is for the elbow joints during punches"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "the elbows arent moving when they are throughing the punches it just the shoulder, make the elbow move to hit to acurretly punch"
   }
 ]

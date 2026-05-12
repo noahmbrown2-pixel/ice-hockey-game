@@ -73,3 +73,18 @@
 2026-05-06 19:32:07 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
 2026-05-06 19:32:07 | INFO | file_path: C:\Users\noahm\Project\boxing-3d.html
 2026-05-06 19:32:07 | INFO | Skipping non-Python file
+2026-05-11 19:47:01 | INFO | ==================================================
+2026-05-11 19:47:01 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-11 19:47:01 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-11 19:47:01 | INFO | file_path: C:\Users\noahm\Project\boxing-3d.html
+2026-05-11 19:47:01 | INFO | Skipping non-Python file
+2026-05-11 19:47:44 | INFO | ==================================================
+2026-05-11 19:47:44 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-11 19:47:44 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-11 19:47:44 | INFO | file_path: C:\Users\noahm\Project\boxing-3d.html
+2026-05-11 19:47:44 | INFO | Skipping non-Python file
+2026-05-11 19:47:53 | INFO | ==================================================
+2026-05-11 19:47:53 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-11 19:47:53 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-11 19:47:53 | INFO | file_path: C:\Users\noahm\Project\boxing-3d.html
+2026-05-11 19:47:53 | INFO | Skipping non-Python file

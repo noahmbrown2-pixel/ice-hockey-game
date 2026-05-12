@@ -76,7 +76,8 @@
       "PowerShell(Start-Process \"http://localhost:3000/boxing-3d.html\")",
       "Bash(netstat -ano)",
       "Bash(start *)",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "PowerShell(\\(Get-Content \"C:\\\\Users\\\\noahm\\\\Project\\\\boxing-3d.html\" | Measure-Object -Line\\).Lines)"
     ]
   },
   "hooks": {

@@ -1038,5 +1038,85 @@
     "hook_event_name": "Notification",
     "message": "Claude is waiting for your input",
     "notification_type": "idle_prompt"
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "Notification",
+    "message": "Claude needs your permission to use Bash",
+    "notification_type": "permission_prompt"
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "Notification",
+    "message": "Claude is waiting for your input",
+    "notification_type": "idle_prompt"
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "Notification",
+    "message": "Claude is waiting for your input",
+    "notification_type": "idle_prompt"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "Notification",
+    "message": "Claude is waiting for your input",
+    "notification_type": "idle_prompt"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "Notification",
+    "message": "Claude is waiting for your input",
+    "notification_type": "idle_prompt"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "Notification",
+    "message": "Claude needs your permission to use PowerShell",
+    "notification_type": "permission_prompt"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "Notification",
+    "message": "Claude is waiting for your input",
+    "notification_type": "idle_prompt"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "Notification",
+    "message": "Claude needs your permission to use Bash",
+    "notification_type": "permission_prompt"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "Notification",
+    "message": "Claude needs your permission to use Bash",
+    "notification_type": "permission_prompt"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "Notification",
+    "message": "Claude is waiting for your input",
+    "notification_type": "idle_prompt"
   }
 ]

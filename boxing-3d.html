@@ -421,8 +421,14 @@ for (const pos of [[-2, 5, -2], [2, 5, -2], [-2, 5, 2], [2, 5, 2]]){
 }
 
 // ─────────────────────────────────────────────
-//  Boxer rig (3D)
-//  Default-facing direction is +X.  Facing flipped via root.rotation.y.
+//  Boxer rig (3D) — anatomical joint hierarchy
+//  Shoulder: ball-and-socket (3-axis)
+//  Elbow: hinge (Z-axis only)
+//  Forearm: pivot (Y-axis only = pronation/supination)
+//  Wrist: condyloid (X + Z only)
+//  Spine: lumbar (pivot at waist) + thoracic (mid-spine twist)
+//  Neck: atlanto-axial pivot (Y) + atlanto-occipital nod (Z in this rig)
+//  Hip: ball-and-socket per leg; Knee: hinge (Z); Ankle: hinge (Z)
 // ─────────────────────────────────────────────
 function createBoxer3D(opts){
   const root = new THREE.Group();
@@ -439,41 +445,62 @@ function createBoxer3D(opts){
   const mouthMat  = new THREE.MeshLambertMaterial({ color: 0x4a1a1a });
   const laceMat   = new THREE.MeshLambertMaterial({ color: 0xffffff });
 
-  // ═══ LEGS ═══
+  // ═══ LEGS — hipGrp (ball-and-socket) → kneeGrp (hinge, Z) → ankleGrp (hinge, Z) ═══
   function buildLeg(side){
-    const grp = new THREE.Group();
-    grp.position.set(0, 0.92, side * 0.13);
+    const hipGrp = new THREE.Group();
+    hipGrp.position.set(0, 0.92, side * 0.13);
+    root.add(hipGrp);
+
     const thighTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.135, 0.32, 12), trunkMat);
     thighTrunk.position.y = -0.15;
-    grp.add(thighTrunk);
+    hipGrp.add(thighTrunk);
     const thighSkin = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.115, 0.18, 10), skinMat);
     thighSkin.position.y = -0.40;
-    grp.add(thighSkin);
-    const knee = new THREE.Mesh(new THREE.SphereGeometry(0.105, 8, 6), skinMat);
-    knee.position.y = -0.51;
-    grp.add(knee);
-    // Knee pivot group — lower leg rotates around this joint
-    const kneeGroup = new THREE.Group();
-    kneeGroup.position.y = -0.51;
-    grp.add(kneeGroup);
+    hipGrp.add(thighSkin);
+    // Quad muscle blob (scales on knee flex)
+    const quadMesh = new THREE.Mesh(new THREE.SphereGeometry(0.10, 8, 6), skinMat);
+    quadMesh.scale.set(0.65, 1.5, 0.75);
+    quadMesh.position.set(0.03, -0.32, 0);
+    hipGrp.add(quadMesh);
+    const kneeSphere = new THREE.Mesh(new THREE.SphereGeometry(0.105, 8, 6), skinMat);
+    kneeSphere.position.y = -0.51;
+    hipGrp.add(kneeSphere);
+
+    // kneeGrp — HINGE: Z axis only
+    const kneeGrp = new THREE.Group();
+    kneeGrp.position.y = -0.51;
+    hipGrp.add(kneeGrp);
+
     const calf = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.085, 0.32, 10), skinMat);
-    calf.position.y = -0.17;   // relative to kneeGroup
-    kneeGroup.add(calf);
+    calf.position.y = -0.17;
+    kneeGrp.add(calf);
+    // Gastrocnemius (calf muscle) — scales on plantarflexion
+    const calfMesh = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), skinMat);
+    calfMesh.scale.set(0.75, 1.35, 1.1);
+    calfMesh.position.set(-0.03, -0.14, 0);
+    kneeGrp.add(calfMesh);
+
+    // ankleGrp — HINGE: Z axis only (dorsiflexion / plantarflexion)
+    const ankleGrp = new THREE.Group();
+    ankleGrp.position.y = -0.33;
+    kneeGrp.add(ankleGrp);
+    ankleGrp.rotation.z = 0.14; // default slight dorsiflexion = athletic stance
+
     const boot = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.12, 0.32), bootMat);
-    boot.position.set(0.04, -0.37, 0);  // relative to kneeGroup
-    kneeGroup.add(boot);
-    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.02, 0.33), beltMat);
-    stripe.position.set(0.04, -0.33, 0); // relative to kneeGroup
-    kneeGroup.add(stripe);
-    root.add(grp);
-    return { grp, kneeGroup };
+    boot.position.set(0.04, -0.05, 0);
+    ankleGrp.add(boot);
+    const bootStripe = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.02, 0.33), beltMat);
+    bootStripe.position.set(0.04, -0.01, 0);
+    ankleGrp.add(bootStripe);
+
+    return { hipGrp, kneeGrp, ankleGrp, quadMesh, calfMesh };
   }
   const legLData = buildLeg(-1);
   const legRData = buildLeg(+1);
-  const legL = legLData.grp;
-  const legR = legRData.grp;
+  const legL = legLData;
+  const legR = legRData;
 
-  // ═══ HIPS ═══
+  // ═══ HIPS / BELT ═══
   const hipsGroup = new THREE.Group();
   hipsGroup.position.y = 0;
   root.add(hipsGroup);
@@ -481,41 +508,58 @@ function createBoxer3D(opts){
   belt.position.y = 0.95;
   hipsGroup.add(belt);
 
-  // ═══ TORSO ═══ (group so we can lean it)
-  const torso = new THREE.Group();
-  torso.position.y = 0;
-  root.add(torso);
+  // ═══ SPINE — lumbar (pivot at waist y=0) → thoracic (pivot at mid-spine y=1.00) ═══
+  const lumbar = new THREE.Group();
+  lumbar.position.y = 0;
+  root.add(lumbar);
 
-  const chest = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.36, 0.55), skinMat);
-  chest.position.y = 1.30;
-  torso.add(chest);
   const waist = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.20, 0.44), skinMat);
   waist.position.y = 1.04;
-  torso.add(waist);
+  lumbar.add(waist);
   const rib = new THREE.Mesh(new THREE.BoxGeometry(0.30, 0.06, 0.50), skinMat);
   rib.position.y = 1.14;
-  torso.add(rib);
+  lumbar.add(rib);
+
+  // thoracic — rotates at mid-spine for cross/hook spine twist
+  const thoracic = new THREE.Group();
+  thoracic.position.y = 1.00; // pivot at mid-spine in lumbar space
+  lumbar.add(thoracic);
+
+  const chest = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.36, 0.55), skinMat);
+  chest.position.y = 0.30; // 1.00 + 0.30 = 1.30 in world
+  thoracic.add(chest);
   const pecV = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.30, 0.02), detailMat);
-  pecV.position.set(0.16, 1.30, 0);
-  torso.add(pecV);
+  pecV.position.set(0.16, 0.30, 0);
+  thoracic.add(pecV);
   const pecH = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.005, 0.36), detailMat);
-  pecH.position.set(0.155, 1.16, 0);
-  torso.add(pecH);
+  pecH.position.set(0.155, 0.16, 0);
+  thoracic.add(pecH);
   for (let i = 0; i < 3; i++){
     const ab = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.005, 0.18), detailMat);
-    ab.position.set(0.135, 1.10 - i * 0.05, 0);
-    torso.add(ab);
+    ab.position.set(0.135, 0.10 - i * 0.05, 0);
+    thoracic.add(ab);
   }
 
-  // ═══ NECK ═══
+  // ═══ NECK — cylinder mesh + pivot groups for atlanto-axial (Y) and atlanto-occipital (Z) ═══
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.085, 0.12, 10), skinMat);
-  neck.position.y = 1.55;
-  torso.add(neck);
+  neck.position.y = 0.55; // 1.00 + 0.55 = 1.55 in world
+  thoracic.add(neck);
+
+  // neckPivot: atlanto-axial joint — Y axis only (head rotation left/right)
+  const neckPivot = new THREE.Group();
+  neckPivot.position.y = 0.62; // 1.00 + 0.62 = 1.62 in world
+  thoracic.add(neckPivot);
+
+  // neckNod: atlanto-occipital joint — Z axis = nod (forward/back) in this rig
+  const neckNod = new THREE.Group();
+  neckNod.position.y = 0.06;
+  neckPivot.add(neckNod);
 
   // ═══ HEAD ═══
   const headGroup = new THREE.Group();
-  headGroup.position.y = 1.78;
-  torso.add(headGroup);
+  headGroup.position.y = 0.10; // neckNod y=0.06 + headGroup y=0.10 ≈ 1.78 world
+  neckNod.add(headGroup);
+
   const headSphere = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12), skinMat);
   headSphere.scale.set(1.0, 1.05, 0.95);
   headGroup.add(headSphere);
@@ -559,108 +603,109 @@ function createBoxer3D(opts){
   chin.scale.set(0.6, 0.5, 0.85);
   headGroup.add(chin);
 
-  // ═══ ARMS ═══
-  // Each arm has: shoulder (group, rotates at the shoulder joint),
-  //               forearmRot (group at end of upper arm, rotates at the elbow),
-  //               glove (group at end of forearm).
+  // ═══ ARMS — 4-group chain: shoulderGrp → elbowGrp → forearmPivot → wristGrp ═══
+  // Arms attach to thoracic so they follow spine twist naturally.
   function buildArm(side){
-    const shoulder = new THREE.Group();
-    shoulder.position.set(0, 1.50, side * 0.22);
-    // Bicep / upper arm
-    const upper = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.085, 0.07, 0.32, 10),
-      skinMat
-    );
+    // shoulderGrp: ball-and-socket (3-axis)
+    const shoulderGrp = new THREE.Group();
+    shoulderGrp.position.set(0, 0.50, side * 0.22); // thoracic y=1.00, +0.50 = world y=1.50
+    thoracic.add(shoulderGrp);
+
+    const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.07, 0.32, 10), skinMat);
     upper.position.y = -0.16;
-    shoulder.add(upper);
-    const bicep = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 8), skinMat);
-    bicep.position.y = -0.11;
-    bicep.scale.set(1, 1.4, 1);
-    shoulder.add(bicep);
-    // Elbow / forearm pivot
-    const forearmRot = new THREE.Group();
-    forearmRot.position.y = -0.32;
-    shoulder.add(forearmRot);
-    const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), skinMat);
-    forearmRot.add(elbow);
-    const forearm = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.07, 0.058, 0.26, 10),
-      skinMat
-    );
+    shoulderGrp.add(upper);
+    // Bicep — scales with elbow flexion
+    const bicepMesh = new THREE.Mesh(new THREE.SphereGeometry(0.082, 10, 8), skinMat);
+    bicepMesh.position.set(0.03, -0.11, 0);
+    bicepMesh.scale.set(1.1, 1.5, 1.0);
+    shoulderGrp.add(bicepMesh);
+    // Deltoid — scales with shoulder abduction
+    const deltoidMesh = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 6), skinMat);
+    deltoidMesh.position.set(0, 0, side * 0.07);
+    deltoidMesh.scale.set(1.0, 0.85, 1.4);
+    shoulderGrp.add(deltoidMesh);
+
+    // elbowGrp: HINGE — Z axis only (flexion/extension)
+    const elbowGrp = new THREE.Group();
+    elbowGrp.position.y = -0.33;
+    shoulderGrp.add(elbowGrp);
+
+    const elbowSphere = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), skinMat);
+    elbowGrp.add(elbowSphere);
+
+    // forearmPivot: PIVOT — Y axis only (pronation / supination)
+    const forearmPivot = new THREE.Group();
+    elbowGrp.add(forearmPivot);
+
+    const forearm = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.058, 0.26, 10), skinMat);
     forearm.position.y = -0.13;
-    forearmRot.add(forearm);
+    forearmPivot.add(forearm);
+
+    // wristGrp: CONDYLOID — X (flex/extend) + Z (radial/ulnar deviation) only
+    const wristGrp = new THREE.Group();
+    wristGrp.position.y = -0.27;
+    forearmPivot.add(wristGrp);
 
     // ─── BOXING GLOVE ───
     const gloveGroup = new THREE.Group();
-    gloveGroup.position.y = -0.30;
-    forearmRot.add(gloveGroup);
-    // Wrist cuff (white) — the tube of laces around the wrist
-    const cuff = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.085, 0.085, 0.10, 14),
-      cuffMat
-    );
+    wristGrp.add(gloveGroup);
+
+    const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.085, 0.10, 14), cuffMat);
     cuff.position.y = 0.10;
     gloveGroup.add(cuff);
-    // Tiny lace marks across the cuff
     for (let i = 0; i < 4; i++){
-      const lace = new THREE.Mesh(
-        new THREE.BoxGeometry(0.018, 0.006, 0.005),
-        laceMat
-      );
+      const lace = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.006, 0.005), laceMat);
       lace.position.set(0.083, 0.13 - i * 0.018, 0);
       gloveGroup.add(lace);
       const lace2 = lace.clone();
       lace2.position.x = -0.083;
       gloveGroup.add(lace2);
     }
-    // Main fist — a squashed sphere
-    const fist = new THREE.Mesh(
-      new THREE.SphereGeometry(0.155, 14, 10),
-      gloveMat
-    );
+    const fist = new THREE.Mesh(new THREE.SphereGeometry(0.155, 14, 10), gloveMat);
     fist.scale.set(1.0, 0.95, 1.05);
     fist.position.y = -0.05;
     gloveGroup.add(fist);
-    // Knuckle ridge (slim box across the front of the fist)
-    const knuckle = new THREE.Mesh(
-      new THREE.BoxGeometry(0.02, 0.10, 0.20),
-      gloveMat
-    );
+    const knuckle = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.10, 0.20), gloveMat);
     knuckle.position.set(0.14, -0.04, 0);
     gloveGroup.add(knuckle);
-    // Brand stripe — a band across the back-of-hand area
-    const brand = new THREE.Mesh(
-      new THREE.BoxGeometry(0.02, 0.04, 0.22),
-      stripeMat
-    );
+    const brand = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.04, 0.22), stripeMat);
     brand.position.set(-0.13, -0.01, 0);
     gloveGroup.add(brand);
-    // Thumb (visible bump on the inside of the fist toward the body)
     const thumb = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8), gloveMat);
     thumb.scale.set(0.9, 1.2, 1.0);
     thumb.position.set(0.06, 0.02, -side * 0.12);
     gloveGroup.add(thumb);
 
-    root.add(shoulder);
-    return { shoulder, forearmRot, glove: gloveGroup };
+    return { shoulderGrp, elbowGrp, forearmPivot, wristGrp, glove: gloveGroup, bicepMesh, deltoidMesh };
   }
   const armL = buildArm(-1);
   const armR = buildArm(+1);
 
-  // ─── Default guard pose ───
+  // ─── Default guard pose — orthodox stance ───
   function setGuardPose(){
-    armL.shoulder.rotation.set(-0.4, 0, 1.45);
-    armL.forearmRot.rotation.set(0, 0, 1.30);
-    armR.shoulder.rotation.set( 0.4, 0, 1.45);
-    armR.forearmRot.rotation.set(0, 0, 1.30);
+    // Left (lead) arm: jab hand, forward and close
+    armL.shoulderGrp.rotation.set(-0.30, 0, 1.35);
+    armL.elbowGrp.rotation.set(0, 0, 1.05);     // HINGE: ~60° flex
+    armL.forearmPivot.rotation.set(0, -0.30, 0); // PIVOT: slight supination
+    armL.wristGrp.rotation.set(0.10, 0, 0);      // CONDYLOID: slight flex
+
+    // Right (rear) arm: power hand, chin tucked
+    armR.shoulderGrp.rotation.set( 0.25, 0, 1.40);
+    armR.elbowGrp.rotation.set(0, 0, 1.20);     // more flexed
+    armR.forearmPivot.rotation.set(0, -0.25, 0);
+    armR.wristGrp.rotation.set(0.08, 0, 0);
+
+    // Spine: slight forward lean + orthodox rotation
+    lumbar.rotation.set(0.06, 0, 0);
+    thoracic.rotation.set(0, 0.06, 0);
   }
   setGuardPose();
 
-  // ─── Stun stars (hidden until triggered) ───
+  // ─── Stun stars ───
   const stunGroup = new THREE.Group();
-  stunGroup.position.y = 2.15;
+  stunGroup.position.y = 1.15; // relative to thoracic (1.00) = world 2.15
   stunGroup.visible = false;
-  torso.add(stunGroup);
+  thoracic.add(stunGroup);
   const starColors = [0xfff44a, 0xffd700, 0xffe066];
   const stars = [];
   for (let i = 0; i < 3; i++){
@@ -682,20 +727,18 @@ function createBoxer3D(opts){
   root.add(shadow);
 
   return {
-    root, torso, headGroup, neck, chest,
+    root, lumbar, thoracic, headGroup, neck, neckPivot, neckNod, chest,
     armL, armR, legL, legR,
-    legLKnee: legLData.kneeGroup,
-    legRKnee: legRData.kneeGroup,
-    setGuardPose,
-    stunGroup, stars,
+    setGuardPose, stunGroup, stars,
   };
 }
 
-// Generic per-arm pose helper.
-function setArmPose(armSide, pose){
-  if (pose.shoulderRot) armSide.shoulder.rotation.set(pose.shoulderRot[0], pose.shoulderRot[1], pose.shoulderRot[2]);
-  if (pose.forearmRot)  armSide.forearmRot.rotation.set(pose.forearmRot[0], pose.forearmRot[1], pose.forearmRot[2]);
-  if (pose.offset)      armSide.shoulder.position.set(pose.offset[0], pose.offset[1], pose.offset[2]);
+// Generic per-arm pose helper — drives all 4 joints.
+function setArmPose(arm, pose){
+  if (pose.sRot) arm.shoulderGrp.rotation.set(pose.sRot[0], pose.sRot[1], pose.sRot[2]);
+  if (pose.eRot) arm.elbowGrp.rotation.set(0, 0, pose.eRot[2]);       // HINGE: Z only
+  if (pose.pRot) arm.forearmPivot.rotation.set(0, pose.pRot[1], 0);   // PIVOT: Y only
+  if (pose.wRot) arm.wristGrp.rotation.set(pose.wRot[0], 0, pose.wRot[2]); // CONDYLOID
 }
 
 // ─────────────────────────────────────────────
@@ -1210,11 +1253,10 @@ const _v3 = new THREE.Vector3();
 
 function animateBoxer(b, dt){
   const r = b.rig;
-  // Position root from b.pos
   r.root.position.x = b.pos.x;
   r.root.position.z = b.pos.z;
 
-  // Smoothly turn to targetYaw
+  // Smooth yaw turn
   let dy = b.targetYaw - b.yaw;
   while (dy > Math.PI) dy -= Math.PI * 2;
   while (dy < -Math.PI) dy += Math.PI * 2;
@@ -1224,7 +1266,6 @@ function animateBoxer(b, dt){
   // KO fall
   if (b.action === 'ko'){
     if (!b.koStaggered){
-      // brief stagger lasting ~0.25s before topple — root.position.x wobble
       const staggerT = Math.min(1, b.actionT / 0.25);
       r.root.position.x += Math.sin(b.actionT * 60) * 0.08 * (1 - staggerT);
       if (b.actionT > 0.25) b.koStaggered = true;
@@ -1234,24 +1275,28 @@ function animateBoxer(b, dt){
     r.root.position.y = -t * 0.15;
   } else {
     r.root.rotation.x = 0;
-    r.root.position.y = -b.kneesBent * 0.18; // crouch down during dodge
+    r.root.position.y = -b.kneesBent * 0.18;
   }
 
-  // Idle breathing & weight shift
   const tNow = performance.now() * 0.001;
-  let breath = 0;
-  let lateralShift = 0;
+
+  // Breathing & idle bob
+  let breath = 0, lateralShift = 0;
   if (b.action === 'idle' && b.hp > 0){
     breath = Math.sin(tNow * 2.2) * 0.025;
     lateralShift = Math.sin(tNow * 1.4) * 0.012;
+    // Boxer bob: lead shoulder slightly up-down, thoracic breathes with slight twist
+    r.thoracic.rotation.y = 0.06 + Math.sin(tNow * 2.2) * 0.04;
+    r.armL.shoulderGrp.rotation.z = 1.35 - Math.sin(tNow * 2.2) * 0.05;
+    r.armR.shoulderGrp.rotation.z = 1.40 + Math.sin(tNow * 2.2) * 0.03;
   }
   r.chest.scale.y = 1.0 + breath * 0.4;
-  r.torso.position.x = lateralShift;
+  r.lumbar.position.x = lateralShift;
 
-  // Stun sway
+  // Stun sway — thoracic rocks, stars orbit
   if (b.stunned){
-    r.torso.position.x += Math.sin(tNow * 6) * 0.06;
-    r.torso.rotation.z = Math.sin(tNow * 6) * 0.10;
+    r.lumbar.position.x += Math.sin(tNow * 6) * 0.06;
+    r.thoracic.rotation.z = Math.sin(tNow * 6) * 0.10;
     r.stunGroup.visible = true;
     for (let i = 0; i < r.stars.length; i++){
       const a = tNow * 1.2 + i * (Math.PI*2/3);
@@ -1259,201 +1304,343 @@ function animateBoxer(b, dt){
     }
   } else {
     r.stunGroup.visible = false;
-    if (b.action !== 'hit') r.torso.rotation.z *= (1 - dt * 8);
+    if (b.action !== 'hit') r.thoracic.rotation.z = (r.thoracic.rotation.z || 0) * (1 - dt * 8);
   }
 
-  // Lean: forward when advancing (player W key / cpu advance), back when retreat
-  let targetLeanX = 0;
+  // Forward lean — drives lumbar rotation around X (L5-S1 pivot)
+  let targetLeanX = 0.06; // base forward lean = boxing crouch
   if (b.action === 'idle'){
     if (b.isPlayer){
-      if (keys['w']) targetLeanX = 0.10;
-      else if (keys['s']) targetLeanX = -0.10;
+      if (keys['w']) targetLeanX = 0.14;
+      else if (keys['s']) targetLeanX = -0.06;
     } else {
-      if (b.aiState === 'advance') targetLeanX = 0.08;
-      else if (b.aiState === 'retreat') targetLeanX = -0.10;
+      if (b.aiState === 'advance') targetLeanX = 0.12;
+      else if (b.aiState === 'retreat') targetLeanX = -0.06;
     }
   }
-  if (b.action in PUNCH) targetLeanX = 0.18; // lean into punches
-  // Apply lean as torso rotation around its local Z (forward axis) — actually lean is rotation around side-axis (X).
-  // We lean forward → rotate torso around its local Z by negative? In our model X is the forward axis; lean forward = tilt around Z (side).
-  r.torso.rotation.x = (r.torso.rotation.x || 0) + (targetLeanX - (r.torso.rotation.x || 0)) * Math.min(1, dt * 6);
+  if (b.action in PUNCH) targetLeanX = 0.20;
+  r.lumbar.rotation.x = (r.lumbar.rotation.x || 0.06) + (targetLeanX - (r.lumbar.rotation.x || 0.06)) * Math.min(1, dt * 6);
 
-  // Hip counter-rotate slightly during punches
-  // (we don't have hip pivot — fake it on legs)
+  // Spine twist during punches (thoracic Y rotation)
+  let targetSpineTwist = 0.06; // base orthodox lean
   let hipTwist = 0;
   if (b.action in PUNCH){
-    const p = PUNCH[b.action];
     const tp = b.actionT / Math.max(0.001, b.actionDur);
-    hipTwist = Math.sin(tp * Math.PI) * 0.18 * (b.activeArm === 'lead' ? 1 : -1);
+    const spinePulse = Math.sin(tp * Math.PI);
+    const isRear = (b.activeArm === 'rear');
+    // Cross/straight/haymaker use heavy spine rotation; hook medium; jab light
+    const spineScale =
+      (b.action === 'cross' || b.action === 'corkscrew' || b.action === 'haymaker') ? 0.45 :
+      (b.action === 'hook' || b.action === 'overhand' || b.action === 'shovelHook') ? 0.28 :
+      (b.action === 'uppercut') ? 0.15 : 0.10;
+    targetSpineTwist = 0.06 + spinePulse * spineScale * (isRear ? -1 : 1);
+    hipTwist = spinePulse * 0.18 * (isRear ? -1 : 1);
   }
-  r.legL.rotation.y = hipTwist * 0.6;
-  r.legR.rotation.y = hipTwist * 0.6;
+  if (b.action !== 'idle') r.thoracic.rotation.y = (r.thoracic.rotation.y || 0.06) + (targetSpineTwist - (r.thoracic.rotation.y || 0.06)) * Math.min(1, dt * 10);
 
-  // ── Stepping animation ──
-  // Leg groups pivot at the hip; rotation.z swings the whole leg forward/backward.
+  // Hip counter-rotation drives the leg groups
+  r.legL.hipGrp.rotation.y = hipTwist * 0.6;
+  r.legR.hipGrp.rotation.y = hipTwist * 0.6;
+
+  // ── Stepping animation (hip Z swing + knee flex + ankle) ──
   const isMoving = b.action !== 'ko' && (
     b.isPlayer
       ? (keys['w'] || keys['a'] || keys['s'] || keys['d'])
       : (b.aiState === 'advance' || b.aiState === 'retreat' || b.aiState === 'circle')
   );
   if (isMoving){
-    r.legL.rotation.z = Math.sin(b.legPhase * Math.PI * 2) * 0.30;
-    r.legR.rotation.z = Math.sin(b.legPhase * Math.PI * 2 + Math.PI) * 0.30;
+    const phL = Math.sin(b.legPhase * Math.PI * 2);
+    const phR = Math.sin(b.legPhase * Math.PI * 2 + Math.PI);
+    r.legL.hipGrp.rotation.z = phL * 0.28;
+    r.legR.hipGrp.rotation.z = phR * 0.28;
+    // Knee: bends when leg lifts (swing phase)
+    r.legL.kneeGrp.rotation.z = (phL > 0 ? -0.32 : -0.08);
+    r.legR.kneeGrp.rotation.z = (phR > 0 ? -0.32 : -0.08);
+    // Ankle: dorsiflexes on lift, plantarflexes on push-off
+    r.legL.ankleGrp.rotation.z = 0.14 + (phL > 0 ? 0.16 : -0.18);
+    r.legR.ankleGrp.rotation.z = 0.14 + (phR > 0 ? 0.16 : -0.18);
   } else {
-    r.legL.rotation.z = (r.legL.rotation.z || 0) * (1 - Math.min(1, dt * 12));
-    r.legR.rotation.z = (r.legR.rotation.z || 0) * (1 - Math.min(1, dt * 12));
+    r.legL.hipGrp.rotation.z = (r.legL.hipGrp.rotation.z || 0) * (1 - Math.min(1, dt * 12));
+    r.legR.hipGrp.rotation.z = (r.legR.hipGrp.rotation.z || 0) * (1 - Math.min(1, dt * 12));
+    // Soft knees at rest
+    const kRest = -0.14 - b.kneesBent * 0.88;
+    r.legL.kneeGrp.rotation.z = kRest;
+    r.legR.kneeGrp.rotation.z = kRest;
+    // Ankle: dorsiflexion increases in dodge crouch
+    const aBase = 0.14 + b.kneesBent * 0.18;
+    r.legL.ankleGrp.rotation.z = aBase;
+    r.legR.ankleGrp.rotation.z = aBase;
+  }
+  // Hip forward flex during dodge crouch (ball-and-socket)
+  const hipFwd = b.kneesBent * 0.20;
+  r.legL.hipGrp.rotation.x = hipFwd;
+  r.legR.hipGrp.rotation.x = hipFwd;
+
+  // ── Muscle bulge — scale driven by joint angle ──
+  if (b.action !== 'ko'){
+    for (const arm of [r.armL, r.armR]){
+      const eFlex = Math.abs(arm.elbowGrp.rotation.z);
+      // Bicep swells as elbow bends (hinge = anatomically correct)
+      arm.bicepMesh.scale.y = 1.5 + eFlex * 0.40;
+      arm.bicepMesh.scale.x = 1.1 + eFlex * 0.20;
+      // Deltoid flares with shoulder abduction (deviation from neutral guard)
+      const abduct = Math.max(0, Math.abs(arm.shoulderGrp.rotation.z) - 0.6);
+      arm.deltoidMesh.scale.z = 1.4 + abduct * 0.30;
+    }
+    // Quad swells with knee flex
+    const kBendL = Math.abs(r.legL.kneeGrp.rotation.z);
+    const kBendR = Math.abs(r.legR.kneeGrp.rotation.z);
+    r.legL.quadMesh.scale.x = 0.65 + kBendL * 0.18;
+    r.legR.quadMesh.scale.x = 0.65 + kBendR * 0.18;
+    // Calf swells on plantarflexion (ankle bends backward)
+    const pFlex = Math.max(0, 0.14 - r.legL.ankleGrp.rotation.z);
+    const pFlexR = Math.max(0, 0.14 - r.legR.ankleGrp.rotation.z);
+    r.legL.calfMesh.scale.x = 0.75 + pFlex * 0.50;
+    r.legR.calfMesh.scale.x = 0.75 + pFlexR * 0.50;
   }
 
-  // ── Knee bend (dodge / crouch) ──
-  // kneeGroup.rotation.z = negative angle bends lower leg backward = crouch.
-  const kneeBend = -b.kneesBent * 0.92;
-  if (r.legLKnee) r.legLKnee.rotation.z = kneeBend;
-  if (r.legRKnee) r.legRKnee.rotation.z = kneeBend;
-
-  // Head tracking — subtle look toward opponent
+  // ── Head tracking via atlanto-axial pivot (Y) ──
   const opp = b.isPlayer ? cpu : player;
   if (opp){
     _v3.subVectors(opp.pos, b.pos);
-    // local angle relative to body forward
     const localAngle = Math.atan2(-_v3.z, _v3.x) - b.yaw;
     let la = localAngle;
     while (la > Math.PI) la -= Math.PI*2;
     while (la < -Math.PI) la += Math.PI*2;
-    r.headGroup.rotation.y = la * 0.35;
+    r.neckPivot.rotation.y = la * 0.35;
   }
 
-  // Flinch — head jerk in hit direction
+  // ── Flinch — split by joint: neckNod (Z = back snap) + neckNod.x (lateral) ──
   if (b.flinch > 0 && b.action !== 'ko'){
-    const t = b.flinch;
-    // First 0.15s: head jerks; recoil afterwards.
-    const jerk = Math.min(1, (0.35 - t) / 0.15);
+    const ft = b.flinch;
+    const jerk = Math.min(1, (0.35 - ft) / 0.15);
     const recoil = Math.max(0, 1 - jerk);
-    r.headGroup.rotation.z = (-b.flinchDir) * (jerk * 0.4 + recoil * 0.15);
-    r.neck.rotation.z = (-b.flinchDir) * 0.12 * (jerk + recoil*0.5);
+    // Z = head snaps back (atlanto-occipital nod axis)
+    r.neckNod.rotation.z = -(jerk * 0.38 + recoil * 0.14);
+    // X = lateral tilt from flinchDir
+    r.neckNod.rotation.x = (-b.flinchDir) * (jerk * 0.22 + recoil * 0.08);
   } else {
-    r.headGroup.rotation.z *= (1 - dt * 10);
-    r.neck.rotation.z = (r.neck.rotation.z || 0) * (1 - dt * 10);
+    r.neckNod.rotation.z = (r.neckNod.rotation.z || 0) * (1 - dt * 10);
+    r.neckNod.rotation.x = (r.neckNod.rotation.x || 0) * (1 - dt * 10);
   }
 
-  // Default guard pose
+  // Default guard pose (resets non-punching arm each frame)
   r.setGuardPose();
 
-  // Per-punch arm animation
+  // Per-punch arm + spine animation
   if (b.action in PUNCH){
     const kind = b.action;
     const p = PUNCH[kind];
-    const tt = b.actionT / Math.max(0.001, b.actionDur);
     const phase =
-      (b.actionT < p.windup) ? (b.actionT / p.windup) :                                                 // 0..1 windup
-      (b.actionT < p.windup + p.active) ? (1 + (b.actionT - p.windup) / Math.max(0.001, p.active)) :    // 1..2 active
-      (2 + (b.actionT - p.windup - p.active) / Math.max(0.001, p.recover));                              // 2..3 recover
-
+      (b.actionT < p.windup) ? (b.actionT / p.windup) :
+      (b.actionT < p.windup + p.active) ? (1 + (b.actionT - p.windup) / Math.max(0.001, p.active)) :
+      (2 + (b.actionT - p.windup - p.active) / Math.max(0.001, p.recover));
     animatePunch(b, kind, phase);
   } else if (b.action === 'block'){
-    setArmPose(r.armL, { shoulderRot:[-0.2, 0, 1.55], forearmRot:[0, 0.4, 1.55] });
-    setArmPose(r.armR, { shoulderRot:[ 0.2, 0, 1.55], forearmRot:[0,-0.4, 1.55] });
+    setArmPose(r.armL, { sRot:[-0.20, 0, 1.55], eRot:[0,0,1.25], pRot:[0,0.10,0], wRot:[0.05,0,0] });
+    setArmPose(r.armR, { sRot:[ 0.20, 0, 1.55], eRot:[0,0,1.25], pRot:[0,0.10,0], wRot:[0.05,0,0] });
   } else if (b.action === 'hit'){
-    setArmPose(r.armL, { shoulderRot:[-0.2, 0, 1.20], forearmRot:[0, 0, 1.10] });
-    setArmPose(r.armR, { shoulderRot:[ 0.2, 0, 1.20], forearmRot:[0, 0, 1.10] });
+    setArmPose(r.armL, { sRot:[-0.20, 0, 1.20], eRot:[0,0,1.05], pRot:[0,-0.20,0], wRot:[0.05,0,0] });
+    setArmPose(r.armR, { sRot:[ 0.20, 0, 1.20], eRot:[0,0,1.05], pRot:[0,-0.20,0], wRot:[0.05,0,0] });
   }
 }
 
 // Drive an arm by punch family + phase (0..3).
+// Each joint is constrained to its anatomical axes:
+//   shoulderGrp: 3-axis (ball-and-socket)
+//   elbowGrp:    Z only (hinge)
+//   forearmPivot:Y only (pivot = pronation/supination)
+//   wristGrp:    X + Z only (condyloid)
 function animatePunch(b, kind, phase){
   const r = b.rig;
   const arm = (b.activeArm === 'lead') ? r.armL : r.armR;
-  const otherArm = (b.activeArm === 'lead') ? r.armR : r.armL;
-  // Other arm stays in guard (already set by setGuardPose above).
-  const sign = (b.activeArm === 'lead') ? -1 : 1; // L arm = -z, R arm = +z
+  const sign = (b.activeArm === 'lead') ? -1 : 1;
 
-  // ext: 0 fully retracted, 1 fully extended.  Built from phase.
   const ext = (phase < 1) ? (phase * 0.25) :
               (phase < 2) ? (0.25 + 0.75 * (phase - 1)) :
               Math.max(0, 1 - (phase - 2));
 
-  // Default starting rotations (each punch overrides).
-  let shoulderX = -0.4 + sign * 0.0;
-  let shoulderY = 0;
-  let shoulderZ = 1.45;
-  let forearmX  = 0;
-  let forearmY  = 0;
-  let forearmZ  = 1.30;
+  // Separate elbow timing so the joint visibly cocks then snaps straight.
+  // eBend:   0→1 during windup  (elbow flexes MORE = arm cocks)
+  //          1→0 during active  (elbow extends = arm launches)
+  //          0   during recover
+  // eStrike: 0   during windup
+  //          0→1 during active  (drives extension)
+  //          1→0 during recover
+  const eBend   = (phase < 1) ? phase : (phase < 2) ? (2 - phase) : 0;
+  const eStrike = (phase < 1) ? 0 : (phase < 2) ? (phase - 1) : Math.max(0, 1 - (phase - 2));
+
+  const gSZ = (sign > 0 ? 1.40 : 1.35);
+  const gEZ = (sign > 0 ? 1.20 : 1.05);
+  const gSX = (sign > 0 ? 0.25 : -0.30);
+
+  let sX = gSX, sY = 0, sZ = gSZ;
+  let eZ = gEZ;
+  let pY = -0.28;
+  let wX = 0.09, wZ = 0;
 
   switch (kind){
+
     case 'jab':
-    case 'straight':
+    case 'straight': {
+      // Shoulder sweeps forward (Y), arm stays elevated (Z drops less).
+      // Elbow cocks back during windup then SNAPS straight — the key visible motion.
+      sZ = gSZ - ext * 0.55;                     // arm stays fairly elevated throughout
+      sY = -sign * ext * 0.85;                   // drives arm toward opponent
+      sX = gSX + ext * 0.35;
+      eZ = gEZ + eBend * 0.50                    // WINDUP: cocks to ~1.55 (clearly more bent)
+             - eStrike * (gEZ + 0.50 - 0.08);   // STRIKE:  snaps to 0.08 (nearly straight) ✓
+      pY = -0.28 + ext * 1.55;                   // supinated guard → full pronation at impact
+      wX = 0.09;
+      wZ = -ext * 0.08;
+      break;
+    }
+
     case 'cross': {
-      // Straight punch — shoulder swings forward (around Y), forearm extends.
-      shoulderZ = 1.45 - ext * 1.45;          // arm comes down/out
-      shoulderY = -sign * (0.2 + ext * 0.7);  // rotate arm forward
-      shoulderX = -0.4 + ext * 0.55;
-      forearmZ  = 1.30 - ext * 1.20;
+      // Same snap as jab but rear hand — more shoulder drive, deeper reach.
+      sZ = gSZ - ext * 0.60;
+      sY = -sign * ext * 1.00;
+      sX = gSX + ext * 0.55;
+      eZ = gEZ + eBend * 0.55
+             - eStrike * (gEZ + 0.55 - 0.06);   // snaps to 0.06 ✓
+      pY = -0.28 + ext * 1.70;
+      wX = 0.09 - ext * 0.05;
+      wZ = -ext * 0.08;
       break;
     }
-    case 'hook':
+
+    case 'hook': {
+      // Elbow stays LOCKED — the bent arm SWINGS as one unit around the shoulder Y axis.
+      // Elbow only tightens slightly on windup, DOES NOT straighten at impact.
+      sZ = gSZ - ext * 0.70;
+      sY = -sign * (0.50 + ext * 1.50);          // big horizontal sweep
+      sX = gSX + ext * 0.28;
+      eZ = gEZ + eBend * 0.20                    // slight extra cock on windup
+             - eStrike * 0.10;                   // barely opens at impact (stays ~gEZ) ✓
+      eZ = Math.max(0.90, eZ);                   // never below 90° — hook rule
+      pY = -0.28 + ext * 0.50;                   // partial pronation (palm ~45°)
+      wX = -0.12 * ext;
+      wZ = sign * ext * 0.10;
+      break;
+    }
+
     case 'checkHook': {
-      // Hook — arm parallel to ground, swings around Y.
-      shoulderZ = 1.45 - ext * 0.85;
-      shoulderY = -sign * (0.6 + ext * 1.4);
-      shoulderX = -0.2 + ext * 0.4;
-      forearmZ  = 1.30 - ext * 0.55;
+      // Compact defensive hook — very tight elbow, quick snap.
+      sZ = gSZ - ext * 0.45;
+      sY = -sign * (0.60 + ext * 1.05);
+      sX = gSX + ext * 0.15;
+      eZ = gEZ + eBend * 0.15 - eStrike * 0.08;
+      eZ = Math.max(1.05, eZ);
+      pY = -0.28 + ext * 0.65;
+      wX = -0.08 * ext;
+      wZ = sign * ext * 0.12;
       break;
     }
+
     case 'uppercut': {
-      shoulderZ = 1.45 - ext * 1.65;          // drive up
-      shoulderX = -0.7 + ext * 1.0;
-      shoulderY = -sign * (0.1 + ext * 0.4);
-      forearmZ  = 1.30 - ext * 0.95;
-      forearmX  = ext * 0.3;
+      // Elbow BENDS MORE at impact (not less). Forearm stays SUPINATED (palm toward self).
+      // Shoulder dips on windup, drives UP on strike.
+      sZ = gSZ - eStrike * 1.50;                // arm rises sharply only during strike
+      sX = gSX - eBend * 0.45 + eStrike * 0.90; // dips back, then drives forward-up
+      sY = -sign * (0.10 + ext * 0.38);
+      eZ = gEZ + eBend * 0.30                   // slight cock
+             + eStrike * 0.60;                  // MORE BENT at impact: gEZ+0.90 ≈ 1.95 ✓
+      eZ = Math.min(1.95, eZ);
+      pY = -0.28 - eBend * 0.35 - eStrike * 0.55; // stays supinated throughout ✓
+      wX = -0.20 * eStrike;
+      wZ = 0;
       break;
     }
+
     case 'overhand': {
-      shoulderZ = 1.45 - ext * 1.05;
-      shoulderY = -sign * (0.4 + ext * 1.0);
-      shoulderX = -0.9 + ext * 0.5;            // big arc over the top
-      forearmZ  = 1.30 - ext * 0.85;
+      // Arm arcs OVER the top: shoulder cocks high on windup, crashes down-forward on strike.
+      sZ = gSZ + eBend * 0.40 - eStrike * 1.10; // rises during windup, drops hard on strike
+      sY = -sign * (0.22 + eBend * 0.28 + eStrike * 0.85);
+      sX = gSX - eBend * 0.80 + eStrike * 1.00; // leans back on windup, crashes forward ✓
+      eZ = gEZ + eBend * 0.35                   // cocks on windup
+             - eStrike * (gEZ + 0.35 - 0.35);   // extends partially on crash
+      pY = -0.28 - eBend * 0.20 + eStrike * 1.45;
+      wX = -0.05 * eBend + 0.08 * eStrike;
+      wZ = -ext * 0.06;
       break;
     }
+
     case 'bodyShot': {
-      shoulderZ = 1.45 - ext * 0.95;
-      shoulderY = -sign * (0.3 + ext * 0.7);
-      shoulderX = -0.1 - ext * 0.2;            // aim down
-      forearmZ  = 1.30 - ext * 1.05;
+      // Shoulder drops DOWN, elbow cocks then extends into the ribs.
+      sZ = gSZ - ext * 0.80;
+      sY = -sign * (0.28 + ext * 0.65);
+      sX = gSX - ext * 0.55;                    // shoulder tilts downward ✓
+      eZ = gEZ + eBend * 0.40
+             - eStrike * (gEZ + 0.40 - 0.35);  // extends to moderate bend (arm downward)
+      pY = -0.28 + ext * 1.05;
+      wX = 0.18 * eStrike;                      // wrist flexes into ribs
+      wZ = 0;
       break;
     }
+
     case 'liverShot': {
-      shoulderZ = 1.45 - ext * 0.95;
-      shoulderY = -sign * (0.2 + ext * 0.6);
-      shoulderX = -0.05 - ext * 0.30;
-      forearmZ  = 1.30 - ext * 1.10;
+      // Drops even further, drives inward under right rib cage.
+      sZ = gSZ - ext * 0.90;
+      sY = -sign * (0.20 + ext * 0.60);
+      sX = gSX - ext * 0.65;                    // biggest downward tilt ✓
+      eZ = gEZ + eBend * 0.30
+             - eStrike * (gEZ + 0.30 - 0.55);  // extends to ~0.55 (hook-into-liver bend)
+      pY = -0.28 + ext * 1.20;
+      wX = 0.14 * eStrike;
+      wZ = sign * ext * 0.18;                   // ulnar deviation drives into liver ✓
       break;
     }
+
     case 'shovelHook': {
-      // Mid-arc between hook & uppercut
-      shoulderZ = 1.45 - ext * 1.10;
-      shoulderY = -sign * (0.5 + ext * 1.1);
-      shoulderX = -0.5 + ext * 0.8;
-      forearmZ  = 1.30 - ext * 0.85;
+      // Diagonal between hook (horizontal) and uppercut (upward).
+      // Elbow stays bent like a hook but shoulder drives diagonally upward.
+      sZ = gSZ - ext * 1.10;                    // shoulder elevation drops (midway)
+      sY = -sign * (0.38 + ext * 0.92);
+      sX = gSX - eBend * 0.25 + eStrike * 0.60; // dips then drives diagonally up
+      eZ = gEZ + eBend * 0.25
+             - eStrike * 0.20;                  // barely extends — hook trait ✓
+      eZ = Math.max(0.85, eZ);
+      pY = -0.28 - ext * 0.12;                  // slight supination
+      wX = -0.10 * eStrike;
+      wZ = sign * ext * 0.10;
       break;
     }
+
     case 'corkscrew': {
-      shoulderZ = 1.45 - ext * 1.20;
-      shoulderY = -sign * (0.3 + ext * 0.85);
-      shoulderX = -0.3 + ext * 0.55;
-      forearmZ  = 1.30 - ext * 1.20;
-      forearmY  = sign * ext * 0.9;            // twisting in
+      // Straight extension with extra forearm twist well past full pronation.
+      sZ = gSZ - ext * 0.55;
+      sY = -sign * ext * 0.88;
+      sX = gSX + ext * 0.40;
+      eZ = gEZ + eBend * 0.50
+             - eStrike * (gEZ + 0.50 - 0.07);  // snaps fully straight ✓
+      pY = -0.28 + ext * 2.10;                  // WAY past pronation = the corkscrew twist ✓
+      wX = 0.05 - ext * 0.10;
+      wZ = -sign * ext * 0.22;
       break;
     }
+
     case 'haymaker': {
-      shoulderZ = 1.45 - ext * 1.0;
-      shoulderY = -sign * (0.9 + ext * 1.6);
-      shoulderX = -0.7 + ext * 0.6;
-      forearmZ  = 1.30 - ext * 0.4;
+      // Huge wind-back: shoulder cocks all the way back, then swings with full body.
+      // Windup is longer and more dramatic than any other punch.
+      sZ = gSZ + eBend * 0.55 - eStrike * 1.35;  // arm lifts back on windup, crashes on strike
+      sY = -sign * (-0.70 * eBend + (0.90 + eStrike * 1.55)); // rotates BACK then FORWARD ✓
+      sX = gSX + eBend * 0.55 - eStrike * 0.18;
+      eZ = gEZ + eBend * 0.60                    // cocks DEEPLY (gEZ+0.60 ≈ 1.80)
+             - eStrike * (gEZ + 0.60 - 0.10);   // crashes to 0.10 (nearly straight)
+      pY = -0.28 - eBend * 0.65 + eStrike * 1.85; // supinated windup → full pronation crash ✓
+      wX = -0.15 * eBend + 0.05 * eStrike;
+      wZ = -sign * 0.14 * eStrike;
       break;
     }
   }
-  arm.shoulder.rotation.set(shoulderX, shoulderY, shoulderZ);
-  arm.forearmRot.rotation.set(forearmX, forearmY, forearmZ);
+
+  if (eZ > 2.0) eZ = 2.0;
+  if (eZ < 0)   eZ = 0;
+
+  arm.shoulderGrp.rotation.set(sX, sY, sZ);
+  arm.elbowGrp.rotation.set(0, 0, eZ);      // HINGE: only Z
+  arm.forearmPivot.rotation.set(0, pY, 0);  // PIVOT: only Y
+  arm.wristGrp.rotation.set(wX, 0, wZ);     // CONDYLOID: X + Z
 }
 
 // ─────────────────────────────────────────────
@@ -1531,10 +1718,11 @@ function loop(now){
     if (winner && winner.rig){
       const t = Math.min(1, gloveRaiseMode.t / 0.8);
       const eased = 1 - Math.pow(1 - t, 3);
-      // Raise the rear arm overhead.
       const rear = winner.rig.armR;
-      rear.shoulder.rotation.set(-0.1, -0.6, -2.6 + eased * 0.6);
-      rear.forearmRot.rotation.set(0, 0, -0.2);
+      rear.shoulderGrp.rotation.set(-0.10, -0.60, -2.60 + eased * 0.60);
+      rear.elbowGrp.rotation.set(0, 0, 0.75);  // arm bent triumphantly
+      rear.forearmPivot.rotation.set(0, -0.40, 0); // slight supination = fist faces crowd
+      rear.wristGrp.rotation.set(-0.10, 0, 0);
     }
   }
 

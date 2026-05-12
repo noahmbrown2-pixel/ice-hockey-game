@@ -131,5 +131,20 @@
     "hook_event_name": "SessionStart",
     "source": "startup",
     "model": "claude-sonnet-4-6"
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionStart",
+    "source": "compact",
+    "model": "claude-sonnet-4-6"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionStart",
+    "source": "clear"
   }
 ]

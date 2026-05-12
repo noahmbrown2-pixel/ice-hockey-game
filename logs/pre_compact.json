@@ -38,5 +38,12 @@
     "hook_event_name": "PreCompact",
     "trigger": "auto",
     "custom_instructions": null
-  }
-]
+  },
+  {
+    "session_id": "8227607f-ce18-49f4-a245-41ba767d113a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\8227607f-ce18-49f4-a245-41ba767d113a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "PreCompact",
+    "trigger": "auto",
+    "custom_instructions": null
+  },
