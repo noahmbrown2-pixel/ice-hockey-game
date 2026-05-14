@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>2D Obby</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0d0d1a; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: Arial, sans-serif; }
-  #ui { display: flex; gap: 30px; margin-bottom: 8px; color: white; font-size: 16px; font-weight: bold; text-shadow: 0 0 8px rgba(0,200,255,0.8); }
+  body { background: #0d0d1a; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; width: 100vw; font-family: Arial, sans-serif; overflow: hidden; }
+  #ui { display: flex; gap: 30px; margin-bottom: 8px; color: white; font-size: 16px; font-weight: bold; text-shadow: 0 0 8px rgba(0,200,255,0.8); flex-wrap: wrap; justify-content: center; }
   canvas { display: block; border: 2px solid #333; border-radius: 4px; }
-  #controls { color: #666; font-size: 13px; margin-top: 8px; letter-spacing: 1px; }
+  #controls { color: #666; font-size: 13px; margin-top: 8px; letter-spacing: 1px; text-align: center; }
   #overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
   #message { color: white; font-size: 36px; font-weight: bold; text-align: center; text-shadow: 0 0 20px rgba(255,215,0,0.8); display: none; line-height: 1.6; }
 </style>
@@ -28,7 +29,20 @@
 <script>
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
+const W = 960, H = 480;
+
+function fitCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W * scale + 'px';
+  canvas.style.height = H * scale + 'px';
+  ctx.scale(dpr, dpr);
+}
+
+fitCanvas();
+window.addEventListener('resize', fitCanvas);
 
 // ─── Utils ───────────────────────────────────────────────────────────────────
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
