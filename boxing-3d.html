@@ -58,6 +58,13 @@ canvas{display:block}
 .controls b{color:#ffd700}
 .controls span{display:inline-block;background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.4);border-radius:4px;padding:2px 8px;margin:2px 4px;font-weight:700;color:#ffd700;font-family:Consolas,monospace}
 
+/* Race mode HUD overrides */
+#hud.race-mode .bar{display:none}
+#hud.race-mode .stam{display:none}
+#hud.race-mode #round-score{display:none}
+#race-dmg{display:none;font-family:'Arial Black',sans-serif;font-weight:900;font-size:26px;color:#ff3838;text-shadow:0 2px 0 #000,0 0 12px rgba(255,56,56,.5);letter-spacing:2px;margin-top:2px}
+#hud.race-mode #race-dmg{display:block}
+
 /* Between-round overlay (damage diagrams + corner advice) */
 #interlude{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(0,0,0,.86);backdrop-filter:blur(8px);z-index:11;color:#ffd700;text-align:center;padding:18px}
 #interlude.active{display:flex}
@@ -98,6 +105,7 @@ canvas{display:block}
       <div class="round-num" id="round-num">R1</div>
       <div class="round-time" id="round-time">1:00</div>
       <div class="round-score" id="round-score">0-0</div>
+      <div id="race-dmg">0 DMG</div>
     </div>
     <div class="hud-side right">
       <div class="hud-name" id="name-c">BRUNO</div>
@@ -108,6 +116,11 @@ canvas{display:block}
 </div>
 
 <div id="round-banner"></div>
+<div id="pause-screen" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);z-index:12;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#ffd700;text-align:center">
+  <div style="font-family:'Arial Black',sans-serif;font-size:64px;font-weight:900;letter-spacing:4px;text-shadow:0 4px 0 #6b1a00">PAUSED</div>
+  <div style="font-size:14px;color:#cfc8b8;letter-spacing:2px">PRESS <span style="color:#ffd700;font-family:Consolas,monospace;background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.4);border-radius:4px;padding:2px 8px">P</span> TO RESUME</div>
+</div>
+<div id="race-banner" style="position:fixed;top:96px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);border:2px solid #ff3838;border-radius:6px;padding:6px 20px;font-weight:900;letter-spacing:3px;font-size:15px;color:#ff3838;z-index:6;display:none;pointer-events:none;text-shadow:0 1px 2px #000">RACE MODE — DEAL THE MOST DAMAGE</div>
 <div id="flash"></div>
 
 <div class="screen active" id="screen-title">
@@ -115,6 +128,7 @@ canvas{display:block}
   <h2>★ Round 1 ★</h2>
   <p>Three rounds. One minute apiece. Drop your opponent or win on damage. Now in glorious 3D — third-person, two-arm combat.</p>
   <button class="btn" id="btn-fight">FIGHT</button>
+  <button class="btn" id="btn-race" style="margin-top:10px;background:linear-gradient(180deg,#ff6b6b,#c0392b);color:#fff;box-shadow:0 4px 0 #7a1a1a, 0 8px 16px rgba(0,0,0,.5)">RACE MODE</button>
   <div class="controls">
     <div><b>Move:</b> <span>W</span><span>A</span><span>S</span><span>D</span> &nbsp; <b>Block:</b> <span>SPACE</span> &nbsp; <b>Dodge:</b> <span>Q</span></div>
     <div><b>Jab:</b><span>J</span> <b>Cross:</b><span>K</span> <b>Hook:</b><span>U</span> <b>Uppercut:</b><span>I</span> <b>Overhand:</b><span>O</span></div>
@@ -445,52 +459,108 @@ function createBoxer3D(opts){
   const mouthMat  = new THREE.MeshLambertMaterial({ color: 0x4a1a1a });
   const laceMat   = new THREE.MeshLambertMaterial({ color: 0xffffff });
 
-  // ═══ LEGS — hipGrp (ball-and-socket) → kneeGrp (hinge, Z) → ankleGrp (hinge, Z) ═══
+  // ═══ LEGS — hipGrp → kneeGrp (hinge Z) → ankleGrp (hinge Z) ═══
   function buildLeg(side){
     const hipGrp = new THREE.Group();
-    hipGrp.position.set(0, 0.92, side * 0.13);
+    hipGrp.position.set(0, 0.92, side * 0.145);
     root.add(hipGrp);
 
-    const thighTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.135, 0.32, 12), trunkMat);
-    thighTrunk.position.y = -0.15;
-    hipGrp.add(thighTrunk);
-    const thighSkin = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.115, 0.18, 10), skinMat);
-    thighSkin.position.y = -0.40;
-    hipGrp.add(thighSkin);
-    // Quad muscle blob (scales on knee flex)
-    const quadMesh = new THREE.Mesh(new THREE.SphereGeometry(0.10, 8, 6), skinMat);
-    quadMesh.scale.set(0.65, 1.5, 0.75);
-    quadMesh.position.set(0.03, -0.32, 0);
+    // ── Upper thigh shell (trunk-colored for shorts coverage) ──
+    const thighShorts = new THREE.Mesh(new THREE.CylinderGeometry(0.205, 0.175, 0.36, 14), trunkMat);
+    thighShorts.position.y = -0.16;
+    hipGrp.add(thighShorts);
+
+    // ── QUADRICEPS — 4-head muscle group ──
+    // Rectus femoris (center front — tallest, most visible)
+    const quadMesh = new THREE.Mesh(new THREE.SphereGeometry(0.125, 12, 8), skinMat);
+    quadMesh.scale.set(0.72, 2.10, 0.82);
+    quadMesh.position.set(0.065, -0.30, 0);
     hipGrp.add(quadMesh);
-    const kneeSphere = new THREE.Mesh(new THREE.SphereGeometry(0.105, 8, 6), skinMat);
-    kneeSphere.position.y = -0.51;
+    // Vastus lateralis (outer sweep)
+    const quadVL = new THREE.Mesh(new THREE.SphereGeometry(0.115, 10, 8), skinMat);
+    quadVL.scale.set(0.58, 1.80, 0.90);
+    quadVL.position.set(0.030, -0.28, -side * 0.115);
+    hipGrp.add(quadVL);
+    // Vastus medialis (inner teardrop — signature bodybuilder detail)
+    const quadVM = new THREE.Mesh(new THREE.SphereGeometry(0.105, 10, 8), skinMat);
+    quadVM.scale.set(0.68, 1.05, 0.92);
+    quadVM.position.set(0.065, -0.44, side * 0.085);
+    hipGrp.add(quadVM);
+
+    // ── HAMSTRINGS — rear thigh mass ──
+    const hamBicep = new THREE.Mesh(new THREE.SphereGeometry(0.108, 10, 8), skinMat);
+    hamBicep.scale.set(0.52, 1.90, 0.88);
+    hamBicep.position.set(-0.065, -0.28, -side * 0.055);
+    hipGrp.add(hamBicep);
+    const hamSemi = new THREE.Mesh(new THREE.SphereGeometry(0.095, 8, 6), skinMat);
+    hamSemi.scale.set(0.50, 1.70, 0.80);
+    hamSemi.position.set(-0.060, -0.28, side * 0.06);
+    hipGrp.add(hamSemi);
+
+    // Lower thigh taper (skin-colored, below shorts)
+    const thighLower = new THREE.Mesh(new THREE.CylinderGeometry(0.150, 0.128, 0.22, 12), skinMat);
+    thighLower.position.y = -0.46;
+    hipGrp.add(thighLower);
+
+    // Knee joint sphere
+    const kneeSphere = new THREE.Mesh(new THREE.SphereGeometry(0.122, 12, 8), skinMat);
+    kneeSphere.position.y = -0.57;
     hipGrp.add(kneeSphere);
 
-    // kneeGrp — HINGE: Z axis only
+    // ── kneeGrp — HINGE: Z axis only ──
     const kneeGrp = new THREE.Group();
-    kneeGrp.position.y = -0.51;
+    kneeGrp.position.y = -0.57;
     hipGrp.add(kneeGrp);
 
-    const calf = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.085, 0.32, 10), skinMat);
-    calf.position.y = -0.17;
-    kneeGrp.add(calf);
-    // Gastrocnemius (calf muscle) — scales on plantarflexion
-    const calfMesh = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), skinMat);
-    calfMesh.scale.set(0.75, 1.35, 1.1);
-    calfMesh.position.set(-0.03, -0.14, 0);
+    // Patella (kneecap) — flat oval on the anterior face
+    const kneecap = new THREE.Mesh(new THREE.SphereGeometry(0.078, 10, 8),
+      new THREE.MeshLambertMaterial({ color: opts.skin }));
+    kneecap.scale.set(1.0, 0.68, 1.22);
+    kneecap.position.set(0.092, 0.024, 0);
+    kneeGrp.add(kneecap);
+
+    // Lower leg shell cylinder
+    const calfCyl = new THREE.Mesh(new THREE.CylinderGeometry(0.118, 0.082, 0.36, 12), skinMat);
+    calfCyl.position.y = -0.18;
+    kneeGrp.add(calfCyl);
+
+    // ── GASTROCNEMIUS — diamond calf, two distinct heads ──
+    const calfMesh = new THREE.Mesh(new THREE.SphereGeometry(0.105, 12, 8), skinMat);
+    calfMesh.scale.set(0.70, 1.65, 0.92);
+    calfMesh.position.set(-0.042, -0.155, -0.042);
     kneeGrp.add(calfMesh);
+    const gastroR = new THREE.Mesh(new THREE.SphereGeometry(0.105, 12, 8), skinMat);
+    gastroR.scale.set(0.70, 1.65, 0.92);
+    gastroR.position.set(-0.042, -0.155, 0.042);
+    kneeGrp.add(gastroR);
+    // Soleus (deeper, wider — visible below gastro heads)
+    const soleus = new THREE.Mesh(new THREE.SphereGeometry(0.088, 8, 6), skinMat);
+    soleus.scale.set(0.75, 1.25, 1.18);
+    soleus.position.set(-0.028, -0.285, 0);
+    kneeGrp.add(soleus);
+    // Tibialis anterior (front shin — visible stripe)
+    const tibialis = new THREE.Mesh(new THREE.SphereGeometry(0.068, 8, 6), skinMat);
+    tibialis.scale.set(0.60, 1.55, 0.65);
+    tibialis.position.set(0.068, -0.17, 0);
+    kneeGrp.add(tibialis);
 
-    // ankleGrp — HINGE: Z axis only (dorsiflexion / plantarflexion)
+    // ── ankleGrp — HINGE: Z axis only ──
     const ankleGrp = new THREE.Group();
-    ankleGrp.position.y = -0.33;
+    ankleGrp.position.y = -0.37;
     kneeGrp.add(ankleGrp);
-    ankleGrp.rotation.z = 0.14; // default slight dorsiflexion = athletic stance
+    ankleGrp.rotation.z = 0.14;
 
-    const boot = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.12, 0.32), bootMat);
-    boot.position.set(0.04, -0.05, 0);
+    // Ankle knob (medial malleolus detail)
+    const ankleKnob = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), skinMat);
+    ankleKnob.scale.set(0.65, 0.72, 0.90);
+    ankleKnob.position.set(0, -0.015, 0);
+    ankleGrp.add(ankleKnob);
+
+    const boot = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.13, 0.34), bootMat);
+    boot.position.set(0.04, -0.06, 0);
     ankleGrp.add(boot);
-    const bootStripe = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.02, 0.33), beltMat);
-    bootStripe.position.set(0.04, -0.01, 0);
+    const bootStripe = new THREE.Mesh(new THREE.BoxGeometry(0.23, 0.022, 0.35), beltMat);
+    bootStripe.position.set(0.04, -0.012, 0);
     ankleGrp.add(bootStripe);
 
     return { hipGrp, kneeGrp, ankleGrp, quadMesh, calfMesh };
@@ -745,14 +815,18 @@ function setArmPose(arm, pose){
 //  Game state
 // ─────────────────────────────────────────────
 let state = 'title';
+let paused = false;
 let round = 1;
 let roundClock = ROUND_LEN;
 let scorePlayer = 0, scoreCpu = 0;
-let knockdownsPlayer = 0, knockdownsCpu = 0;
+let knockdownsPlayer = 0, knockdownsCpu = 0, totalCpuKnockdowns = 0;
 let slowmoT = 0;
 let cameraShake = 0;
 let flashAmount = 0;
 let gloveRaiseMode = null; // {who:'player'|'cpu', t:0}
+let raceMode = false;
+let raceDamageDealt = 0; // total damage player has landed on CPU this race
+const RACE_DURATION = 300; // 5 minutes in seconds
 
 function makeBoxer(opts){
   const b = {
@@ -788,6 +862,8 @@ function makeBoxer(opts){
                 shovelHook:'lead', corkscrew:'rear', haymaker:'rear' },
     // Punch animation state
     armTimers: { lead: 0, rear: 0 },
+    // CPU weave / parry state
+    weaveT: 0, weaveDir: 0, parryT: 0, parryArm: null,
     // Stats
     punchesThrown: 0, punchesLanded: 0, lowStaminaTicks: 0,
     // Damage taken by zone
@@ -806,10 +882,16 @@ function getArm(b, which){
 
 function resetMatch(){
   state = 'fight';
+  paused = false;
+  document.getElementById('pause-screen').style.display = 'none';
   round = 1;
-  roundClock = ROUND_LEN;
+  roundClock = raceMode ? RACE_DURATION : ROUND_LEN;
+  raceDamageDealt = 0;
   scorePlayer = 0; scoreCpu = 0;
   knockdownsPlayer = 0; knockdownsCpu = 0;
+  document.getElementById('hud').classList.toggle('race-mode', raceMode);
+  document.getElementById('race-banner').style.display = raceMode ? 'block' : 'none';
+  document.getElementById('round-num').textContent = raceMode ? 'RACE' : 'R1';
   setupRound(true);
   hideScreen('screen-title');
   hideScreen('screen-end');
@@ -830,8 +912,8 @@ function setupRound(freshMatch){
   cpu.rig.root.position.copy(cpu.pos);
   player.rig.root.rotation.y = 0;
   cpu.rig.root.rotation.y = Math.PI;
-  roundClock = ROUND_LEN;
-  document.getElementById('round-num').textContent = 'R' + round;
+  roundClock = raceMode ? RACE_DURATION : ROUND_LEN;
+  document.getElementById('round-num').textContent = raceMode ? 'RACE' : 'R' + round;
   // Carry zone-damage forward across rounds (cumulative for the whole match).
   if (!freshMatch && window._matchZone){
     player.zoneDmg = window._matchZone.player;
@@ -883,12 +965,13 @@ function playBell(){
 const keys = {};
 const keyEdge = {}; // single-frame edge-triggered presses for punch keys
 const PUNCH_KEYS = Object.keys(KEY_PUNCH);
-const RESERVED = new Set(['w','a','s','d',' ', ...PUNCH_KEYS]);
+const RESERVED = new Set(['w','a','s','d',' ','p', ...PUNCH_KEYS]);
 
 window.addEventListener('keydown', e => {
   ensureAudio();
   const k = e.key.toLowerCase();
   if (RESERVED.has(k)) e.preventDefault();
+  if (k === 'p' && state === 'fight') togglePause();
   if (!keys[k]) keyEdge[k] = true;
   keys[k] = true;
 });
@@ -908,6 +991,12 @@ document.querySelectorAll('#touch-controls .touch-btn[data-tk]').forEach(btn => 
 function consumeEdge(k){
   if (keyEdge[k]){ keyEdge[k] = false; return true; }
   return false;
+}
+
+function togglePause(){
+  paused = !paused;
+  const el = document.getElementById('pause-screen');
+  el.style.display = paused ? 'flex' : 'none';
 }
 
 // ─────────────────────────────────────────────
@@ -934,7 +1023,9 @@ function startAction(b, kind, sideOverride){
     b.action = kind;
     b.actionKind = kind;
     b.actionT = 0;
-    b.actionDur = p.windup + p.active + p.recover;
+    // Fatigue: only kicks in when nearly empty — subtle slowdown
+    const fatigueMult = 1 + Math.max(0, (20 - b.stamina) / 20) * 0.35;
+    b.actionDur = (p.windup + p.active + p.recover) * fatigueMult;
     b.activeArm = arm;
     b.hitFrameDone = false;
     b.punchesThrown++;
@@ -1031,6 +1122,8 @@ function takeHit(target, source, kind){
     }
   }
   target.hp -= dmg;
+  // Race mode: accumulate player's damage dealt regardless of knockdowns
+  if (raceMode && !target.isPlayer) raceDamageDealt += dmg;
   if (target.hp <= 0){
     target.hp = 0;
     target.action = 'ko';
@@ -1039,7 +1132,7 @@ function takeHit(target, source, kind){
     target.koStaggered = false;
     slowmoT = 1.5;
     flashAmount = 0.45;
-    if (target.isPlayer) knockdownsPlayer++; else knockdownsCpu++;
+    if (target.isPlayer) knockdownsPlayer++; else { knockdownsCpu++; totalCpuKnockdowns++; }
   }
 }
 
@@ -1095,6 +1188,8 @@ function tickPlayer(b, dt){
 
   let speed = (b.action === 'idle' || b.action === 'block') ? 2.4 : 0.6;
   if (b.stunned) speed *= 0.4;
+  // Low stamina = heavy legs — only meaningful penalty below 20 (nearly empty)
+  if (b.stamina < 20) speed *= 0.70 + (b.stamina / 20) * 0.30;
 
   if (b.action !== 'ko' && b.action !== 'hit'){
     // W = approach (toward enemy = forward). S = retreat (back).
@@ -1155,7 +1250,7 @@ function tickAction(b, dt){
     return;
   }
   if (b.action === 'block'){
-    b.stamina = Math.max(0, b.stamina - 4 * dt);
+    if (b.stunned) b.stamina = Math.max(0, b.stamina - 4 * dt);
     return;
   }
   if (b.action === 'dodge'){
@@ -1169,7 +1264,8 @@ function tickAction(b, dt){
     if (b.actionT >= b.actionDur) endAction(b);
   }
   if (b.action === 'idle' && b.stamina < b.maxStam){
-    const regen = b.stunned ? 6 : 18;
+    // Regen: fast enough to sustain aggressive fighting with short pauses
+    const regen = b.stunned ? 6 : 28;
     b.stamina = Math.min(b.maxStam, b.stamina + regen * dt);
   }
   // Track low-stamina ticks for corner advice
@@ -1190,11 +1286,57 @@ function tickCpu(c, dt){
   const dz = player.pos.z - c.pos.z;
   const dist = Math.sqrt(dx*dx + dz*dz);
 
+  // ── Adaptive difficulty: CPU gets smarter every time it's knocked out ──
+  // diffTier 0 = base, grows with each KO, capped so it's tough not impossible
+  const diffTier = Math.min(4, knockdownsCpu + Math.floor(totalCpuKnockdowns * 0.5));
+  const effAgg   = Math.min(0.95, c.aiAggression + diffTier * 0.10);
+  const effReact = Math.min(0.95, c.aiReaction   + diffTier * 0.08);
+
+  // ── Stun-chase: player is stunned → close in and unload combos ──
+  if (player.stunned && !c.stunned && c.action !== 'ko'){
+    if (dist > 0.9){
+      const nx = dx / Math.max(0.001, dist), nz = dz / Math.max(0.001, dist);
+      c.pos.x += nx * 2.8 * dt;
+      c.pos.z += nz * 2.8 * dt;
+      clampToRing(c);
+      c.aiState = 'advance';
+      c.legPhase = (c.legPhase + dt * 3.8) % 1;
+    }
+    if (dist < 1.7 && c.action === 'idle' && c.aiTimer <= 0){
+      const finishers = ['hook','uppercut','cross','overhand','bodyShot','liverShot','shovelHook'];
+      const useHay = Math.random() < (0.10 + diffTier * 0.05);
+      startAction(c, useHay ? 'haymaker' : finishers[Math.floor(Math.random() * finishers.length)]);
+      c.aiTimer = 0.12 + Math.random() * 0.10;
+    }
+    tickAction(c, dt);
+    return;
+  }
+
+  // ── Predictable-punch reaction: slip body or raise one arm to parry ──
+  // Jab/cross/straight are telegraphed → CPU can learn to weave or parry them
+  const predictable = (player.action === 'jab' || player.action === 'cross' || player.action === 'straight')
+    && player.actionT < (PUNCH[player.action]?.windup || 0) * 1.8;
+  if (predictable && dist < 1.9 && !c.stunned){
+    const slipRate  = (0.10 + diffTier * 0.09) * dt * 60;
+    const parryRate = (0.07 + diffTier * 0.07) * dt * 60;
+    if (c.weaveT <= 0 && Math.random() < slipRate){
+      c.weaveDir = (Math.random() < 0.5 ? -1 : 1);
+      c.weaveT   = 0.45;
+      // At higher difficulty, immediately counter after the slip
+      if (diffTier >= 2 && Math.random() < 0.5) c.aiTimer = Math.min(c.aiTimer, 0.15);
+    } else if (c.parryT <= 0 && c.weaveT <= 0 && Math.random() < parryRate){
+      c.parryArm = (Math.random() < 0.5 ? 'L' : 'R');
+      c.parryT   = 0.35;
+    }
+  }
+  if (c.weaveT > 0) c.weaveT = Math.max(0, c.weaveT - dt);
+  if (c.parryT > 0) c.parryT = Math.max(0, c.parryT - dt);
+
   const playerThreatening =
     (player.action === 'hook' || player.action === 'uppercut' || player.action === 'haymaker' || player.action === 'overhand')
     && player.actionT < (PUNCH[player.action]?.windup || 0);
-  if (playerThreatening && dist < 1.7 && Math.random() < c.aiReaction * dt * 60){
-    if (c.dodgeCooldown <= 0 && Math.random() < 0.38) startDodge(c);
+  if (playerThreatening && dist < 1.7 && Math.random() < effReact * dt * 60){
+    if (c.dodgeCooldown <= 0 && Math.random() < (0.38 + diffTier * 0.06)) startDodge(c);
     else if (c.action === 'idle') startAction(c, 'block');
   } else if (c.action === 'block' && (!playerThreatening || dist > 2.0)){
     endAction(c);
@@ -1202,20 +1344,29 @@ function tickCpu(c, dt){
 
   if (c.action === 'idle' && !c.stunned){
     if (c.aiTimer <= 0){
-      c.aiTimer = 0.3 + Math.random() * 0.6;
+      // Higher tier = decisions faster
+      const decisionInterval = Math.max(0.15, 0.30 - diffTier * 0.04);
+      c.aiTimer = decisionInterval + Math.random() * 0.5;
       if (dist > 3.0)         c.aiState = 'advance';
       else if (dist > 1.6){
-        if (Math.random() < c.aiAggression) c.aiState = (Math.random() < 0.5 ? 'advance' : 'jab');
+        if (Math.random() < effAgg) c.aiState = (Math.random() < 0.5 ? 'advance' : 'jab');
         else c.aiState = 'circle';
       } else {
         if (c.stamina < 25) c.aiState = 'retreat';
         else {
           const r = Math.random();
-          if (r < c.aiAggression * 0.55){
-            // Pick a random punch — wider variety than 3 originally.
-            const choices = ['jab','cross','hook','uppercut','overhand','bodyShot','liverShot','straight','shovelHook','corkscrew'];
+          if (r < effAgg * 0.55){
+            // Punch repertoire grows more dangerous with each KO tier
+            const punchSets = [
+              ['jab','cross','hook','uppercut','overhand','bodyShot','liverShot','straight','shovelHook','corkscrew'],
+              ['cross','hook','uppercut','overhand','liverShot','straight','shovelHook','corkscrew','checkHook','jab'],
+              ['hook','uppercut','overhand','liverShot','shovelHook','corkscrew','cross','checkHook','uppercut','hook'],
+              ['uppercut','hook','overhand','liverShot','shovelHook','cross','corkscrew','checkHook','hook','uppercut'],
+              ['uppercut','hook','liverShot','shovelHook','corkscrew','checkHook','hook','uppercut','overhand','cross'],
+            ];
+            const choices = punchSets[Math.min(diffTier, 4)];
             c.aiState = choices[Math.floor(Math.random() * choices.length)];
-            if (Math.random() < 0.07) c.aiState = 'haymaker';
+            if (Math.random() < (0.07 + diffTier * 0.03)) c.aiState = 'haymaker';
           } else if (r < 0.85) c.aiState = 'circle';
           else c.aiState = 'block-tactical';
         }
@@ -1247,6 +1398,143 @@ function tickCpu(c, dt){
 }
 
 // ─────────────────────────────────────────────
+//  Agent vs Agent — autonomous brains for both fighters
+// ─────────────────────────────────────────────
+function pickPunch(style){
+  const brawler = ['hook','hook','haymaker','bodyShot','liverShot','uppercut','cross'];
+  const boxer   = ['jab','jab','cross','straight','checkHook','hook','overhand'];
+  const list = (style === 'brawler') ? brawler : boxer;
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+// Step the agent toward (or away from) the opponent along the XZ vector.
+function agentStep(me, opponent, amount){
+  const dx = opponent.pos.x - me.pos.x;
+  const dz = opponent.pos.z - me.pos.z;
+  const len = Math.max(0.001, Math.sqrt(dx*dx + dz*dz));
+  me.pos.x += (dx / len) * amount;
+  me.pos.z += (dz / len) * amount;
+  clampToRing(me);
+}
+
+function updateAgentBrain(me, opponent, style, dt){
+  if (me.hp <= 0 || me.action === 'ko') return;
+  // Always face the opponent so punches actually land.
+  aimYawAt(me, opponent);
+
+  // Per-fighter decision timer (independent of the CPU's aiTimer).
+  me.agentTimer = (me.agentTimer || 0) - dt * 1000;
+
+  // Run the punching/dodge step animations every frame (these handle their own timing).
+  tickAction(me, dt);
+
+  // Walking leg phase when moving
+  if (me.agentMoving && me.action !== 'ko'){
+    me.legPhase = (me.legPhase + dt * 3.8) % 1;
+  }
+  // Hint the animator that this fighter is "advancing" so legs animate.
+  me.aiState = me.agentMoving ? 'advance' : 'idle';
+
+  if (me.agentTimer > 0) return;
+
+  // Detect if opponent is mid-punch (in their active strike — windup or active frame).
+  const opponentAttacking = (opponent.action in PUNCH);
+  // Only act when not locked in another action.
+  const meCanAct = (me.action === 'idle' || me.action === 'block');
+
+  // Reset motion flag — re-evaluated each decision.
+  me.agentMoving = false;
+
+  // Don't try to act while stunned.
+  if (me.stunned){
+    me.agentTimer = 200;
+    return;
+  }
+
+  // If we can't act yet (mid-punch / mid-hit / dodging), wait a tiny bit.
+  if (!meCanAct){
+    me.agentTimer = 80;
+    return;
+  }
+
+  // End a defensive block before re-evaluating.
+  if (me.action === 'block') endAction(me);
+
+  const dx = opponent.pos.x - me.pos.x;
+  const dz = opponent.pos.z - me.pos.z;
+  const dist = Math.sqrt(dx*dx + dz*dz);
+
+  // Initialize combo counter on the fighter object.
+  me.comboCount = me.comboCount || 0;
+
+  // ─── STAMINA CONSERVATION: brief breathing room when truly gassed ──────────
+  // Only back off below 15 (nearly empty), and only for one short pause —
+  // then get right back in the fight. Fighters should stay aggressive.
+  const gasThreshold = 15;
+  if (me.stamina < gasThreshold){
+    // Take one step back and breathe — don't block-spam, just circle out
+    agentStep(me, opponent, -0.4);
+    me.agentMoving = true;
+    me.comboCount = 0;
+    me.agentTimer = 300 + Math.random() * 150; // short breath, then back at it
+    return;
+  }
+  // Combo length scales with stamina — still throws combos even when tired
+  const maxCombo = me.stamina > 60 ? 4 : me.stamina > 30 ? 3 : 2;
+
+  // ─── DEFENSIVE: opponent is throwing a punch — dodge or block. ───
+  if (opponentAttacking){
+    const r = Math.random();
+    if (r < 0.70){
+      // 70% chance to dodge; if dodge is on cooldown, block instead.
+      if (me.dodgeCooldown <= 0) startDodge(me);
+      else startAction(me, 'block');
+    } else if (r < 0.85){
+      startAction(me, 'block');
+    }
+    // else: stand pat — eat the shot but maybe counter on the next frame.
+    me.comboCount = 0;
+    me.agentTimer = 180 + Math.random() * 140;
+    return;
+  }
+
+  // ─── AGGRESSIVE: opponent is open — get in their face and unload. ───
+  if (dist > 3.0){
+    // Sprint close — opponent is far away.
+    agentStep(me, opponent, 0.6);
+    me.agentMoving = true;
+    me.agentTimer = 110;
+    me.comboCount = 0;
+  } else if (dist > 1.5){
+    // Close the gap fast, harass with jabs to keep pressure on.
+    agentStep(me, opponent, 0.45);
+    me.agentMoving = true;
+    if (Math.random() < 0.6) startAction(me, 'jab');
+    me.agentTimer = 180 + Math.random() * 80;
+    me.comboCount = 0;
+  } else {
+    // IN RANGE AND GUARD IS DOWN — unleash a combo burst.
+    if (dist > 1.0){
+      // Squeeze in even tighter for cleaner hits.
+      agentStep(me, opponent, 0.12);
+      me.agentMoving = true;
+    }
+    me.comboCount++;
+    if (me.comboCount <= maxCombo){
+      // Throw the next punch in the combo — rapid fire.
+      startAction(me, pickPunch(style));
+      // Tired fighter punches slower between shots
+      const tiredness = Math.max(0, (50 - me.stamina) / 50);
+      me.agentTimer = 150 + Math.random() * 100 + tiredness * 200;
+    } else {
+      // Brief recovery after a 4-punch combo, then resume.
+      me.comboCount = 0;
+      me.agentTimer = 400 + Math.random() * 200;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────
 //  Boxer animation
 // ─────────────────────────────────────────────
 const _v3 = new THREE.Vector3();
@@ -1275,7 +1563,11 @@ function animateBoxer(b, dt){
     r.root.position.y = -t * 0.15;
   } else {
     r.root.rotation.x = 0;
-    r.root.position.y = -b.kneesBent * 0.18;
+    // Toe-bounce: sin wave lifts root slightly at peak, sinks at trough
+    b.bouncePhase = (b.bouncePhase || 0) + dt * 6.5; // ~6.5 rad/s ≈ 1 bounce/sec
+    const bounceSin = Math.sin(b.bouncePhase);
+    const bounceAmt = (bounceSin * 0.5 + 0.5); // 0→1, peaks up
+    r.root.position.y = -b.kneesBent * 0.18 + bounceAmt * 0.055;
   }
 
   const tNow = performance.now() * 0.001;
@@ -1292,6 +1584,7 @@ function animateBoxer(b, dt){
   }
   r.chest.scale.y = 1.0 + breath * 0.4;
   r.lumbar.position.x = lateralShift;
+  r.lumbar.position.z = (b._torsoShiftZ || 0);
 
   // Stun sway — thoracic rocks, stars orbit
   if (b.stunned){
@@ -1321,9 +1614,10 @@ function animateBoxer(b, dt){
   if (b.action in PUNCH) targetLeanX = 0.20;
   r.lumbar.rotation.x = (r.lumbar.rotation.x || 0.06) + (targetLeanX - (r.lumbar.rotation.x || 0.06)) * Math.min(1, dt * 6);
 
-  // Spine twist during punches (thoracic Y rotation)
+  // Spine twist + lateral weight shift during punches
   let targetSpineTwist = 0.06; // base orthodox lean
   let hipTwist = 0;
+  let targetTorsoShiftZ = 0; // lateral lumbar shift toward punching side
   if (b.action in PUNCH){
     const tp = b.actionT / Math.max(0.001, b.actionDur);
     const spinePulse = Math.sin(tp * Math.PI);
@@ -1335,46 +1629,103 @@ function animateBoxer(b, dt){
       (b.action === 'uppercut') ? 0.15 : 0.10;
     targetSpineTwist = 0.06 + spinePulse * spineScale * (isRear ? -1 : 1);
     hipTwist = spinePulse * 0.18 * (isRear ? -1 : 1);
+    // Torso slides sideways toward the arm throwing the punch — weight transfer
+    // lead arm (left) = local -Z side; rear arm (right) = local +Z side
+    const lateralScale =
+      (b.action === 'hook' || b.action === 'checkHook' || b.action === 'shovelHook') ? 0.14 :
+      (b.action === 'cross' || b.action === 'haymaker' || b.action === 'overhand')   ? 0.10 :
+      (b.action === 'uppercut') ? 0.08 : 0.05;
+    targetTorsoShiftZ = spinePulse * lateralScale * (isRear ? 1 : -1);
   }
   if (b.action !== 'idle') r.thoracic.rotation.y = (r.thoracic.rotation.y || 0.06) + (targetSpineTwist - (r.thoracic.rotation.y || 0.06)) * Math.min(1, dt * 10);
+  // Smooth the lateral shift — applied to lumbar position Z
+  b._torsoShiftZ = ((b._torsoShiftZ || 0) + (targetTorsoShiftZ - (b._torsoShiftZ || 0)) * Math.min(1, dt * 9));
 
   // Hip counter-rotation drives the leg groups
   r.legL.hipGrp.rotation.y = hipTwist * 0.6;
   r.legR.hipGrp.rotation.y = hipTwist * 0.6;
 
-  // ── Stepping animation (hip Z swing + knee flex + ankle) ──
-  const isMoving = b.action !== 'ko' && (
-    b.isPlayer
-      ? (keys['w'] || keys['a'] || keys['s'] || keys['d'])
-      : (b.aiState === 'advance' || b.aiState === 'retreat' || b.aiState === 'circle')
-  );
-  if (isMoving){
-    const phL = Math.sin(b.legPhase * Math.PI * 2);
-    const phR = Math.sin(b.legPhase * Math.PI * 2 + Math.PI);
-    r.legL.hipGrp.rotation.z = phL * 0.28;
-    r.legR.hipGrp.rotation.z = phR * 0.28;
-    // Knee: bends when leg lifts (swing phase)
-    r.legL.kneeGrp.rotation.z = (phL > 0 ? -0.32 : -0.08);
-    r.legR.kneeGrp.rotation.z = (phR > 0 ? -0.32 : -0.08);
-    // Ankle: dorsiflexes on lift, plantarflexes on push-off
-    r.legL.ankleGrp.rotation.z = 0.14 + (phL > 0 ? 0.16 : -0.18);
-    r.legR.ankleGrp.rotation.z = 0.14 + (phR > 0 ? 0.16 : -0.18);
+  // ── Stepping animation — directional bipedal gait ──
+  //
+  // cycleL peaks +1 when left leg is in full swing (foot off ground, moving forward/sideways).
+  // cycleR = -cycleL so the legs are always in opposite phases — one pushes while the other lifts.
+  //
+  // Travel direction decides which rotation axis drives the hip swing:
+  //   forward / back  → sagittal plane: hipGrp.rotation.z  (leg swings fwd/back)
+  //   left / right    → frontal plane:  hipGrp.rotation.x  (leg abducts/adducts sideways)
+  // Diagonal input blends both axes proportionally.
+
+  let moveFwd = 0, moveSide = 0;
+  if (b.isPlayer){
+    if (keys['w']) moveFwd  += 1;
+    if (keys['s']) moveFwd  -= 1;
+    if (keys['d']) moveSide += 1;
+    if (keys['a']) moveSide -= 1;
   } else {
-    r.legL.hipGrp.rotation.z = (r.legL.hipGrp.rotation.z || 0) * (1 - Math.min(1, dt * 12));
-    r.legR.hipGrp.rotation.z = (r.legR.hipGrp.rotation.z || 0) * (1 - Math.min(1, dt * 12));
-    // Soft knees at rest
-    const kRest = -0.14 - b.kneesBent * 0.88;
+    if      (b.aiState === 'advance') moveFwd  =  1;
+    else if (b.aiState === 'retreat') moveFwd  = -1;
+    else if (b.aiState === 'circle') moveSide  = b.circleDir || 1;
+  }
+  const isMoving = b.action !== 'ko' && (moveFwd !== 0 || moveSide !== 0);
+
+  // Dodge crouch adds a forward hip flex on top of everything else
+  const hipDodgeFlex = b.kneesBent * 0.20;
+
+  if (isMoving){
+    const cycleL = Math.sin(b.legPhase * Math.PI * 2);
+    const cycleR = -cycleL; // exactly opposite — legs always alternate
+
+    const hipAmp  = 0.42; // max hip swing in radians
+
+    // Smooth knee bend: quadratic rise on swing phase only (0 at stance, peaks at 0.52 rad)
+    const kBendL = Math.max(0, cycleL) ** 2 * 0.52;
+    const kBendR = Math.max(0, cycleR) ** 2 * 0.52;
+
+    // Ankle: dorsiflexed (foot lifted) during swing, plantarflexed (push-off) during stance
+    const ankleL = 0.14 - cycleL * 0.22;
+    const ankleR = 0.14 - cycleR * 0.22;
+
+    // Blend fwd vs side contribution based on input magnitudes
+    const totalMag  = Math.abs(moveFwd) + Math.abs(moveSide);
+    const fwdWeight = totalMag > 0 ? Math.abs(moveFwd)  / totalMag : 0;
+    const sideWeight= totalMag > 0 ? Math.abs(moveSide) / totalMag : 0;
+    const fwdSign   = Math.sign(moveFwd);
+    const sideSign  = Math.sign(moveSide);
+
+    // Sagittal swing (forward/back stepping) — hipGrp.rotation.z
+    r.legL.hipGrp.rotation.z = cycleL * hipAmp * fwdSign * fwdWeight;
+    r.legR.hipGrp.rotation.z = cycleR * hipAmp * fwdSign * fwdWeight;
+
+    // Frontal swing (sideways stepping) — hipGrp.rotation.x + dodge crouch flex
+    r.legL.hipGrp.rotation.x = hipDodgeFlex + cycleL * hipAmp * sideSign * sideWeight;
+    r.legR.hipGrp.rotation.x = hipDodgeFlex + cycleR * hipAmp * sideSign * sideWeight;
+
+    // Knee hinge (Z axis) bends on swing phase regardless of travel direction
+    r.legL.kneeGrp.rotation.z = -(0.08 + kBendL);
+    r.legR.kneeGrp.rotation.z = -(0.08 + kBendR);
+
+    // Ankle
+    r.legL.ankleGrp.rotation.z = ankleL;
+    r.legR.ankleGrp.rotation.z = ankleR;
+
+  } else {
+    // Smoothly return hips to neutral (rest pose)
+    const decay = 1 - Math.min(1, dt * 12);
+    r.legL.hipGrp.rotation.z *= decay;
+    r.legR.hipGrp.rotation.z *= decay;
+    // Hip x blends toward dodge-flex value (0 when upright, non-zero when crouching)
+    r.legL.hipGrp.rotation.x = r.legL.hipGrp.rotation.x * decay + hipDodgeFlex * (1 - decay);
+    r.legR.hipGrp.rotation.x = r.legR.hipGrp.rotation.x * decay + hipDodgeFlex * (1 - decay);
+    // Soft knees at rest + toe-bounce
+    const kBounce = (typeof bounceAmt !== 'undefined') ? bounceAmt : 0;
+    const kRest = -0.14 - b.kneesBent * 0.88 - kBounce * 0.22;
     r.legL.kneeGrp.rotation.z = kRest;
     r.legR.kneeGrp.rotation.z = kRest;
-    // Ankle: dorsiflexion increases in dodge crouch
-    const aBase = 0.14 + b.kneesBent * 0.18;
+    // Ankle: plantarflexes at peak (pushing off toes), dorsiflexes at trough (landing)
+    const aBase = 0.14 + b.kneesBent * 0.18 - kBounce * 0.18;
     r.legL.ankleGrp.rotation.z = aBase;
     r.legR.ankleGrp.rotation.z = aBase;
   }
-  // Hip forward flex during dodge crouch (ball-and-socket)
-  const hipFwd = b.kneesBent * 0.20;
-  r.legL.hipGrp.rotation.x = hipFwd;
-  r.legR.hipGrp.rotation.x = hipFwd;
 
   // ── Muscle bulge — scale driven by joint angle ──
   if (b.action !== 'ko'){
@@ -1442,6 +1793,22 @@ function animateBoxer(b, dt){
   } else if (b.action === 'hit'){
     setArmPose(r.armL, { sRot:[-0.20, 0, 1.20], eRot:[0,0,1.05], pRot:[0,-0.20,0], wRot:[0.05,0,0] });
     setArmPose(r.armR, { sRot:[ 0.20, 0, 1.20], eRot:[0,0,1.05], pRot:[0,-0.20,0], wRot:[0.05,0,0] });
+  }
+
+  // ── Upper-body slip: weave torso to the side on predictable punches ──
+  // Additive onto lumbar.position.z which already carries the punch torso-shift
+  if (b.weaveT > 0 && !b.stunned && b.action !== 'ko'){
+    const wProg = Math.sin((1 - b.weaveT / 0.45) * Math.PI);
+    r.thoracic.rotation.z += (b.weaveDir || 0) * 0.34 * wProg;
+    r.lumbar.position.z   += (b.weaveDir || 0) * 0.12 * wProg;
+  }
+
+  // ── One-arm parry: raise a single arm high to deflect incoming punch ──
+  if (b.parryT > 0 && b.action === 'idle' && !b.stunned){
+    const pProg = Math.sin((1 - b.parryT / 0.35) * Math.PI);
+    const pArm = (b.parryArm === 'L') ? r.armL : r.armR;
+    pArm.shoulderGrp.rotation.z -= 0.60 * pProg;
+    pArm.elbowGrp.rotation.z    += 0.28 * pProg;
   }
 }
 
@@ -1678,17 +2045,29 @@ function updateHitBursts(dt){
 // ─────────────────────────────────────────────
 function updateHud(){
   if (!player || !cpu) return;
-  document.getElementById('hp-p').style.width = (player.hp / player.maxHp * 100) + '%';
-  document.getElementById('hp-c').style.width = (cpu.hp / cpu.maxHp * 100) + '%';
-  document.getElementById('stam-p').style.width = (player.stamina / player.maxStam * 100) + '%';
-  document.getElementById('stam-c').style.width = (cpu.stamina / cpu.maxStam * 100) + '%';
-  document.getElementById('hp-p-num').textContent = Math.round(player.hp);
-  document.getElementById('hp-c-num').textContent = Math.round(cpu.hp);
+  if (!raceMode){
+    document.getElementById('hp-p').style.width = (player.hp / player.maxHp * 100) + '%';
+    document.getElementById('hp-c').style.width = (cpu.hp / cpu.maxHp * 100) + '%';
+    document.getElementById('hp-p-num').textContent = Math.round(player.hp);
+    document.getElementById('hp-c-num').textContent = Math.round(cpu.hp);
+    document.getElementById('round-score').textContent = scorePlayer + '-' + scoreCpu;
+  } else {
+    // Race: show running damage score instead of score display
+    document.getElementById('race-dmg').textContent = Math.round(raceDamageDealt) + ' DMG';
+  }
+  const spEl = document.getElementById('stam-p');
+  const scEl = document.getElementById('stam-c');
+  spEl.style.width = (player.stamina / player.maxStam * 100) + '%';
+  scEl.style.width = (cpu.stamina / cpu.maxStam * 100) + '%';
+  const stamColor = (s) => s > 50 ? '#4dff91' : s > 28 ? '#f5c542' : '#ff3b3b';
+  spEl.style.background = stamColor(player.stamina);
+  scEl.style.background = stamColor(cpu.stamina);
+  const gasPulse = (el, s) => { if (s < 28) el.style.opacity = 0.5 + 0.5 * Math.abs(Math.sin(performance.now() * 0.006)); else el.style.opacity = 1; };
+  gasPulse(spEl, player.stamina); gasPulse(scEl, cpu.stamina);
   const m = Math.floor(roundClock / 60);
   const s = Math.floor(roundClock % 60);
   document.getElementById('round-time').textContent = m + ':' + (s < 10 ? '0' : '') + s;
-  document.getElementById('round-time').classList.toggle('danger', roundClock < 10);
-  document.getElementById('round-score').textContent = scorePlayer + '-' + scoreCpu;
+  document.getElementById('round-time').classList.toggle('danger', raceMode ? roundClock < 30 : roundClock < 10);
 }
 
 // ─────────────────────────────────────────────
@@ -1702,7 +2081,7 @@ function loop(now){
   if (dt > 0.1) dt = 0.1;
   if (slowmoT > 0){ slowmoT -= dt; dt *= 0.32; }
 
-  if (state === 'fight') update(dt);
+  if (state === 'fight' && !paused) update(dt);
 
   if (player) animateBoxer(player, dt);
   if (cpu)    animateBoxer(cpu,    dt);
@@ -1794,6 +2173,71 @@ function update(dt){
   tickCpu(cpu, dt);
   checkPunchHit(player, cpu);
   checkPunchHit(cpu, player);
+
+  // ── Clinch / body-collision ───────────────────────────────────────────────
+  // BODY_RADIUS is the hard collision shell — fighters can never overlap this.
+  // CLINCH_DIST is the threshold where they are genuinely too close to throw any
+  // punch cleanly (shorter than the shortest active punch range ~1.2). Only at
+  // that point do we call a clinch break and reset them to neutral corners.
+  const BODY_RADIUS  = 0.42;
+  const CLINCH_DIST  = BODY_RADIUS * 2;   // 0.84 — torsos literally touching
+  const MIN_PUNCH_RANGE = 0.70;           // below this no punch can land cleanly
+  if (state === 'fight' && player.hp > 0 && cpu.hp > 0){
+    const cdx = player.pos.x - cpu.pos.x;
+    const cdz = player.pos.z - cpu.pos.z;
+    const cdist = Math.sqrt(cdx*cdx + cdz*cdz);
+    if (cdist < CLINCH_DIST){
+      // Push apart to resolve collision every frame
+      const overlap = CLINCH_DIST - cdist;
+      const nx = cdist < 0.001 ? 1 : cdx / cdist;
+      const nz = cdist < 0.001 ? 0 : cdz / cdist;
+      player.pos.x += nx * overlap * 0.5;
+      player.pos.z += nz * overlap * 0.5;
+      cpu.pos.x    -= nx * overlap * 0.5;
+      cpu.pos.z    -= nz * overlap * 0.5;
+    }
+    // Clinch break: only when so close that no punch can reach — no cooldown timer
+    if (cdist < MIN_PUNCH_RANGE){
+      showBanner('CLINCH!');
+      const sep = RING_HALF * 0.7;
+      player.pos.x = -sep; player.pos.z = 0;
+      cpu.pos.x    =  sep; cpu.pos.z    = 0;
+      if (player.action in PUNCH){ player.action = 'idle'; player.actionT = 0; }
+      if (cpu.action    in PUNCH){ cpu.action    = 'idle'; cpu.actionT    = 0; }
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // Race mode: KOs don't end the round — fighters reset and keep going.
+  // CPU difficulty (diffTier) keeps climbing with each knockdown.
+  if (raceMode){
+    if (player.hp <= 0 || cpu.hp <= 0){
+      player.hp = player.maxHp || 100;
+      cpu.hp    = cpu.maxHp    || 100;
+      player.stunned = false; player.stunT = 0;
+      cpu.stunned    = false; cpu.stunT    = 0;
+      if (player.action === 'ko' || player.action === 'hit'){
+        player.action = 'idle'; player.actionT = 0; player.actionKind = null;
+        player.koStaggered = false;
+      }
+      if (cpu.action === 'ko' || cpu.action === 'hit'){
+        cpu.action = 'idle'; cpu.actionT = 0; cpu.actionKind = null;
+        cpu.koStaggered = false;
+      }
+      player.flinch = 0; cpu.flinch = 0;
+      const sep = RING_HALF * 0.65;
+      player.pos.x = -sep; player.pos.z = 0;
+      cpu.pos.x    =  sep; cpu.pos.z    = 0;
+      showBanner('KEEP GOING!');
+    }
+    if (roundClock <= 0){
+      roundClock = 0;
+      state = 'end';
+      finishRace();
+    }
+    return;
+  }
+
   if (player.hp <= 0 || cpu.hp <= 0){
     state = 'roundover';
     showBanner(player.hp <= 0 ? 'YOU GOT KO\'D' : 'KNOCKOUT!');
@@ -1956,6 +2400,29 @@ function roundEnd(){
   }
 }
 
+function finishRace(){
+  // CPU difficulty reached by end of race
+  const finalTier = Math.min(4, knockdownsCpu + Math.floor(totalCpuKnockdowns * 0.5));
+  const tierLabels = ['Rookie','Amateur','Pro','Elite','Champion'];
+  const dmg = Math.round(raceDamageDealt);
+
+  // Grade based on damage dealt in 5 minutes
+  const grade = dmg >= 600 ? 'S — UNSTOPPABLE' : dmg >= 450 ? 'A — DEVASTATING' :
+                dmg >= 300 ? 'B — SOLID' : dmg >= 150 ? 'C — AVERAGE' : 'D — KEEP TRAINING';
+
+  document.getElementById('end-title').textContent = "TIME'S UP!";
+  document.getElementById('end-sub').textContent   = 'You dealt ' + dmg + ' damage to Bruno';
+  document.getElementById('end-stats').textContent =
+    'Grade: ' + grade +
+    '  •  KOs landed: ' + knockdownsCpu +
+    '  •  CPU difficulty reached: ' + tierLabels[finalTier] +
+    '  •  Knockdowns taken: ' + knockdownsPlayer;
+
+  gloveRaiseMode = null;
+  playBell();
+  showScreen('screen-end');
+}
+
 function finishMatch(){
   state = 'end';
   let title = 'DRAW', sub = '';
@@ -1999,8 +2466,9 @@ function finishMatch(){
 function showScreen(id){ document.getElementById(id).classList.add('active'); }
 function hideScreen(id){ document.getElementById(id).classList.remove('active'); }
 
-document.getElementById('btn-fight').onclick   = () => { ensureAudio(); gloveRaiseMode = null; resetMatch(); };
-document.getElementById('btn-rematch').onclick = () => { gloveRaiseMode = null; resetMatch(); };
+document.getElementById('btn-fight').onclick   = () => { ensureAudio(); raceMode = false; gloveRaiseMode = null; resetMatch(); };
+document.getElementById('btn-race').onclick    = () => { ensureAudio(); raceMode = true;  gloveRaiseMode = null; resetMatch(); };
+document.getElementById('btn-rematch').onclick = () => { ensureAudio(); gloveRaiseMode = null; resetMatch(); };
 
 // Spawn placeholder boxers so the title screen renders the ring with both fighters in view
 setupRound(true);

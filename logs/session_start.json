@@ -146,5 +146,37 @@
     "cwd": "C:\\Users\\noahm\\Project",
     "hook_event_name": "SessionStart",
     "source": "clear"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionStart",
+    "source": "compact",
+    "model": "claude-sonnet-4-6"
+  },
+  {
+    "session_id": "d0896670-f262-4d2b-9ead-b13fa7f2a3a3",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\d0896670-f262-4d2b-9ead-b13fa7f2a3a3.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "model": "claude-sonnet-4-6"
+  },
+  {
+    "session_id": "58688435-4829-4238-8e86-47e16e0c7537",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\58688435-4829-4238-8e86-47e16e0c7537.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "model": "claude-sonnet-4-6"
+  },
+  {
+    "session_id": "b4a9ce75-398e-4aad-a496-613b391884f7",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\b4a9ce75-398e-4aad-a496-613b391884f7.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "model": "claude-haiku-4-5-20251001"
   }
 ]

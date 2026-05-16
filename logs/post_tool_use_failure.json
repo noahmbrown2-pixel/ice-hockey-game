@@ -618,5 +618,38 @@
       "duration_ms": 375,
       "logged_at": "2026-05-11T18:40:33.866911"
     }
+  },
+  {
+    "timestamp": "2026-05-15T18:01:02.600517",
+    "session_id": "b4a9ce75-398e-4aad-a496-613b391884f7",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Read",
+    "tool_use_id": "toolu_01Lt8sBnniPtBXrtE7s3HM7j",
+    "tool_input": {
+      "file_path": "C:\\Users\\noahm\\Project\\boxing-3d.html"
+    },
+    "error": "File content (38664 tokens) exceeds maximum allowed tokens (25000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\b4a9ce75-398e-4aad-a496-613b391884f7.jsonl",
+    "raw_input": {
+      "session_id": "b4a9ce75-398e-4aad-a496-613b391884f7",
+      "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\b4a9ce75-398e-4aad-a496-613b391884f7.jsonl",
+      "cwd": "C:\\Users\\noahm\\Project",
+      "permission_mode": "default",
+      "effort": {
+        "level": "high"
+      },
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Read",
+      "tool_input": {
+        "file_path": "C:\\Users\\noahm\\Project\\boxing-3d.html"
+      },
+      "tool_use_id": "toolu_01Lt8sBnniPtBXrtE7s3HM7j",
+      "error": "File content (38664 tokens) exceeds maximum allowed tokens (25000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.",
+      "is_interrupt": false,
+      "duration_ms": 329,
+      "logged_at": "2026-05-15T18:01:02.600517"
+    }
   }
 ]

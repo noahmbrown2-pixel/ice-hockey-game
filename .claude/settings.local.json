@@ -77,7 +77,8 @@
       "Bash(netstat -ano)",
       "Bash(start *)",
       "Skill(update-config)",
-      "PowerShell(\\(Get-Content \"C:\\\\Users\\\\noahm\\\\Project\\\\boxing-3d.html\" | Measure-Object -Line\\).Lines)"
+      "PowerShell(\\(Get-Content \"C:\\\\Users\\\\noahm\\\\Project\\\\boxing-3d.html\" | Measure-Object -Line\\).Lines)",
+      "Bash(git commit *)"
     ]
   },
   "hooks": {

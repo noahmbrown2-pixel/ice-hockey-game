@@ -187,5 +187,23 @@
     "agent_type": "builder",
     "hook_event_name": "SubagentStart",
     "logged_at": "2026-05-11T19:45:52.487289"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a2e12de0cd4117495",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-05-12T00:19:06.064235"
+  },
+  {
+    "session_id": "ab64c42d-af75-4177-b57b-c24d0c36f49a",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\ab64c42d-af75-4177-b57b-c24d0c36f49a.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a20b4fdcf7c66c239",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-05-12T20:42:58.822186"
   }
 ]
