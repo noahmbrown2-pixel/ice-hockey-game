@@ -2458,13 +2458,13 @@ function renderTeamSelect() {
   const grid = document.getElementById("teamGrid");
   const champTeams = Object.values(G.teams).filter(t => t.division === "Championship");
   // Every team starts with £200M budget regardless of tier
-  champTeams.forEach(t => { t.startBudget = 50e6; });
+  champTeams.forEach(t => { t.startBudget = 100e6; });
   grid.innerHTML = champTeams.map(t => `
     <div class="team-card" onclick="selectTeam(${t.id})">
       <div class="name">${t.name}</div>
       <div class="city">${t.city}</div>
       <div class="fact">${t.fact}</div>
-      <div class="budget">Starting Budget: £50M</div>
+      <div class="budget">Starting Budget: £100M</div>
     </div>
   `).join("");
 }
@@ -2472,7 +2472,7 @@ function renderTeamSelect() {
 function selectTeam(teamId) {
   G.userTeamId = teamId;
   const team = G.teams[teamId];
-  G.budget = 50e6; // Starting budget: £50M
+  G.budget = 100e6; // Starting budget: £100M
   G.division = "Championship";
   // Build AI squads for ALL teams except user
   Object.values(G.teams).forEach(t => {
