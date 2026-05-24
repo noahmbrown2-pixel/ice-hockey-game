@@ -178,5 +178,61 @@
     "hook_event_name": "SessionStart",
     "source": "startup",
     "model": "claude-haiku-4-5-20251001"
+  },
+  {
+    "session_id": "b4a9ce75-398e-4aad-a496-613b391884f7",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\b4a9ce75-398e-4aad-a496-613b391884f7.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionStart",
+    "source": "compact",
+    "model": "claude-sonnet-4-6"
+  },
+  {
+    "session_id": "6aba6a84-d7c4-4d13-ae17-0d262f6ac0bc",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\6aba6a84-d7c4-4d13-ae17-0d262f6ac0bc.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "model": "claude-sonnet-4-6"
+  },
+  {
+    "session_id": "cdb902a0-8723-43c1-8dfe-74ed9d1887ce",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\cdb902a0-8723-43c1-8dfe-74ed9d1887ce.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "model": "claude-sonnet-4-6"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "model": "claude-sonnet-4-6"
+  },
+  {
+    "session_id": "f7744cee-1f92-4d17-ab38-a12d9af8d1d9",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\f7744cee-1f92-4d17-ab38-a12d9af8d1d9.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "model": "claude-sonnet-4-6"
+  },
+  {
+    "session_id": "93ac25f6-cf7b-4aac-86ea-d91650072ff2",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\93ac25f6-cf7b-4aac-86ea-d91650072ff2.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "model": "claude-sonnet-4-6"
+  },
+  {
+    "session_id": "b68b5b26-4bad-4dc6-97e2-029cf4233832",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\b68b5b26-4bad-4dc6-97e2-029cf4233832.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "model": "claude-sonnet-4-6"
   }
 ]

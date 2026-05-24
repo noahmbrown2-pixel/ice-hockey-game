@@ -88,6 +88,27 @@ canvas{display:block}
 .touch-btn.empty{background:transparent;border:none}
 .touch-btn.blk{background:rgba(60,90,160,.55);border-color:rgba(160,200,255,.7);color:#dcefff}
 @media (pointer:coarse), (max-width:900px) { #touch-controls{display:block} .bar{width:42vw} .stam{width:36vw} }
+
+/* Fighter selection */
+#fighter-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;max-width:720px;width:100%;margin:6px auto 0}
+.fighter-tab{background:rgba(20,10,10,.7);border:2px solid rgba(255,215,0,.35);color:#ffd700;font-weight:900;letter-spacing:1px;font-size:11px;padding:8px 4px;border-radius:6px;cursor:pointer;text-transform:uppercase;transition:transform .1s ease,border-color .1s ease,background .1s ease;text-align:center;line-height:1.2}
+.fighter-tab:hover{transform:translateY(-1px);border-color:rgba(255,215,0,.8)}
+.fighter-tab.active{background:linear-gradient(180deg,#ffd700,#c89a00);color:#1a0d0d;border-color:#fff;box-shadow:0 0 10px rgba(255,215,0,.6),0 0 0 2px #cc0000 inset}
+#fighter-preview{max-width:720px;width:100%;margin:4px auto 0;background:rgba(15,8,8,.78);border:2px solid #ffd700;border-radius:8px;padding:10px 14px;color:#f0e6d2;text-align:left}
+#fighter-preview .fp-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+#fighter-preview .fp-name{font-family:'Arial Black',sans-serif;font-size:18px;letter-spacing:2px;color:#ffd700;text-shadow:0 2px 0 #6b1a00}
+#fighter-preview .fp-desc{font-size:12px;color:#cfc8b8;line-height:1.45;margin-bottom:8px}
+#fighter-preview .fp-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 16px}
+#fighter-preview .fp-stat{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:1px;color:#cfc8b8}
+#fighter-preview .fp-stat .lbl{width:60px;color:#ffd700}
+#fighter-preview .fp-stat .meter{flex:1;height:8px;background:rgba(0,0,0,.6);border:1px solid rgba(255,215,0,.4);border-radius:2px;position:relative;overflow:hidden}
+#fighter-preview .fp-stat .meter-fill{position:absolute;top:0;left:0;bottom:0;background:linear-gradient(90deg,#ff3838,#ffd700);transition:width .15s ease}
+#fighter-preview .fp-stat .val{width:22px;text-align:right;font-family:Consolas,monospace;color:#fff}
+@media (max-width:720px){
+  #fighter-tabs{grid-template-columns:repeat(5,1fr);gap:4px}
+  .fighter-tab{font-size:9px;padding:6px 2px}
+  #fighter-preview .fp-stats{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -127,6 +148,8 @@ canvas{display:block}
   <h1>HEAVY HITTERS 3D</h1>
   <h2>★ Round 1 ★</h2>
   <p>Three rounds. One minute apiece. Drop your opponent or win on damage. Now in glorious 3D — third-person, two-arm combat.</p>
+  <div id="fighter-tabs"></div>
+  <div id="fighter-preview"></div>
   <button class="btn" id="btn-fight">FIGHT</button>
   <button class="btn" id="btn-race" style="margin-top:10px;background:linear-gradient(180deg,#ff6b6b,#c0392b);color:#fff;box-shadow:0 4px 0 #7a1a1a, 0 8px 16px rgba(0,0,0,.5)">RACE MODE</button>
   <div class="controls">
@@ -229,6 +252,79 @@ const KEY_PUNCH = {
 
 const ROUND_LEN = 60;
 const TOTAL_ROUNDS = 3;
+
+// ─────────────────────────────────────────────
+//  Fighter archetypes — physics/stat profiles
+// ─────────────────────────────────────────────
+// Each profile defines stat multipliers + visual color overrides.
+// Stat bars (0–10) drive the preview UI only.
+const FIGHTERS = [
+  { id:'brawler',  name:'BRAWLER',           desc:'Heavy hands and a slow windup. Knockback for days; gas tank suffers.',
+    skin:0xc88555, trunks:0x7d1212, gloveColor:0xcc1a1a,
+    dmgMult:1.4, staminaMult:1.0, windupMult:1.5, recoverMult:1.2, rangeMult:1.0,
+    speedMult:0.92, maxHp:100, maxStam:90, blockMult:1.0, damageTakenMult:1.0, kbMult:1.5, staminaRegen:0.75,
+    bars:{ speed:3, power:9, defense:5, stamina:4 }, specialRule:null,
+    aiAggression:0.85, aiReaction:0.35 },
+  { id:'speedster', name:'SPEEDSTER',        desc:'Fast hands, fast feet, but stings instead of cracks. Great recovery.',
+    skin:0xd9b08a, trunks:0xffd700, gloveColor:0xffe066,
+    dmgMult:0.7, staminaMult:0.8, windupMult:0.6, recoverMult:0.65, rangeMult:1.0,
+    speedMult:1.3, maxHp:90, maxStam:120, blockMult:1.0, damageTakenMult:1.0, kbMult:0.85, staminaRegen:1.4,
+    bars:{ speed:10, power:3, defense:5, stamina:9 }, specialRule:null,
+    aiAggression:0.55, aiReaction:0.7 },
+  { id:'counter',  name:'COUNTER PUNCHER',   desc:'Patient. Bait a punch, then crack a thunderous reply within a heartbeat.',
+    skin:0xb88060, trunks:0x222244, gloveColor:0x7a3aff,
+    dmgMult:1.0, staminaMult:1.0, windupMult:1.0, recoverMult:1.0, rangeMult:1.0,
+    speedMult:1.0, maxHp:100, maxStam:100, blockMult:1.1, damageTakenMult:1.0, kbMult:1.0, staminaRegen:1.0,
+    bars:{ speed:6, power:7, defense:7, stamina:6 }, specialRule:'counterPunch',
+    aiAggression:0.5, aiReaction:0.6 },
+  { id:'tank',     name:'TANK',              desc:'Walking wall of granite. Takes a beating, plods forward, never runs out of gas.',
+    skin:0xa07050, trunks:0x2a2a2a, gloveColor:0x444444,
+    dmgMult:1.0, staminaMult:0.5, windupMult:1.15, recoverMult:1.1, rangeMult:1.0,
+    speedMult:0.75, maxHp:140, maxStam:100, blockMult:1.15, damageTakenMult:0.7, kbMult:0.7, staminaRegen:1.2,
+    bars:{ speed:2, power:6, defense:10, stamina:9 }, specialRule:null,
+    aiAggression:0.6, aiReaction:0.4 },
+  { id:'boxer',    name:'BOXER',             desc:'Technical, long-range. Crisp jabs and crosses; hooks lose some venom.',
+    skin:0xd6a070, trunks:0x1166aa, gloveColor:0x3da2ff,
+    dmgMult:1.0, staminaMult:0.85, windupMult:0.9, recoverMult:0.9, rangeMult:1.15,
+    speedMult:1.1, maxHp:100, maxStam:115, blockMult:1.1, damageTakenMult:0.95, kbMult:1.0, staminaRegen:1.2,
+    bars:{ speed:8, power:6, defense:7, stamina:9 }, specialRule:null,
+    punchTypeMults:{ jab:1.3, cross:1.3, straight:1.3, hook:0.8, checkHook:0.8, haymaker:0.8, shovelHook:0.85 },
+    aiAggression:0.55, aiReaction:0.65 },
+  { id:'slugger',  name:'SLUGGER',           desc:'One-shot finisher. Loops bombs from the hip — if they land, it is over.',
+    skin:0xb56a3a, trunks:0x222222, gloveColor:0xff3838,
+    dmgMult:1.0, staminaMult:1.25, windupMult:1.25, recoverMult:1.8, rangeMult:1.0,
+    speedMult:0.9, maxHp:100, maxStam:85, blockMult:0.95, damageTakenMult:1.05, kbMult:1.35, staminaRegen:0.8,
+    bars:{ speed:3, power:10, defense:4, stamina:3 }, specialRule:'sluggerStun',
+    punchTypeMults:{ haymaker:1.6, overhand:1.6, hook:1.6, checkHook:1.4 },
+    aiAggression:0.9, aiReaction:0.3 },
+  { id:'pressure', name:'PRESSURE FIGHTER',  desc:'Constant forward march. Drains the opponent every time leather lands.',
+    skin:0xc89060, trunks:0x9b1818, gloveColor:0xff7a3a,
+    dmgMult:1.0, staminaMult:1.1, windupMult:0.95, recoverMult:0.95, rangeMult:1.0,
+    speedMult:1.15, maxHp:100, maxStam:105, blockMult:1.0, damageTakenMult:1.0, kbMult:1.05, staminaRegen:1.1,
+    bars:{ speed:8, power:6, defense:6, stamina:7 }, specialRule:'staminaDrain',
+    aiAggression:0.85, aiReaction:0.55 },
+  { id:'glass',    name:'GLASS CANNON',      desc:'A live wire. Hits like a freight train, folds like wet paper.',
+    skin:0xeac09a, trunks:0xff3838, gloveColor:0xffd700,
+    dmgMult:1.6, staminaMult:1.0, windupMult:0.85, recoverMult:0.9, rangeMult:1.0,
+    speedMult:1.1, maxHp:65, maxStam:70, blockMult:0.85, damageTakenMult:1.4, kbMult:1.2, staminaRegen:0.9,
+    bars:{ speed:7, power:10, defense:2, stamina:4 }, specialRule:null,
+    aiAggression:0.8, aiReaction:0.55 },
+  { id:'defensive',name:'DEFENSIVE SPECIALIST', desc:'Shoulder rolls, blocks, slips. Punishes the patient.',
+    skin:0xb88a60, trunks:0x336699, gloveColor:0x99ccff,
+    dmgMult:0.75, staminaMult:0.7, windupMult:1.0, recoverMult:1.0, rangeMult:1.0,
+    speedMult:1.05, maxHp:100, maxStam:120, blockMult:1.6, damageTakenMult:0.85, kbMult:0.9, staminaRegen:1.3,
+    bars:{ speed:7, power:4, defense:10, stamina:9 }, specialRule:'shortDodgeCd',
+    aiAggression:0.4, aiReaction:0.8 },
+  { id:'street',   name:'STREET FIGHTER',    desc:'Dirty boxer. Liver shots, body rips, and shovel hooks. Headhunters beware.',
+    skin:0xa86840, trunks:0x3a3a1a, gloveColor:0x666633,
+    dmgMult:1.0, staminaMult:1.0, windupMult:1.0, recoverMult:1.0, rangeMult:1.0,
+    speedMult:1.0, maxHp:100, maxStam:100, blockMult:1.0, damageTakenMult:1.0, kbMult:1.3, staminaRegen:1.0,
+    bars:{ speed:6, power:7, defense:6, stamina:7 }, specialRule:null,
+    punchTypeMults:{ bodyShot:1.7, liverShot:1.7, shovelHook:1.7, jab:0.8, cross:0.8, straight:0.8, hook:0.85 },
+    aiAggression:0.7, aiReaction:0.55 },
+];
+
+let selectedFighter = FIGHTERS[0];
 
 // ─────────────────────────────────────────────
 //  Three.js scene
@@ -574,46 +670,111 @@ function createBoxer3D(opts){
   const hipsGroup = new THREE.Group();
   hipsGroup.position.y = 0;
   root.add(hipsGroup);
-  const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.20, 0.18, 0.10, 14), beltMat);
-  belt.position.y = 0.95;
+  const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.235, 0.215, 0.13, 16), beltMat);
+  belt.position.y = 0.96;
   hipsGroup.add(belt);
+  // Glutes — two large posterior spheres
+  [-1,1].forEach(s => {
+    const glute = new THREE.Mesh(new THREE.SphereGeometry(0.148, 12, 8), skinMat);
+    glute.scale.set(0.76, 0.88, 1.05);
+    glute.position.set(-0.09, 0.82, s * 0.10);
+    hipsGroup.add(glute);
+  });
+  // Iliac crests (hip bone protrusions)
+  [-1,1].forEach(s => {
+    const hipCrest = new THREE.Mesh(new THREE.SphereGeometry(0.095, 10, 7), skinMat);
+    hipCrest.scale.set(0.62, 0.58, 0.95);
+    hipCrest.position.set(0.08, 0.93, s * 0.205);
+    hipsGroup.add(hipCrest);
+  });
 
   // ═══ SPINE — lumbar (pivot at waist y=0) → thoracic (pivot at mid-spine y=1.00) ═══
   const lumbar = new THREE.Group();
   lumbar.position.y = 0;
   root.add(lumbar);
 
-  const waist = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.20, 0.44), skinMat);
-  waist.position.y = 1.04;
-  lumbar.add(waist);
-  const rib = new THREE.Mesh(new THREE.BoxGeometry(0.30, 0.06, 0.50), skinMat);
-  rib.position.y = 1.14;
-  lumbar.add(rib);
+  // Abs — 6-pack (3 rows × 2 columns of muscle spheres)
+  [-1,1].forEach(s => {
+    [0,1,2].forEach(i => {
+      const ab = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 8), skinMat);
+      ab.scale.set(0.80, 0.88, 0.62);
+      ab.position.set(0.025, 1.215 - i * 0.092, s * 0.085);
+      lumbar.add(ab);
+    });
+  });
+  // Linea alba (center vertical groove)
+  const lineaAlba = new THREE.Mesh(new THREE.CylinderGeometry(0.010, 0.007, 0.285, 6), detailMat);
+  lineaAlba.position.set(0.092, 1.12, 0);
+  lineaAlba.rotation.z = Math.PI / 2;
+  lumbar.add(lineaAlba);
+  // Obliques — large angled slabs on sides of waist
+  [-1,1].forEach(s => {
+    const oblique = new THREE.Mesh(new THREE.SphereGeometry(0.108, 10, 8), skinMat);
+    oblique.scale.set(0.58, 1.48, 0.78);
+    oblique.position.set(-0.008, 1.135, s * 0.178);
+    lumbar.add(oblique);
+  });
 
   // thoracic — rotates at mid-spine for cross/hook spine twist
   const thoracic = new THREE.Group();
   thoracic.position.y = 1.00; // pivot at mid-spine in lumbar space
   lumbar.add(thoracic);
 
-  const chest = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.36, 0.55), skinMat);
-  chest.position.y = 0.30; // 1.00 + 0.30 = 1.30 in world
+  // Lats — broad V-taper masses sweeping down from armpits
+  [-1,1].forEach(s => {
+    const lat = new THREE.Mesh(new THREE.SphereGeometry(0.158, 12, 8), skinMat);
+    lat.scale.set(0.50, 1.60, 0.85);
+    lat.position.set(-0.018, 0.235, s * 0.225);
+    thoracic.add(lat);
+  });
+  // Serratus anterior — finger serrations below pecs
+  [-1,1].forEach(s => {
+    [0,1,2].forEach(i => {
+      const serra = new THREE.Mesh(new THREE.SphereGeometry(0.048, 8, 6), skinMat);
+      serra.scale.set(0.58, 0.38, 1.18);
+      serra.position.set(0.045, 0.155 - i * 0.068, s * 0.208);
+      thoracic.add(serra);
+    });
+  });
+  // Pecs — prominent hemispherical masses (chest = left pec, breathes in animateBoxer)
+  const chest = new THREE.Mesh(new THREE.SphereGeometry(0.168, 14, 10), skinMat);
+  chest.scale.set(0.88, 0.76, 1.22);
+  chest.position.set(0.118, 0.325, -0.088);
   thoracic.add(chest);
-  const pecV = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.30, 0.02), detailMat);
-  pecV.position.set(0.16, 0.30, 0);
-  thoracic.add(pecV);
-  const pecH = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.005, 0.36), detailMat);
-  pecH.position.set(0.155, 0.16, 0);
-  thoracic.add(pecH);
-  for (let i = 0; i < 3; i++){
-    const ab = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.005, 0.18), detailMat);
-    ab.position.set(0.135, 0.10 - i * 0.05, 0);
-    thoracic.add(ab);
-  }
+  const pecR = new THREE.Mesh(new THREE.SphereGeometry(0.168, 14, 10), skinMat);
+  pecR.scale.set(0.88, 0.76, 1.22);
+  pecR.position.set(0.118, 0.325, 0.088);
+  thoracic.add(pecR);
+  // Pec lower shelf (under-pec ridge)
+  [-1,1].forEach(s => {
+    const shelf = new THREE.Mesh(new THREE.SphereGeometry(0.102, 10, 8), skinMat);
+    shelf.scale.set(0.72, 0.40, 1.08);
+    shelf.position.set(0.138, 0.162, s * 0.080);
+    thoracic.add(shelf);
+  });
+  // Sternum groove between pecs
+  const sternum = new THREE.Mesh(new THREE.BoxGeometry(0.220, 0.005, 0.016), detailMat);
+  sternum.position.set(0.118, 0.298, 0);
+  thoracic.add(sternum);
+  // Trapezius — thick traps rising toward neck
+  [-1,1].forEach(s => {
+    const trap = new THREE.Mesh(new THREE.SphereGeometry(0.118, 10, 8), skinMat);
+    trap.scale.set(0.58, 0.88, 0.98);
+    trap.position.set(-0.038, 0.485, s * 0.118);
+    thoracic.add(trap);
+  });
 
   // ═══ NECK — cylinder mesh + pivot groups for atlanto-axial (Y) and atlanto-occipital (Z) ═══
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.085, 0.12, 10), skinMat);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.098, 0.112, 0.14, 12), skinMat);
   neck.position.y = 0.55; // 1.00 + 0.55 = 1.55 in world
   thoracic.add(neck);
+  // Sternocleidomastoid (neck muscle columns)
+  [-1,1].forEach(s => {
+    const scm = new THREE.Mesh(new THREE.SphereGeometry(0.042, 8, 6), skinMat);
+    scm.scale.set(0.55, 1.60, 0.70);
+    scm.position.set(0.045, 0.55, s * 0.068);
+    thoracic.add(scm);
+  });
 
   // neckPivot: atlanto-axial joint — Y axis only (head rotation left/right)
   const neckPivot = new THREE.Group();
@@ -681,35 +842,62 @@ function createBoxer3D(opts){
     shoulderGrp.position.set(0, 0.50, side * 0.22); // thoracic y=1.00, +0.50 = world y=1.50
     thoracic.add(shoulderGrp);
 
-    const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.07, 0.32, 10), skinMat);
+    // Upper arm cylinder (structural base)
+    const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.098, 0.080, 0.32, 12), skinMat);
     upper.position.y = -0.16;
     shoulderGrp.add(upper);
-    // Bicep — scales with elbow flexion
-    const bicepMesh = new THREE.Mesh(new THREE.SphereGeometry(0.082, 10, 8), skinMat);
-    bicepMesh.position.set(0.03, -0.11, 0);
-    bicepMesh.scale.set(1.1, 1.5, 1.0);
+    // Bicep — tall peak sphere (scales with elbow flexion in animateBoxer)
+    const bicepMesh = new THREE.Mesh(new THREE.SphereGeometry(0.100, 12, 8), skinMat);
+    bicepMesh.position.set(0.042, -0.10, 0);
+    bicepMesh.scale.set(0.80, 1.95, 0.85);
     shoulderGrp.add(bicepMesh);
-    // Deltoid — scales with shoulder abduction
-    const deltoidMesh = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 6), skinMat);
-    deltoidMesh.position.set(0, 0, side * 0.07);
-    deltoidMesh.scale.set(1.0, 0.85, 1.4);
+    // Tricep — long head (back of arm)
+    const triLong = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 8), skinMat);
+    triLong.position.set(-0.055, -0.148, side * 0.022);
+    triLong.scale.set(0.70, 1.65, 0.78);
+    shoulderGrp.add(triLong);
+    // Tricep — lateral head (horseshoe outer sweep)
+    const triLat = new THREE.Mesh(new THREE.SphereGeometry(0.076, 10, 8), skinMat);
+    triLat.position.set(-0.058, -0.092, side * 0.080);
+    triLat.scale.set(0.65, 1.28, 0.82);
+    shoulderGrp.add(triLat);
+    // Deltoid — 3 heads (lateral cap = deltoidMesh for animateBoxer scaling)
+    const deltoidMesh = new THREE.Mesh(new THREE.SphereGeometry(0.102, 12, 8), skinMat);
+    deltoidMesh.position.set(0.005, 0.022, side * 0.122);
+    deltoidMesh.scale.set(0.80, 0.70, 1.38);
     shoulderGrp.add(deltoidMesh);
+    const deltFront = new THREE.Mesh(new THREE.SphereGeometry(0.086, 10, 8), skinMat);
+    deltFront.position.set(0.052, 0.005, side * 0.048);
+    deltFront.scale.set(0.98, 0.76, 1.02);
+    shoulderGrp.add(deltFront);
+    const deltRear = new THREE.Mesh(new THREE.SphereGeometry(0.080, 10, 8), skinMat);
+    deltRear.position.set(-0.042, 0.005, side * 0.082);
+    deltRear.scale.set(0.82, 0.72, 1.08);
+    shoulderGrp.add(deltRear);
 
     // elbowGrp: HINGE — Z axis only (flexion/extension)
     const elbowGrp = new THREE.Group();
     elbowGrp.position.y = -0.33;
     shoulderGrp.add(elbowGrp);
 
-    const elbowSphere = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), skinMat);
-    elbowGrp.add(elbowSphere);
+    // Olecranon — posterior elbow knob
+    const olecranon = new THREE.Mesh(new THREE.SphereGeometry(0.074, 10, 8), skinMat);
+    olecranon.scale.set(0.76, 0.62, 1.05);
+    olecranon.position.set(-0.040, 0, 0);
+    elbowGrp.add(olecranon);
 
     // forearmPivot: PIVOT — Y axis only (pronation / supination)
     const forearmPivot = new THREE.Group();
     elbowGrp.add(forearmPivot);
 
-    const forearm = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.058, 0.26, 10), skinMat);
+    const forearm = new THREE.Mesh(new THREE.CylinderGeometry(0.082, 0.062, 0.26, 12), skinMat);
     forearm.position.y = -0.13;
     forearmPivot.add(forearm);
+    // Brachioradialis / extensor bulge (outer forearm mass)
+    const extensor = new THREE.Mesh(new THREE.SphereGeometry(0.070, 10, 8), skinMat);
+    extensor.scale.set(0.62, 1.52, 0.82);
+    extensor.position.set(0.040, -0.075, side * 0.020);
+    forearmPivot.add(extensor);
 
     // wristGrp: CONDYLOID — X (flex/extend) + Z (radial/ulnar deviation) only
     const wristGrp = new THREE.Group();
@@ -829,6 +1017,13 @@ let raceDamageDealt = 0; // total damage player has landed on CPU this race
 const RACE_DURATION = 300; // 5 minutes in seconds
 
 function makeBoxer(opts){
+  const profile = opts.physicsProfile || null;
+  // Allow profile to override colors when caller didn't pin them.
+  const trunks = (profile && opts.useProfileColors) ? profile.trunks : opts.trunks;
+  const skin   = (profile && opts.useProfileColors) ? profile.skin   : (opts.skin || 0xd6a26b);
+  const gloveC = (profile && opts.useProfileColors) ? profile.gloveColor : opts.gloveColor;
+  const maxHp   = profile ? profile.maxHp   : 100;
+  const maxStam = profile ? profile.maxStam : 100;
   const b = {
     name: opts.name,
     isPlayer: !!opts.isPlayer,
@@ -836,12 +1031,12 @@ function makeBoxer(opts){
     facing: opts.facing || 1,
     yaw: (opts.facing > 0) ? 0 : Math.PI,
     targetYaw: 0,
-    hp: 100, maxHp: 100,
-    stamina: 100, maxStam: 100,
+    hp: maxHp, maxHp: maxHp,
+    stamina: maxStam, maxStam: maxStam,
     color: opts.color,
-    trunks: opts.trunks,
-    skin: opts.skin || 0xd6a26b,
-    gloveColor: opts.gloveColor,
+    trunks: trunks,
+    skin: skin,
+    gloveColor: gloveC,
     action: 'idle',
     actionT: 0, actionDur: 0,
     activeArm: 'lead',
@@ -849,7 +1044,8 @@ function makeBoxer(opts){
     hitFrameDone: false,
     flinch: 0, flinchDir: 0, flinchHistory: 0,
     aiTimer: 0, aiState: 'idle',
-    aiAggression: 0.5, aiReaction: 0.4,
+    aiAggression: (profile && profile.aiAggression!=null) ? profile.aiAggression : 0.5,
+    aiReaction:   (profile && profile.aiReaction!=null)   ? profile.aiReaction   : 0.4,
     circleDir: Math.random() < 0.5 ? -1 : 1,
     circleTimer: 1.5 + Math.random() * 1.5,
     stunned: false, stunT: 0,
@@ -868,7 +1064,10 @@ function makeBoxer(opts){
     punchesThrown: 0, punchesLanded: 0, lowStaminaTicks: 0,
     // Damage taken by zone
     zoneDmg: { HEAD:0, CHEST:0, ABS:0, LIVER:0, LEFT_RIBS:0, RIGHT_RIBS:0 },
-    rig: createBoxer3D({ trunks: opts.trunks, skin: opts.skin, gloveColor: opts.gloveColor }),
+    // Fighter archetype profile (multipliers + special rule)
+    physicsProfile: profile,
+    lastHitTime: 0,   // ms — for counter-puncher window
+    rig: createBoxer3D({ trunks: trunks, skin: skin, gloveColor: gloveC }),
   };
   // Lead = left arm (orthodox), Rear = right arm.
   return b;
@@ -902,8 +1101,15 @@ function resetMatch(){
 function setupRound(freshMatch){
   if (player) scene.remove(player.rig.root);
   if (cpu)    scene.remove(cpu.rig.root);
-  player = makeBoxer({ name:'YOU', isPlayer:true, x:-1.6, z:0, facing:1, color:0x7d2424, trunks:0xcc0000, gloveColor:0xff3838, skin:0xd6a26b });
-  cpu    = makeBoxer({ name:'BRUNO',                x:1.6, z:0, facing:-1, color:0x1f3d6e, trunks:0x0066cc, gloveColor:0x3da2ff, skin:0xc08550 });
+  const pProfile = selectedFighter || FIGHTERS[0];
+  player = makeBoxer({ name:'YOU', isPlayer:true, x:-1.6, z:0, facing:1, color:0x7d2424,
+    trunks:pProfile.trunks, gloveColor:pProfile.gloveColor, skin:pProfile.skin,
+    physicsProfile:pProfile });
+  // CPU: always Brawler archetype as default opponent, but keep classic blue look.
+  const cpuProfile = FIGHTERS[0];
+  cpu    = makeBoxer({ name:'BRUNO',                x:1.6, z:0, facing:-1, color:0x1f3d6e,
+    trunks:0x0066cc, gloveColor:0x3da2ff, skin:0xc08550,
+    physicsProfile:cpuProfile });
   cpu.aiAggression = 0.45 + round*0.12;
   cpu.aiReaction   = 0.35 + round*0.10;
   scene.add(player.rig.root);
@@ -1009,8 +1215,10 @@ function startAction(b, kind, sideOverride){
   if (b.action !== 'idle' && b.action !== 'block') return;
   if (kind in PUNCH){
     const p = PUNCH[kind];
-    if (b.stamina < p.stam * 0.5) return;
-    b.stamina = Math.max(0, b.stamina - p.stam);
+    const pf = b.physicsProfile;
+    const staminaCost = p.stam * (pf ? pf.staminaMult : 1);
+    if (b.stamina < staminaCost * 0.5) return;
+    b.stamina = Math.max(0, b.stamina - staminaCost);
     let arm;
     const handRule = PUNCH_HAND[kind];
     if (sideOverride) arm = sideOverride;
@@ -1025,7 +1233,9 @@ function startAction(b, kind, sideOverride){
     b.actionT = 0;
     // Fatigue: only kicks in when nearly empty — subtle slowdown
     const fatigueMult = 1 + Math.max(0, (20 - b.stamina) / 20) * 0.35;
-    b.actionDur = (p.windup + p.active + p.recover) * fatigueMult;
+    const wMult = pf ? pf.windupMult  : 1;
+    const rMult = pf ? pf.recoverMult : 1;
+    b.actionDur = (p.windup * wMult + p.active + p.recover * rMult) * fatigueMult;
     b.activeArm = arm;
     b.hitFrameDone = false;
     b.punchesThrown++;
@@ -1042,7 +1252,9 @@ function startDodge(b){
   b.action = 'dodge';
   b.actionT = 0;
   b.actionDur = 0.38;
-  b.dodgeCooldown = 0.9;
+  // Defensive specialist: halved cooldown
+  const cdMult = (b.physicsProfile && b.physicsProfile.specialRule === 'shortDodgeCd') ? 0.5 : 1;
+  b.dodgeCooldown = 0.9 * cdMult;
 }
 
 function zoneForHit(attacker, kind){
@@ -1090,9 +1302,29 @@ function takeHit(target, source, kind){
   // Pre-existing zone damage multiplier (BEFORE we add this hit)
   dmg = dmg * zoneMultiplier(target.zoneDmg[zone] || 0);
 
+  // ── Fighter-archetype multipliers ──
+  const srcPf = source.physicsProfile;
+  const tgtPf = target.physicsProfile;
+  if (srcPf){
+    dmg *= srcPf.dmgMult || 1;
+    if (srcPf.punchTypeMults && srcPf.punchTypeMults[kind] != null){
+      dmg *= srcPf.punchTypeMults[kind];
+    }
+    // Counter-puncher: 1.8× when throwing within 250 ms of being hit
+    if (srcPf.specialRule === 'counterPunch' && source.lastHitTime > 0){
+      if (Date.now() - source.lastHitTime < 250) dmg *= 1.8;
+    }
+  }
+  if (tgtPf){
+    dmg *= tgtPf.damageTakenMult || 1;
+  }
+
   if (blocked){
-    dmg = Math.round(dmg * 0.18);
-    target.stamina = Math.max(0, target.stamina - p.stam * 0.6);
+    const blkMult = (tgtPf && tgtPf.blockMult) ? tgtPf.blockMult : 1;
+    // Higher blockMult = more damage reduction (less damage through)
+    const dmgThrough = 0.18 / blkMult;
+    dmg = Math.round(dmg * dmgThrough);
+    target.stamina = Math.max(0, target.stamina - p.stam * 0.6 / blkMult);
     playBlock();
     spawnHitText('BLOCK', target, '#9fdcff');
   } else {
@@ -1102,13 +1334,26 @@ function takeHit(target, source, kind){
     if (target.action !== 'ko') target.action = 'hit';
     target.actionT = 0;
     target.actionDur = p.windup + 0.05;
+    target.lastHitTime = Date.now();
+    // Pressure fighter: extra stamina drain on opponent per landed hit
+    if (srcPf && srcPf.specialRule === 'staminaDrain'){
+      target.stamina = Math.max(0, target.stamina - 8);
+    }
+    // Slugger: big extra stun on landed bombs
+    if (srcPf && srcPf.specialRule === 'sluggerStun' && (kind === 'haymaker' || kind === 'overhand' || kind === 'hook')){
+      if (target.action !== 'ko'){
+        target.stunned = true;
+        target.stunT = Math.max(target.stunT, 1.6);
+      }
+    }
     // Knockback in 3D — push along the source-to-target vector (XZ plane only)
     const kbDir = new THREE.Vector3().subVectors(target.pos, source.pos);
     kbDir.y = 0;
     if (kbDir.lengthSq() < 0.0001) kbDir.set(target.facing, 0, 0);
     kbDir.normalize();
-    target.pos.x += kbDir.x * p.knockback;
-    target.pos.z += kbDir.z * p.knockback;
+    const kbMult = (srcPf && srcPf.kbMult) ? srcPf.kbMult : 1;
+    target.pos.x += kbDir.x * p.knockback * kbMult;
+    target.pos.z += kbDir.z * p.knockback * kbMult;
     playHit(p.power);
     spawnHitText(p.word, target, p.col);
     if (p.power >= 3) flashAmount = Math.max(flashAmount, 0.32);
@@ -1145,7 +1390,8 @@ function checkPunchHit(attacker, defender){
   const dx = defender.pos.x - attacker.pos.x;
   const dz = defender.pos.z - attacker.pos.z;
   const dist = Math.sqrt(dx*dx + dz*dz);
-  if (dist > p.range) return;
+  const rangeMult = (attacker.physicsProfile && attacker.physicsProfile.rangeMult) || 1;
+  if (dist > p.range * rangeMult) return;
   if (dist < 0.05) return;
   // Forward cone: defender must be in front of attacker (yaw-based).
   const fwdX = Math.cos(attacker.yaw);
@@ -1190,6 +1436,8 @@ function tickPlayer(b, dt){
   if (b.stunned) speed *= 0.4;
   // Low stamina = heavy legs — only meaningful penalty below 20 (nearly empty)
   if (b.stamina < 20) speed *= 0.70 + (b.stamina / 20) * 0.30;
+  // Fighter archetype movement speed
+  if (b.physicsProfile && b.physicsProfile.speedMult) speed *= b.physicsProfile.speedMult;
 
   if (b.action !== 'ko' && b.action !== 'hit'){
     // W = approach (toward enemy = forward). S = retreat (back).
@@ -1265,7 +1513,8 @@ function tickAction(b, dt){
   }
   if (b.action === 'idle' && b.stamina < b.maxStam){
     // Regen: fast enough to sustain aggressive fighting with short pauses
-    const regen = b.stunned ? 6 : 28;
+    let regen = b.stunned ? 6 : 28;
+    if (b.physicsProfile && b.physicsProfile.staminaRegen) regen *= b.physicsProfile.staminaRegen;
     b.stamina = Math.min(b.maxStam, b.stamina + regen * dt);
   }
   // Track low-stamina ticks for corner advice
@@ -1386,6 +1635,7 @@ function tickCpu(c, dt){
     const rgtX = Math.sin(c.yaw),  rgtZ =  Math.cos(c.yaw);
     let speed = 1.7;
     if (c.stunned) speed *= 0.4;
+    if (c.physicsProfile && c.physicsProfile.speedMult) speed *= c.physicsProfile.speedMult;
     c.pos.x += (fIn * fwdX + sIn * rgtX) * speed * dt;
     c.pos.z += (fIn * fwdZ + sIn * rgtZ) * speed * dt;
     clampToRing(c);
@@ -1582,7 +1832,7 @@ function animateBoxer(b, dt){
     r.armL.shoulderGrp.rotation.z = 1.35 - Math.sin(tNow * 2.2) * 0.05;
     r.armR.shoulderGrp.rotation.z = 1.40 + Math.sin(tNow * 2.2) * 0.03;
   }
-  r.chest.scale.y = 1.0 + breath * 0.4;
+  r.chest.scale.y = 0.76 + breath * 0.28;
   r.lumbar.position.x = lateralShift;
   r.lumbar.position.z = (b._torsoShiftZ || 0);
 
@@ -1732,22 +1982,22 @@ function animateBoxer(b, dt){
     for (const arm of [r.armL, r.armR]){
       const eFlex = Math.abs(arm.elbowGrp.rotation.z);
       // Bicep swells as elbow bends (hinge = anatomically correct)
-      arm.bicepMesh.scale.y = 1.5 + eFlex * 0.40;
-      arm.bicepMesh.scale.x = 1.1 + eFlex * 0.20;
+      arm.bicepMesh.scale.y = 1.95 + eFlex * 0.48;
+      arm.bicepMesh.scale.x = 0.80 + eFlex * 0.24;
       // Deltoid flares with shoulder abduction (deviation from neutral guard)
       const abduct = Math.max(0, Math.abs(arm.shoulderGrp.rotation.z) - 0.6);
-      arm.deltoidMesh.scale.z = 1.4 + abduct * 0.30;
+      arm.deltoidMesh.scale.z = 1.38 + abduct * 0.34;
     }
     // Quad swells with knee flex
     const kBendL = Math.abs(r.legL.kneeGrp.rotation.z);
     const kBendR = Math.abs(r.legR.kneeGrp.rotation.z);
-    r.legL.quadMesh.scale.x = 0.65 + kBendL * 0.18;
-    r.legR.quadMesh.scale.x = 0.65 + kBendR * 0.18;
+    r.legL.quadMesh.scale.x = 0.72 + kBendL * 0.22;
+    r.legR.quadMesh.scale.x = 0.72 + kBendR * 0.22;
     // Calf swells on plantarflexion (ankle bends backward)
     const pFlex = Math.max(0, 0.14 - r.legL.ankleGrp.rotation.z);
     const pFlexR = Math.max(0, 0.14 - r.legR.ankleGrp.rotation.z);
-    r.legL.calfMesh.scale.x = 0.75 + pFlex * 0.50;
-    r.legR.calfMesh.scale.x = 0.75 + pFlexR * 0.50;
+    r.legL.calfMesh.scale.x = 0.70 + pFlex * 0.54;
+    r.legR.calfMesh.scale.x = 0.70 + pFlexR * 0.54;
   }
 
   // ── Head tracking via atlanto-axial pivot (Y) ──
@@ -2469,6 +2719,56 @@ function hideScreen(id){ document.getElementById(id).classList.remove('active');
 document.getElementById('btn-fight').onclick   = () => { ensureAudio(); raceMode = false; gloveRaiseMode = null; resetMatch(); };
 document.getElementById('btn-race').onclick    = () => { ensureAudio(); raceMode = true;  gloveRaiseMode = null; resetMatch(); };
 document.getElementById('btn-rematch').onclick = () => { ensureAudio(); gloveRaiseMode = null; resetMatch(); };
+
+// ─────────────────────────────────────────────
+//  Fighter selection UI
+// ─────────────────────────────────────────────
+(function buildFighterUI(){
+  const tabs = document.getElementById('fighter-tabs');
+  const preview = document.getElementById('fighter-preview');
+  if (!tabs || !preview) return;
+
+  function renderPreview(){
+    const f = selectedFighter;
+    const b = f.bars || { speed:5, power:5, defense:5, stamina:5 };
+    const bar = (lbl, key) => {
+      const v = Math.max(0, Math.min(10, b[key] || 0));
+      const pct = (v / 10) * 100;
+      return '<div class="fp-stat"><span class="lbl">'+lbl+'</span>'
+           + '<span class="meter"><span class="meter-fill" style="width:'+pct+'%"></span></span>'
+           + '<span class="val">'+v+'</span></div>';
+    };
+    preview.innerHTML =
+      '<div class="fp-head"><div class="fp-name">'+f.name+'</div></div>'
+    + '<div class="fp-desc">'+f.desc+'</div>'
+    + '<div class="fp-stats">'
+    +   bar('SPEED','speed')
+    +   bar('POWER','power')
+    +   bar('DEFENSE','defense')
+    +   bar('STAMINA','stamina')
+    + '</div>';
+  }
+
+  function renderTabs(){
+    tabs.innerHTML = '';
+    FIGHTERS.forEach((f, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'fighter-tab' + (f === selectedFighter ? ' active' : '');
+      btn.textContent = f.name;
+      btn.dataset.idx = i;
+      btn.addEventListener('click', () => {
+        selectedFighter = FIGHTERS[i];
+        renderTabs();
+        renderPreview();
+      });
+      tabs.appendChild(btn);
+    });
+  }
+
+  renderTabs();
+  renderPreview();
+})();
 
 // Spawn placeholder boxers so the title screen renders the ring with both fighters in view
 setupRound(true);

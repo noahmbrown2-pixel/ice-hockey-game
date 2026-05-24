@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>PATTERN IQ</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:#06060f;color:#fff;
+  font-family:'Segoe UI',system-ui,sans-serif;
+  overflow:hidden;height:100svh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  user-select:none;-webkit-user-select:none;
+}
+canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+
+#app{position:relative;z-index:10;width:min(520px,96vw);display:flex;flex-direction:column;gap:14px;padding:10px;}
+
+#progress-wrap{height:8px;background:rgba(255,255,255,0.08);border-radius:6px;overflow:hidden;
+  border:1px solid rgba(255,255,255,0.1);}
+#progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#00e5ff,#aa00ff);
+  box-shadow:0 0 14px rgba(0,229,255,0.6);transition:width 0.4s ease;}
+
+#q-header{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;font-size:0.72em;letter-spacing:2px;font-weight:800;}
+#q-num{color:rgba(255,255,255,0.5);}
+#q-type{background:linear-gradient(135deg,#00e5ff,#aa00ff);-webkit-background-clip:text;
+  background-clip:text;color:transparent;}
+
+#challenge-box{background:rgba(255,255,255,0.04);border:2px solid rgba(0,229,255,0.3);
+  border-radius:22px;padding:14px;
+  display:flex;align-items:center;justify-content:center;
+  transition:border-color 0.3s,box-shadow 0.3s;
+  box-shadow:0 0 22px rgba(0,229,255,0.08) inset;}
+#challenge-box.ok{border-color:#00ff88;box-shadow:0 0 40px rgba(0,255,136,0.5) inset;}
+#challenge-box.bad{border-color:#ff4466;box-shadow:0 0 40px rgba(255,68,102,0.5) inset;}
+#main-cv{display:block;border-radius:12px;background:#0d0d22;width:100%;height:auto;max-width:300px;aspect-ratio:1;}
+
+#answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.choice{background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.15);
+  border-radius:14px;padding:6px;cursor:pointer;transition:all 0.12s;
+  -webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;
+  aspect-ratio:1;}
+.choice canvas{border-radius:8px;display:block;width:100%;height:100%;}
+.choice:hover{background:rgba(0,229,255,0.12);border-color:rgba(0,229,255,0.6);}
+.choice.ok{background:rgba(0,255,136,0.2);border-color:#00ff88;box-shadow:0 0 22px rgba(0,255,136,0.5);}
+.choice.bad{background:rgba(255,68,102,0.2);border-color:#ff4466;box-shadow:0 0 22px rgba(255,68,102,0.5);}
+.choice.disabled{pointer-events:none;}
+
+.screen{position:fixed;inset:0;z-index:50;background:rgba(6,6,15,0.96);backdrop-filter:blur(8px);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;text-align:center;overflow-y:auto;}
+.screen.on{display:flex;}
+
+.title{font-size:2.4em;font-weight:900;letter-spacing:4px;
+  background:linear-gradient(135deg,#00e5ff,#aa00ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+  margin-bottom:10px;}
+.subtitle{font-size:0.95em;color:rgba(255,255,255,0.6);letter-spacing:2px;margin-bottom:30px;}
+.btn{background:linear-gradient(135deg,#00e5ff,#aa00ff);color:#000;font-weight:900;
+  font-size:1.05em;letter-spacing:3px;padding:16px 38px;border:none;border-radius:50px;
+  cursor:pointer;box-shadow:0 0 30px rgba(0,229,255,0.4);transition:transform 0.15s;
+  -webkit-tap-highlight-color:transparent;}
+.btn:hover{transform:scale(1.05);}
+.btn:active{transform:scale(0.97);}
+
+#results-screen .panel{width:min(460px,94vw);background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:24px;margin-bottom:18px;}
+.score-big{font-size:3em;font-weight:900;
+  background:linear-gradient(135deg,#00e5ff,#aa00ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+  letter-spacing:2px;}
+.iq-big{font-size:2.2em;font-weight:900;color:#00e5ff;text-shadow:0 0 18px rgba(0,229,255,0.5);
+  letter-spacing:3px;margin:6px 0;}
+.lbl{font-size:0.72em;letter-spacing:3px;color:rgba(255,255,255,0.5);margin-bottom:6px;}
+.disclaimer{font-size:0.7em;color:rgba(255,255,255,0.4);font-style:italic;margin-top:8px;}
+
+.bar-wrap{height:14px;background:rgba(255,255,255,0.08);border-radius:8px;overflow:hidden;margin:6px 0 14px;border:1px solid rgba(255,255,255,0.1);}
+.bar-fill{height:100%;background:linear-gradient(90deg,#00e5ff,#aa00ff);
+  box-shadow:0 0 14px rgba(0,229,255,0.6);width:0%;transition:width 1s ease;}
+
+.cat-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0;}
+.cat-name{font-size:0.72em;letter-spacing:2px;color:rgba(255,255,255,0.7);width:40%;text-align:left;}
+.cat-bar-wrap{flex:1;height:10px;background:rgba(255,255,255,0.08);border-radius:6px;overflow:hidden;}
+.cat-bar-fill{height:100%;background:linear-gradient(90deg,#00e5ff,#aa00ff);width:0%;transition:width 1s ease;}
+.cat-score{font-size:0.75em;font-weight:800;color:#fff;width:36px;text-align:right;}
+
+.analysis{font-size:0.85em;color:rgba(255,255,255,0.75);line-height:1.5;margin-top:10px;}
+.percentile-label{display:flex;justify-content:space-between;font-size:0.65em;color:rgba(255,255,255,0.4);letter-spacing:1px;margin-top:4px;}
+
+#start-screen .icon-wrap{font-size:4em;margin-bottom:14px;filter:drop-shadow(0 0 20px rgba(0,229,255,0.6));}
+.info-line{font-size:0.85em;color:rgba(255,255,255,0.6);margin:6px 0;line-height:1.5;max-width:380px;}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<div id="app">
+  <div id="progress-wrap"><div id="progress-fill"></div></div>
+  <div id="q-header">
+    <span id="q-num">QUESTION 1 / 50</span>
+    <span id="q-type">MATRIX REASONING</span>
+  </div>
+  <div id="challenge-box">
+    <canvas id="main-cv" width="300" height="300"></canvas>
+  </div>
+  <div id="answers">
+    <button class="choice" data-i="0"><canvas width="110" height="110"></canvas></button>
+    <button class="choice" data-i="1"><canvas width="110" height="110"></canvas></button>
+    <button class="choice" data-i="2"><canvas width="110" height="110"></canvas></button>
+    <button class="choice" data-i="3"><canvas width="110" height="110"></canvas></button>
+  </div>
+</div>
+
+<div id="start-screen" class="screen on">
+  <div class="icon-wrap">&#129504;</div>
+  <div class="title">PATTERN IQ</div>
+  <div class="subtitle">VISUAL REASONING ASSESSMENT</div>
+  <div class="info-line">50 questions &middot; 5 categories &middot; no timer</div>
+  <div class="info-line">Matrix &middot; Analogy &middot; Rotation &middot; Spatial &middot; Pattern</div>
+  <div class="info-line" style="margin-bottom:30px;">Difficulty increases as you progress.</div>
+  <button class="btn" id="start-btn">BEGIN TEST</button>
+  <div class="disclaimer" style="margin-top:24px;">For entertainment purposes only.</div>
+</div>
+
+<div id="results-screen" class="screen">
+  <div class="title" style="font-size:1.8em;">TEST COMPLETE</div>
+  <div class="panel">
+    <div class="lbl">YOUR SCORE</div>
+    <div class="score-big" id="score-big">0 / 50</div>
+    <div class="lbl" style="margin-top:14px;">ESTIMATED IQ</div>
+    <div class="iq-big" id="iq-big">100</div>
+    <div class="disclaimer">For entertainment purposes only.</div>
+  </div>
+  <div class="panel">
+    <div class="lbl">PERCENTILE</div>
+    <div class="bar-wrap"><div class="bar-fill" id="pct-bar"></div></div>
+    <div class="percentile-label"><span>0%</span><span id="pct-text">50%</span><span>100%</span></div>
+  </div>
+  <div class="panel">
+    <div class="lbl" style="margin-bottom:10px;">CATEGORY BREAKDOWN</div>
+    <div id="cat-list"></div>
+  </div>
+  <div class="panel">
+    <div class="lbl">ANALYSIS</div>
+    <div class="analysis" id="analysis-text"></div>
+  </div>
+  <button class="btn" id="retake-btn">RETAKE TEST</button>
+</div>
+
+<script>
+// ---------- Audio ----------
+let AC=null;
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function beep(freq,dur,type='sine',vol=0.12){
+  const a=ac();if(!a)return;
+  const o=a.createOscillator(),g=a.createGain();
+  o.type=type;o.frequency.value=freq;
+  g.gain.setValueAtTime(0,a.currentTime);
+  g.gain.linearRampToValueAtTime(vol,a.currentTime+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+dur);
+  o.connect(g);g.connect(a.destination);
+  o.start();o.stop(a.currentTime+dur);
+}
+function sndOk(){beep(660,0.1,'sine',0.14);setTimeout(()=>beep(880,0.14,'sine',0.12),60);}
+function sndBad(){beep(220,0.18,'sawtooth',0.1);}
+
+// ---------- Helpers ----------
+const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[0|Math.random()*a.length];
+function shuf(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=R(0,i);[b[i],b[j]]=[b[j],b[i]];}return b;}
+
+const SH=['circle','square','triangle','diamond','hex','star'];
+const CL=['#ff4466','#00ccff','#00ff88','#ffaa00','#cc66ff','#ff8800'];
+const FILLS=['solid','ring','half'];
+
+function rr(ctx,x,y,w,h,r=8){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+function clrCv(ctx,w,h){ctx.fillStyle='#0d0d22';ctx.fillRect(0,0,w,h);}
+function drawSh(ctx,sh,cx,cy,r,col,style='solid'){
+  ctx.save();ctx.beginPath();
+  if(sh==='circle')ctx.arc(cx,cy,r,0,Math.PI*2);
+  else if(sh==='square'){const s=r*1.55;ctx.rect(cx-s/2,cy-s/2,s,s);}
+  else if(sh==='triangle'){ctx.moveTo(cx,cy-r);ctx.lineTo(cx+r*.87,cy+r*.5);ctx.lineTo(cx-r*.87,cy+r*.5);ctx.closePath();}
+  else if(sh==='diamond'){ctx.moveTo(cx,cy-r);ctx.lineTo(cx+r*.75,cy);ctx.lineTo(cx,cy+r);ctx.lineTo(cx-r*.75,cy);ctx.closePath();}
+  else if(sh==='hex'){for(let i=0;i<6;i++){const a=i*Math.PI/3-Math.PI/6;if(i===0)ctx.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);else ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);}ctx.closePath();}
+  else{for(let i=0;i<10;i++){const a=i*Math.PI/5-Math.PI/2,rad=i%2===0?r:r*.42;if(i===0)ctx.moveTo(cx+Math.cos(a)*rad,cy+Math.sin(a)*rad);else ctx.lineTo(cx+Math.cos(a)*rad,cy+Math.sin(a)*rad);}ctx.closePath();}
+  if(style==='solid'){ctx.fillStyle=col;ctx.shadowColor=col;ctx.shadowBlur=10;ctx.fill();}
+  else if(style==='ring'){ctx.strokeStyle=col;ctx.lineWidth=Math.max(2,r*.35);ctx.shadowColor=col;ctx.shadowBlur=8;ctx.stroke();}
+  else if(style==='half'){ctx.fillStyle=col+'44';ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=Math.max(2,r*.3);ctx.stroke();}
+  ctx.shadowBlur=0;ctx.restore();
+}
+function drawQ(ctx,cx,cy,r){
+  ctx.save();
+  ctx.fillStyle='rgba(0,229,255,0.1)';rr(ctx,cx-r,cy-r,r*2,r*2,8);ctx.fill();
+  ctx.strokeStyle='rgba(0,229,255,0.5)';ctx.lineWidth=2;ctx.setLineDash([4,4]);
+  rr(ctx,cx-r,cy-r,r*2,r*2,8);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#00e5ff';ctx.font='bold '+(r*1.1)+'px sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.shadowColor='#00e5ff';ctx.shadowBlur=10;
+  ctx.fillText('?',cx,cy+1);ctx.shadowBlur=0;ctx.restore();
+}
+
+function drawArrow(ctx,cx,cy,r,angleDeg,col){
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(angleDeg*Math.PI/180);
+  ctx.beginPath();
+  // Arrow body pointing up
+  ctx.moveTo(0,-r);
+  ctx.lineTo(r*0.55,-r*0.15);
+  ctx.lineTo(r*0.22,-r*0.15);
+  ctx.lineTo(r*0.22,r*0.8);
+  ctx.lineTo(-r*0.22,r*0.8);
+  ctx.lineTo(-r*0.22,-r*0.15);
+  ctx.lineTo(-r*0.55,-r*0.15);
+  ctx.closePath();
+  ctx.fillStyle=col;ctx.shadowColor=col;ctx.shadowBlur=12;ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.restore();
+}
+
+// ---------- Matrix Generator ----------
+function applyRule(vals, rule, r, c){
+  if(rule==='latin')return vals[(r+c)%3];
+  if(rule==='rowConst')return vals[r];
+  if(rule==='colConst')return vals[c];
+  return vals[0];
+}
+function makeMatrix(difficulty){
+  const shSets=[['circle','square','triangle'],['diamond','hex','star'],['circle','diamond','hex'],['square','triangle','star']];
+  const clSets=[['#ff4466','#00ccff','#00ff88'],['#ffaa00','#cc66ff','#ff4466'],['#00ccff','#ffaa00','#00ff88']];
+  const shapes=pick(shSets), colors=pick(clSets), fills=shuf(FILLS).slice(0,3), sizes=[0.22,0.32,0.42];
+  const shRule=pick(['latin','rowConst','colConst']);
+  const clRule=difficulty>=2?pick(['latin','rowConst','colConst']):'const';
+  const fillRule=difficulty>=3?pick(['latin','rowConst','colConst']):'const';
+  const sizeRule=difficulty>=4?pick(['rowConst','colConst']):'const';
+  const constColor=pick(colors);
+  const grid=[];
+  for(let r=0;r<3;r++){const row=[];for(let c=0;c<3;c++){row.push({sh:applyRule(shapes,shRule,r,c),col:clRule==='const'?constColor:applyRule(colors,clRule,r,c),fill:fillRule==='const'?'solid':applyRule(fills,fillRule,r,c),size:sizeRule==='const'?0.32:applyRule(sizes,sizeRule,r,c)});}grid.push(row);}
+  const correct=grid[2][2];
+  const correctKey=`${correct.sh}|${correct.col}|${correct.fill}|${correct.size}`;
+  const wrongPool=[];
+  for(const sh of shapes)for(const col of colors)for(const fill of (fillRule!=='const'?fills:['solid'])){
+    const sz=sizeRule!=='const'?pick(sizes):0.32;
+    const candidate={sh,col,fill,size:sz};
+    if(`${sh}|${col}|${fill}|${sz}`!==correctKey)wrongPool.push(candidate);
+  }
+  const wrongs=shuf(wrongPool).slice(0,3);
+  const allChoices=[correct,...wrongs];
+  const shuffled=shuf(allChoices);
+  const answer=shuffled.indexOf(correct);
+  return{type:'matrix',label:'MATRIX REASONING',difficulty,
+    draw(ctx,w,h){clrCv(ctx,w,h);const pad=10,gap=4,cell=(w-pad*2-gap*2)/3;for(let r=0;r<3;r++)for(let c=0;c<3;c++){const x=pad+c*(cell+gap),y=pad+r*(cell+gap);ctx.fillStyle='rgba(255,255,255,0.06)';rr(ctx,x,y,cell,cell,6);ctx.fill();const cx=x+cell/2,cy=y+cell/2;if(r===2&&c===2)drawQ(ctx,cx,cy,cell*.32);else{const cl=grid[r][c];drawSh(ctx,cl.sh,cx,cy,cell*cl.size,cl.col,cl.fill);}}},
+    answer,choices:shuffled.map(ch=>({draw(ctx,w,h){clrCv(ctx,w,h);ctx.fillStyle='rgba(255,255,255,0.04)';rr(ctx,4,4,w-8,h-8,8);ctx.fill();drawSh(ctx,ch.sh,w/2,h/2,Math.min(w,h)*ch.size,ch.col,ch.fill);}}))}
+}
+
+// ---------- Analogy Generator ----------
+function makeAnalogy(difficulty){
+  const shapes=shuf(SH).slice(0,2);
+  const shA=shapes[0], shC=shapes[1];
+  const cols=shuf(CL).slice(0,2);
+  const col1=cols[0], col2=cols[1];
+  const fills=shuf(FILLS).slice(0,2);
+  const f1=fills[0], f2=fills[1];
+  const sizeSmall=0.28, sizeLarge=0.44;
+
+  // Which properties change A->B (applied identically C->D)
+  let changeColor=true, changeFill=false, changeSize=false;
+  if(difficulty===1){changeColor=true;}
+  else if(difficulty===2){changeColor=true;changeFill=true;}
+  else if(difficulty===3){changeColor=true;changeSize=true;}
+  else{changeColor=true;changeFill=true;changeSize=true;}
+
+  const A={sh:shA,col:col1,fill:f1,size:sizeSmall};
+  const B={sh:shA,col:changeColor?col2:col1,fill:changeFill?f2:f1,size:changeSize?sizeLarge:sizeSmall};
+  const C={sh:shC,col:col1,fill:f1,size:sizeSmall};
+  const D={sh:shC,col:changeColor?col2:col1,fill:changeFill?f2:f1,size:changeSize?sizeLarge:sizeSmall};
+
+  // Wrong choices: differ on specific changed property
+  const wrongs=[];
+  // Wrong 1: didn't change color (kept c1)
+  if(changeColor)wrongs.push({sh:shC,col:col1,fill:D.fill,size:D.size});
+  // Wrong 2: didn't change fill
+  if(changeFill)wrongs.push({sh:shC,col:D.col,fill:f1,size:D.size});
+  // Wrong 3: didn't change size
+  if(changeSize)wrongs.push({sh:shC,col:D.col,fill:D.fill,size:sizeSmall});
+  // Filler wrongs
+  while(wrongs.length<3){
+    const w={sh:shC,col:pick(CL.filter(c=>c!==D.col)),fill:pick(FILLS.filter(f=>f!==D.fill)),size:D.size};
+    const key=`${w.sh}|${w.col}|${w.fill}|${w.size}`;
+    const dKey=`${D.sh}|${D.col}|${D.fill}|${D.size}`;
+    const dup=wrongs.some(x=>`${x.sh}|${x.col}|${x.fill}|${x.size}`===key);
+    if(key!==dKey&&!dup)wrongs.push(w);
+  }
+  const all=[D,...wrongs.slice(0,3)];
+  const shuffled=shuf(all);
+  const answer=shuffled.indexOf(D);
+
+  return{type:'analogy',label:'VISUAL ANALOGY',difficulty,
+    draw(ctx,w,h){
+      clrCv(ctx,w,h);
+      const pad=14,gap=10,cell=(w-pad*2-gap)/2;
+      // top row: A -> B
+      const cells=[[A,0,0],[B,1,0],[C,0,1],[D,1,1]];
+      for(let i=0;i<4;i++){
+        const [data,col,row]=cells[i];
+        const x=pad+col*(cell+gap), y=pad+row*(cell+gap);
+        ctx.fillStyle='rgba(255,255,255,0.06)';rr(ctx,x,y,cell,cell,6);ctx.fill();
+        const cx=x+cell/2, cy=y+cell/2;
+        if(i===3){drawQ(ctx,cx,cy,cell*.28);}
+        else{drawSh(ctx,data.sh,cx,cy,cell*data.size,data.col,data.fill);}
+      }
+      // Arrows between
+      ctx.fillStyle='#00e5ff';ctx.font='bold 22px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.shadowColor='#00e5ff';ctx.shadowBlur=8;
+      // arrow A->B
+      ctx.fillText('→', pad+cell+gap/2, pad+cell/2);
+      // arrow C->D
+      ctx.fillText('→', pad+cell+gap/2, pad+cell+gap+cell/2);
+      ctx.shadowBlur=0;
+    },
+    answer,
+    choices:shuffled.map(ch=>({draw(ctx,w,h){clrCv(ctx,w,h);ctx.fillStyle='rgba(255,255,255,0.04)';rr(ctx,4,4,w-8,h-8,8);ctx.fill();drawSh(ctx,ch.sh,w/2,h/2,Math.min(w,h)*ch.size,ch.col,ch.fill);}}))
+  };
+}
+
+// ---------- Rotation Generator ----------
+function makeRotation(difficulty){
+  const steps=[90,72,60,45,30];
+  const step=steps[Math.min(difficulty-1,4)];
+  const startAng=R(0,11)*30;
+  const col=pick(CL);
+  const angles=[startAng, startAng+step, startAng+step*2, startAng+step*3]; // 4th is answer
+  const correctAng=angles[3];
+
+  // Wrong answers: opposite direction, wrong magnitude, mirror
+  const wrongs=[
+    (startAng - step + 360) % 360,             // opposite direction next
+    (correctAng + step) % 360,                  // overshoot
+    (correctAng + 180) % 360                    // flipped 180
+  ];
+  const allAngs=[correctAng, ...wrongs];
+  const shuffled=shuf(allAngs);
+  const answer=shuffled.indexOf(correctAng);
+
+  return{type:'rotation',label:'ROTATION SEQUENCE',difficulty,
+    draw(ctx,w,h){
+      clrCv(ctx,w,h);
+      const pad=8, gap=6, cell=(w-pad*2-gap*3)/4;
+      for(let i=0;i<4;i++){
+        const x=pad+i*(cell+gap), y=h/2-cell/2;
+        ctx.fillStyle='rgba(255,255,255,0.06)';rr(ctx,x,y,cell,cell,6);ctx.fill();
+        const cx=x+cell/2, cy=y+cell/2;
+        if(i===3)drawQ(ctx,cx,cy,cell*.32);
+        else drawArrow(ctx,cx,cy,cell*.38,angles[i],col);
+      }
+    },
+    answer,
+    choices:shuffled.map(a=>({draw(ctx,w,h){clrCv(ctx,w,h);ctx.fillStyle='rgba(255,255,255,0.04)';rr(ctx,4,4,w-8,h-8,8);ctx.fill();drawArrow(ctx,w/2,h/2,Math.min(w,h)*.32,a,col);}}))
+  };
+}
+
+// ---------- Mirror Generator ----------
+const POLYS=[
+  // points in -1..1 range, asymmetric
+  [[-0.6,-0.7],[0.3,-0.5],[0.7,0.0],[0.5,0.4],[0.0,0.7],[-0.4,0.5],[-0.7,0.1]],
+  [[-0.7,-0.4],[0.0,-0.7],[0.6,-0.3],[0.4,0.2],[0.7,0.6],[-0.2,0.5],[-0.5,0.0]],
+  [[-0.5,-0.7],[0.2,-0.6],[0.7,-0.1],[0.3,0.3],[0.6,0.6],[0.0,0.5],[-0.4,0.7],[-0.6,0.2]],
+  [[-0.6,-0.5],[0.1,-0.7],[0.6,-0.2],[0.7,0.3],[0.2,0.6],[-0.3,0.4],[-0.7,0.0]],
+  [[-0.7,-0.2],[-0.3,-0.6],[0.4,-0.5],[0.6,0.1],[0.3,0.5],[-0.1,0.7],[-0.5,0.3]]
+];
+function drawPoly(ctx,cx,cy,r,pts,col){
+  ctx.save();ctx.beginPath();
+  for(let i=0;i<pts.length;i++){
+    const px=cx+pts[i][0]*r, py=cy+pts[i][1]*r;
+    if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+  }
+  ctx.closePath();
+  ctx.fillStyle=col+'33';ctx.fill();
+  ctx.strokeStyle=col;ctx.lineWidth=3;ctx.shadowColor=col;ctx.shadowBlur=10;ctx.stroke();
+  ctx.shadowBlur=0;ctx.restore();
+}
+function makeMirror(difficulty){
+  const polyIdx=R(0,POLYS.length-1);
+  const basePts=POLYS[polyIdx];
+  const col=pick(CL);
+  // Add complexity via rotation/scale at higher difficulty
+  const rot = difficulty>=3 ? (R(0,3)*15)*Math.PI/180 : 0;
+  function transform(pts){
+    return pts.map(([x,y])=>{
+      const xr=x*Math.cos(rot)-y*Math.sin(rot);
+      const yr=x*Math.sin(rot)+y*Math.cos(rot);
+      return [xr,yr];
+    });
+  }
+  const original=transform(basePts);
+  const hMirror=original.map(([x,y])=>[-x,y]);
+  const vFlip=original.map(([x,y])=>[x,-y]);
+  const bothFlip=original.map(([x,y])=>[-x,-y]);
+  const same=original.map(p=>[...p]);
+
+  const correct={pts:hMirror,id:'hmirror'};
+  const wrongOpts=[{pts:vFlip,id:'vflip'},{pts:bothFlip,id:'both'},{pts:same,id:'same'}];
+  const all=[correct,...wrongOpts];
+  const shuffled=shuf(all);
+  const answer=shuffled.findIndex(c=>c.id==='hmirror');
+
+  return{type:'spatial',label:'SPATIAL REASONING',difficulty,
+    draw(ctx,w,h){
+      clrCv(ctx,w,h);
+      // Left half: original, right half: ?
+      ctx.fillStyle='rgba(255,255,255,0.04)';
+      rr(ctx,10,10,w-20,h-20,10);ctx.fill();
+      // Dashed center line
+      ctx.strokeStyle='rgba(0,229,255,0.6)';ctx.lineWidth=2;ctx.setLineDash([6,6]);
+      ctx.beginPath();ctx.moveTo(w/2,16);ctx.lineTo(w/2,h-16);ctx.stroke();ctx.setLineDash([]);
+      // Original on left
+      drawPoly(ctx,w/4,h/2,Math.min(w,h)*0.32,original,col);
+      // ? on right
+      drawQ(ctx,w*3/4,h/2,Math.min(w,h)*0.18);
+    },
+    answer,
+    choices:shuffled.map(c=>({draw(ctx,w,h){
+      clrCv(ctx,w,h);ctx.fillStyle='rgba(255,255,255,0.04)';rr(ctx,4,4,w-8,h-8,8);ctx.fill();
+      drawPoly(ctx,w/2,h/2,Math.min(w,h)*0.36,c.pts,col);
+    }}))
+  };
+}
+
+// ---------- Pattern Recognition Generator ----------
+function makePattern(difficulty){
+  const paletteSize = difficulty<=2 ? 2 : 3;
+  const colors = shuf(CL).slice(0,paletteSize);
+  // Build a cycle of length palette
+  let cycle;
+  if(difficulty===1){cycle=[colors[0],colors[1]];}
+  else if(difficulty===2){cycle=[colors[0],colors[1]];}
+  else if(difficulty===3){cycle=[colors[0],colors[1],colors[2]];}
+  else if(difficulty===4){cycle=[colors[0],colors[1],colors[2]];}
+  else {cycle=[colors[0],colors[1],colors[2],colors[1]];} // longer cycle
+
+  const grid=[];
+  for(let i=0;i<9;i++)grid.push(cycle[i%cycle.length]);
+  const correct=grid[8];
+  // Pull all distinct colors used + extra
+  const usedColors=[...new Set(grid)];
+  const otherCols=CL.filter(c=>!usedColors.includes(c));
+  const wrongs=shuf([...usedColors.filter(c=>c!==correct),...otherCols]).slice(0,3);
+  const all=[correct,...wrongs];
+  const shuffled=shuf(all);
+  const answer=shuffled.indexOf(correct);
+
+  return{type:'pattern',label:'PATTERN RECOGNITION',difficulty,
+    draw(ctx,w,h){
+      clrCv(ctx,w,h);
+      const pad=10,gap=6,cell=(w-pad*2-gap*2)/3;
+      for(let i=0;i<9;i++){
+        const r=Math.floor(i/3), c=i%3;
+        const x=pad+c*(cell+gap), y=pad+r*(cell+gap);
+        ctx.fillStyle='rgba(255,255,255,0.06)';rr(ctx,x,y,cell,cell,6);ctx.fill();
+        const cx=x+cell/2, cy=y+cell/2;
+        if(i===8){drawQ(ctx,cx,cy,cell*0.32);}
+        else{
+          const col=grid[i];
+          ctx.save();
+          const s=cell*0.72;
+          ctx.fillStyle=col;ctx.shadowColor=col;ctx.shadowBlur=14;
+          rr(ctx,cx-s/2,cy-s/2,s,s,6);ctx.fill();
+          ctx.shadowBlur=0;ctx.restore();
+        }
+      }
+    },
+    answer,
+    choices:shuffled.map(col=>({draw(ctx,w,h){
+      clrCv(ctx,w,h);ctx.fillStyle='rgba(255,255,255,0.04)';rr(ctx,4,4,w-8,h-8,8);ctx.fill();
+      const s=Math.min(w,h)*0.62;
+      ctx.save();ctx.fillStyle=col;ctx.shadowColor=col;ctx.shadowBlur=18;
+      rr(ctx,w/2-s/2,h/2-s/2,s,s,8);ctx.fill();ctx.shadowBlur=0;ctx.restore();
+    }}))
+  };
+}
+
+// ---------- Build all questions ----------
+function buildBand(difficulty){
+  const band=[];
+  // 4 matrix + 2 analogy + 2 rotation + 1 mirror + 1 pattern
+  for(let i=0;i<4;i++)band.push(makeMatrix(difficulty));
+  for(let i=0;i<2;i++)band.push(makeAnalogy(difficulty));
+  for(let i=0;i<2;i++)band.push(makeRotation(difficulty));
+  band.push(makeMirror(difficulty));
+  band.push(makePattern(difficulty));
+  return shuf(band);
+}
+function buildQuestions(){
+  const qs=[];
+  for(let d=1;d<=5;d++)qs.push(...buildBand(d));
+  return qs;
+}
+
+// ---------- State ----------
+let questions=[], qIndex=0, results=[], locked=false;
+const $=id=>document.getElementById(id);
+
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  if(name==='start')$('start-screen').classList.add('on');
+  else if(name==='results')$('results-screen').classList.add('on');
+}
+
+function startTest(){
+  ac();
+  questions=buildQuestions();
+  qIndex=0;results=[];locked=false;
+  showScreen(null);
+  renderQuestion(0);
+}
+
+function renderQuestion(i){
+  const q=questions[i];
+  locked=false;
+  // HUD
+  $('q-num').textContent=`QUESTION ${i+1} / 50`;
+  $('q-type').textContent=q.label;
+  $('progress-fill').style.width=((i)/50*100)+'%';
+  // Clear feedback
+  $('challenge-box').classList.remove('ok','bad');
+  document.querySelectorAll('.choice').forEach(b=>b.classList.remove('ok','bad','disabled'));
+  // Main canvas
+  const cv=$('main-cv');
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  q.draw(ctx,cv.width,cv.height);
+  // Choices
+  const btns=document.querySelectorAll('.choice');
+  btns.forEach((b,idx)=>{
+    const c=b.querySelector('canvas');
+    const cctx=c.getContext('2d');
+    cctx.clearRect(0,0,c.width,c.height);
+    if(q.choices[idx]){
+      q.choices[idx].draw(cctx,c.width,c.height);
+    }
+  });
+}
+
+function handleAnswer(selectedIdx){
+  if(locked)return;
+  locked=true;
+  const q=questions[qIndex];
+  const correct=selectedIdx===q.answer;
+  results.push({type:q.type,correct,difficulty:q.difficulty});
+  // Feedback
+  const btn=document.querySelector(`.choice[data-i="${selectedIdx}"]`);
+  if(correct){
+    btn.classList.add('ok');
+    $('challenge-box').classList.add('ok');
+    sndOk();
+  }else{
+    btn.classList.add('bad');
+    document.querySelector(`.choice[data-i="${q.answer}"]`).classList.add('ok');
+    $('challenge-box').classList.add('bad');
+    sndBad();
+  }
+  document.querySelectorAll('.choice').forEach(b=>b.classList.add('disabled'));
+  // Update progress to include current
+  $('progress-fill').style.width=((qIndex+1)/50*100)+'%';
+  // Advance
+  setTimeout(()=>{
+    qIndex++;
+    if(qIndex>=50){showResults();}
+    else renderQuestion(qIndex);
+  },800);
+}
+
+document.querySelectorAll('.choice').forEach(b=>{
+  b.addEventListener('click',()=>handleAnswer(parseInt(b.dataset.i,10)));
+});
+$('start-btn').addEventListener('click',startTest);
+$('retake-btn').addEventListener('click',startTest);
+
+// ---------- Results ----------
+function estimateIQ(score){
+  const pct=score/50;
+  if(pct<0.30)return 75+Math.floor(pct/0.30*15);          // 75-90
+  if(pct<0.50)return 90+Math.floor((pct-0.30)/0.20*14);   // 90-104
+  if(pct<0.68)return 105+Math.floor((pct-0.50)/0.18*9);   // 105-114
+  if(pct<0.82)return 115+Math.floor((pct-0.68)/0.14*9);   // 115-124
+  if(pct<0.92)return 125+Math.floor((pct-0.82)/0.10*9);   // 125-134
+  return 135+Math.floor((pct-0.92)/0.08*10);              // 135-145
+}
+function iqToPercentile(iq){
+  // Rough normal-curve percentile (mean 100, SD 15)
+  const z=(iq-100)/15;
+  // approximate normal CDF
+  const t=1/(1+0.2316419*Math.abs(z));
+  const d=0.3989423*Math.exp(-z*z/2);
+  let p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
+  p=z>0?1-p:p;
+  return Math.round(p*100);
+}
+
+function showResults(){
+  const score=results.filter(r=>r.correct).length;
+  const iq=estimateIQ(score);
+  const pct=iqToPercentile(iq);
+  $('score-big').textContent=`${score} / 50`;
+  $('iq-big').textContent=iq;
+  $('progress-fill').style.width='100%';
+  // Percentile bar
+  setTimeout(()=>{$('pct-bar').style.width=pct+'%';},100);
+  $('pct-text').textContent=`${pct}th percentile`;
+  // Categories
+  const cats=[
+    {key:'matrix',name:'MATRIX'},
+    {key:'analogy',name:'ANALOGY'},
+    {key:'rotation',name:'ROTATION'},
+    {key:'spatial',name:'SPATIAL'},
+    {key:'pattern',name:'PATTERN'}
+  ];
+  const catList=$('cat-list');
+  catList.innerHTML='';
+  const catScores={};
+  cats.forEach(cat=>{
+    const items=results.filter(r=>r.type===cat.key);
+    const got=items.filter(r=>r.correct).length;
+    const total=items.length;
+    const pctC=total>0?Math.round(got/total*100):0;
+    catScores[cat.key]={got,total,pct:pctC,name:cat.name};
+    const row=document.createElement('div');
+    row.className='cat-row';
+    row.innerHTML=`<div class="cat-name">${cat.name}</div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill" data-pct="${pctC}"></div></div>
+      <div class="cat-score">${got}/${total}</div>`;
+    catList.appendChild(row);
+  });
+  setTimeout(()=>{
+    document.querySelectorAll('.cat-bar-fill').forEach(el=>{
+      el.style.width=el.dataset.pct+'%';
+    });
+  },200);
+  // Analysis
+  let strongest=null, weakest=null;
+  Object.values(catScores).forEach(c=>{
+    if(c.total===0)return;
+    if(!strongest||c.pct>strongest.pct)strongest=c;
+    if(!weakest||c.pct<weakest.pct)weakest=c;
+  });
+  let analysis='';
+  if(score>=42)analysis=`Outstanding performance. You demonstrated strong visual reasoning across most categories.`;
+  else if(score>=32)analysis=`Solid performance. Above-average visual reasoning ability.`;
+  else if(score>=22)analysis=`Average performance. Your visual reasoning skills are in line with most test-takers.`;
+  else if(score>=12)analysis=`Below average. Practice with visual puzzles can improve your pattern recognition.`;
+  else analysis=`Try again. Take your time on each question and look for subtle patterns.`;
+  if(strongest&&weakest&&strongest.name!==weakest.name){
+    analysis+=` Your strongest area is ${strongest.name} (${strongest.pct}%). Your weakest is ${weakest.name} (${weakest.pct}%).`;
+  }
+  $('analysis-text').textContent=analysis;
+  showScreen('results');
+}
+
+// ---------- Background particles ----------
+const bg=$('bg');
+const bctx=bg.getContext('2d');
+let bw=0,bh=0,parts=[];
+function resizeBG(){
+  bw=bg.width=window.innerWidth;
+  bh=bg.height=window.innerHeight;
+}
+function initParts(){
+  parts=[];
+  for(let i=0;i<60;i++){
+    parts.push({
+      x:Math.random()*bw,y:Math.random()*bh,
+      vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,
+      r:Math.random()*2+0.5,
+      c:Math.random()<0.5?'#00e5ff':'#aa00ff',
+      a:Math.random()*0.5+0.2
+    });
+  }
+}
+function animBG(){
+  bctx.clearRect(0,0,bw,bh);
+  parts.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0)p.x=bw;if(p.x>bw)p.x=0;
+    if(p.y<0)p.y=bh;if(p.y>bh)p.y=0;
+    bctx.beginPath();
+    bctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    bctx.fillStyle=p.c;
+    bctx.globalAlpha=p.a;
+    bctx.shadowColor=p.c;bctx.shadowBlur=8;
+    bctx.fill();
+  });
+  bctx.globalAlpha=1;bctx.shadowBlur=0;
+  requestAnimationFrame(animBG);
+}
+window.addEventListener('resize',()=>{resizeBG();initParts();});
+resizeBG();initParts();animBG();
+
+// Init view: start screen visible by default
+showScreen('start');
+</script>
+</body>
+</html>

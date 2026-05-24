@@ -1655,5 +1655,197 @@
     "permission_mode": "acceptEdits",
     "hook_event_name": "UserPromptSubmit",
     "prompt": "add joints for the enter fighters body so their bodies don't look like blocks, the end goals is to get a body builder physic, make sure that the physic stands out when you see them"
+  },
+  {
+    "session_id": "6aba6a84-d7c4-4d13-ae17-0d262f6ac0bc",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\6aba6a84-d7c4-4d13-ae17-0d262f6ac0bc.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "open the heavy hitters game and show me the most recent change"
+  },
+  {
+    "session_id": "6aba6a84-d7c4-4d13-ae17-0d262f6ac0bc",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\6aba6a84-d7c4-4d13-ae17-0d262f6ac0bc.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "@agent-builder create 10 different fighter physics using 10 tabs"
+  },
+  {
+    "session_id": "6aba6a84-d7c4-4d13-ae17-0d262f6ac0bc",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\6aba6a84-d7c4-4d13-ae17-0d262f6ac0bc.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "open game"
+  },
+  {
+    "session_id": "cdb902a0-8723-43c1-8dfe-74ed9d1887ce",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\cdb902a0-8723-43c1-8dfe-74ed9d1887ce.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "create a game that has 100s of challenging problems for someone with ADHD"
+  },
+  {
+    "session_id": "cdb902a0-8723-43c1-8dfe-74ed9d1887ce",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\cdb902a0-8723-43c1-8dfe-74ed9d1887ce.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "SAVE THE GAME TO A NEW REPO AND SHOW ME THE LINK TO THE GAME"
+  },
+  {
+    "session_id": "cdb902a0-8723-43c1-8dfe-74ed9d1887ce",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\cdb902a0-8723-43c1-8dfe-74ed9d1887ce.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "get rid of the timer and score, add questions that have pictures that make you have to guess what the pattern is,add mases, stuff that is suppost to test your brain logic"
+  },
+  {
+    "session_id": "cdb902a0-8723-43c1-8dfe-74ed9d1887ce",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\cdb902a0-8723-43c1-8dfe-74ed9d1887ce.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "no math problems and no limit to question per question"
+  },
+  {
+    "session_id": "cdb902a0-8723-43c1-8dfe-74ed9d1887ce",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\cdb902a0-8723-43c1-8dfe-74ed9d1887ce.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "i send get rid of the timer for the question, get rid of the score,the goal of the website is to test your iq using images and patterns to try to understand someone logic at the end 50 or so question"
+  },
+  {
+    "session_id": "cdb902a0-8723-43c1-8dfe-74ed9d1887ce",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\cdb902a0-8723-43c1-8dfe-74ed9d1887ce.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "@agent-builder build a plan to move around this error"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "i want to make a futbal manager type of game where you want your team to win the league every year,when you start the game you must make 20-25 players signing(Goalkeeper\nGoalkeeper (GK)\nDefenders\nCenter Defenders\nCenter Back (CB)\nSweeper\nBall-Playing Defender\nWide Defenders\nLeft Back (LB)\nRight Back (RB)\nWing Back (LWB/RWB)\nFull Back\nMidfielders\nDefensive Midfield\nDefensive Midfielder (CDM)\nHolding Midfielder\nDeep-Lying Playmaker\nCentral Midfield\nCentral Midfielder (CM)\nBox-to-Box Midfielder\nMezzala\nAttacking Midfield\nAttacking Midfielder (CAM)\nAdvanced Playmaker\nTrequartista\nWide Midfield\nLeft Midfielder (LM)\nRight Midfielder (RM)\nWinger\nInverted Winger\nWide Playmaker\nForwards\nStrikers\nStriker (ST)\nCenter Forward (CF)\nPoacher\nTarget Man\nFalse 9\nPressing Forward\nWide Forwards\nLeft Wing (LW)\nRight Wing (RW)\nInside Forward\nSecond Striker (SS)) and 5-10  coaching staff signing (Main Team Coaches\nHead Coach / Manager\nRuns the team\nChooses tactics and lineups\nLeads training and matches\nAssistant Coach\nHelps the manager\nGives tactical advice\nRuns parts of training\nFirst-Team Coach\nWorks directly with players daily\nFocuses on drills and positioning\nSpecialized Coaches\nGoalkeeper Coach\nTrains goalkeepers\nHandling, reflexes, positioning\nFitness Coach / Strength Coach\nImproves speed, stamina, strength\nConditioning Coach\nPrevents fatigue\nMonitors player fitness\nSet-Piece Coach\nCorners, free kicks, throw-ins\nAttacking Coach\nFinishing and creativity\nDefensive Coach\nDefensive shape and marking\nTechnical Skills Coach\nPassing, dribbling, ball control\nPerformance & Analysis Staff\nVideo Analyst\nStudies opponents and team matches\nData Analyst\nUses stats and tracking data\nPerformance Analyst\nTracks player performance\nMedical & Recovery Staff\nPhysiotherapist\nTreats injuries\nSports Therapist\nRecovery and muscle treatment\nTeam Doctor\nMedical decisions and health checks\nRehab Coach\nHelps injured players return\nYouth Academy Coaches\nU21 Coach\nU18 Coach\nU16 Coach\nDevelopment Coach\nIndividual Development Coach\n\nThese coaches prepare future first-team players.\n\nExtra Roles Some Clubs Have\nMental Performance Coach\nConfidence and focus\nNutritionist\nPlayer diets and recovery\nScout Coordinator\nHelps recruitment department\nLoan Manager\nTracks players on loan\nTransition Coach\nHelps academy players move upward),when going through the market for players show their rating out of five stars and how much money they cost, you start your first season in the championship(The EFL Championship is the second division of English soccer, right below the Premier League.\n\nHere\u00e2\u20ac\u2122s how the format works:\n\n### League Setup\n\n* 24 teams\n* Each team plays:\n\n  * Every team twice\n  * One home game\n  * One away game\n* Total:\n\n  * 46 league games per team\n\n### Points System\n\n* Win = 3 points\n* Draw = 1 point\n* Loss = 0 points\n\nTeams are ranked by:\n\n1. Points\n2. Goal difference\n3. Goals scored ([Wikipedia][1])\n\n### Promotion to Premier League\n\nAt the end of the season:\n\n* 1st place \u00e2\u2020\u2019 promoted automatically\n* 2nd place \u00e2\u2020\u2019 promoted automatically\n\nThen:\n\n* 3rd\u00e2\u20ac\u201c6th enter playoffs\n* Playoff winner gets final promotion spot ([Wikipedia][1])\n\n### Current Playoff Format (through 2025\u00e2\u20ac\u201c26)\n\n* 3rd vs 6th\n* 4th vs 5th\n* Two-legged semifinals\n* Winners meet at Wembley Stadium\n* Final winner goes to Premier League ([Wikipedia][1])\n\n### Relegation\n\n* Bottom 3 teams:\n\n  * 22nd\n  * 23rd\n  * 24th\n* Relegated to EFL League One ([Wikipedia][1])\n\n### Important Change\n\nStarting in the 2026\u00e2\u20ac\u201c27 season:\n\n* Playoffs expand from 4 teams to 6 teams\n* Teams finishing 3rd\u00e2\u20ac\u201c8th qualify ([skysports.com][2])\n\n### Why People Love the Championship\n\n* Very competitive\n* 46-game grind\n* Big clubs often stuck there\n* Promotion money is massive\n* Playoff final is called:\n\n- \u00e2\u20ac\u0153The richest game in football\u00e2\u20ac\udc9d\n\n[1]: https://en.wikipedia.org/wiki/EFL_Championship?utm_source=chatgpt.com \"EFL Championship\"\n[2]: https://www.skysports.com/football/news/11688/13515549/championship-play-offs-efl-confirms-expansion-from-four-to-six-teams-from-2026-27-season-onwards?utm_source=chatgpt.com \"Championship play-offs: EFL confirms expansion from four ...\"\n)if i get move up divisions(The Premier League is the top soccer league in England.\n\nTeams\n20 clubs total\nSeason Length\nAugust \u00e2\u2020\u2019 May\nGames\n\nEach team plays:\n\nEvery team twice\nOne home game\nOne away game\n\nTotal:\n\n38 games per team\nPoints System\nWin = 3 points\nDraw = 1 point\nLoss = 0 points\n\nLeague table decided by:\n\nPoints\nGoal difference\nGoals scored\nWinning the League\nTeam with most points after 38 games wins\nReceives Premier League trophy\nEuropean Qualification\nChampions League\n\nUsually:\n\nTop 4 qualify\n\nSometimes:\n\nEngland gets 5 spots\nDepends on UEFA coefficient rankings\nEuropa League\n\nUsually:\n\n5th place\nFA Cup winner\nConference League\n\nUsually:\n\nCarabao Cup winner\n\nIf cup winners already qualified:\n\nSpot moves down the league table\nRelegation\n\nBottom 3 teams:\n\n18th\n19th\n20th\n\nRelegated to:\n\nEFL Championship\nPromotion From Championship\n\n3 teams come up:\n\n1st place automatic\n2nd place automatic\nPlayoff winner promoted\nTransfer Windows\nSummer Window\nMain player buying period\nWinter Window\nJanuary transfers\nNo Playoffs\n\nUnlike American sports:\n\nNo postseason playoffs for title\nBest record wins league) if i go down to league 1(# EFL League One Format\n\nLeague One is:\n\n* 3rd division of English soccer\n* Below Championship\n* Above League Two\n\n---\n\n# Teams\n\n* 24 clubs\n\n### Season\n\n* August \u00e2\u2020\u2019 May\n\n### Games\n\nEach team plays:\n\n* Every club twice\n* Home and away\n\nTotal:\n\n* 46 league games\n\n---\n\n# Points System\n\n* Win = 3 points\n* Draw = 1 point\n* Loss = 0 points\n\nTable decided by:\n\n1. Points\n2. Goal difference\n3. Goals scored\n\n---\n\n# Promotion\n\n### Automatic Promotion\n\n* 1st place promoted\n* 2nd place promoted\n\n### Playoffs\n\nTeams:\n\n* 3rd\n* 4th\n* 5th\n* 6th\n\nFormat:\n\n* Semifinals\n* Two legs\n* Final at Wembley\n\nWinner promoted to:\n\n* EFL Championship\n\n---\n\n# Relegation\n\nBottom 4 teams:\n\n* 21st\n* 22nd\n* 23rd\n* 24th\n\nRelegated to:\n\n* EFL League Two\n\n---\n\n# Cups League One Teams Play\n\n* FA Cup\n* EFL Cup\n* EFL Trophy\n\n---\n\n# Important Difference\n\nLeague One clubs usually:\n\n* Have lower budgets\n* Smaller stadiums\n* Younger players\n* More loans from bigger clubs\n\nBut many historic clubs play there sometimes.\n) , these are all the teams i want to have in the game(## Premier League (2025\u00e2\u20ac\u201c26)\n\n* Arsenal\n* Aston Villa\n* Bournemouth\n* Brentford\n* Brighton & Hove Albion\n* Burnley\n* Chelsea\n* Crystal Palace\n* Everton\n* Fulham\n* Leeds United\n* Liverpool\n* Manchester City\n* Manchester United\n* Newcastle United\n* Nottingham Forest\n* Sunderland\n* Tottenham Hotspur\n* West Ham United\n* Wolverhampton Wanderers  ([Wikipedia][1])\n\n## EFL Championship\n\n* Birmingham City\n* Blackburn Rovers\n* Bristol City\n* Charlton Athletic\n* Coventry City\n* Derby County\n* Hull City\n* Ipswich Town\n* Leicester City\n* Middlesbrough\n* Millwall\n* Norwich City\n* Oxford United\n* Portsmouth\n* Preston North End\n* Queens Park Rangers\n* Sheffield United\n* Sheffield Wednesday\n* Southampton\n* Stoke City\n* Swansea City\n* Watford\n* West Bromwich Albion\n* Wrexham  ([Wikipedia][2])\n\n## EFL League One\n\n* AFC Wimbledon\n* Barnsley\n* Blackpool\n* Bolton Wanderers\n* Bradford City\n* Burton Albion\n* Cardiff City\n* Doncaster Rovers\n* Exeter City\n* Huddersfield Town\n* Leyton Orient\n* Lincoln City\n* Luton Town\n* Mansfield Town\n* Northampton Town\n* Peterborough United\n* Plymouth Argyle\n* Port Vale\n* Reading\n* Rotherham United\n* Stevenage\n* Stockport County\n* Wigan Athletic\n* Wycombe Wanderers  ([Wikipedia][3])\n\n[1]: https://en.wikipedia.org/wiki/2025%E2%80%9326_Premier_League?utm_source=chatgpt.com \"2025\u00e2\u20ac\u201c26 Premier League\"\n[2]: https://en.wikipedia.org/wiki/2025%E2%80%9326_EFL_Championship?utm_source=chatgpt.com \"2025\u00e2\u20ac\u201c26 EFL Championship\"\n[3]: https://en.wikipedia.org/wiki/2025%E2%80%9326_EFL_League_One?utm_source=chatgpt.com \"2025\u00e2\u20ac\u201c26 EFL League One\"\n),i want 6 tabs for the home screen 1.advance(meaning run the fixtures for that week) 2.market(you can buy or sell players and coach,but the player you are trying to purchease has to agree and the club have to accept your bid for the player,same thing with selling players,teams can bid for your player on the market and you have the option to accept the offer or decline it)3.youth(lets you scott players from your youth system or scout players from any country)4.standings(check your own standings in the league and other league you aren't in)5.roster(you can look at the roster of players and coaches,it tells your their position,there stats this year or their entire career,how many stars they have,and their transfer value. if you wanna select a specific player make a option to boost morale, extend their contract,boost there level, or put them on the transfer list)6.imbox (you get feed back from fans and get messages from player and coaches(not very often though)you can also get mail if one of you players or coach win any indival rewards like (POTM,POTS,POTY,GOLDEN BOOT ,golden glove,PMOTS{meaning play maker of the season},and the ballon'dor)(for coaches(manager of the month,and manager of the year, give every player and coach a profile picture,and if they win any trophies show the award they won at the top of their profile if you win trophies the money award goes into your budget for the next year(Premier League (EPL)\nWinning the league\nAround \u00c2\u00a3175M\u00e2\u20ac\u201c\u00c2\u00a3180M total possible revenue\nIncludes:\nTV money\nMerit payments\nFacility fees\nCommercial shares\nActual \u00e2\u20ac\u0153winner bonus\u00e2\u20ac\udc9d\nAbout \u00c2\u00a356M merit payment for 1st place\nEvery lower place earns less\n\nBig clubs also gain:\n\nHuge sponsor bonuses\nMore shirt sales\nChampions League qualification\nEFL Championship\nWinning the Championship\nPrize money itself is small\nAround \u00c2\u00a3100k\u00e2\u20ac\u201c\u00c2\u00a31M direct rewards\nReal money = promotion\n\nPromotion to EPL can be worth:\n\n\u00c2\u00a3170M+ over several years\nTV deals explode financially\n\nThis is why Championship playoffs are called:\n\n\u00e2\u20ac\u0153The richest game in football\u00e2\u20ac\udc9d\n\nFA Cup\nFA Cup winner\nAbout \u00c2\u00a32M prize money\nExtra money from:\nTV broadcasts\nTicket sales\nSponsorships\nEuropean reward\n\nWinner qualifies for:\n\nEuropa League\n\nBig clubs often earn more from TV than prize money itself.\n\nEFL Cup (Carabao Cup)\nWinner earns\nRoughly \u00c2\u00a3100k\u00e2\u20ac\u201c\u00c2\u00a3200k direct prize\n\nNot huge financially.\n\nMain benefits\nEuropa Conference League qualification\nExtra exposure\nTrophy prestige\n\nSmaller clubs value it more financially.\n\nUEFA Europa Conference League\nWinner total earnings\nAround \u00e2\u201a\u00ac15M\u00e2\u20ac\u201c\u00e2\u201a\u00ac20M possible\n\nMoney comes from:\n\nQualification rounds\nGroup stage wins\nKnockout rounds\nFinal victory\nWinner also gets\nEuropa League qualification\nUEFA Europa League\nWinner total earnings\nAround \u00e2\u201a\u00ac25M\u00e2\u20ac\u201c\u00e2\u201a\u00ac40M+\n\nDepends on:\n\nMatch wins\nTV market pool\nProgress through tournament\nHuge reward\n\nWinner qualifies for:\n\nChampions League\n\nThat qualification can add another:\n\n\u00e2\u201a\u00ac50M\u00e2\u20ac\u201c\u00e2\u201a\u00ac100M later\nUEFA Champions League\nBiggest money competition in club football\nWinning can earn:\n\u00e2\u201a\u00ac120M\u00e2\u20ac\u201c\u00e2\u201a\u00ac160M+\nSometimes over \u00e2\u201a\u00ac200M total\n\nMoney sources:\n\nQualification\nGroup stage wins\nKnockout rounds\nTV rights\nUEFA coefficient payments\nFinal victory) if you get relegated to league 2 you loss the game.   use every agent possible and make a new repo call \"FOOTBALL CEO\" and send me the link to play the game"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "@agent-agent-vs-agent play the game until i refresh the page and when your done leave a list of error that you noticed when simulating the game"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "   /model"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "opus"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "when i pick a club to start with automatically sell me free agents players when i am trying to get the full requiments of 20 signings because nothing is showing up after i pick my squad"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make the stars go to a ranking of 10/10 so instead going from 2 star to 3 star add half a star so exp(2 and an half star)"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "don't give me any 3.5-5 as free agents"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "make the start of the game you automaically get 200 million to your budget, only offer me 1.5 star to 3 star player on the build your squad party in the begin, everything 3 stars and under has to be 10 million and under"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "first of all the simulate week button does not work so fix that, add another tab calendar where you can look at a calendar and see all of your games for each month,"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "the simulate button still doesn't work, the end goal of it is to come up with a reasonable out comewith the player atrobutes aginst the opponet for that week, after the game tell me who was the best player for my team even if they don't get player of the match"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "it say my web browswer can't run the fixtures, find out what the problem is and fix it, us agents if you need too"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "for every team give them a rating 1 out of 5 star rating so i can tell when i play a good team and a bad team just for that division that you are in, create a another tab called team where you get o see what the head coach formation is and who starts and who doesn't start,and instead of the budget being a 200 million at the start just make it 50 million, for any cup games that the team plays change the color of the headline so i can identify if its fa cup, carabuo, or any european tornament games"
+  },
+  {
+    "session_id": "f7744cee-1f92-4d17-ab38-a12d9af8d1d9",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\f7744cee-1f92-4d17-ab38-a12d9af8d1d9.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "football ceo"
+  },
+  {
+    "session_id": "f7744cee-1f92-4d17-ab38-a12d9af8d1d9",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\f7744cee-1f92-4d17-ab38-a12d9af8d1d9.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "so if a team makes it to any european football this is what i want the format to look like The Champions League is Europe\u00e2\u20ac\u2122s biggest club soccer competition.\n\nTeams qualify from:\n\nEngland\nSpain\nGermany\nItaly\nFrance\nOther European leagues\nNew Format (Started 2024\u00e2\u20ac\u201c25)\n\nThe tournament changed from:\n\nGroup stage\n\nTo:\n\nOne giant league phase\nTeams\n36 clubs total\nLeague Phase\n\nEach team plays:\n\n8 matches total\n4 home\n4 away\n\nTeams face:\n\nDifferent opponents\nNot every team\nPoints\nWin = 3\nDraw = 1\nLoss = 0\n\nAll 36 teams share:\n\nOne standings table\nLeague Phase Qualification\nTop 8\nAutomatically qualify for Round of 16\n9th\u00e2\u20ac\u201c24th\nPlay knockout playoff round\n25th\u00e2\u20ac\u201c36th\nEliminated completely\n\nNo Europa League drop anymore.\n\nKnockout Playoff Round\n9th\u00e2\u20ac\u201c24th teams\nTwo-legged ties\nWinners advance\nRound of 16 Onward\n\nAfter that:\n\nRound of 16\nQuarterfinals\nSemifinals\n\nAll are:\n\nTwo legs\nHome and away\nFinal\nOne match\nNeutral stadium\nExtra time + penalties if needed\n\nWinner becomes:\n\nEuropean champions\nQualification\nPremier League Example\n\nUsually:\n\nTop 4 or 5 qualify\n\nOther countries get:\n\nDifferent number of spots\nBased on UEFA rankings\nMoney\n\nClubs earn money from:\n\nQualification\nMatch wins\nTV rights\nAdvancing rounds\n\nWinning can earn:\n\n\u00e2\u201a\u00ac120M\u00e2\u20ac\u201c\u00e2\u201a\u00ac200M+UEFA Europa League Format\n\nThe Europa League is:\n\nEurope\u00e2\u20ac\u2122s 2nd biggest club competition\nBelow Champions League\nAbove Conference League\nTeams\n36 clubs\n\nTeams qualify through:\n\nLeague finishes\nDomestic cup wins\nLeague Phase\n\n(New format started 2024\u00e2\u20ac\u201c25)\n\nEach team plays:\n\n8 matches\n4 home\n4 away\n\nOne giant standings table.\n\nPoints\nWin = 3\nDraw = 1\nLoss = 0\nQualification\nTop 8\nAutomatically into Round of 16\n9th\u00e2\u20ac\u201c24th\nKnockout playoff round\n25th\u00e2\u20ac\u201c36th\nEliminated\nKnockout Stage\n\nAfter playoffs:\n\nRound of 16\nQuarterfinals\nSemifinals\n\nThese are:\n\nTwo-legged ties\nFinal\nOne game\nNeutral stadium\n\nWinner gets:\n\nTrophy\nChampions League qualification\nMoney\n\nWinner can earn:\n\n\u00e2\u201a\u00ac25M\u00e2\u20ac\u201c\u00e2\u201a\u00ac40M+\nUEFA Europa Conference League Format\n\nConference League is:\n\nEurope\u00e2\u20ac\u2122s 3rd-tier competition\nMade for smaller European leagues/clubs\n\nStarted in:\n\n2021\nTeams\n36 clubs\n\nMany clubs come from:\n\nSmaller nations\nMid-table major league teams\nLeague Phase\n\nEach team plays:\n\n6 matches\n3 home\n3 away\n\nOne league standings table.\n\nPoints\nWin = 3\nDraw = 1\nLoss = 0\nQualification\nTop 8\nStraight to Round of 16\n9th\u00e2\u20ac\u201c24th\nPlayoff round\n25th\u00e2\u20ac\u201c36th\nEliminated\nKnockout Stage\n\nThen:\n\nRound of 16\nQuarterfinals\nSemifinals\n\nTwo-legged matches.\n\nFinal\nOne match\nNeutral stadium\n\nWinner gets:\n\nEuropa League qualification\nMoney\n\nWinner can earn:\n\n\u00e2\u201a\u00ac15M\u00e2\u20ac\u201c\u00e2\u201a\u00ac20M+\n\nLess money than:\n\nChampions League\nEuropa League\n\nBut still massive for smaller clubs.\n\nUEFA Competition Order\nUEFA Champions League\nUEFA Europa League\nUEFA Europa Conference League, the team in the champions league for the season is England\nLiverpool F.C.\nManchester City F.C.\nArsenal F.C.\nManchester United F.C.\nChelsea F.C.\nTottenham Hotspur F.C.\nSpain\nFC Barcelona\nReal Madrid CF\nAtl\u00c3\u00a9tico Madrid\nAthletic Club\nVillarreal CF\nGermany\nFC Bayern Munich\nBorussia Dortmund\nBayer 04 Leverkusen\nRB Leipzig\nEintracht Frankfurt\nItaly\nInter Milan\nSSC Napoli\nJuventus FC\nAC Milan\nFrance\nParis Saint-Germain F.C.\nOlympique de Marseille\nAS Monaco FC\nRC Lens\nNetherlands\nPSV Eindhoven\nFeyenoord\nAFC Ajax\nPortugal\nFC Porto\nSporting CP\nSL Benfica\nOther clubs\nClub Brugge KV\nRoyale Union Saint-Gilloise\nGalatasaray S.K.\nOlympiacos F.C.\nRed Star Belgrade\nDinamo Zagreb\nBod\u00c3\u00b8/Glimt, for the teams in europa league this season England\nAston Villa F.C.\nNewcastle United F.C.\nBrighton & Hove Albion F.C.\nSpain\nReal Betis Balompi\u00c3\u00a9\nReal Sociedad\nSevilla FC\nGermany\nSC Freiburg\nVfB Stuttgart\nFSV Mainz 05\nItaly\nAS Roma\nSS Lazio\nACF Fiorentina\nFrance\nOlympique Lyonnais\nStade Rennais F.C.\nNetherlands\nAZ Alkmaar\nFC Utrecht\nPortugal\nSL Benfica\nSC Braga\nBelgium\nR.S.C. Anderlecht\nSint-Truiden V.V.\nTurkey\nBe\u00c5\u0178ikta\u00c5\u0178 J.K.\nTrabzonspor\nOther clubs\nRB Salzburg\nCeltic F.C.\nViktoria Plze\u00c5\u02c6\nPAOK FC\nFC Midtjylland\nMalm\u00c3\u00b6 FF\nSheriff Tiraspol\nHJK Helsinki\nQaraba\u00c4\u0178 FK\nLudogorets Razgrad, confrence league Here\u00e2\u20ac\u2122s a projected 2026\u00e2\u20ac\u201c27 UEFA Conference League lineup using clubs likely to qualify based on league positions, cup results, and teams from this season filling remaining spots:\n\nEngland\nCrystal Palace F.C.\nAFC Bournemouth\nBrentford F.C.\nSpain\nRayo Vallecano\nCA Osasuna\nGirona FC\nGermany\nWerder Bremen\nVfL Wolfsburg\nItaly\nBologna FC 1909\nTorino FC\nFrance\nRC Strasbourg Alsace\nAS Monaco FC\nNetherlands\nFC Twente\nGo Ahead Eagles\nPortugal\nVit\u00c3\u00b3ria S.C.\nMoreirense F.C.\nBelgium\nKAA Gent\nCercle Brugge K.S.V.\nScotland\nHibernian F.C.\nAberdeen F.C.\nOther clubs\n\u00c4\u00b0stanbul Ba\u00c5\u0178ak\u00c5\u0178ehir F.K.\nMolde FK\nAIK Fotboll\nShamrock Rovers F.C.\nFC Lausanne-Sport\nHajduk Split\nAustria Wien\nLegia Warsaw\nFC K\u00c3\u00b8benhavn\nShakhtar Donetsk\nRapid Wien\nMaccabi Haifa F.C.\nPartizan Belgrade\nRosenborg BK, make sure all teams have to earn their qualification for europe every year, show proof of their qualification through there league standing, show standings for Serie A (Italy)LaLiga (Spain)Bundesliga (Germany)Ligue 1 (France)Eredivisie (Netherlands)Liga Portugal (Portugal), make sure to fit in european games in the calendar"
+  },
+  {
+    "session_id": "f7744cee-1f92-4d17-ab38-a12d9af8d1d9",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\f7744cee-1f92-4d17-ab38-a12d9af8d1d9.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "permission_mode": "acceptEdits",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "add a new tab called setting the abillity to have save you game for later"
   }
 ]

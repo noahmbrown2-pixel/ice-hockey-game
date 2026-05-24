@@ -205,5 +205,59 @@
     "agent_type": "builder",
     "hook_event_name": "SubagentStart",
     "logged_at": "2026-05-12T20:42:58.822186"
+  },
+  {
+    "session_id": "6aba6a84-d7c4-4d13-ae17-0d262f6ac0bc",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\6aba6a84-d7c4-4d13-ae17-0d262f6ac0bc.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a48ebdc68b3500cec",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-05-18T19:09:39.093481"
+  },
+  {
+    "session_id": "cdb902a0-8723-43c1-8dfe-74ed9d1887ce",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\cdb902a0-8723-43c1-8dfe-74ed9d1887ce.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "ab4d797d279485469",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-05-19T17:13:24.639112"
+  },
+  {
+    "session_id": "cdb902a0-8723-43c1-8dfe-74ed9d1887ce",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\cdb902a0-8723-43c1-8dfe-74ed9d1887ce.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a9ab177f6b6634981",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-05-19T18:43:11.726904"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "adb8c5fba8e4a6476",
+    "agent_type": "builder",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-05-21T18:50:50.542116"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "a4f7c30b809c5367c",
+    "agent_type": "agent-vs-agent",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-05-21T19:09:16.723588"
+  },
+  {
+    "session_id": "3ff2c735-5835-4974-9daa-2e7f6b7e1c7e",
+    "transcript_path": "C:\\Users\\noahm\\.claude\\projects\\C--Users-noahm-Project\\3ff2c735-5835-4974-9daa-2e7f6b7e1c7e.jsonl",
+    "cwd": "C:\\Users\\noahm\\Project",
+    "agent_id": "ad228079bb822a717",
+    "agent_type": "Explore",
+    "hook_event_name": "SubagentStart",
+    "logged_at": "2026-05-22T01:29:30.406784"
   }
 ]
