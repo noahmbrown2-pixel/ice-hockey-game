@@ -1,0 +1,188 @@
+<!doctype html>
+<!-- Copyright (c) 2025 Craig M. Brown. All rights reserved. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Dead Run — Endless Runner</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0a0a;overflow:hidden;font-family:'Courier New',monospace;color:#00ff41}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  canvas{background:#1a1420;display:block;max-width:100%;max-height:100%;touch-action:none}
+  #hud{position:fixed;top:8px;left:8px;font-size:15px;text-shadow:0 0 4px #000;pointer-events:none;line-height:1.5}
+  #hud b{color:#fff}
+  #msg{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+       text-align:center;background:rgba(5,5,5,.86);z-index:5}
+  #msg h1{font-size:32px;margin:.2em;color:#ff3b3b;text-shadow:0 0 10px #ff0000}
+  #msg p{max-width:540px;font-size:15px;line-height:1.6;color:#9fffb0}
+  #msg button{margin-top:14px;background:#00ff41;color:#000;border:0;padding:12px 26px;font-size:16px;
+       font-family:inherit;font-weight:bold;border-radius:6px;cursor:pointer}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c" width="960" height="540"></canvas></div>
+<div id="hud"></div>
+<div id="msg">
+  <h1 style="color:#00ff41;text-shadow:0 0 10px #00ff41">DEAD RUN</h1>
+  <p><b style="color:#fff">Endless runner.</b> Outrun the horde — it's right on your heels.<br>
+     <b style="color:#fff">Jump</b>: Space / W / ↑ / Tap-top &nbsp; <b style="color:#fff">Slide</b>: S / ↓ / Tap-bottom<br>
+     Leap over wrecks &amp; barricades, slide under hanging signs, vault zombies.
+     Grab <span style="color:#ffd24a">coins</span> and <span style="color:#4faeff">adrenaline</span> (brief invincible dash).
+     One hit and the horde catches you — distance is your score.</p>
+  <button id="start">RUN</button>
+</div>
+<script>
+const C=document.getElementById('c'),X=C.getContext('2d');
+const W=C.width,H=C.height,GROUND=H-90;
+const hud=document.getElementById('hud'),msg=document.getElementById('msg');
+const rand=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>v<a?a:v>b?b:v;
+let P,obstacles,coins,powerups,particles,horde,speed,dist,coinN,best=0,dead,started=false,spawnX;
+
+function reset(){
+  P={x:160,y:GROUND,vy:0,r:18,grounded:true,sliding:0,inv:0};
+  obstacles=[];coins=[];powerups=[];particles=[];
+  speed=6;dist=0;coinN=0;dead=false;horde=0;spawnX=W+200;
+  // prime some obstacles
+  for(let i=0;i<5;i++)spawnObstacle(W+300+i*rand(320,520));
+}
+function spawnObstacle(x){
+  const r=Math.random();let o;
+  if(r<0.34) o={x,type:'ground',w:rand(34,60),h:rand(40,72)};        // jump over
+  else if(r<0.6) o={x,type:'low',w:rand(40,70),h:36,gap:96};          // slide under (bar at top)
+  else if(r<0.82) o={x,type:'zombie',w:34,h:48};                      // jump/vault
+  else o={x,type:'pit',w:rand(70,120)};                              // jump the gap
+  o.passed=false;obstacles.push(o);
+  // sometimes coins arc
+  if(Math.random()<0.7){const n=Math.floor(rand(3,6));const cy=o.type==='low'?GROUND-130:GROUND-rand(60,150);
+    for(let i=0;i<n;i++)coins.push({x:x+rand(-30,80)+i*26,y:cy-Math.sin(i/n*Math.PI)*40,got:false});}
+  if(Math.random()<0.12)powerups.push({x:x+rand(40,120),y:GROUND-rand(70,150),got:false});
+}
+function jump(){if(P.grounded&&!P.sliding){P.vy=-15.5;P.grounded=false;
+  for(let i=0;i<6;i++)particles.push({x:P.x,y:GROUND,vx:rand(-3,0),vy:rand(-1,2),life:rand(8,16),col:'#6a5a7a',r:2});}}
+function slide(){if(P.grounded&&P.sliding<=0)P.sliding=34;}
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();
+  if([' ','w','arrowup'].includes(k)){jump();e.preventDefault();}
+  if(['s','arrowdown'].includes(k)){slide();e.preventDefault();}
+  if(k==='p'){}});
+C.addEventListener('touchstart',e=>{const t=e.touches[0];const r=C.getBoundingClientRect();
+  const y=(t.clientY-r.top)*(H/r.height);if(y<H/2)jump();else slide();e.preventDefault();},{passive:false});
+C.addEventListener('mousedown',e=>{const r=C.getBoundingClientRect();const y=(e.clientY-r.top)*(H/r.height);if(y<H/2)jump();else slide();});
+
+function update(){
+  if(dead)return;
+  speed+=0.0016; dist+=speed;
+  horde=clamp(horde+(P.inv>0?-0.6:0.15),0,160); // catches up if you dawdle/hit
+  // physics
+  P.vy+=0.78;P.y+=P.vy;
+  if(P.y>=GROUND){P.y=GROUND;P.vy=0;P.grounded=true;}else P.grounded=false;
+  if(P.sliding>0)P.sliding--;
+  if(P.inv>0)P.inv--;
+  const ph=P.sliding>0?P.r*0.6:P.r; // hitbox shrinks when sliding
+  const ptop=P.y-(P.sliding>0?P.r*0.6:P.r*2);
+  // scroll world
+  for(const o of obstacles){o.x-=speed;}
+  for(const c of coins){c.x-=speed;}
+  for(const pu of powerups){pu.x-=speed;}
+  // spawn ahead
+  const last=obstacles.length?Math.max(...obstacles.map(o=>o.x)):0;
+  if(last<W+200)spawnObstacle(last+rand(300,520));
+  obstacles=obstacles.filter(o=>o.x>-150);
+  coins=coins.filter(c=>c.x>-30&&!c.got);
+  powerups=powerups.filter(p=>p.x>-30&&!p.got);
+  // collisions
+  for(const o of obstacles){
+    if(o.passed)continue;
+    const hit=()=>{
+      if(P.inv>0){ // smash through
+        for(let i=0;i<14;i++)particles.push({x:P.x,y:P.y-20,vx:rand(-5,5),vy:rand(-5,2),life:rand(10,22),col:'#4faeff',r:3});
+        o.passed=true;return;}
+      die();
+    };
+    if(o.type==='ground'||o.type==='zombie'){
+      if(P.x+ph>o.x&&P.x-ph<o.x+o.w){ if(P.y>GROUND-o.h+4){hit();} else if(P.x>o.x+o.w){o.passed=true;score(o);} }
+      if(P.x-ph>o.x+o.w){o.passed=true;score(o);}
+    } else if(o.type==='low'){
+      // bar hangs from top; must slide. collision if upper body in bar zone
+      const barBottom=GROUND-o.gap;
+      if(P.x+ph>o.x&&P.x-ph<o.x+o.w){ if(ptop<barBottom){hit();} }
+      if(P.x-ph>o.x+o.w&&!o.passed){o.passed=true;score(o);}
+    } else if(o.type==='pit'){
+      if(P.x>o.x&&P.x<o.x+o.w&&P.y>=GROUND-2){hit();}
+      if(P.x-ph>o.x+o.w&&!o.passed){o.passed=true;score(o);}
+    }
+  }
+  for(const c of coins){if(!c.got&&Math.abs(c.x-P.x)<22&&Math.abs(c.y-P.y)<30){c.got=true;coinN++;
+    for(let i=0;i<6;i++)particles.push({x:c.x,y:c.y,vx:rand(-2,2),vy:rand(-2,2),life:rand(8,16),col:'#ffd24a',r:2});}}
+  for(const pu of powerups){if(!pu.got&&Math.abs(pu.x-P.x)<26&&Math.abs(pu.y-P.y)<34){pu.got=true;P.inv=140;horde=clamp(horde-60,0,160);
+    for(let i=0;i<16;i++)particles.push({x:pu.x,y:pu.y,vx:rand(-4,4),vy:rand(-4,4),life:rand(12,24),col:'#4faeff',r:3});}}
+  for(const pt of particles){pt.x+=pt.vx-speed*0.3;pt.y+=pt.vy;pt.vy+=0.2;pt.life--;}
+  particles=particles.filter(p=>p.life>0);
+  if(horde>=158&&P.inv<=0)die();
+}
+function score(o){/* hook for combo later */}
+function die(){if(dead||P.inv>0)return;dead=true;best=Math.max(best,Math.floor(dist/10));
+  for(let i=0;i<26;i++)particles.push({x:P.x,y:P.y-16,vx:rand(-6,6),vy:rand(-7,2),life:rand(14,30),col:i%2?'#ff3b3b':'#6a9e4f',r:3});
+  setTimeout(gameOver,250);}
+
+function draw(){
+  // parallax sky
+  const g=X.createLinearGradient(0,0,0,GROUND);g.addColorStop(0,'#2a1a30');g.addColorStop(1,'#1a1420');
+  X.fillStyle=g;X.fillRect(0,0,W,GROUND);
+  // blood moon
+  X.fillStyle='#aa3344';X.beginPath();X.arc(W-130,90,38,0,6.28);X.fill();
+  // far buildings (parallax)
+  X.fillStyle='#241a2a';for(let i=0;i<14;i++){const bx=((i*120 - dist*0.12)%(W+160)+W+160)%(W+160)-80;
+    X.fillRect(bx,GROUND-rand(60,60)-((i*53)%80),70,((i*53)%80)+90);}
+  X.fillStyle='#1d141f';for(let i=0;i<14;i++){X.fillRect(((i*120-dist*0.12)%(W+160)+W+160)%(W+160)-80,GROUND-90-((i*37)%70),70,200);}
+  // ground
+  X.fillStyle='#13202a';X.fillRect(0,GROUND,W,H-GROUND);
+  X.fillStyle='#0e3a24';X.fillRect(0,GROUND,W,4);
+  X.fillStyle='#1a2a18';for(let i=0;i<W;i+=40){X.fillRect((i-dist%40+W)%W,GROUND+8,18,4);}
+  // pits drawn as ground gaps
+  for(const o of obstacles){if(o.type==='pit'){X.fillStyle='#0a0a0a';X.fillRect(o.x,GROUND,o.w,H-GROUND);}}
+  // horde behind (left edge crowd, closer as horde rises)
+  const hx=-40+horde*1.0;
+  for(let i=0;i<10;i++){const zx=hx-i*22+Math.sin(dist*0.05+i)*4;const zy=GROUND-20-(i%3)*4;
+    X.fillStyle=i%2?'#5a8e4f':'#6a9e4f';X.fillRect(zx,zy-26,18,30);X.fillStyle='#300';X.fillRect(zx+3,zy-20,3,3);X.fillRect(zx+10,zy-20,3,3);}
+  if(horde>90){X.fillStyle='rgba(255,59,59,'+((horde-90)/70*0.25)+')';X.fillRect(0,0,W,H);}
+  // coins
+  for(const c of coins){if(c.got)continue;X.fillStyle='#ffd24a';X.beginPath();X.arc(c.x,c.y,8,0,6.28);X.fill();
+    X.fillStyle='#7a5a00';X.fillRect(c.x-1,c.y-4,2,8);}
+  // powerups
+  for(const pu of powerups){if(pu.got)continue;X.fillStyle='#4faeff';X.save();X.translate(pu.x,pu.y);X.rotate(dist*0.05);
+    X.fillRect(-9,-9,18,18);X.restore();X.fillStyle='#fff';X.fillText('⚡',pu.x-4,pu.y+4);}
+  // obstacles
+  for(const o of obstacles){
+    if(o.type==='ground'){X.fillStyle='#5a4a3a';X.fillRect(o.x,GROUND-o.h,o.w,o.h);X.fillStyle='#3a2e22';X.fillRect(o.x,GROUND-o.h,o.w,5);}
+    else if(o.type==='low'){const bb=GROUND-o.gap;X.fillStyle='#7a3a3a';X.fillRect(o.x,0,o.w,bb);X.fillStyle='#aa5a5a';X.fillRect(o.x,bb-8,o.w,8);}
+    else if(o.type==='zombie'){X.fillStyle='#6a9e4f';X.fillRect(o.x,GROUND-o.h,o.w,o.h);X.fillStyle='#300';X.fillRect(o.x+6,GROUND-o.h+8,4,4);X.fillRect(o.x+20,GROUND-o.h+8,4,4);
+      X.fillStyle='#4a6e36';X.fillRect(o.x-6,GROUND-o.h+14,8,5);}
+  }
+  // player
+  X.save();X.translate(P.x,P.y);
+  if(P.inv>0){X.globalAlpha=0.6+0.4*Math.sin(dist*0.4);X.fillStyle='#4faeff';X.beginPath();X.arc(0,-18,26,0,6.28);X.fill();X.globalAlpha=1;}
+  X.fillStyle='#00ff41';
+  if(P.sliding>0){X.fillRect(-P.r,-P.r*0.6,P.r*2.2,P.r*0.7);}
+  else{X.fillRect(-P.r*0.7,-P.r*2,P.r*1.4,P.r*2);X.fillStyle='#0a3a18';X.fillRect(-P.r*0.4,-P.r*1.6,P.r*0.8,P.r*0.6);}
+  X.restore();
+  for(const pt of particles){X.globalAlpha=clamp(pt.life/24,0,1);X.fillStyle=pt.col;X.fillRect(pt.x-pt.r,pt.y-pt.r,pt.r*2,pt.r*2);}
+  X.globalAlpha=1;
+}
+function drawHUD(){
+  hud.innerHTML=`DIST <b>${Math.floor(dist/10)}m</b> &nbsp; COINS <b style="color:#ffd24a">${coinN}</b> &nbsp; SPEED <b>${speed.toFixed(1)}</b>`+
+    (best?` &nbsp; BEST <b>${best}m</b>`:``)+
+    (P.inv>0?` &nbsp; <span style="color:#4faeff">⚡ ADRENALINE</span>`:``)+
+    (horde>90?` &nbsp; <span style="color:#ff3b3b">HORDE CLOSING!</span>`:``);
+}
+function gameOver(){msg.classList.remove('hide');
+  msg.innerHTML=`<h1>THE HORDE GOT YOU</h1>
+   <p>You ran <b style="color:#fff">${Math.floor(dist/10)}m</b> and grabbed <b style="color:#ffd24a">${coinN}</b> coins.<br>
+      Best: <b style="color:#fff">${best}m</b></p><button id="again">RUN AGAIN</button>`;
+  document.getElementById('again').onclick=()=>{msg.classList.add('hide');reset();};}
+function loop(){if(started)update();if(started){draw();drawHUD();}requestAnimationFrame(loop);}
+document.getElementById('start').onclick=()=>{started=true;msg.classList.add('hide');reset();};
+loop();
+</script>
+</body>
+</html>

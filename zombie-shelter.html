@@ -1,0 +1,284 @@
+<!doctype html>
+<!-- Copyright (c) 2025 Craig M. Brown. All rights reserved. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Shelter 7 — Survival Management</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0a0a;overflow:hidden;font-family:'Courier New',monospace;color:#00ff41}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  canvas{background:#0e120f;display:block;max-width:100%;max-height:100%;touch-action:none}
+  #hud{position:fixed;top:8px;left:8px;right:8px;font-size:13px;text-shadow:0 0 4px #000;pointer-events:none;line-height:1.6}
+  #hud b{color:#fff}
+  #msg{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+       text-align:center;background:rgba(5,5,5,.88);z-index:5;padding:20px;box-sizing:border-box}
+  #msg h1{font-size:28px;margin:.2em;color:#ff3b3b;text-shadow:0 0 10px #ff0000}
+  #msg p{max-width:600px;font-size:14px;line-height:1.6;color:#9fffb0}
+  #msg button{margin-top:12px;background:#00ff41;color:#000;border:0;padding:11px 22px;font-size:15px;
+       font-family:inherit;font-weight:bold;border-radius:6px;cursor:pointer}
+  .hide{display:none!important}
+  #log{position:fixed;right:8px;bottom:8px;width:300px;max-height:150px;overflow:hidden;font-size:12px;
+       color:#7fbf8f;text-align:right;pointer-events:none;line-height:1.4}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c" width="960" height="600"></canvas></div>
+<div id="hud"></div>
+<div id="log"></div>
+<div id="msg">
+  <h1 style="color:#00ff41;text-shadow:0 0 10px #00ff41">SHELTER 7</h1>
+  <p><b style="color:#fff">Survival management.</b> You run an underground shelter. Each <b style="color:#fff">day</b>,
+     assign your survivors to jobs, then survive the <b style="color:#ff7b7b">night raid</b>.<br>
+     <span style="color:#ffd24a">Food</span> 🍖 keeps people alive · <span style="color:#4faeff">Water</span> 💧 too ·
+     <span style="color:#bbb">Scrap</span> 🔧 builds defenses · <span style="color:#ff7b7b">Defense</span> 🛡 repels raids · <span style="color:#7fff7f">Medicine</span> 💊 heals.<br>
+     Click a survivor then a job to assign. Build upgrades with scrap. Click <b style="color:#fff">END DAY</b> to face the night.
+     Keep everyone fed and the walls strong. How many days can you last?</p>
+  <button id="start">OPEN THE SHELTER</button>
+</div>
+<script>
+const C=document.getElementById('c'),X=C.getContext('2d');
+const W=C.width,H=C.height;
+const hud=document.getElementById('hud'),msg=document.getElementById('msg'),logEl=document.getElementById('log');
+const rand=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>v<a?a:v>b?b:v,ri=(a,b)=>Math.floor(rand(a,b));
+let mouse={x:0,y:0};
+function mpos(e){const r=C.getBoundingClientRect();mouse.x=(e.clientX-r.left)*(W/r.width);mouse.y=(e.clientY-r.top)*(H/r.height);}
+C.addEventListener('mousemove',mpos);
+C.addEventListener('click',e=>{mpos(e);onClick();});
+C.addEventListener('touchstart',e=>{mpos(e.touches[0]);onClick();e.preventDefault();},{passive:false});
+
+const JOBS=['Forage','Water','Scavenge','Guard','Medic','Rest'];
+const NAMES=['Mara','Dex','Ivy','Cole','Rho','Jin','Sam','Tess','Vic','Lena','Otto','Pru','Kai','Nora'];
+let res, people, day, phase, sel, buildings, particles, raid, started=false, gameover=false, logLines=[];
+
+function L(s){logLines.unshift(s);if(logLines.length>8)logLines.pop();}
+function reset(){
+  res={food:14,water:14,scrap:8,med:3,defense:10};
+  people=[];for(let i=0;i<4;i++)addPerson();
+  day=1;phase='day';sel=null;raid=null;particles=[];gameover=false;logLines=[];
+  buildings={wall:1,garden:0,well:0,clinic:0,workshop:0};
+  L('Day 1 — assign jobs, then END DAY.');
+}
+function addPerson(name){
+  people.push({name:name||NAMES[ri(0,NAMES.length)]+(people&&people.length>9?ri(0,9):''),
+    hp:100,hunger:100,thirst:100,job:'Rest',x:0,y:0,wounded:false});
+}
+const layout=()=>{ // position survivor tokens in a grid in the people panel
+  people.forEach((p,i)=>{p.x=560+ (i%2)*180; p.y=140+Math.floor(i/2)*70;});
+};
+
+function onClick(){
+  if(gameover){return;}
+  if(phase!=='day')return;
+  // END DAY button
+  if(mouse.x>30&&mouse.x<190&&mouse.y>H-70&&mouse.y<H-26){endDay();return;}
+  // build buttons (left column)
+  for(const b of buildBtns){if(mouse.x>b.x&&mouse.x<b.x+b.w&&mouse.y>b.y&&mouse.y<b.y+b.h){tryBuild(b.key);return;}}
+  // job buttons (middle)
+  for(const j of jobBtns){if(sel&&mouse.x>j.x&&mouse.x<j.x+j.w&&mouse.y>j.y&&mouse.y<j.y+j.h){sel.job=j.name;sel=null;return;}}
+  // select person
+  for(const p of people){if(dist2(mouse.x,mouse.y,p.x,p.y)<26){sel=(sel===p)?null:p;return;}}
+}
+function dist2(ax,ay,bx,by){return Math.hypot(ax-bx,ay-by);}
+let jobBtns=[],buildBtns=[];
+function buildLayouts(){
+  jobBtns=JOBS.map((n,i)=>({name:n,x:300,y:120+i*58,w:200,h:46}));
+  const bdata=[
+    {key:'wall',label:'Reinforce Wall',cost:6,desc:'+5 defense'},
+    {key:'garden',label:'Garden',cost:7,desc:'+3 food/day'},
+    {key:'well',label:'Water Pump',cost:7,desc:'+3 water/day'},
+    {key:'clinic',label:'Clinic',cost:8,desc:'better healing'},
+    {key:'workshop',label:'Workshop',cost:9,desc:'+scrap yield'},
+  ];
+  buildBtns=bdata.map((b,i)=>({...b,x:30,y:120+i*62,w:230,h:50}));
+}
+function tryBuild(key){
+  const b=buildBtns.find(x=>x.key===key);
+  if(res.scrap<b.cost){L('Not enough scrap for '+b.label+'.');return;}
+  res.scrap-=b.cost;buildings[key]++;
+  if(key==='wall')res.defense+=5;
+  L('Built '+b.label+' (Lv'+buildings[key]+').');
+  for(let i=0;i<10;i++)particles.push({x:b.x+b.w/2,y:b.y+b.h/2,vx:rand(-2,2),vy:rand(-3,0),life:rand(10,20),col:'#bbb',r:2});
+}
+
+function endDay(){
+  // production from jobs
+  let gained={food:0,water:0,scrap:0,med:0,defense:0};
+  for(const p of people){
+    const eff=p.wounded?0.5:1;
+    if(p.job==='Forage') gained.food+=ri(2,4)*eff + buildings.garden*1.5;
+    if(p.job==='Water') gained.water+=ri(2,4)*eff + buildings.well*1.5;
+    if(p.job==='Scavenge') {gained.scrap+=ri(1,3)*eff + buildings.workshop; if(Math.random()<0.18)gained.med+=1;}
+    if(p.job==='Guard') gained.defense+=ri(2,4)*eff;
+    if(p.job==='Medic') {/* heals at night */}
+    if(p.job==='Rest') {p.hp=clamp(p.hp+12,0,100);}
+  }
+  // passive garden/well even if nobody assigned
+  gained.food+=buildings.garden; gained.water+=buildings.well;
+  res.food+=Math.round(gained.food);res.water+=Math.round(gained.water);
+  res.scrap+=Math.round(gained.scrap);res.med+=Math.round(gained.med);res.defense+=Math.round(gained.defense);
+  L(`Gathered: +${Math.round(gained.food)}food +${Math.round(gained.water)}water +${Math.round(gained.scrap)}scrap.`);
+  // consumption
+  for(const p of people){
+    if(res.food>0){res.food--;p.hunger=clamp(p.hunger+25,0,100);}else p.hunger-=30;
+    if(res.water>0){res.water--;p.thirst=clamp(p.thirst+25,0,100);}else p.thirst-=30;
+    if(p.hunger<=0||p.thirst<=0)p.hp-=22;
+  }
+  // medic heals
+  const medics=people.filter(p=>p.job==='Medic');
+  for(const m of medics){const heal=20+buildings.clinic*15;
+    const patient=people.filter(p=>p.hp<100).sort((a,b)=>a.hp-b.hp)[0];
+    if(patient&&res.med>0){res.med--;patient.hp=clamp(patient.hp+heal,0,100);patient.wounded=false;L(m.name+' treated '+patient.name+'.');}}
+  // start night raid
+  phase='night';
+  startRaid();
+}
+function startRaid(){
+  const guards=people.filter(p=>p.job==='Guard').length;
+  const power = res.defense + guards*4 + buildings.wall*3;
+  const threat = ri(8,16)+day*4;
+  raid={power,threat,t:0,result:null,zoms:[]};
+  for(let i=0;i<Math.min(threat,28);i++)raid.zoms.push({x:rand(0,W),y:-rand(10,200),spd:rand(0.6,1.6),r:rand(8,16),hp:1});
+  L(`NIGHT ${day}: raid power ${threat} vs your ${power}.`);
+}
+function resolveRaid(){
+  const r=raid;
+  if(r.power>=r.threat){
+    r.result='held';res.defense=Math.max(4,Math.round(res.defense*0.7));
+    L('Raid REPELLED! Walls held.');
+    // reward
+    res.scrap+=ri(1,3);
+    if(Math.random()<0.35&&people.length<10){const survivor=true;addPerson();L('A wanderer joined: '+people[people.length-1].name+'.');}
+  } else {
+    const overrun=r.threat-r.power;
+    r.result='breach';res.defense=Math.max(0,Math.round(res.defense*0.4));
+    L('BREACH! Defenses overwhelmed.');
+    // wound/kill survivors
+    let casualties=Math.ceil(overrun/6);
+    for(let i=0;i<casualties&&people.length>0;i++){
+      const victim=people[ri(0,people.length)];
+      victim.hp-=ri(25,55);victim.wounded=true;
+      if(victim.hp<=0){L('💀 '+victim.name+' was lost.');people=people.filter(p=>p!==victim);}
+      else L('🩸 '+victim.name+' was wounded.');
+    }
+    res.food=Math.max(0,res.food-ri(2,5));
+  }
+  // remove starved
+  people=people.filter(p=>{if(p.hp<=0){L('💀 '+p.name+' didn\'t make it.');return false;}return true;});
+  if(people.length===0){gameOver();return;}
+  day++;phase='day';
+  if(day>30){win();return;}
+  L(`— Day ${day} —`);
+}
+
+function update(){
+  for(const p of particles){p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life--;}
+  particles=particles.filter(p=>p.life>0);
+  if(phase==='night'&&raid){
+    raid.t++;
+    // animate zombies marching to wall (y= H-120)
+    let allThere=true;
+    for(const z of raid.zoms){if(z.dead)continue;
+      if(z.y<H-150){z.y+=z.spd;allThere=false;}
+    }
+    if(raid.t>90&&allThere&&!raid.result){
+      resolveRaid();
+      // flash effect
+      for(let i=0;i<40;i++)particles.push({x:rand(0,W),y:H-150,vx:rand(-4,4),vy:rand(-6,-1),life:rand(14,30),col:raid.result==='held'?'#00ff41':'#ff3b3b',r:rand(2,4)});
+      raid=null;
+    }
+  }
+  layout();
+}
+function draw(){
+  X.fillStyle=phase==='night'?'#0a0e12':'#0e120f';X.fillRect(0,0,W,H);
+  if(phase==='night'){X.fillStyle='rgba(40,20,60,0.25)';X.fillRect(0,0,W,H);}
+  // panels
+  panel(20,108,250,H-190,'BUILD (scrap)');
+  panel(286,108,228,H-190,'JOBS');
+  panel(530,108,W-560,H-190,phase==='day'?'SURVIVORS':'NIGHT RAID');
+
+  if(phase==='day'){
+    // build buttons
+    for(const b of buildBtns){
+      const ok=res.scrap>=b.cost;
+      X.fillStyle=ok?'#16291a':'#181818';X.fillRect(b.x,b.y,b.w,b.h);
+      X.strokeStyle=ok?'#00ff41':'#553';X.lineWidth=1.5;X.strokeRect(b.x,b.y,b.w,b.h);
+      X.fillStyle='#fff';X.font='13px monospace';X.textAlign='left';X.fillText(b.label+' Lv'+buildings[b.key],b.x+8,b.y+18);
+      X.fillStyle='#9fffb0';X.font='11px monospace';X.fillText(b.desc,b.x+8,b.y+34);
+      X.fillStyle='#ffd24a';X.fillText('🔧'+b.cost,b.x+b.w-46,b.y+30);
+    }
+    // job buttons
+    for(const j of jobBtns){
+      const cnt=people.filter(p=>p.job===j.name).length;
+      X.fillStyle=sel?'#1f3a25':'#141414';X.fillRect(j.x,j.y,j.w,j.h);
+      X.strokeStyle=sel?'#00ff41':'#333';X.lineWidth=1.5;X.strokeRect(j.x,j.y,j.w,j.h);
+      X.fillStyle='#fff';X.font='14px monospace';X.textAlign='left';X.fillText(j.name,j.x+10,j.y+22);
+      X.fillStyle='#7fbf8f';X.font='11px monospace';X.fillText(jobDesc(j.name),j.x+10,j.y+38);
+      if(cnt>0){X.fillStyle='#ffd24a';X.textAlign='right';X.fillText('×'+cnt,j.x+j.w-10,j.y+26);}
+    }
+    if(sel){X.fillStyle='#ffd24a';X.font='12px monospace';X.textAlign='center';X.fillText('→ pick a job for '+sel.name,400,H-100);}
+    // survivors
+    for(const p of people)drawPerson(p);
+    // end day button
+    X.fillStyle='#00ff41';X.fillRect(30,H-70,160,44);
+    X.fillStyle='#000';X.font='bold 16px monospace';X.textAlign='center';X.fillText('END DAY ▶',110,H-42);
+  } else {
+    // night raid visuals in right panel area (full width drama)
+    X.fillStyle='#9fffb0';X.font='13px monospace';X.textAlign='center';
+    if(raid){
+      X.fillText('Raid power '+raid.threat+'   vs   Your defense '+raid.power,W/2,150);
+      // wall
+      X.fillStyle='#5a5a5a';X.fillRect(0,H-150,W,16);
+      X.fillStyle='#3a3a3a';for(let x=0;x<W;x+=20)X.fillRect(x,H-150,10,16);
+      // zombies marching
+      for(const z of raid.zoms){if(z.dead)continue;X.fillStyle='#6a9e4f';X.beginPath();X.arc(z.x,z.y,z.r,0,6.28);X.fill();
+        X.fillStyle='#300';X.fillRect(z.x-4,z.y-3,3,3);X.fillRect(z.x+1,z.y-3,3,3);}
+      // survivors behind wall
+      for(let i=0;i<people.length;i++){const sx=W/2-people.length*14+i*28;X.fillStyle='#00ff41';X.fillRect(sx,H-130,14,22);}
+    }
+  }
+  // particles
+  for(const pt of particles){X.globalAlpha=clamp(pt.life/24,0,1);X.fillStyle=pt.col;X.fillRect(pt.x-pt.r,pt.y-pt.r,pt.r*2,pt.r*2);}
+  X.globalAlpha=1;
+}
+function jobDesc(n){return {Forage:'+food',Water:'+water',Scavenge:'+scrap/med',Guard:'+defense',Medic:'heals at night',Rest:'recover HP'}[n];}
+function panel(x,y,w,h,title){X.fillStyle='rgba(255,255,255,.02)';X.fillRect(x,y,w,h);
+  X.strokeStyle='#1f3a25';X.lineWidth=1;X.strokeRect(x,y,w,h);
+  X.fillStyle='#00ff41';X.font='12px monospace';X.textAlign='left';X.fillText(title,x+8,y-6);}
+function drawPerson(p){
+  X.fillStyle=p===sel?'#ffd24a':(p.wounded?'#ff7b7b':'#00ff41');
+  X.beginPath();X.arc(p.x,p.y,16,0,6.28);X.fill();
+  X.fillStyle='#0a0a0a';X.fillRect(p.x-5,p.y-4,3,3);X.fillRect(p.x+2,p.y-4,3,3);
+  X.fillStyle='#fff';X.font='11px monospace';X.textAlign='center';X.fillText(p.name,p.x,p.y-22);
+  X.fillStyle='#7fbf8f';X.font='10px monospace';X.fillText(p.job,p.x,p.y+30);
+  // mini bars
+  bar(p.x-16,p.y+34,32,3,p.hp/100,'#00ff41');
+  bar(p.x-16,p.y+39,32,3,p.hunger/100,'#ffd24a');
+  bar(p.x-16,p.y+44,32,3,p.thirst/100,'#4faeff');
+}
+function bar(x,y,w,h,pct,col){X.fillStyle='#000';X.fillRect(x,y,w,h);X.fillStyle=col;X.fillRect(x,y,w*clamp(pct,0,1),h);}
+
+function drawHUD(){
+  hud.innerHTML=
+   `DAY <b>${day}</b>/30 &nbsp; <b style="color:${phase==='night'?'#ff7b7b':'#9fffb0'}">${phase.toUpperCase()}</b> &nbsp;|&nbsp; `+
+   `🍖<b>${res.food}</b> 💧<b>${res.water}</b> 🔧<b>${res.scrap}</b> 💊<b>${res.med}</b> 🛡<b>${Math.round(res.defense)}</b> &nbsp;|&nbsp; `+
+   `👥<b>${people.length}</b>`;
+  logEl.innerHTML=logLines.map((l,i)=>`<div style="opacity:${1-i*0.1}">${l}</div>`).join('');
+}
+function gameOver(){gameover=true;msg.classList.remove('hide');
+  msg.innerHTML=`<h1>SHELTER LOST</h1><p>Everyone is gone. You survived <b style="color:#fff">${day}</b> days.</p><button id="again">REBUILD</button>`;
+  document.getElementById('again').onclick=()=>{msg.classList.add('hide');reset();};}
+function win(){gameover=true;msg.classList.remove('hide');
+  msg.innerHTML=`<h1 style="color:#00ff41;text-shadow:0 0 10px #00ff41">RESCUE ARRIVES</h1>
+   <p>You held Shelter 7 for <b style="color:#fff">30 days</b> with <b style="color:#ffd24a">${people.length}</b> survivors. Help has come.</p>
+   <button id="again">PLAY AGAIN</button>`;
+  document.getElementById('again').onclick=()=>{msg.classList.add('hide');reset();};}
+
+function loop(){if(started){update();draw();drawHUD();}requestAnimationFrame(loop);}
+buildLayouts();
+document.getElementById('start').onclick=()=>{started=true;msg.classList.add('hide');reset();};
+loop();
+</script>
+</body>
+</html>

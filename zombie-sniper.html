@@ -1,0 +1,202 @@
+<!doctype html>
+<!-- Copyright (c) 2025 Craig M. Brown. All rights reserved. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Rooftop Sniper — Zombie Defense</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0a0a;overflow:hidden;font-family:'Courier New',monospace;color:#00ff41;cursor:none}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  canvas{background:#0d1410;display:block;max-width:100%;max-height:100%;touch-action:none}
+  #hud{position:fixed;top:8px;left:8px;font-size:14px;text-shadow:0 0 4px #000;pointer-events:none;line-height:1.6;cursor:none}
+  #hud b{color:#fff}
+  #msg{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+       text-align:center;background:rgba(5,5,5,.86);z-index:5;cursor:auto}
+  #msg h1{font-size:30px;margin:.2em;color:#ff3b3b;text-shadow:0 0 10px #ff0000}
+  #msg p{max-width:560px;font-size:15px;line-height:1.6;color:#9fffb0}
+  #msg button{margin-top:14px;background:#00ff41;color:#000;border:0;padding:12px 26px;font-size:16px;
+       font-family:inherit;font-weight:bold;border-radius:6px;cursor:pointer}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c" width="960" height="600"></canvas></div>
+<div id="hud"></div>
+<div id="msg">
+  <h1 style="color:#00ff41;text-shadow:0 0 10px #00ff41">ROOFTOP SNIPER</h1>
+  <p><b style="color:#fff">Scope defense.</b> Zombies cross the street toward the survivors' door at the bottom.
+     Pick them off from your rooftop.<br>
+     Aim: <b style="color:#fff">Mouse</b> &nbsp; Fire: <b style="color:#fff">Click</b> &nbsp;
+     Reload: <b style="color:#fff">R</b> &nbsp; Zoom: <b style="color:#fff">Right-click / Z</b><br>
+     <b style="color:#ff7b7b">Headshots</b> (the small circle) are one-shot kills and worth more.
+     You have limited ammo per mag — make them count. Protect the door's HP.</p>
+  <button id="start">TAKE THE SHOT</button>
+</div>
+<script>
+const C=document.getElementById('c'),X=C.getContext('2d');
+const W=C.width,H=C.height;
+const hud=document.getElementById('hud'),msg=document.getElementById('msg');
+const rand=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const dist=(ax,ay,bx,by)=>Math.hypot(ax-bx,ay-by);
+let mouse={x:W/2,y:H/2}, zoom=false;
+function mpos(e){const r=C.getBoundingClientRect();mouse.x=(e.clientX-r.left)*(W/r.width);mouse.y=(e.clientY-r.top)*(H/r.height);}
+C.addEventListener('mousemove',mpos);
+C.addEventListener('mousedown',e=>{mpos(e);if(e.button===2){zoom=true;}else shoot();});
+C.addEventListener('mouseup',e=>{if(e.button===2)zoom=false;});
+C.addEventListener('contextmenu',e=>e.preventDefault());
+C.addEventListener('touchstart',e=>{mpos(e.touches[0]);e.preventDefault();},{passive:false});
+C.addEventListener('touchmove',e=>{mpos(e.touches[0]);e.preventDefault();},{passive:false});
+C.addEventListener('touchend',e=>{shoot();e.preventDefault();},{passive:false});
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='r')reload();if(k==='z')zoom=!zoom;});
+
+let door,zombies,particles,casings,ammo,mag,reserve,reloading,score,combo,comboT,wave,spawnQueue,spawnT,headshots,kills,paused,dead,started=false,shake=0,flash=0;
+
+function reset(){
+  door={hp:100,maxhp:100};
+  zombies=[];particles=[];casings=[];
+  mag=8;ammo=mag;reserve=64;reloading=0;
+  score=0;combo=0;comboT=0;wave=0;headshots=0;kills=0;
+  paused=false;dead=false;shake=0;flash=0;
+  nextWave();
+}
+function nextWave(){wave++;spawnQueue=5+wave*2;spawnT=40;reserve+=20;}
+function spawnZombie(){
+  let t='walker';const roll=Math.random();
+  if(wave>=2&&roll<0.2)t='runner';
+  if(wave>=4&&roll>0.9)t='brute';
+  const base={walker:{hp:1,spd:0.30,r:16,col:'#6a9e4f',dmg:14,pts:10},
+              runner:{hp:1,spd:0.55,r:13,col:'#c7d24a',dmg:10,pts:16},
+              brute:{hp:4,spd:0.20,r:24,col:'#9e4f4f',dmg:30,pts:30}}[t];
+  // body shots needed = hp (brute armored). head always 1-shot.
+  zombies.push({x:rand(60,W-60),y:-30,t,r:base.r,bodyHp:base.hp,col:base.col,dmg:base.dmg,pts:base.pts,
+    spd:base.spd*(1+wave*0.03),sway:rand(0,6.28),swaySp:rand(0.02,0.05),hit:0,dead:false});
+}
+function reload(){if(reloading>0||ammo===mag||reserve<=0)return;reloading=70;}
+function shoot(){
+  if(reloading>0||paused||dead)return;
+  if(ammo<=0){reload();return;}
+  ammo--; shake=8; flash=4;
+  casings.push({x:W-90,y:120,vx:rand(2,4),vy:rand(-4,-2),life:40});
+  // hit test: nearest zombie whose body/head contains the crosshair
+  let target=null,best=1e9,head=false;
+  for(const z of zombies){if(z.dead)continue;
+    const hx=z.x,hy=z.y-z.r*0.7,hr=z.r*0.42; // head
+    if(dist(mouse.x,mouse.y,hx,hy)<hr){const d=dist(mouse.x,mouse.y,hx,hy);if(d<best){best=d;target=z;head=true;}}
+  }
+  if(!target){for(const z of zombies){if(z.dead)continue;
+    if(dist(mouse.x,mouse.y,z.x,z.y)<z.r){const d=dist(mouse.x,mouse.y,z.x,z.y);if(d<best){best=d;target=z;head=false;}}}}
+  if(target){
+    if(head){killZ(target,true);}
+    else{target.bodyHp--;target.hit=6;
+      for(let i=0;i<6;i++)particles.push({x:mouse.x,y:mouse.y,vx:rand(-3,3),vy:rand(-3,3),life:rand(8,16),col:'#ff5a5a',r:2});
+      if(target.bodyHp<=0)killZ(target,false);}
+  } else {
+    combo=0; // miss breaks combo
+    for(let i=0;i<4;i++)particles.push({x:mouse.x,y:mouse.y,vx:rand(-2,2),vy:rand(-2,2),life:rand(6,12),col:'#888',r:2});
+  }
+}
+function killZ(z,head){
+  z.dead=true;kills++;combo++;comboT=120;
+  let pts=z.pts*(head?2:1)*Math.max(1,Math.floor(combo/3)+1);
+  if(head){headshots++;pts=Math.round(pts*1.5);}
+  score+=pts;
+  for(let i=0;i<(head?18:12);i++)particles.push({x:z.x,y:z.y-(head?z.r*0.7:0),vx:rand(-4,4),vy:rand(-4,4),life:rand(12,26),col:head?'#ff3b3b':z.col,r:rand(2,4)});
+  // floating points
+  particles.push({x:z.x,y:z.y-20,vx:0,vy:-1,life:50,col:head?'#ffd24a':'#00ff41',r:0,txt:(head?'HEADSHOT +':'+')+pts});
+}
+function update(){
+  if(paused||dead)return;
+  if(reloading>0){reloading--;if(reloading<=0){const need=mag-ammo,take=Math.min(need,reserve);ammo+=take;reserve-=take;}}
+  if(spawnQueue>0){spawnT--;if(spawnT<=0){spawnZombie();spawnQueue--;spawnT=Math.max(20,60-wave*2);}}
+  else if(zombies.every(z=>z.dead)&&zombies.length===0){nextWave();}
+  if(comboT>0){comboT--;if(comboT<=0)combo=0;}
+  for(const z of zombies){
+    if(z.dead)continue;
+    z.sway+=z.swaySp;z.y+=z.spd;z.x+=Math.sin(z.sway)*0.4;
+    if(z.hit>0)z.hit--;
+    if(z.y>=H-70){ // reached door
+      door.hp-=z.dmg;z.dead=true;shake=10;flash=6;combo=0;
+      for(let i=0;i<10;i++)particles.push({x:z.x,y:H-70,vx:rand(-3,3),vy:rand(-4,0),life:rand(10,20),col:'#ff3b3b',r:3});
+      if(door.hp<=0){door.hp=0;dead=true;gameOver();}
+    }
+  }
+  zombies=zombies.filter(z=>!z.dead);
+  for(const p of particles){p.x+=p.vx;p.y+=p.vy;if(!p.txt){p.vx*=0.93;p.vy*=0.93;}p.life--;}
+  particles=particles.filter(p=>p.life>0);
+  for(const c of casings){c.x+=c.vx;c.y+=c.vy;c.vy+=0.4;c.life--;}
+  casings=casings.filter(c=>c.life>0);
+  if(shake>0)shake*=0.82;if(flash>0)flash--;
+}
+function draw(){
+  X.save();
+  if(shake>0.5)X.translate(rand(-shake,shake),rand(-shake,shake));
+  // street scene
+  const g=X.createLinearGradient(0,0,0,H);g.addColorStop(0,'#10231a');g.addColorStop(1,'#0d1410');
+  X.fillStyle=g;X.fillRect(0,0,W,H);
+  // road
+  X.fillStyle='#1a2420';X.fillRect(0,40,W,H-110);
+  X.strokeStyle='#3a4a40';X.setLineDash([20,18]);X.lineWidth=4;
+  X.beginPath();X.moveTo(W/2,40);X.lineTo(W/2,H-70);X.stroke();X.setLineDash([]);
+  // sidewalk + door (survivors)
+  X.fillStyle='#222';X.fillRect(0,H-70,W,70);
+  const dpct=door.hp/door.maxhp;
+  X.fillStyle='#3a2e22';X.fillRect(W/2-60,H-66,120,60);
+  X.fillStyle=dpct<0.3?'#ff3b3b':'#5a4a3a';X.fillRect(W/2-50,H-58,100,52);
+  X.fillStyle='#000';X.font='12px monospace';X.textAlign='center';X.fillText('SURVIVORS',W/2,H-30);
+  X.fillStyle='#000';X.fillRect(W/2-60,H-74,120,5);X.fillStyle=dpct<0.3?'#ff3b3b':'#00ff41';X.fillRect(W/2-60,H-74,120*dpct,5);
+  // zombies
+  for(const z of zombies){
+    X.fillStyle=z.hit>0?'#fff':z.col;
+    X.fillRect(z.x-z.r*0.7,z.y-z.r*0.2,z.r*1.4,z.r*1.4); // body
+    X.beginPath();X.arc(z.x,z.y-z.r*0.7,z.r*0.42,0,6.28);X.fill(); // head
+    X.fillStyle='#300';X.fillRect(z.x-z.r*0.2,z.y-z.r*0.8,3,3);X.fillRect(z.x+z.r*0.05,z.y-z.r*0.8,3,3);
+    if(z.bodyHp>1){X.fillStyle='#000';X.fillRect(z.x-z.r*0.7,z.y-z.r*0.5,z.r*1.4,3);}
+  }
+  for(const p of particles){if(p.txt){X.globalAlpha=clamp(p.life/50,0,1);X.fillStyle=p.col;X.font='bold 13px monospace';X.textAlign='center';X.fillText(p.txt,p.x,p.y);}
+    else{X.globalAlpha=clamp(p.life/24,0,1);X.fillStyle=p.col;X.fillRect(p.x-p.r,p.y-p.r,p.r*2,p.r*2);}}
+  X.globalAlpha=1;
+  for(const c of casings){X.fillStyle='#cca';X.fillRect(c.x,c.y,4,2);}
+  X.restore();
+  // muzzle flash overlay
+  if(flash>0){X.fillStyle='rgba(255,230,150,'+(flash/6*0.25)+')';X.fillRect(0,0,W,H);}
+  // scope vignette
+  drawScope();
+}
+function drawScope(){
+  const r=zoom?150:230;
+  X.save();
+  // darken outside scope
+  X.beginPath();X.rect(0,0,W,H);X.arc(mouse.x,mouse.y,r,0,6.28,true);
+  X.fillStyle=zoom?'rgba(0,0,0,0.92)':'rgba(0,0,0,0.55)';X.fill('evenodd');
+  X.restore();
+  // scope ring + crosshair
+  X.strokeStyle='#0a0a0a';X.lineWidth=8;X.beginPath();X.arc(mouse.x,mouse.y,r,0,6.28);X.stroke();
+  X.strokeStyle='#00ff41';X.lineWidth=1.5;
+  X.beginPath();X.moveTo(mouse.x-r,mouse.y);X.lineTo(mouse.x+r,mouse.y);
+  X.moveTo(mouse.x,mouse.y-r);X.lineTo(mouse.x,mouse.y+r);X.stroke();
+  X.beginPath();X.arc(mouse.x,mouse.y,zoom?8:14,0,6.28);X.stroke();
+  // mil-dots
+  X.fillStyle='#00ff41';for(let i=1;i<=3;i++){X.fillRect(mouse.x-2,mouse.y+i*18-1,4,2);X.fillRect(mouse.x+i*18-1,mouse.y-2,2,4);X.fillRect(mouse.x-i*18-1,mouse.y-2,2,4);}
+}
+function drawHUD(){
+  hud.innerHTML=
+   `WAVE <b>${wave}</b> &nbsp; SCORE <b>${score}</b> &nbsp; `+
+   `<span style="color:${combo>2?'#ffd24a':'#00ff41'}">COMBO x${Math.max(1,Math.floor(combo/3)+1)}</span><br>`+
+   `AMMO <b style="color:${ammo===0?'#ff3b3b':'#fff'}">${reloading>0?'RELOADING…':ammo+'/'+mag}</b> &nbsp; RESERVE <b>${reserve}</b> &nbsp; `+
+   `DOOR <b style="color:${door.hp<30?'#ff3b3b':'#00ff41'}">${Math.round(door.hp)}</b><br>`+
+   `<span style="color:#9fffb0">headshots ${headshots} · kills ${kills} · ${zoom?'ZOOMED':'right-click to zoom'}</span>`;
+}
+function gameOver(){dead=true;msg.classList.remove('hide');
+  msg.innerHTML=`<h1>DOOR BREACHED</h1>
+   <p>The survivors fell on wave <b style="color:#fff">${wave}</b>.<br>
+      Score <b style="color:#ffd24a">${score}</b> · ${kills} kills · ${headshots} headshots</p>
+   <button id="again">RETRY</button>`;
+  document.getElementById('again').onclick=()=>{msg.classList.add('hide');reset();};}
+addEventListener('keydown',e=>{if(e.key.toLowerCase()==='p'&&started&&!dead)paused=!paused;});
+function loop(){if(started)update();if(started){draw();drawHUD();}requestAnimationFrame(loop);}
+document.getElementById('start').onclick=()=>{started=true;msg.classList.add('hide');reset();};
+loop();
+</script>
+</body>
+</html>
