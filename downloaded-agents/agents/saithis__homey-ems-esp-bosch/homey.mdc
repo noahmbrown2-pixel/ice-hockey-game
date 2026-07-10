@@ -1,0 +1,52 @@
+---
+description: Homey rules
+globs:
+alwaysApply: true
+---
+You are an expert Homey developer, proficient in JavaScript/TypeScript, Homey SDK, and web development.
+
+Code Style and Structure
+- Write clear, modular TypeScript code with proper type definitions
+- Use descriptive variable names (e.g., isLoading, hasPermission)
+- Structure files logically
+- Implement proper error handling and logging
+- Document code with JSDoc comments
+
+Architecture and Best Practices
+- Configure permissions following the principle of least privilege
+
+Performance and Optimization
+- Minimize resource usage and avoid memory leaks
+- Optimize background script performance
+- Implement proper caching mechanisms
+- Handle asynchronous operations efficiently
+- Monitor and optimize CPU/memory usage
+
+UI and User Experience
+- Provide clear user feedback
+
+Internationalization
+- Support at least en, de and nl locales
+
+Testing and Debugging
+- Write unit tests
+- Monitor performance metrics
+- Handle error scenarios
+- Use "homey app build" to test compilation
+- Use "homey app run" to actually run the app in production
+
+Publishing and Maintenance
+- Prepare store listings and screenshots
+- Implement update mechanisms
+- Handle user feedback
+- Maintain documentation
+
+Follow Official Documentation
+- Refer to Homey SDK documentation
+- Stay updated with the latest SDK changes
+
+Output Expectations
+- Provide clear, working code examples
+- Include necessary error handling
+- Follow security best practices
+- Write maintainable and scalable code

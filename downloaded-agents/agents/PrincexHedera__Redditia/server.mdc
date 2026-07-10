@@ -1,0 +1,19 @@
+---
+description: 
+globs: src/server/**/*
+alwaysApply: false
+---
+Guidelines:
+- This is a serverless node.js environment; you have all node globals (using `node:` prefix) at your disposal, excluding: fs, http, https, and net.
+
+- Instead of http or https, prefer $fetch
+- You cannot write files as you are running on a read-only file system
+- Do not install any libraries that rely on the aforementioned exclusions to function
+- WS (Websocket) is not supported
+- SSE (Server Sent Events) and HTTP streaming are not supported
+- A Devvit object is available from the `devvit` H3 event context property, which is an instance of [ContextAPIClients](mdc:https:/developers.reddit.com/docs/api/public-api/type-aliases/ContextAPIClients) and [BaseContext](mdc:https:/developers.reddit.com/docs/api/public-api/type-aliases/BaseContext) union types. This gives access to helpful APIs such as `cache`, `redis` for persistence, `reddit` for Reddit API ops and `realtime` for server-synchronized/multiplayer experiences
+- Redis is also accessible by importing `@devvit/redis`
+- Reddit-specific functionality such as creating posts and comments is also accessible by importing `@devvit/reddit`
+
+As this is a serverless runtime (akin to AWS Lambda or Azure/Netlify/Vercel/GoogleCloud Functions), do not try to run SQLite or stateful in-memory processes.
+Always consult the docs with devvit_search or read the [Devvit Docs](mdc:https:/developers.reddit.com/docs) to learn more about what you can do with Devvit.

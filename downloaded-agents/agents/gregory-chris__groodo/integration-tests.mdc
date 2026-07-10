@@ -1,0 +1,184 @@
+---
+description: Integration test writing — triggered when the user asks to write integration tests, test feature workflows, test component interactions, test end-to-end flows within a feature, or any integration testing related prompt
+globs: 
+alwaysApply: false
+---
+
+# Integration Test Writer Rules
+
+## Role
+
+You are an expert **integration test writer** for a React frontend application using **Vitest** and **@testing-library/react**. You test how multiple units work together within a feature.
+
+## Before You Start
+
+Context for each folder under `src/` is automatically provided via `.cursor/rules/context-*.mdc` files (scoped by glob pattern). These describe each folder's purpose, files, and patterns. They are auto-injected when you work on matching files, so you already have the relevant context.
+
+## Tech Stack & Setup
+
+- **Test runner:** Vitest (with `globals: true`)
+- **DOM environment:** jsdom
+- **Component testing:** `@testing-library/react` (`render`, `screen`, `fireEvent`, `act`, `waitFor`)
+- **User events:** `@testing-library/user-event` (preferred for realistic user interaction flows)
+- **Mocking:** `vi.mock()`, `vi.fn()`, `vi.spyOn()` from Vitest
+- **Setup file:** `src/test/setup.js` — pre-mocks `useAuth` and `useTaskStorageContext`
+
+## What Integration Tests Cover
+
+Integration tests verify **how multiple units work together**:
+- **Component + Context** — Components reading/writing state through Context providers
+- **Context + Persistence hooks** — State changes triggering storage operations
+- **Multi-component flows** — User workflows spanning multiple components (e.g., creating a task in Column, editing in TaskModal)
+- **Feature-level flows** — Full feature workflows (e.g., add project → add task → complete task → verify hierarchy rules)
+- **Storage strategy switching** — Behavior differences between guest (localStorage) and authenticated (API) modes
+- **Cross-feature interactions** — e.g., board excluding tasks with `projectId`
+
+## File Naming & Location
+
+- Integration test files live in the **feature's root** or alongside the page-level component
+- Naming convention: `<Feature>.integration.test.jsx` or `<PageComponent>.integration.test.jsx`
+- Examples:
+  - `src/features/board/Board.integration.test.jsx`
+  - `src/features/documents/Documents.integration.test.jsx`
+  - `src/features/projects/Projects.integration.test.jsx`
+
+## Test Structure
+
+```jsx
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+// Mock only at the OUTERMOST boundary (storage clients, API, external libs)
+vi.mock('../../lib/storage.js');
+vi.mock('@dnd-kit/core', () => ({ /* minimal mock */ }));
+
+describe('Feature: Board Integration', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('Task Lifecycle', () => {
+    it('should create a task and display it in the correct column', async () => {
+      // Render the full feature component tree
+      // Interact with the UI as a user would
+      // Assert on the final rendered state
+    });
+  });
+});
+```
+
+## Integration Test Patterns
+
+### Full Feature Rendering
+Render the top-level page component which includes all providers:
+
+```jsx
+// This renders the full Board feature with all context providers
+render(<Board />);
+```
+
+### Realistic User Flows
+Use `userEvent` for multi-step interactions that simulate real user behavior:
+
+```jsx
+const user = userEvent.setup();
+
+// Step 1: User types in the task input
+await user.type(screen.getByPlaceholderText('Add a task...'), 'New task');
+
+// Step 2: User presses Enter to create
+await user.keyboard('{Enter}');
+
+// Step 3: Verify the task appears
+expect(screen.getByText('New task')).toBeInTheDocument();
+```
+
+### Mocking Boundaries Only
+Mock at the **outermost boundary** — storage clients, network, and external UI libraries:
+
+```jsx
+// Mock storage — the integration boundary
+vi.mock('../../lib/storage.js');
+storage.loadState.mockReturnValue({ tasks: mockTasks, currentWeek: mockWeek });
+
+// Mock DnD library — external UI dependency
+vi.mock('@dnd-kit/core', () => ({
+  DndContext: ({ children }) => <div>{children}</div>,
+  DragOverlay: ({ children }) => <div>{children}</div>,
+  // ...
+}));
+
+// DO NOT mock internal modules (context, hooks, utilities)
+// Let them integrate naturally
+```
+
+### Testing State Persistence
+Verify that user actions persist through the storage layer:
+
+```jsx
+it('should save tasks to storage after creation', async () => {
+  render(<Board />);
+  
+  // User creates a task
+  await user.type(input, 'Persistent task');
+  await user.keyboard('{Enter}');
+  
+  // Verify storage was called
+  await waitFor(() => {
+    expect(storage.saveState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tasks: expect.arrayContaining([
+          expect.objectContaining({ title: 'Persistent task' })
+        ])
+      })
+    );
+  });
+});
+```
+
+## Key Integration Scenarios per Feature
+
+### Board Feature
+- Task CRUD lifecycle (create → edit → complete → delete)
+- Week navigation updates displayed tasks
+- Drag-and-drop reorders tasks within and between columns
+- "Move to Next Week" moves task to correct date
+- Project tasks (with `projectId`) are excluded from columns
+- Storage persistence on every mutation
+
+### Documents Feature
+- Create document → appears in sidebar → select → edit in editor
+- Nested document hierarchy (max 4 levels)
+- Delete document (blocked if has children)
+- Content sanitization with DOMPurify on save
+- Selected document persisted across page reloads
+
+### Projects Feature
+- Create project → add tasks → build hierarchy
+- Task completion rules (all children must be complete first)
+- Delete constraints (can't delete with children)
+- Drag-and-drop task reordering within same parent
+- Three-panel layout responsive behavior
+
+### Auth Integration
+- Guest mode uses localStorage storage clients
+- Authenticated mode switches to API storage clients
+- Auth modal flow (sign in / sign up / sign out)
+- Storage strategy switching on auth status change
+
+## Test Quality Standards
+
+- Test **user-visible behavior**, not implementation details
+- Each test represents a **complete user workflow** or meaningful interaction sequence
+- Use `waitFor` for async operations (storage, state updates)
+- Prefer `userEvent` over `fireEvent` for multi-step user interactions
+- Assert on **rendered output** (text, elements, attributes), not internal state
+- Test **error states** — what happens when storage fails, network is down, data is corrupt?
+- Test **optimistic updates** — UI updates immediately, then verify rollback on failure
+
+## After Writing Tests
+
+- **MUST:** Update the relevant `.cursor/rules/context-*.mdc` files if new test files were created
+- Run `npx vitest run <path-to-test-file>` to verify all tests pass
+- Ensure no existing tests are broken

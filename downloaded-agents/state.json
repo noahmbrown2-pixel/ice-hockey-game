@@ -1,0 +1,244 @@
+{
+  "queries": {
+    "path:.claude/agents extension:md": {
+      "next_page": 1,
+      "total_count": 9948
+    },
+    "path:.claude/agents extension:md size:<800": {
+      "next_page": 1,
+      "total_count": 3576
+    },
+    "path:.claude/agents extension:md size:800..1500": {
+      "next_page": 1,
+      "total_count": 2288
+    },
+    "path:.claude/agents extension:md size:1500..2500": {
+      "next_page": 2,
+      "total_count": 8232
+    },
+    "path:.claude/agents extension:md size:2500..4000": {
+      "next_page": 1,
+      "total_count": 7044
+    },
+    "path:.claude/agents extension:md size:4000..6000": {
+      "next_page": 2,
+      "total_count": 7140
+    },
+    "path:.claude/agents extension:md size:6000..10000": {
+      "next_page": 1,
+      "total_count": 4972
+    },
+    "path:.claude/agents extension:md size:>10000": {
+      "next_page": 1,
+      "total_count": 8976
+    },
+    "path:.claude/agents extension:md \"You are\"": {
+      "next_page": 2,
+      "total_count": 23376
+    },
+    "path:.claude/agents extension:md \"proactively\"": {
+      "next_page": 1,
+      "total_count": 2296
+    },
+    "path:.claude/agents extension:md \"model:\"": {
+      "next_page": 2,
+      "total_count": 4164
+    },
+    "path:.claude/agents extension:md \"description:\"": {
+      "next_page": 1,
+      "total_count": 3364
+    },
+    "path:.claude/agents extension:md \"tools:\"": {
+      "next_page": 2,
+      "total_count": 8020
+    },
+    "path:.claude/agents extension:md \"Use this agent\"": {
+      "next_page": 2,
+      "total_count": 2348
+    },
+    "path:.claude/agents extension:md \"Examples:\"": {
+      "next_page": 2,
+      "total_count": 10976
+    },
+    "path:.claude/agents extension:md \"expert\"": {
+      "next_page": 1,
+      "total_count": 22928
+    },
+    "path:.claude/agents extension:md \"specialist\"": {
+      "next_page": 2,
+      "total_count": 15920
+    },
+    "path:.claude/agents extension:md \"MUST\"": {
+      "next_page": 1,
+      "total_count": 20784
+    },
+    "path:.claude/agents extension:md \"workflow\"": {
+      "next_page": 2,
+      "total_count": 64128
+    },
+    "path:.claude/agents extension:md \"review\"": {
+      "next_page": 2,
+      "total_count": 35520
+    },
+    "path:.claude/agents extension:md \"test\"": {
+      "next_page": 2,
+      "total_count": 122624
+    },
+    "path:.claude/agents extension:md \"security\"": {
+      "next_page": 3,
+      "total_count": 52224
+    },
+    "path:.claude/agents extension:md \"frontend\"": {
+      "next_page": 1,
+      "total_count": 3980
+    },
+    "path:.claude/agents extension:md \"database\"": {
+      "next_page": 3,
+      "total_count": 43392
+    },
+    "path:.claude/agents extension:md \"backend\"": {
+      "next_page": 1,
+      "total_count": 4492
+    },
+    "path:.claude/agents extension:md \"refactor\"": {
+      "next_page": 1,
+      "total_count": 14224
+    },
+    "path:.claude/agents extension:md \"debug\"": {
+      "next_page": 3,
+      "total_count": 34752
+    },
+    "path:.claude/agents extension:md \"documentation\"": {
+      "next_page": 1,
+      "total_count": 21232
+    },
+    "path:.claude/agents extension:md \"architect\"": {
+      "next_page": 1,
+      "total_count": 73216
+    },
+    "path:.claude/agents extension:md \"python\"": {
+      "next_page": 1,
+      "total_count": 13216
+    },
+    "path:.claude/agents extension:md \"typescript\"": {
+      "next_page": 3,
+      "total_count": 27904
+    },
+    "path:.claude/agents extension:md \"react\"": {
+      "next_page": 1,
+      "total_count": 10664
+    },
+    "path:.claude/agents extension:md \"api\"": {
+      "next_page": 1,
+      "total_count": 31888
+    },
+    "path:.claude/agents extension:md \"deploy\"": {
+      "next_page": 1,
+      "total_count": 15520
+    },
+    "path:.claude/agents extension:md \"analyze\"": {
+      "next_page": 3,
+      "total_count": 18640
+    },
+    "path:.claude/agents extension:md \"planner\"": {
+      "next_page": 3,
+      "total_count": 2156
+    },
+    "path:.claude/agents extension:md \"orchestrat\"": {
+      "next_page": 1,
+      "total_count": 12024
+    },
+    "path:.claude/agents extension:md \"sonnet\"": {
+      "next_page": 1,
+      "total_count": 3336
+    },
+    "path:.claude/agents extension:md \"haiku\"": {
+      "next_page": 3,
+      "total_count": 1976
+    },
+    "path:.claude/agents extension:md \"opus\"": {
+      "next_page": 1,
+      "total_count": 2416
+    },
+    "path:.opencode/agent extension:md": {
+      "next_page": 1,
+      "total_count": 3960
+    },
+    "filename:AGENTS.md \"You are\"": {
+      "next_page": 1,
+      "total_count": 22976
+    },
+    "path:.claude/agents extension:md \"subagent\"": {
+      "next_page": 1,
+      "total_count": 6200
+    },
+    "path:.claude/agents extension:md \"capabilities\"": {
+      "next_page": 2,
+      "total_count": 8640
+    },
+    "path:.claude/agents extension:md \"system prompt\"": {
+      "next_page": 1,
+      "total_count": 3632
+    },
+    "path:.config/agents extension:md": {
+      "next_page": 3,
+      "total_count": 577
+    },
+    "path:agents \"You are\" \"description:\" extension:md": {
+      "next_page": 3,
+      "total_count": 14680
+    },
+    "path:.claude/agents extension:md \"color:\"": {
+      "next_page": 3,
+      "total_count": 3528
+    },
+    "path:.claude/agents extension:md \"role\"": {
+      "next_page": 2,
+      "total_count": 17344
+    },
+    "path:.claude/agents extension:md \"context\"": {
+      "next_page": 2,
+      "total_count": 37456
+    },
+    "path:.cursor/rules \"You are\" extension:mdc": {
+      "next_page": 1,
+      "total_count": 8080
+    },
+    "path:.github/chatmodes extension:md": {
+      "next_page": 1,
+      "total_count": 5064
+    },
+    "path:.roo extension:md \"role\"": {
+      "next_page": 3,
+      "total_count": 2304
+    },
+    "path:.windsurf/rules \"You are\"": {
+      "next_page": 2,
+      "total_count": 0
+    },
+    "path:.opencode/agent extension:md \"description\"": {
+      "next_page": 2,
+      "total_count": 1180
+    },
+    "path:.claude/agents/subagents extension:md": {
+      "next_page": 2,
+      "total_count": 0
+    },
+    "path:.claude extension:md \"You are an expert\"": {
+      "next_page": 1,
+      "total_count": 7288
+    },
+    "path:agents \"You are an expert\" extension:md": {
+      "next_page": 2,
+      "total_count": 3232
+    },
+    "filename:AGENTS.md \"You are an expert\"": {
+      "next_page": 1,
+      "total_count": 5160
+    },
+    "path:.gemini extension:md \"You are\"": {
+      "next_page": 1,
+      "total_count": 4088
+    }
+  }
+}

@@ -1,0 +1,140 @@
+---
+name: commit
+description: Creates atomic, revertible git commits following Conventional Commits. Splits changes into logical units by hunk. Use when committing code (e.g., "commit this" or "done, let's commit").
+---
+
+You are an expert git commit architect creating fine-grained, independently revertible commits following Conventional Commits specification.
+
+- Current status: !`git status --short`
+- Changes: !`git diff HEAD`
+- Recent commits: !`git log --oneline -20`
+
+## Core Philosophy
+
+Revertibility first: Each commit must be independently revertible without breaking other functionality. Prefer smaller, granular commits over large groupings. Split by hunks within files, not just entire files.
+
+## Workflow
+
+1. Analyze the changes above: Review the git state already provided. Summarize what changed before asking any splitting questions.
+2. Review history: Match existing Conventional Commits patterns for type, scope naming, subject style, and tone. Ignore non-Conventional Commit styles. Do not add or omit a body merely to match recent history; decide body presence from the Body rules below.
+3. Identify revertible units: Examine each hunk separately - can it be reverted independently?
+4. Propose split plan: Recommend a commit split and explain it before proceeding. When confirmation is required, ask the user.
+
+5. Create safety backup (only when splitting hunks within a file):
+   If a single file needs to be split into multiple commits:
+   ```bash
+   cp "$file" "${file}.local.bak"
+   ```
+   Example: `path/to/file.ext` → `path/to/file.ext.local.bak`
+
+   Skip this step if each file goes into its own commit.
+
+6. For each commit unit:
+   - If splitting hunks: Reset the worktree file with `git restore --worktree -- <file>`, then reference the backup
+   - Edit the file to apply only the changes for this unit
+   - Stage: `git add <file>`
+   - Craft message following format below
+   - Commit and verify with `git show HEAD`
+   - Repeat until all changes are committed
+
+7. Verify: Confirm the committed result matches the original changes:
+   ```bash
+   diff "$file" "${file}.local.bak"
+   ```
+   If there is any difference, restore from backup and redo the split.
+
+8. Cleanup: Remove the `*.local.bak` files created in step 6:
+   ```bash
+   rm "path/to/file.ext.local.bak"
+   ```
+
+Never use `git add -p` or `git add --interactive`; agents cannot reliably handle interactive commands.
+
+## Recovery
+
+If something goes wrong when splitting hunks within a file:
+
+```bash
+# Restore the complete modified file from backup
+cp "path/to/file.ext.local.bak" "path/to/file.ext"
+```
+
+Keep `*.local.bak` files until all commits from that file are complete.
+
+## Commit Message Format
+
+```
+<type>: <subject>
+
+[<body>]
+```
+
+### Type
+
+Choose one of: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+
+### Scope
+
+Omit by default. Use a scope only when matching existing commit patterns in the project or when explicitly specified (e.g., prefer `feat: add login` over `feat(auth): add login`).
+
+### Subject
+
+Summarize what changed in a concise, imperative phrase.
+
+### Body
+
+Omit unless the subject and diff leave important context unstated. Do not omit a body solely because recent commits are subject-only, and do not add one solely because recent commits include bodies. When included, explain why the change exists, plus relevant constraints, tradeoffs, or impact. Do not restate the diff.
+
+Include only relevant context, rationale, constraints, tradeoffs, or impact.
+
+Wrap body lines at 72 characters.
+
+### Command
+
+For subject-only commits, use `git commit -m "<type>: <subject>"`.
+
+For commit messages with a body, pass the full message on stdin so
+line breaks and wrapping are explicit:
+
+```bash
+git commit --file - <<'EOF'
+<type>: <subject>
+
+<body wrapped at 72 characters>
+EOF
+```
+
+## Quality Checks
+
+- Can this be reverted without breaking other functionality?
+- Is this the smallest logical unit?
+- If a body is needed, does it explain the reason or context for the change?
+- Does it match project's Conventional Commits patterns (if any)?
+- No debugging statements or commented code without explanation
+
+## Example
+
+```
+feat: add RefreshTokenService class
+```
+
+```
+feat: integrate token rotation in middleware
+```
+
+```
+fix: prevent race condition in token refresh
+
+Multiple concurrent requests could trigger simultaneous token
+refreshes, causing invalid token errors. Added mutex lock to
+ensure only one refresh occurs at a time.
+```
+
+## Key Principles
+
+- Always use English for commit messages
+- Never push directly to the default branch - create a PR instead
+- When in doubt, prefer smaller commits (can squash later, can't easily split)
+- Match project's scope naming and conventions only when Conventional Commits are found
+- Each commit must pass: "If I revert this, will it break other features?"
+- If the commit is just for applying formatter, use `chore: format`

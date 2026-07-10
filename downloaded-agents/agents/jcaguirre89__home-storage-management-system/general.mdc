@@ -1,0 +1,420 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Cursor Rules - Home Storage System
+
+## Project Context
+You are working on a smart home storage tracking system with voice commands via Google Assistant and a web interface. The system tracks items in a physical grid (A1-D4) with household-based multi-tenancy and privacy controls.
+
+## Tech Stack & Architecture
+- **Frontend**: Svelte/SvelteKit (NOT React - correct any assumptions)
+- **Backend**: Firebase Functions (Node.js)
+- **Database**: Firestore
+- **Auth**: Firebase Authentication
+- **Voice**: Google Assistant + Dialogflow
+- **Hosting**: Firebase Hosting
+- **API**: Single router function at `/api` with sub-routes
+
+## Core Data Models
+
+### Firestore Collections
+```typescript
+// Items Collection
+interface Item {
+  name: string;
+  location: string; // A1-D4 format
+  status: 'STORED' | 'OUT';
+  creatorUserId: string;
+  householdId: string;
+  isPrivate: boolean;
+  lastUpdated: string; // ISO datetime
+  metadata?: {
+    category?: string;
+    notes?: string;
+  };
+}
+
+// Users Collection
+interface User {
+  email: string;
+  householdId: string;
+  displayName: string;
+  created: string;
+  lastLogin: string;
+}
+
+// Households Collection
+interface Household {
+  name: string;
+  ownerUserId: string;
+  memberUserIds: string[];
+  created: string;
+}
+```
+
+## API Design Standards
+
+### Response Format
+ALL API responses must follow this exact format:
+```typescript
+// Success
+{
+  "success": true,
+  "data": { ... },
+  "error": null
+}
+
+// Error
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human readable message"
+  }
+}
+```
+
+### API Endpoints Structure
+Single Firebase Function with Express router at `/api`:
+- `POST /api/register` - Create user account
+- `POST /api/reset_password` - Password reset
+- `GET /api/items` - List items (filtered by household + privacy)
+- `GET /api/items/{itemId}` - Get specific item
+- `POST /api/items` - Create item
+- `PUT /api/items/{itemId}` - Update item
+- `DELETE /api/items/{itemId}` - Delete item
+- `POST /api/items/bulk` - CSV bulk import
+- `POST /api/households` - Create household
+- `POST /api/dialogflow-webhook` - Voice command processing
+
+## Security & Authorization Rules
+
+### Firebase Security Rules Logic
+```javascript
+// Items access rules:
+// - Private items: only creatorUserId can access
+// - Public items: any household member can access
+// - Always verify user belongs to item's household
+
+// Users can only access their own user document
+// Household members can read their household document
+```
+
+### Authentication Flow
+- Use Firebase Auth SDK client-side
+- JWT tokens in Authorization header: `Bearer <ID_TOKEN>`
+- Service account for Google Assistant (bypasses rules)
+
+## Location Grid System
+- Valid locations: A1-A4, B1-B4, C1-C4, D1-D4 (4x4 grid)
+- Always validate location format with regex: `^[A-D][1-4]$`
+- Case-insensitive input, store as uppercase
+
+## Voice Command Intents (Dialogflow)
+
+### StoreItem Intent
+- Phrases: "I put the [item] in [location]"
+- Action: Create/update item with STORED status
+
+### FindItem Intent
+- Phrases: "Where is the [item]?"
+- Action: Query item, return location if STORED
+
+### RemoveItem Intent
+- Phrases: "I'm taking the [item]"
+- Action: Update item status to OUT
+
+## Frontend Architecture (Svelte)
+
+### Key Views & Components
+1. **Login/Register** - Firebase Auth integration
+2. **Dashboard** - Grid visualization, recent activity
+3. **Items Management** - CRUD table with privacy indicators
+4. **Item Detail** - Modal with edit/delete permissions
+5. **Household Setup** - Onboarding for new users
+
+### Privacy & Permissions
+- Show privacy indicators on items
+- Conditional edit/delete based on:
+  - Private items: only creator can modify
+  - Public items: any household member can modify
+- Filter items by household membership automatically
+
+## Development Standards
+
+### Error Handling
+- Always wrap async operations in try-catch
+- Log errors with context (userId, itemId, action)
+- Return user-friendly messages, log technical details
+- Validate all inputs before processing
+
+### Project Structure
+```
+/frontend-svelte
+  /src
+    /components
+      /Items        # Item-related components
+      /Layout       # Layout components (nav, header, etc)
+    /lib            # Shared utilities, constants
+    /routes
+      /(app)        # Protected app routes
+      /household    # Household management
+      /login        # Auth routes
+      /register
+    /services       # API communication layer
+    /stores         # Svelte stores for state management
+    /tests          # Component and unit tests
+/functions          # Firebase Functions (backend)
+/scripts           # Build/deployment scripts
+/documents         # Documentation and design docs
+```
+
+### Database Operations
+- Use Firestore batch operations for multi-document updates
+- Always include householdId in queries for data isolation
+- Implement proper indexes for common query patterns
+- Use subcollections sparingly (prefer flat structure)
+
+## Key Business Logic
+
+### Item Creation
+1. Validate location format and availability
+2. Set creatorUserId to current user
+3. Set householdId from user's profile
+4. Default isPrivate to false unless specified
+
+### Household Creation
+1. Create household document
+2. Update user's householdId
+3. Add user to memberUserIds array
+4. Set user as ownerUserId
+
+### Voice Command Processing
+1. Extract intent and parameters from Dialogflow
+2. Map to appropriate API action
+3. Return conversational response
+4. Handle ambiguous item names gracefully
+
+## Testing Strategy
+- Unit tests for validation functions
+- Integration tests for API endpoints
+- Mock Firebase services in tests
+- Test privacy/permission boundaries thoroughly
+
+## Performance Considerations
+- Implement client-side pagination for item lists
+- Cache household membership checks
+- Use Firestore composite indexes for complex queries
+- Minimize Function cold starts with keep-alive
+
+## Deployment & Environment
+- Use Firebase CLI for deployment
+- Environment variables for external API keys
+- Separate dev/prod Firebase projects
+- Use Functions emulator for local development
+
+## Common Patterns to Follow
+
+### Always validate user permissions before any data operation
+### Use consistent error codes across all endpoints
+### Include audit fields (created, lastUpdated, creatorUserId) on all entities
+### Implement proper CORS for web client
+### Use TypeScript strictly - no `any` types
+### Follow RESTful conventions for API design
+
+## Coding Instructions & Standards
+
+### WHEN WRITING CODE:
+
+1. **ALWAYS START WITH TYPES/INTERFACES**
+   ```typescript
+   // Define the shape first
+   interface ItemFormData {
+     name: string;
+     location: string;
+     isPrivate: boolean;
+     category?: string;
+   }
+   ```
+
+2. **WRITE DEFENSIVE CODE**
+   - Validate inputs at boundaries (API endpoints, component props)
+   - Use type guards for runtime safety
+   - Handle loading, error, and empty states explicitly
+
+3. **IMPLEMENT ERROR-FIRST PATTERNS**
+   ```typescript
+   // Functions: Return early on errors
+   if (!isValidLocation(location)) {
+     return { success: false, error: { code: 'INVALID_LOCATION', message: 'Location must be A1-D4' }};
+   }
+
+   // Components: Show errors prominently
+   {#if error}
+     <div class="error-banner">{error.message}</div>
+   {/if}
+   ```
+
+4. **SERVICE LAYER PATTERN**
+   - All Firebase operations go in `/services/`
+   - Components never call Firebase directly
+   - Services return standardized response format
+
+5. **COMPONENT COMPOSITION**
+   ```svelte
+   <!-- Break down into small, focused components -->
+   <ItemForm on:submit={handleSubmit} />
+   <ItemList {items} on:select={handleSelect} />
+   <ConfirmDialog bind:open={showDialog} />
+   ```
+
+### CODE QUALITY REQUIREMENTS
+
+#### Error Handling
+- Wrap ALL async operations in try-catch
+- Log errors with context: `console.error('Failed to update item', { itemId, userId, error })`
+- Never expose internal errors to users
+- Always provide recovery actions
+
+#### Validation Patterns
+```typescript
+// Input validation
+const validateItemInput = (data: ItemFormData): ValidationResult => {
+  const errors: string[] = [];
+  if (!data.name?.trim()) errors.push('Name is required');
+  if (!isValidLocation(data.location)) errors.push('Invalid location format');
+  return { isValid: errors.length === 0, errors };
+};
+
+// Location validation
+const isValidLocation = (loc: string): boolean => /^[A-D][1-4]$/i.test(loc);
+```
+
+#### State Management
+- Use Svelte stores for cross-component state
+- Keep component state minimal and local
+- Implement loading states for all async operations
+
+#### API Integration
+```typescript
+// services/itemService.ts
+export const createItem = async (itemData: CreateItemRequest): Promise<ApiResponse<Item>> => {
+  try {
+    const response = await fetch('/api/items', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${await getAuthToken()}`
+      },
+      body: JSON.stringify(itemData)
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to create item', { itemData, error });
+    return { success: false, data: null, error: { code: 'NETWORK_ERROR', message: 'Connection failed' }};
+  }
+};
+```
+
+### DEVELOPMENT WORKFLOW
+
+1. **Feature Implementation Order**:
+   - Define types/interfaces
+   - Create service functions
+   - Build components (dumb first, then smart)
+   - Add error handling and loading states
+   - Implement tests
+   - Add logging and analytics
+
+2. **Testing Strategy**:
+   ```typescript
+   // Unit tests for business logic
+   test('validateItemInput rejects empty names', () => {
+     const result = validateItemInput({ name: '', location: 'A1' });
+     expect(result.isValid).toBe(false);
+   });
+
+   // Component tests for user interactions
+   test('ItemForm submits valid data', async () => {
+     // Mount component, fill form, assert behavior
+   });
+   ```
+
+3. **Performance Patterns**:
+   - Debounce search inputs
+   - Paginate large lists
+   - Cache user permissions
+   - Minimize reactive statement complexity
+
+### CODE STYLE RULES
+
+#### File Naming
+- Components: `PascalCase.svelte` (`ItemForm.svelte`)
+- Services: `camelCase.ts` (`itemService.ts`)
+- Types: `types.ts` or inline with usage
+- Stores: `camelCase.ts` (`authStore.ts`)
+
+#### Function Structure
+```typescript
+// ALWAYS: Guard clauses first
+export const processItem = async (itemId: string, userId: string) => {
+  if (!itemId || !userId) return { success: false, error: { code: 'MISSING_PARAMS' }};
+  if (!(await hasPermission(userId, itemId))) return { success: false, error: { code: 'UNAUTHORIZED' }};
+
+  // Main logic after guards
+  try {
+    const result = await performOperation();
+    return { success: true, data: result };
+  } catch (error) {
+    logError('processItem failed', { itemId, userId, error });
+    return { success: false, error: { code: 'OPERATION_FAILED', message: 'Could not process item' }};
+  }
+};
+```
+
+#### Database Operations
+- Use batch operations for multiple writes
+- Always filter by householdId for data isolation
+- Include audit fields (createdAt, updatedAt, createdBy)
+- Implement optimistic updates with rollback
+
+### PROJECT-SPECIFIC PATTERNS
+
+#### Location Handling
+```typescript
+// Always normalize locations
+const normalizeLocation = (loc: string): string => loc.toUpperCase().trim();
+
+// Validate before storing
+const validateLocation = (loc: string): boolean => /^[A-D][1-4]$/.test(normalizeLocation(loc));
+```
+
+#### Privacy Controls
+```typescript
+// Filter items based on privacy and household
+const getAccessibleItems = (items: Item[], currentUserId: string, householdId: string): Item[] => {
+  return items.filter(item =>
+    item.householdId === householdId &&
+    (!item.isPrivate || item.creatorUserId === currentUserId)
+  );
+};
+```
+
+#### Voice Command Processing
+```typescript
+// Extract and validate Dialogflow parameters
+const processDialogflowRequest = (request: DialogflowRequest) => {
+  const { intent, parameters } = request;
+
+  // Validate required parameters based on intent
+  if (intent === 'StoreItem' && (!parameters.item || !parameters.location)) {
+    return buildDialogflowResponse('I need both an item name and location. Try again.');
+  }
+
+  // Process the validated request
+  return handleIntent(intent, parameters);
+};
+```

@@ -1,0 +1,503 @@
+---
+description: "Defines React Hook Form integration patterns for type-safe form handling, validation, and state management. Apply when creating forms, handling form validation, or managing form state in React components."
+globs: apps/web/**/*.tsx, packages/ui/**/*.tsx
+alwaysApply: true
+---
+
+# React Hook Form Standards
+
+You are a React Hook Form specialist. Follow these strict patterns for form state management and validation.
+
+## Core Principles
+
+- **React Hook Form Only**: All form state must be managed by React Hook Form
+- **Type Safety**: Use TypeScript schemas with Zod for validation
+- **No Local State**: Never use useState for form data management
+- **Validation First**: All form fields must have proper validation rules
+- **Error Handling**: Provide clear, user-friendly error messages
+- **shadcn/ui Components**: Always use shadcn/ui form components instead of HTML form elements
+
+## Form Architecture
+
+### Form Components
+- **Purpose**: Handle form rendering and user interactions using shadcn/ui components
+- **Characteristics**:
+  - Use `useForm` hook for form state management
+  - Integrate with validation schemas (Zod)
+  - Always use shadcn/ui `Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`
+  - Use shadcn/ui input components (`Input`, `Button`, `Select`, `Textarea`, etc.)
+  - Handle form submission and error states
+  - No direct API calls in form components
+  - Pass submission handlers via props
+
+### Form Containers
+- **Purpose**: Orchestrate form submission and business logic
+- **Characteristics**:
+  - Handle API calls and data persistence
+  - Manage loading and error states
+  - Transform form data for API consumption
+  - Handle success/failure notifications
+
+## Implementation Rules
+
+### ✅ Correct Implementation
+
+**Form Schema (Zod):**
+```tsx
+// lib/form-schemas.ts
+import { z } from 'zod';
+
+export const userProfileSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+  age: z.number().min(18, 'Must be at least 18 years old'),
+});
+
+export type UserProfileForm = z.infer<typeof userProfileSchema>;
+```
+
+**Form Component:**
+```tsx
+// components/forms/user-profile-form.tsx
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { userProfileSchema, type UserProfileForm } from '@/lib/form-schemas';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+
+interface UserProfileFormProps {
+  defaultValues?: Partial<UserProfileForm>;
+  onSubmit: (data: UserProfileForm) => void;
+  isLoading?: boolean;
+}
+
+export function UserProfileForm({ 
+  defaultValues, 
+  onSubmit, 
+  isLoading = false 
+}: UserProfileFormProps) {
+  const form = useForm<UserProfileForm>({
+    resolver: zodResolver(userProfileSchema),
+    defaultValues,
+  });
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter your name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input 
+                  type="email" 
+                  placeholder="Enter your email" 
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="age"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Age</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  placeholder="Enter your age"
+                  {...field}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button 
+          type="submit" 
+          disabled={form.formState.isSubmitting || isLoading}
+          className="w-full"
+        >
+          {form.formState.isSubmitting || isLoading ? 'Saving...' : 'Save Profile'}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+```
+
+**Form Container:**
+```tsx
+// components/forms/user-profile-form-container.tsx
+import { useNotifications } from '@/hooks/use-notifications';
+import { useUserMutation } from '@/hooks/use-user-mutation';
+import { UserProfileForm } from './user-profile-form';
+import { type UserProfileForm as UserProfileFormData } from '@/lib/form-schemas';
+
+interface UserProfileFormContainerProps {
+  userId?: string;
+  initialData?: Partial<UserProfileFormData>;
+  onSuccess?: () => void;
+}
+
+export function UserProfileFormContainer({
+  userId,
+  initialData,
+  onSuccess
+}: UserProfileFormContainerProps) {
+  const { showNotification } = useNotifications();
+  const { mutate: saveUser, isLoading } = useUserMutation();
+
+  const handleSubmit = async (data: UserProfileFormData) => {
+    try {
+      await saveUser({
+        id: userId,
+        ...data
+      });
+      showNotification('Profile saved successfully');
+      onSuccess?();
+    } catch (error) {
+      showNotification('Failed to save profile', 'error');
+    }
+  };
+
+  return (
+    <UserProfileForm
+      defaultValues={initialData}
+      onSubmit={handleSubmit}
+      isLoading={isLoading}
+    />
+  );
+}
+```
+
+### ❌ Wrong Implementation
+
+**Using Local State (Bad):**
+```tsx
+// WRONG: Using useState for form data
+export function UserProfileForm() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [errors, setErrors] = useState({});
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Manual validation logic
+    const newErrors = {};
+    if (!name) newErrors.name = 'Name is required';
+    if (!email) newErrors.email = 'Email is required';
+    setErrors(newErrors);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <input
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+    </form>
+  );
+}
+```
+
+**Using HTML Form Elements (Bad):**
+```tsx
+// WRONG: Using HTML form elements instead of shadcn/ui components
+export function UserProfileForm() {
+  const { register, handleSubmit, formState: { errors } } = useForm();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <label>Name</label>
+      <input {...register('name')} className="border rounded px-3 py-2" />
+      {errors.name && <span>{errors.name.message}</span>}
+      
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+```
+
+**Missing Validation (Bad):**
+```tsx
+// WRONG: No validation schema
+export function UserProfileForm() {
+  const form = useForm(); // No resolver
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input {...field} /> {/* No validation */}
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      </form>
+    </Form>
+  );
+}
+```
+
+## Critical Form Rules
+
+- **Required Packages**: Always use `react-hook-form` with `@hookform/resolvers/zod`
+- **shadcn/ui Only**: NEVER use HTML form elements (`<input>`, `<button>`, `<select>`, `<textarea>`, `<label>`)
+- **Form Component Pattern**: Always use `Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`
+- **Schema Validation**: Every form MUST have a Zod schema for validation
+- **Type Safety**: Use TypeScript inference from Zod schemas
+- **Error Display**: Use `FormMessage` component for validation errors
+- **Loading States**: Handle submission loading states properly
+- **Default Values**: Support pre-populated forms with defaultValues
+- **No Local State**: Never use useState for form field values
+
+## shadcn/ui Form Field Patterns
+
+### Text Input
+```tsx
+<FormField
+  control={form.control}
+  name="fieldName"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Field Label</FormLabel>
+      <FormControl>
+        <Input placeholder="Enter text" {...field} />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+```
+
+### Number Input
+```tsx
+<FormField
+  control={form.control}
+  name="fieldName"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Number Field</FormLabel>
+      <FormControl>
+        <Input 
+          type="number" 
+          placeholder="Enter number"
+          {...field}
+          onChange={(e) => field.onChange(Number(e.target.value))}
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+```
+
+### Select Input
+```tsx
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+<FormField
+  control={form.control}
+  name="fieldName"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Select Field</FormLabel>
+      <Select onValueChange={field.onChange} defaultValue={field.value}>
+        <FormControl>
+          <SelectTrigger>
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+        </FormControl>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+          <SelectItem value="option2">Option 2</SelectItem>
+        </SelectContent>
+      </Select>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+```
+
+### Textarea
+```tsx
+import { Textarea } from '@/components/ui/textarea';
+
+<FormField
+  control={form.control}
+  name="fieldName"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Description</FormLabel>
+      <FormControl>
+        <Textarea placeholder="Enter description" {...field} />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+```
+
+### Checkbox
+```tsx
+import { Checkbox } from '@/components/ui/checkbox';
+
+<FormField
+  control={form.control}
+  name="fieldName"
+  render={({ field }) => (
+    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+      <FormControl>
+        <Checkbox
+          checked={field.value}
+          onCheckedChange={field.onChange}
+        />
+      </FormControl>
+      <div className="space-y-1 leading-none">
+        <FormLabel>Checkbox Label</FormLabel>
+      </div>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+```
+
+### Radio Group
+```tsx
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
+<FormField
+  control={form.control}
+  name="fieldName"
+  render={({ field }) => (
+    <FormItem className="space-y-3">
+      <FormLabel>Radio Options</FormLabel>
+      <FormControl>
+        <RadioGroup
+          onValueChange={field.onChange}
+          defaultValue={field.value}
+          className="flex flex-col space-y-1"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="option1" id="option1" />
+            <Label htmlFor="option1">Option 1</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="option2" id="option2" />
+            <Label htmlFor="option2">Option 2</Label>
+          </div>
+        </RadioGroup>
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+```
+
+### Switch
+```tsx
+import { Switch } from '@/components/ui/switch';
+
+<FormField
+  control={form.control}
+  name="fieldName"
+  render={({ field }) => (
+    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+      <div className="space-y-0.5">
+        <FormLabel className="text-base">Switch Label</FormLabel>
+      </div>
+      <FormControl>
+        <Switch
+          checked={field.value}
+          onCheckedChange={field.onChange}
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+```
+
+## Required shadcn/ui Components
+
+Before creating any forms, ensure these shadcn/ui components are installed:
+
+```bash
+npx shadcn@latest add form
+npx shadcn@latest add input  
+npx shadcn@latest add button
+npx shadcn@latest add select
+npx shadcn@latest add textarea
+npx shadcn@latest add checkbox
+npx shadcn@latest add radio-group
+npx shadcn@latest add switch
+npx shadcn@latest add label
+```
+
+## Component Import Rules
+
+Always import form components from shadcn/ui:
+
+```tsx
+// ✅ CORRECT: shadcn/ui imports
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+
+// ❌ WRONG: Never import or use HTML form elements
+// <input>, <button>, <select>, <textarea>, <label>
+```
+
+## Testing Strategy
+
+- **Form Validation**: Test all validation rules with invalid data
+- **Submission Flow**: Test successful and failed form submissions  
+- **Error States**: Verify `FormMessage` components display validation errors correctly
+- **Loading States**: Test form behavior during submission with disabled states
+- **Accessibility**: Verify form components maintain proper ARIA attributes and keyboard navigation

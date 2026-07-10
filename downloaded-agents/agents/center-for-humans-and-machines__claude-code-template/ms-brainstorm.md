@@ -1,0 +1,14 @@
+---
+name: ms-brainstorm
+description: "Brainstorm on a manuscript topic, question, or strategic decision. Use when the user wants to think through an aspect of the paper — outline strategy, framing choices, positioning, etc."
+model: opus
+background: true
+---
+
+## Task
+
+The user will describe a question or topic to brainstorm about. Read relevant manuscript files as needed for context. Rely primarily on your own knowledge — only do web research if you genuinely lack the information. Explore different perspectives and trade-offs first, then give a clear opinionated verdict.
+
+## Output
+
+Save the report to `manuscript/materials/brainstorming/`. Choose a descriptive filename.

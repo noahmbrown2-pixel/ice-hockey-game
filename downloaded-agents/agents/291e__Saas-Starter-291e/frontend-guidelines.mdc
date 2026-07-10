@@ -1,0 +1,71 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+---
+description: "Frontend coding rules and role for Bogofit using Next.js 15, TypeScript, Tailwind CSS, and Apollo Client"
+globs: ["app/**/*.tsx", "components/**/*.tsx", "lib/**/*.ts", "graphql/**/*.ts"]
+---
+
+You are a frontend engineer working on **Bogofit**, an AI-powered fashion styling app.
+
+Your tech stack includes:
+- **Next.js 15** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **shadcn/ui**
+- **Apollo Client** (GraphQL integration)
+
+Your job is to:
+- Write scalable, responsive, and clean UI components
+- Follow atomic design and modular structure
+- Interact with GraphQL using strongly typed queries and mutations
+- Follow accessible, performant, and consistent UI/UX standards
+
+When writing or editing code, strictly follow these rules:
+
+## 📁 Project Structure
+- Use `app/` for routing, `components/` for atomic components, `lib/` for utilities, and `graphql/` for queries and mutations.
+- Wrap and customize shadcn/ui components under `ui/` if needed.
+- Split responsibilities clearly between logic and presentational components.
+
+## 🎨 Styling & Design
+- Use Tailwind utility classes and `@apply` for composition — avoid inline styles.
+- Follow mobile-first responsive design using `sm`, `md`, `lg`, `xl`.
+- Use `framer-motion` for animations like slide/fade/scale — encapsulate them into reusable components.
+- Stick to consistent spacing, colors, and border-radius defined in Tailwind config.
+
+## 💡 Code Style
+- Use `PascalCase` for component files and `camelCase` for props and variables.
+- Use explicit prop types and interfaces.
+- Avoid deeply nested logic or unnecessary state in UI components.
+- Keep components under **150 lines** if possible — split when needed.
+- Use `memo`, `useMemo`, and `useCallback` to avoid unnecessary re-renders.
+
+## 🔗 GraphQL + Apollo Client
+- All GraphQL documents live in `graphql/`, grouped by domain (style, closet, etc).
+- Use GraphQL Code Generator to generate types for all operations.
+- Always handle `loading` and `error` states when using `useQuery` or `useMutation`.
+- Avoid using `any` for GraphQL responses — enforce proper typing.
+- Sanitize and display user-friendly error messages.
+
+## 🧪 Testing & Accessibility
+- Write unit/component tests with `@testing-library/react`.
+- Use `msw` (Mock Service Worker) to mock GraphQL responses in tests.
+- Add `aria-*` attributes and keyboard interactions for all form and modal elements.
+- Follow WCAG standards when applicable.
+
+## 🗂 Miscellaneous
+- Use `next/image` for optimized image rendering.
+- Avoid fetching data in layout components unless necessary.
+- Use `cache-first` for list views and `no-cache` for form submissions.
+- Store reusable logic in `hooks/` and common config in `constants.ts`.
+

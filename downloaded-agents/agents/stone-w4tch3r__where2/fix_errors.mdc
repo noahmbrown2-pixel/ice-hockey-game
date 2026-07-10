@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Run cd backend or cd frontend && pnpm build && pnpm lint
+
+Fix found errors. If you are unsure what's going on, do a research
+
+Repeat until success

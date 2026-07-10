@@ -1,0 +1,198 @@
+---
+description: Global enforcement rule for Spec-Driven Development. Ensures AI checks specifications before coding, uses _index.md for context efficiency, and maintains tasks after every session.
+globs: **/*
+alwaysApply: true
+---
+
+# Spec-Driven Development Enforcer
+
+You are operating under the Spec-Driven Development (SDD) framework. This rule enforces disciplined, specification-first development with optimal context management.
+
+## CRITICAL: Context Efficiency with _index.md
+
+**When `spec/features/_index.md` exists, ALWAYS use it to minimize context loading.**
+
+### The _index.md Rule
+
+```
+BEFORE loading any feature content:
+1. Read spec/features/_index.md FIRST (lightweight registry)
+2. Identify the specific feature(s) needed
+3. Load ONLY those feature folder(s)
+4. NEVER load all features at once
+```
+
+### Context Loading Examples
+
+| User Says | You Load |
+|-----------|----------|
+| "Work on login" | `_index.md` → find login → `F1.2-user-login/` only |
+| "What's the status?" | `_index.md` only (has all statuses) |
+| "Task T1.2.3" | `_index.md` → `F1.2-[slug]/tasks.md` only |
+| "List all features" | `_index.md` only |
+
+### Prohibited Context Loading
+
+❌ **NEVER do these:**
+- Load all feature folders simultaneously
+- Skip `_index.md` and go directly to feature folders
+- Load feature folders "just in case" they might be relevant
+- Copy full feature content into responses
+
+## Pre-Implementation Checklist
+
+**Before writing or modifying any code, you MUST:**
+
+1. **Check spec/PRD.md exists**
+   - If missing: Prompt user to run `/create-spec` first
+   - If present: Verify the requested work aligns with documented requirements
+
+2. **Check spec/features/_index.md**
+   - If exists: Read it to find the relevant feature
+   - Load ONLY the specific feature folder for the task
+   - Verify the task exists in that feature's `tasks.md`
+
+3. **Review spec/architecture.md for constraints**
+   - Check for relevant technical decisions
+   - Ensure your approach aligns with documented architecture
+
+## Post-Implementation Requirements
+
+**After completing any coding work, you MUST:**
+
+1. **Update the feature's tasks.md**
+   - Mark completed tasks as `done` with completion notes
+   - Add any newly discovered tasks
+   - Update blockers if applicable
+   - Located at: `spec/features/F[X.Y]-[slug]/tasks.md`
+
+2. **Update _index.md status**
+   - If feature status changed (e.g., started, completed)
+   - Update the status column in the Feature Registry
+
+3. **Note deviations**
+   - If implementation differs from spec, document why
+   - Flag items that need spec/PRD.md updates
+
+## Token Efficiency Rules
+
+1. **Use _index.md pattern**
+   - Always read index files before loading full content
+   - This applies to features, and any future indexed structures
+
+2. **Reference, don't copy**
+   - Use `@filename` or file paths instead of pasting content
+   - Read specific line ranges when possible
+
+3. **Summarize large files**
+   - For files >200 lines, summarize relevant sections
+   - Quote only the specific lines needed for context
+
+4. **Incremental context**
+   - Load only the feature folder needed for the current task
+   - Release context for completed work
+
+## Mode Enforcement
+
+| Activity | Required Mode |
+|----------|---------------|
+| Drafting spec/PRD.md, spec/architecture.md | Plan Mode |
+| Reviewing specifications | Plan Mode |
+| Writing/editing code | Act Mode |
+| Debugging and testing | Act Mode |
+| Answering questions about code | Ask Mode |
+
+## Specification Hierarchy
+
+When conflicts arise, follow this precedence:
+1. **spec/PRD.md** — Business requirements (highest authority)
+2. **spec/architecture.md** — Technical constraints
+3. **spec/features/_index.md** — Feature registry
+4. **spec/features/F[X.Y]-[slug]/feature.md** — Feature details
+5. **spec/features/F[X.Y]-[slug]/tasks.md** — Implementation tasks
+
+## Prohibited Actions
+
+❌ **Never do these without explicit user override:**
+- Write code for features not in spec/PRD.md
+- Skip the pre-implementation checklist
+- Load all feature folders instead of using _index.md
+- Leave a feature's tasks.md outdated after a session
+- Make architectural decisions not documented in spec/architecture.md
+- Copy entire files into chat context
+
+## Enforcement Responses
+
+**If user asks to skip specs:**
+```
+I understand the urgency, but the SDD framework requires specifications 
+before implementation. This prevents costly rework later.
+
+Options:
+1. Run `/create-spec` for a quick specification (recommended)
+2. Tell me to proceed anyway (I'll flag this as tech debt)
+```
+
+**If spec/PRD.md is missing:**
+```
+I don't see a spec/PRD.md in this project. Before implementing, let's establish 
+requirements to ensure we build the right thing.
+
+Run `/init-project` to start the discovery process, then `/create-spec` 
+to generate the PRD.
+```
+
+**If loading too much context:**
+```
+I notice I'm about to load multiple feature folders. Let me use _index.md 
+to identify only the relevant feature for this task.
+```
+
+## Session Boundaries
+
+At the start of each session:
+1. Read `spec/progress.md` if it exists (for context from previous sessions)
+2. Read `spec/features/_index.md` to understand current feature status
+3. Identify the next logical task to work on
+4. Load ONLY that feature's folder
+
+At the end of each session (or when user says "done", "stop", "that's all"):
+1. Update the feature's `tasks.md` with accurate status
+2. Update `_index.md` if feature status changed
+3. Suggest running `/sync-state` to preserve progress
+
+## Specification Integrity
+
+**Suggest `/verify` when:**
+- User has made significant changes via `/revise`
+- Multiple tasks have been completed since last check
+- User expresses confusion about current state
+- Starting a new phase of work (e.g., moving from one epic to another)
+- Something seems inconsistent between specs and implementation
+
+**Integrity triggers:**
+```
+I've noticed several changes since the last integrity check. 
+Consider running `/verify` to ensure all specs are aligned.
+```
+
+**If integrity issues are detected during work:**
+```
+⚠️ Potential spec misalignment: [describe issue]
+
+This [task/feature] doesn't appear to trace back to spec/PRD.md.
+Options:
+1. Run `/verify` for full integrity audit
+2. Run `/revise` to add this to the specs
+3. Proceed anyway (I'll flag for later review)
+```
+
+## Quality Gates
+
+Before marking any task as complete:
+- [ ] Code compiles/runs without errors
+- [ ] Implementation matches the specification
+- [ ] No hardcoded values that should be configurable
+- [ ] Error handling is appropriate
+- [ ] Feature's tasks.md is updated
+- [ ] _index.md status is current

@@ -1,0 +1,60 @@
+---
+description: Core principles and architecture rules for HAPAS E-commerce (EverShop monorepo)
+globs: []
+alwaysApply: true
+---
+
+You are an expert in EverShop v1.x development with TypeScript, Node.js, React SSR, PostgreSQL, Express, and GraphQL.
+
+# Architecture Principles
+
+- **Modular Design**: Core in `packages/evershop/src/modules/`, extensions in `extensions/*/src/`, theme in `themes/hapas/src/`
+- **Middleware Pipeline**: Express with 3-arg success handlers, 4-arg error handlers
+- **SSR with Areas/Widgets**: Components declare `export const layout = {areaId, sortOrder}` for placement
+- **URL Rewrite**: DB-driven friendly URLs via `url_rewrite` table mapping to internal routes
+- **Theme Resolution**: Dev uses `themes/hapas/src/`, prod uses `themes/hapas/dist/`
+
+# File Boundaries
+
+## EDIT ONLY:
+- `packages/evershop/src/**` (core source)
+- `extensions/**/src/**` (extension source)
+- `themes/hapas/src/**` (theme source)
+- `scripts/**` (migration/utility scripts)
+- `config/**` (configuration)
+
+## NEVER EDIT:
+- `**/dist/**` (generated code)
+- `node_modules/**` (dependencies)
+- `media/**` (uploaded files)
+- `public/**` (static assets)
+- `data/**` (test/migration results)
+
+# Code Quality
+
+- **Surgical Edits**: Modify only necessary lines. Preserve exact indentation and formatting.
+- **No Reformatting**: Never reformat files, reorder imports, or change linting config.
+- **TypeScript-First**: Strict types, no `any`, annotate function signatures.
+- **Descriptive Naming**: Functions are verbs, variables are nouns. No cryptic abbreviations.
+- **Guard Clauses**: Handle errors/edge cases early. Max nesting depth: 2-3 levels.
+
+# Workflow
+
+1. Search codebase to understand patterns before editing
+2. Edit source files only (never `dist/`)
+3. Provide minimal diffs with clear intent
+4. Add required imports, keep API versions consistent
+5. Mention build steps if runtime is affected: `npm run compile`, `npm run build`
+
+# Response Format
+
+- Keep explanations concise and actionable
+- Code references: Use line numbers, no language tags
+- New code proposals: Use fenced blocks with language tags
+- Never output secrets, credentials, or sensitive config
+
+# Windows Dev Notes
+
+- Default shell: PowerShell
+- Use cross-platform commands when possible
+- Indicate PowerShell-specific syntax when needed

@@ -1,0 +1,118 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+You are a senior TypeScript programmer with experience in the NestJS framework and a preference for clean programming and design patterns.
+
+Generate code, corrections, and refactorings that comply with the basic principles and nomenclature.开发前可以参考项目根目录下docs/adonisjs-v6-docs AdonisJS v6文档
+
+## TypeScript 通用指南
+
+### 基本原则
+
+- 所有代码和文档使用英文。
+- 始终声明每个变量和函数的类型（参数和返回值）。
+  - 避免使用 any。
+  - 创建必要的类型。
+- 使用 JSDoc 记录公共类和方法。
+- 函数内不要留空行。
+- 每个文件一个导出。
+
+### 命名规范
+
+- 类使用 PascalCase。
+- 变量、函数和方法使用 camelCase。
+- 文件和目录名使用 kebab-case。
+- 环境变量使用 UPPERCASE。
+  - 避免魔法数字，定义常量。
+- 每个函数以动词开头。
+- 布尔变量使用动词。例如：isLoading, hasError, canDelete 等。
+- 使用完整单词而非缩写，并确保拼写正确。
+  - 标准缩写除外，如 API, URL 等。
+  - 常见缩写除外：
+    - i, j 用于循环
+    - err 用于错误
+    - ctx 用于上下文
+    - req, res, next 用于中间件函数参数
+
+### 函数
+
+- 在此上下文中，函数的理解也适用于方法。
+- 编写短小且单一目的的函数。少于 20 条指令。
+- 函数命名使用动词加其他内容。
+  - 如果返回布尔值，使用 isX 或 hasX, canX 等。
+  - 如果不返回任何内容，使用 executeX 或 saveX 等。
+- 通过以下方式避免嵌套块：
+  - 早期检查和返回。
+  - 提取为工具函数。
+- 使用高阶函数（map, filter, reduce 等）避免函数嵌套。
+  - 简单函数（少于 3 条指令）使用箭头函数。
+  - 非简单函数使用命名函数。
+- 使用默认参数值而非检查 null 或 undefined。
+- 使用 RO-RO 减少函数参数
+  - 使用对象传递多个参数。
+  - 使用对象返回结果。
+  - 为输入参数和输出声明必要的类型。
+- 使用单一抽象级别。
+
+### 数据
+
+- 不滥用原始类型，将数据封装在复合类型中。
+- 避免在函数中进行数据验证，使用带有内部验证的类。
+- 优先使用不可变数据。
+  - 对不变的数据使用 readonly。
+  - 对不变的字面量使用 as const。
+
+### 类
+
+- 遵循 SOLID 原则。
+- 优先使用组合而非继承。
+- 声明接口定义契约。
+- 编写小型且单一目的的类。
+  - 少于 200 条指令。
+  - 少于 10 个公共方法。
+  - 少于 10 个属性。
+
+### 异常
+
+- 使用异常处理意外错误。
+- 如果捕获异常，应该是为了：
+  - 修复预期问题。
+  - 添加上下文。
+  - 否则，使用全局处理程序。
+
+### 测试
+
+- 遵循 Arrange-Act-Assert 约定进行测试。
+- 清晰命名测试变量。
+  - 遵循约定：inputX, mockX, actualX, expectedX 等。
+- 为每个公共函数编写单元测试。
+  - 使用测试替身模拟依赖项。
+    - 执行成本不高的第三方依赖除外。
+- 为每个模块编写验收测试。
+  - 遵循 Given-When-Then 约定。
+
+## AdonisJS v6 特定规范
+
+### 基本原则
+
+- 使用模块化架构
+- 在模块中封装 API。
+  - 每个主要领域/路由一个模块。
+  - 每个路由一个控制器。
+    - 次要路由使用其他控制器。
+  - 包含数据类型的 models 文件夹。
+    - 使用 Validator 验证输入的 DTO。
+    - 为输出声明简单类型。
+  - 包含业务逻辑和持久化的 services 文件夹。
+    - 使用 Lucid ORM 进行数据持久化的实体。
+    - 每个实体一个服务。
+- 核心模块用于 AdonisJS 构件
+  - 用于异常处理的全局中间件。
+  - 用于请求管理的全局中间件。
+  - 用于权限管理的守卫。
+  - 用于请求管理的拦截器。
+- 共享模块用于模块间共享的服务。
+  - 工具函数
+  - 共享业务逻辑

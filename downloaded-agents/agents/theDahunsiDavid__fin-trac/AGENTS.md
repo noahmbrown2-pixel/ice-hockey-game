@@ -1,0 +1,136 @@
+---
+description: Core rules, conventions, and architectural guidelines for the FinTrac personal finance tracker app that's privacy-friendly and local-first.
+globs:
+alwaysApply: true
+---
+
+## Project Overview: FinTrac personal finance tracker app
+You are an expert full-stack developer working on the finance tracker app called FinTrac. Your primary goal is to build a local-first personal finance tracker PWA (Progressive Web App) that allows users to manually record financial transactions, visualize their balances and spending, and store theif financial data locally.
+
+Adhere strictly to the rules, patterns, and conventions outlined in this document to ensure code quality, consistency, and maintainability.
+
+## Technology Stack
+The project uses the following technologies. Do not introduce new libraries or frameworks without explict instruction.
+
+- Frontend: React + Vite (no Create React App)
+- Styling: Tailwind CSS only
+- Charts: Recharts library
+- Database: IndexedDB via Dexie.js with custom CouchDB sync
+- Deployment: Vercel
+- Data Format: JSON with strict typing
+
+## Development Environment
+- **Operating System**: Arch Linux with i3wm
+- **Package Manager**: pacman (use `sudo pacman -S package-name` for system packages)
+- **Node.js Packages**: npm (use `npm install package-name` for Node.js dependencies)
+- **Containerization**: Docker available if needed (`sudo pacman -S docker` to install)
+
+## Data Schema (Fixed)
+**Transaction Model**:
+```ts
+  id: string
+  date: string // ISO 8601 format
+  description: string
+  amount: number
+  currency: string // "USD", "NGN", etc.
+  type: "credit" | "debit"
+  category: string // "Food", "Transport", etc.
+  tags?: string[]
+  createdAt: string // ISO 8601 format
+  updatedAt: string // ISO 8601 format
+```
+
+**Category Model**:
+```ts
+  id: string
+  name: string // "Food", "Transport", etc.
+  color: string // Tailwind color class for chart legend
+```
+
+## Security & Validation
+- **Input sanitization**: Validate all user inputs before storage
+- **Amount validation**: Prevent negative amounts unless explicitly credit/debit
+- **Date validation**: Ensure valid ISO 8601 dates
+- **Type safety**: Strict TypeScript throughout
+
+## Architecture & Code Style
+
+### Directory Structure
+Follow this scalable React App structure:
+  ```bash
+  src/
+    components/ # Reusable UI components (buttons, forms, charts)
+    features/ # Feature modules organized by domain
+      transactions/ # Transaction form, list, detail views
+      dashboard/ # Charts & summary views
+    services/ # App services layer
+      db/ # Dexie setup and schema definitions
+      sync/ # Custom CouchDB sync service and configuration
+      repos/ # Data repositories (CRUD operations) - Dexie implementations
+      utils/ # Date, currency, number, UUID helpers
+    hooks/ # Custom React hooks (useTransactions, useCouchDBSync)
+    test/ # Test utilities and setup
+    App.tsx
+    main.tsx
+  ```
+
+### Data Flow
+- **Pattern**: UI -> Hooks -> Repositories -> Dexie DB + Custom CouchDB Sync
+- **Structure**: Feature-based organization with clear separation of concerns
+- **Storage**: Local-first using IndexedDB via Dexie.js with bidirectional CouchDB sync
+- **System Boundary**: Frontend-only PWA in browser
+
+### Naming Conventions
+- **Components**: PascalCase (TransactionForm, DashboardChart)
+- **Files**: PascalCase for components, camelCase for utilities
+- **Hooks**: use prefix (useTransactions, useDashboardData)
+- **Repositories**: Repository suffix (TransactionRepository)
+- **Services**: Service suffix when applicable
+
+### Code Generation Patterns
+- **Components**: Always include TypeScript interfaces for props
+- **Hooks**: Return objects with clear destructuring patterns
+- **Repositories**: Implement full CRUD operations (create, read, update, delete)
+- **Forms**: Use controlled components with validation
+- **Charts**: Use Recharts with responsive containers
+- **TypeScript Safety**: Before generating any TypeScript code, examine existing types, interfaces, and imports in the codebase
+- **Mock Strategy**: Use structured interfaces that match actual service contracts instead of `any` types
+- **Incremental Approach**: Generate code in small, compilable chunks rather than large complete implementations
+- **Type Verification**: Always check that generated code aligns with existing type patterns and strict TypeScript config
+- **Mock Naming**: Ensure mock method names exactly match the actual service/class method signatures
+- **Error Prevention**: When uncertain about types, ask for relevant interface definitions before proceeding
+
+### Database Layer Rules
+- **All DB operations**: Go through repository layer, never direct Dexie calls in components
+- **Schema changes**: Update in `/services/db/` first, ensure CouchDB sync compatibility
+- **Data validation**: Implement in repositories before Dexie operations
+- **Error handling**: Always wrap DB operations in try-catch
+- **Sync operations**: Use custom CouchDB sync service, never direct CouchDB calls in components
+
+### Feature Module Pattern
+Each feature should contain:
+- `index.ts` for public API exports
+- `components/` for feature-specific components
+- `hooks/` for feature-specific hooks
+- `types.ts` for TypeScript definitions
+- `utils.ts` for feature utilities (if needed)
+
+## Testing Approach
+- **Unit tests**: Focus on repositories and utility functions
+- **Test location**: Co-locate with components (`ComponentName.test.tsx`)
+- **Coverage**: Prioritize business logic and data operations
+- **Edge cases**: Test validation, empty states, error conditions
+
+## Design System
+- **Primary Font**: Inter - Main UI font for headings, body text, labels
+- **Secondary Font**: JetBrains Mono - For financial amounts, dates, data tables
+- **Primary Color**: emerald-600 - Use for buttons, links, active states
+- **Chart Palette**: emerald-400, blue-400, amber-400, rose-400 - Use for Recharts data visualization
+- **Neutrals**: Various gray shades for text, backgrounds, borders
+- **Design Philosophy**: Clean UI with single primary, colorful data insights
+
+## UI/UX Standards
+- **Responsive**: Mobile-first design using Tailwind
+- **Accessibility**: Include proper ARIA labels and semantic HTML
+- **Loading states**: Show loading indicators for async operations
+- **Empty states**: Handle empty data gracefully with helpful messages

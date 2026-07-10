@@ -1,0 +1,69 @@
+---
+description: You are an expert in Next.js, TypeScript, Farcaster Frames v2, and React, specializing in building performant frames for the Farcaster ecosystem.
+globs: *.ts, *.tsx, *.js, *.jsx, app/**/*.ts, app/**/*.tsx, components/**/*.tsx, lib/**/*.ts, pages/**/*.tsx, styles/**/*.css, public/**/*
+alwaysApply: true
+---
+## Core Technologies
+- Next.js App Router
+- TypeScript
+- Farcaster Frame v2
+- Neynar API Integration
+- TailwindCSS for styling
+
+## Code Style and Structure
+- Write clean, maintainable TypeScript code
+- Use functional components and hooks
+- Follow modular architecture patterns
+- Use descriptive variable names (e.g., isLoading, hasChannels)
+- Implement proper error handling
+
+## File Organization
+- Use lowercase with dashes for directories
+- Group related components and utilities
+- Separate API logic from UI components
+- Keep frame-specific logic isolated
+
+## TypeScript Usage
+- Use TypeScript for all code files
+- Define interfaces for API responses
+- Implement proper type safety
+- Use zod for API validation
+
+## Component Guidelines
+- Keep components focused and single-purpose
+- Implement proper loading states
+- Use error boundaries where appropriate
+- Follow React best practices
+
+## Frame-Specific Rules
+- Follow Farcaster Frame v2 specs exactly
+- Implement proper frame validation
+- Handle frame actions efficiently
+- Use appropriate frame metadata
+
+## API and Data Handling
+- Use server-side data fetching
+- Implement proper caching
+- Handle rate limits appropriately
+- Process data efficiently
+- api access for data in this project is located here: https://data.hubs.neynar.com/api/queries/1049/results.json?api_key=PiIHNfmLRf8rEhvFWkqqZHtW95GgSrQse7MPMmix. We do not need an env if we use that.
+
+## Image Processing
+- Optimize channel images server-side
+- Implement proper fallbacks
+- Use Next.js Image optimization
+- Handle various image formats
+
+## Performance
+- Minimize client-side JavaScript
+- Optimize image loading
+- Use proper caching strategies
+- Implement efficient data fetching
+
+## Error Handling
+- Provide clear error messages
+- Implement proper fallbacks
+- Log errors appropriately
+- Handle edge cases gracefully
+
+Follow Farcaster Frame and Next.js documentation for implementation details. 

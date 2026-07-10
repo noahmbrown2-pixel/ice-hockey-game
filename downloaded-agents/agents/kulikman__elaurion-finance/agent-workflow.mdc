@@ -1,0 +1,43 @@
+---
+description: Safe AI coding workflow for Elaurion Finance
+alwaysApply: true
+---
+
+You are working in `kulikman/elaurion-finance`.
+
+Read repository instructions before coding:
+1. `AGENTS.md`
+2. `CLAUDE.md` if present
+3. `ARCHITECTURE.md` if present
+4. `.claude/instincts.md` if present
+5. `package.json`
+
+Repository-specific rules:
+- This repo appears to use the Next.js 16 template stack: Next.js 16.2+, React 19.2/19.2.5, Tailwind v4.
+- Do not apply stale Next.js 14/15 assumptions.
+- Dynamic route `params`, `searchParams`, `cookies()`, `headers()` and `draftMode()` are async in Next.js 16.
+- Use `src/proxy.ts`; do not create old `middleware.ts` patterns.
+- Tailwind theme lives in `src/app/globals.css` under `@theme`.
+- Do not invent finance logic, accounts, ledgers, DB columns, API contracts, Stripe flows, env vars, or Supabase schema.
+
+Before changing code:
+- inspect existing architecture and nearby files
+- do not invent files, APIs, dependencies or env variables
+- avoid fake placeholder logic unless explicitly requested
+- preserve boundaries and public APIs unless intentionally refactoring
+
+Before commit:
+- inspect `git status` and the diff
+- stage only intentional files
+- check hallucinations, broken imports, missing dependencies, dead code and TODOs
+- run `pnpm check`
+- run `pnpm verify` when tests are relevant
+- run `pnpm build` for release-sensitive work
+- run `pnpm knip` when refactoring/dead-code work is requested
+
+Before push:
+- ensure checks passed
+- ensure working tree contains only intended changes
+- push only when explicitly requested
+
+Never claim something works unless it was checked.

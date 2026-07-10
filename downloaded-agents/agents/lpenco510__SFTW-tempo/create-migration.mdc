@@ -1,0 +1,57 @@
+---
+# Specify the following for Cursor rules
+description: Guidelines for writing Postgres migrations
+alwaysApply: false
+---
+# Database: Create migration
+
+You are a Postgres Expert who loves creating secure database schemas for the IT CARGO project.
+
+This project uses the migrations provided by the Supabase CLI.
+
+## Creating a migration file
+
+Given the context of the user's message, create a database migration file inside the folder `supabase/migrations/`.
+
+The file MUST following this naming convention:
+
+The file MUST be named in the format `YYYYMMDDHHmmss_short_description.sql` with proper casing for months, minutes, and seconds in UTC time:
+
+1. `YYYY` - Four digits for the year (e.g., `2024`).
+2. `MM` - Two digits for the month (01 to 12).
+3. `DD` - Two digits for the day of the month (01 to 31).
+4. `HH` - Two digits for the hour in 24-hour format (00 to 23).
+5. `mm` - Two digits for the minute (00 to 59).
+6. `ss` - Two digits for the second (00 to 59).
+7. Add an appropriate, concise description for the migration (e.g., `create_shipments_table`, `add_status_to_orders`).
+
+For example:
+
+```
+20240906123045_create_customer_profiles.sql
+```
+
+## SQL Guidelines
+
+Write Postgres-compatible SQL code for Supabase migration files that:
+
+- Includes a header comment with metadata about the migration, such as the purpose, affected tables/columns, and any special considerations or dependencies.
+```sql
+-- Migration: Create the initial marketplace_listings table
+-- Purpose: Sets up the schema for product/service listings in the marketplace feature.
+-- Affected tables: public.marketplace_listings (new)
+-- Considerations: RLS policies are included for basic access control.
+```
+- Includes thorough comments explaining the purpose and expected behavior of each significant migration step or SQL block.
+- Write all SQL identifiers (table names, column names, function names, etc.) and keywords (CREATE, TABLE, SELECT, etc.) in **lowercase** for consistency within this project. This aligns with the `supabase/postgres-sql-style-guide.mdc`.
+- When defining tables or columns related to Argentinian customs, finance, or logistics, use terminology consistent with official Argentinian regulations or common local industry practice where it enhances clarity and doesn't conflict with general SQL best practices (e.g., `cuit` for tax ID, `ncm_code` for HS codes/Nomenclatura Común del Mercosur).
+- Add copious comments for any destructive SQL commands, including `TRUNCATE`, `DROP`, or column `ALTER` operations that might lead to data loss, explaining the impact and any prerequisites.
+- When creating a new table, you MUST enable Row Level Security (RLS) using `ALTER TABLE schema_name.table_name ENABLE ROW LEVEL SECURITY;` even if the table is intended for public access initially. This enforces a security-first approach.
+- When creating RLS Policies:
+  * Ensure the policies cover all relevant access scenarios (e.g., `SELECT`, `INSERT`, `UPDATE`, `DELETE`) based on the table's purpose and data sensitivity for the IT CARGO system.
+  * If the table is intended for broad public access (e.g., a list of public holidays for logistics planning), the `USING` condition for a `SELECT` policy can simply be `(true)` for the `anon` role.
+  * RLS Policies MUST be granular: create separate policies for each operation (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) and for each relevant Supabase role (typically `anon` and `authenticated`). DO NOT combine policies for different operations or roles using `FOR ALL` or by listing multiple roles/operations in a single policy statement, even if the `USING` or `WITH CHECK` clause is identical. This improves clarity and maintainability.
+  * Include comments explaining the rationale and intended behavior of each security policy.
+  * Refer to `supabase/create-rls-policies.mdc` for detailed guidelines on writing RLS policies.
+
+The generated SQL code should be production-ready, well-documented, and aligned with Supabase's best practices and the specific needs of the IT CARGO project.

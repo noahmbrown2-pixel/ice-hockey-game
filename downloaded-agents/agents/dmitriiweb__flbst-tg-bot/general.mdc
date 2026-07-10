@@ -1,0 +1,34 @@
+---
+alwaysApply: true
+---
+# Code Rules
+
+### General Guidelines
+- Use Python 3.10+ syntax.
+- Follow PEP 8 coding standards.
+- Include type hints for all function definitions.
+- Add docstrings to all public classes and functions.
+- Prefer `pathlib` over `os.path` for file system operations.
+- Utilize f-strings for string formatting.
+- Avoid using wildcard imports.
+- Use `print(f"{var_name=}")` or `logger.debug(f"{var_name=}")` for debugging.
+- Write idiomatic and readable code.
+- Do not write comments for tests
+- Do not write comments where you are describing what was changed
+- Do not wtrite try/except blocks for large blocks of code, but only for specific lines where exceptions are expected.
+- Do not use "from typing install List, Dict, Option", but use python 3.10+ syntax like `list`, `dict`, and `|`.
+- Use "" (double quotes) for strings and '' (single quotes) for chars only
+- Before use regexp compile them in the top of a file
+
+## Package management
+- Use `uv add` to install python packages
+- Use `uv run` to run the project or scripts
+
+## Tests
+- Use pytest
+- Don't write tests in unittest style (with classes)
+- Each test must be one function
+- Don't mark tests as async, this is not needed because of pyproject.toml settings
+
+# Run project
+- run project using docker compose (look docker-compose.yaml)
