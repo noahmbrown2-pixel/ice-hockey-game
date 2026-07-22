@@ -95,4 +95,12 @@ function loop(now){
 setupRound(); state='title';
 $('fightBtn').onclick = ()=>{ ensureAudio(); resetMatch(); };
 $('rematchBtn').onclick = ()=>{ resetMatch(); };
+document.querySelectorAll('#stanceSel .stbtn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('#stanceSel .stbtn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    playerStance = b.dataset.st;
+    if (player) player.stance = playerStance;   // live-update the title-screen preview fighter
+  });
+});
 requestAnimationFrame(loop);

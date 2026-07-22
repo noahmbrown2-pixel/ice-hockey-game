@@ -41,6 +41,12 @@ html,body{height:100%;background:#050608;color:#e8edf2;font-family:'Segoe UI',sy
 .screen p{font-size:15px;color:#b9c2cc;line-height:1.7;max-width:580px}
 .btn{background:linear-gradient(180deg,#ff3b3b,#9a0000);color:#fff;border:0;font-weight:900;font-size:18px;letter-spacing:2px;padding:14px 40px;border-radius:8px;cursor:pointer;box-shadow:0 4px 0 #5a0000,0 8px 16px rgba(0,0,0,.5);transition:transform .12s}
 .btn:hover{transform:translateY(-2px)}.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #5a0000}
+.btn.home{background:linear-gradient(180deg,#666,#1a1a1a);font-size:13px;letter-spacing:1px;padding:9px 26px;box-shadow:0 4px 0 #000,0 8px 16px rgba(0,0,0,.5);text-decoration:none;display:inline-block}
+.stancesel{display:flex;align-items:center;justify-content:center;gap:10px;margin:2px 0 6px}
+.stlbl{font-size:11px;letter-spacing:2px;color:#7a838d;font-weight:800}
+.stbtn{background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.22);color:#9aa4ae;font-weight:800;font-size:12px;letter-spacing:1px;padding:7px 16px;border-radius:6px;cursor:pointer;transition:.15s}
+.stbtn:hover{border-color:rgba(255,255,255,.5)}
+.stbtn.active{background:#ffd23b;border-color:#ffd23b;color:#050608}
 .controls{font-size:13px;color:#9aa4ae;margin-top:6px;line-height:1.9}
 .controls b{color:#ffd23b}
 .controls span{display:inline-block;background:rgba(255,59,59,.12);border:1px solid rgba(255,59,59,.4);border-radius:4px;padding:2px 8px;margin:2px 3px;font-weight:700;color:#ff6b6b;font-family:Consolas,monospace}

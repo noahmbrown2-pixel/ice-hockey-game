@@ -14,6 +14,7 @@ const STRIKES = {
 const ROUND_LEN = 60, TOTAL_ROUNDS = 3, MAX_KD = 3;
 
 let state = 'title';
+let playerStance = 'orthodox';   // chosen on the title screen before the fight
 let round = 1, roundClock = ROUND_LEN, scoreP = 0, scoreC = 0;
 let slowmo = 0, flashT = 0, shake = 0;
 let endTitle = '', endSub = '';
@@ -29,6 +30,7 @@ function makeBoxer(cfg){
     flinch:0, legPhase:0, kneesBent:0, legDmg:0, dodgeCD:0,
     knockdowns:0, aiTimer:0, aiState:'idle', aiAgg:0.5, aiRct:0.4,
     jumpY:0,
+    stance: cfg.stance || 'southpaw',   // 'orthodox' (left leg leads) or 'southpaw' (right leg leads)
     cur:{}, tgt:{},  // pose state
   };
 }
@@ -37,8 +39,8 @@ let player, cpu;
 function setupRound(){
   if (player) { scene.remove(player.root); }
   if (cpu) { scene.remove(cpu.root); }
-  player = makeBoxer({ name:'YOU', isPlayer:true, x:0, z:-2.6, skin:0xd6a26b, trunks:0xc01818, glove:0xff3838, hair:0x1a0d0d });
-  cpu    = makeBoxer({ name:'VOLKOV', x:0, z:2.6, skin:0xc08550, trunks:0x15407a, glove:0x3da2ff, hair:0x241a12 });
+  player = makeBoxer({ name:'YOU', isPlayer:true, x:0, z:-2.6, skin:0xd6a26b, trunks:0xc01818, glove:0xff3838, hair:0x1a0d0d, stance:playerStance });
+  cpu    = makeBoxer({ name:'VOLKOV', x:0, z:2.6, skin:0xc08550, trunks:0x15407a, glove:0x3da2ff, hair:0x241a12, stance:'southpaw' });
   cpu.aiAgg = 0.45 + round*0.12; cpu.aiRct = 0.35 + round*0.10;
   roundClock = ROUND_LEN; ground = null;
   document.getElementById('cname').textContent = cpu.name;

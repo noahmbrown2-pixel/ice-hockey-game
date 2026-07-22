@@ -66,14 +66,19 @@ function phase(b){ const s=STRIKES[b.action]; const t=b.actionT;
 function computePose(b){
   // rest fighting stance (hands up, knees bent, legs spread)
   // dominant wide athletic stance: feet spread, knees bent, weight loaded
+  // ORTHODOX = left leg leads (well forward), right leg trails; SOUTHPAW = mirror image (right leg leads)
+  const orthodox = b.stance === 'orthodox';
+  const lead = orthodox ? 'L' : 'R', rear = orthodox ? 'R' : 'L';
+  const m = orthodox ? -1 : 1;   // mirrors every side-dependent (z-axis) rotation for the opposite stance
   const p = {
-    torsoX:0.06, torsoY:0.16, torsoZ:0, rootDip:-0.07, lunge:0, lift:0,   // torsoY = blade upper body; rootDip seats the wide stance on the mat
+    torsoX:0.06, torsoY:0.16*m, torsoZ:0, rootDip:-0.07, lunge:0, lift:0,   // torsoY = blade upper body; rootDip seats the wide stance on the mat
     shLx:-0.55, shLz:0.55, elL:-1.75,
     shRx:-0.55, shRz:-0.55, elR:-1.75,
-    // SOUTHPAW bladed stance — WIDE base: RIGHT leg leads (well forward), LEFT leg trails (well back)
-    hipRx:-0.45, hipRz:-0.30, knR:0.55,   // lead leg — planted well out in front, flat-footed
-    hipLx:0.32,  hipLz:0.30,  knL:0.16,   // rear power leg — straight & angled back, foot planted on the mat
   };
+  // bladed stance — WIDE base: lead leg planted well out in front, flat-footed
+  p['hip'+lead+'x']=-0.45; p['hip'+lead+'z']=-0.30*m; p['kn'+lead]=0.55;
+  // rear power leg — straight & angled back, foot planted on the mat
+  p['hip'+rear+'x']=0.32;  p['hip'+rear+'z']=0.30*m;  p['kn'+rear]=0.16;
   const a = b.action, s = STRIKES[a];
   const e = s ? phase(b) : 0;
   if (a==='block'){ p.shLx=-0.7; p.shRx=-0.7; p.elL=-2.1; p.elR=-2.1; p.shLz=0.3; p.shRz=-0.3; p.torsoX=0.2; }
@@ -85,16 +90,16 @@ function computePose(b){
     else if (a==='cross'){ p.shRx=-0.5-e*1.1; p.elR=-1.7+e*1.6; p.torsoY=e*0.4; p.torsoX=0.08+e*0.05; p.lunge=e*0.20; }
     else if (a==='hook'){ p.shRx=-1.2; p.shRz=-0.5-e*0.9; p.elR=-1.3; p.torsoY=e*0.5; p.lunge=e*0.18; }
     else if (a==='uppercut'){ p.shRx=-0.3-e*0.7; p.elR=-2.2+e*1.0; p.torsoY=e*0.35; p.torsoX=0.08-e*0.1; p.lunge=e*0.18; }
-    // LOW kick — REAR (left) shin to the thigh: rear leg sweeps forward-low
-    else if (a==='legkick'){ p.hipLx=0.32-e*1.55; p.knL=0.16-e*0.1; p.hipLz=0.30+e*0.30; p.torsoX=0.06+e*0.18; p.torsoZ=e*0.22; p.lunge=e*0.42; }
+    // LOW kick — REAR shin to the thigh: rear leg sweeps forward-low
+    else if (a==='legkick'){ p['hip'+rear+'x']=0.32-e*1.55; p['kn'+rear]=0.16-e*0.1; p['hip'+rear+'z']=(0.30+e*0.30)*m; p.torsoX=0.06+e*0.18; p.torsoZ=e*0.22*m; p.lunge=e*0.42; }
     // MID kick — REAR shin to the ribs: rear leg swings to hip/torso height, hips turn over
-    else if (a==='bodykick'){ p.hipLx=0.32-e*2.15; p.knL=0.16-e*0.08; p.hipLz=0.30+e*0.40; p.torsoX=0.06+e*0.22; p.torsoZ=e*0.32; p.shRx=-1.0; p.lunge=e*0.46; }
+    else if (a==='bodykick'){ p['hip'+rear+'x']=0.32-e*2.15; p['kn'+rear]=0.16-e*0.08; p['hip'+rear+'z']=(0.30+e*0.40)*m; p.torsoX=0.06+e*0.22; p.torsoZ=e*0.32*m; p.shRx=-1.0; p.lunge=e*0.46; }
     // HIGH kick — REAR shin whips up ABOVE hip height to the head + body lifts & leans back
-    else if (a==='headkick'){ p.hipLx=0.32-e*3.05; p.knL=0.16-e*0.1; p.hipLz=0.30+e*0.5; p.torsoX=0.06-e*0.30; p.torsoZ=e*0.45; p.shRx=-1.4; p.shLx=0.3; p.lunge=e*0.46; p.lift=e*0.22; }
+    else if (a==='headkick'){ p['hip'+rear+'x']=0.32-e*3.05; p['kn'+rear]=0.16-e*0.1; p['hip'+rear+'z']=(0.30+e*0.5)*m; p.torsoX=0.06-e*0.30; p.torsoZ=e*0.45*m; p.shRx=-1.4; p.shLx=0.3; p.lunge=e*0.46; p.lift=e*0.22; }
     // KNEE — drives the REAR knee up into the body, close range
-    else if (a==='knee'){ p.hipLx=0.32-e*2.05; p.knL=0.16+e*1.95; p.torsoX=0.06+e*0.15; p.shLx=-1.0; p.shRx=-1.0; p.elL=-2.0; p.elR=-2.0; p.lunge=e*0.34; }
+    else if (a==='knee'){ p['hip'+rear+'x']=0.32-e*2.05; p['kn'+rear]=0.16+e*1.95; p.torsoX=0.06+e*0.15; p.shLx=-1.0; p.shRx=-1.0; p.elL=-2.0; p.elR=-2.0; p.lunge=e*0.34; }
     // FLYING KNEE — leaps in (jumpY) and spears the REAR knee to the head, lead leg tucks
-    else if (a==='flyingknee'){ p.hipLx=0.32-e*1.95; p.knL=0.16+e*2.15; p.hipRx=-0.45+e*0.85; p.knR=0.55+e*1.0; p.shLx=-1.2; p.shRx=-1.2; p.lunge=e*0.55; }
+    else if (a==='flyingknee'){ p['hip'+rear+'x']=0.32-e*1.95; p['kn'+rear]=0.16+e*2.15; p['hip'+lead+'x']=-0.45+e*0.85; p['kn'+lead]=0.55+e*1.0; p.shLx=-1.2; p.shRx=-1.2; p.lunge=e*0.55; }
     else if (a==='elbow'){ p.shRx=-1.3; p.shRz=-0.3-e*0.6; p.elR=-2.2+e*0.5; p.torsoY=e*0.4; p.lunge=e*0.18; }
   }
   return p;
