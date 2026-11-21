@@ -149,11 +149,12 @@ const SAND=11,WATER=12,CRAFT_TBL=13,FURNACE=14,TORCH=15,BEDROCK=16;
 const COAL_I=50,IRON_I=51,GOLD_I=52,DIAMOND_I=53,STICK=54,SAPLING=55;
 const RAW_PORK=56,RAW_BEEF=57,RAW_CHICKEN=58,COOKED_PORK=59,COOKED_BEEF=60,COOKED_CHICKEN=61,LEATHER=62;
 const TIER_N=['Wood','Stone','Iron','Gold','Diamond'];
-const TOOL_N=['Pickaxe','Axe','Shovel','Sword'];
+const TOOL_N=['Pickaxe','Axe','Shovel','Sword','Spear'];
 const TIER_CLR=['#C49A6C','#9E9E9E','#E0E0E0','#FFD700','#4DD0E1'];
 const TIER_DUR=[60,132,251,33,1562];
 const TIER_SPD=[2,4,6,12,8];
-const TIER_DMG=[[4,2,2,4],[5,3,3,5],[6,4,4,6],[5,3,3,5],[7,5,5,7]];
+// dmg cols: pickaxe, axe, shovel, sword, spear (spear = slightly under sword but longer reach)
+const TIER_DMG=[[4,2,2,4,3],[5,3,3,5,4],[6,4,4,6,5],[5,3,3,5,4],[7,5,5,7,6]];
 
 // ======================== ITEM DATA =============================
 const items={};
@@ -166,7 +167,7 @@ function defB(id,n,h,bt,o={}){
 function defI(id,n,o={}){
   items[id]={id,name:n,block:false,maxStack:o.maxStack!==undefined?o.maxStack:64,
     tool:o.tool,tier:o.tier,durability:o.durability,
-    speed:o.speed||1,damage:o.damage||1,food:o.food||0};
+    speed:o.speed||1,damage:o.damage||1,food:o.food||0,reach:o.reach||0};
 }
 
 defB(GRASS,'Grass',2,'shovel',{drop:DIRT});
@@ -193,11 +194,12 @@ defI(RAW_CHICKEN,'Raw Chicken',{food:2});
 defI(COOKED_PORK,'Cooked Porkchop',{food:8});defI(COOKED_BEEF,'Steak',{food:8});
 defI(COOKED_CHICKEN,'Cooked Chicken',{food:6});defI(LEATHER,'Leather');
 
-for(let t=0;t<5;t++)for(let ty=0;ty<4;ty++){
+for(let t=0;t<5;t++)for(let ty=0;ty<5;ty++){
   const id=100+t*10+ty;
   defI(id,TIER_N[t]+' '+TOOL_N[ty],{maxStack:1,
-    tool:['pickaxe','axe','shovel','sword'][ty],
-    tier:t,durability:TIER_DUR[t],speed:TIER_SPD[t],damage:TIER_DMG[t][ty]});
+    tool:['pickaxe','axe','shovel','sword','spear'][ty],
+    tier:t,durability:TIER_DUR[t],speed:TIER_SPD[t],damage:TIER_DMG[t][ty],
+    reach:ty===4?2:0});
 }
 
 // ======================== RECIPES ===============================
@@ -227,6 +229,11 @@ const recipes=[
   {in:[[DIAMOND_I,3],[STICK,2]],out:[141,1],table:true,name:'Diamond Axe'},
   {in:[[DIAMOND_I,1],[STICK,2]],out:[142,1],table:true,name:'Diamond Shovel'},
   {in:[[DIAMOND_I,2],[STICK,1]],out:[143,1],table:true,name:'Diamond Sword'},
+  {in:[[PLANKS,1],[STICK,2]],out:[104,1],table:true,name:'Wood Spear'},
+  {in:[[STONE,1],[STICK,2]],out:[114,1],table:true,name:'Stone Spear'},
+  {in:[[IRON_I,1],[STICK,2]],out:[124,1],table:true,name:'Iron Spear'},
+  {in:[[GOLD_I,1],[STICK,2]],out:[134,1],table:true,name:'Gold Spear'},
+  {in:[[DIAMOND_I,1],[STICK,2]],out:[144,1],table:true,name:'Diamond Spear'},
   {in:[[IRON_ORE,1],[COAL_I,1]],out:[IRON_I,1],furnace:true,name:'Smelt Iron'},
   {in:[[GOLD_ORE,1],[COAL_I,1]],out:[GOLD_I,1],furnace:true,name:'Smelt Gold'},
   {in:[[RAW_PORK,1],[COAL_I,1]],out:[COOKED_PORK,1],furnace:true,name:'Cook Porkchop'},
@@ -1087,40 +1094,91 @@ function sunLevel(){
   if(game.time<0.65)return 15-(game.time-0.6)/0.05*7;
   return 4;
 }
+// glowing (unlit) box for eyes/fire/frost
+function _eob(g,w,h,d,x,y,z,color){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshBasicMaterial({color}));
+  m.position.set(x,y,z);g.add(m);return m;
+}
+// blocky humanoid, feet at y=0, front=+Z, glowing eyes
+function humanoid(o){
+  const g=new THREE.Group();
+  const h=o.h||1.8, wf=o.wf||1, S=o.skin, HD=o.head||S, AR=o.arm||S, LG=o.leg||S;
+  const legH=0.42*h, torsoH=0.40*h, headS=0.26*h;
+  const torsoW=0.42*h*wf, torsoD=0.24*h*wf, legW=0.16*h*wf, armW=0.14*h*wf, armH=0.42*h;
+  const torsoY=legH+torsoH/2, headY=legH+torsoH+headS/2, shY=legH+torsoH;
+  _ob(g,legW,legH,legW,-torsoW/4,legH/2,0,LG);_ob(g,legW,legH,legW,torsoW/4,legH/2,0,LG);
+  _ob(g,torsoW,torsoH,torsoD,0,torsoY,0,S);
+  _ob(g,headS,headS,headS,0,headY,0,HD);
+  if(o.armFwd){ // outstretched (zombie)
+    _ob(g,armW,armW,armH,-(torsoW/2+armW/2),shY-armW,armH*0.5,AR);
+    _ob(g,armW,armW,armH,(torsoW/2+armW/2),shY-armW,armH*0.5,AR);
+  }else{
+    _ob(g,armW,armH,armW,-(torsoW/2+armW/2),shY-armH/2,0,AR);
+    _ob(g,armW,armH,armW,(torsoW/2+armW/2),shY-armH/2,0,AR);
+  }
+  const eyS=Math.max(0.05,0.055*h);
+  _eob(g,eyS,eyS,0.04,-headS*0.22,headY+headS*0.05,headS/2+0.01,o.eye);
+  _eob(g,eyS,eyS,0.04,headS*0.22,headY+headS*0.05,headS/2+0.01,o.eye);
+  g.userData={headY,headS,torsoW,torsoH,torsoD,legH,shY,h};
+  return g;
+}
+// ---- 12 scary variants (6 zombie-family melee, 6 skeleton-family) ----
+const MOBS={
+  rotting:{family:'zombie',w:0.6,h:1.8,hp:20,spd:2.0,dmg:3,ranged:false,pc:'#4a7a3a',
+    build:()=>humanoid({h:1.8,skin:0x4a7a3a,head:0x3e6a30,leg:0x395526,eye:0x140000,armFwd:1})},
+  bloated:{family:'zombie',w:0.85,h:1.7,hp:32,spd:1.3,dmg:5,ranged:false,pc:'#8a9a3a',
+    build:()=>{const g=humanoid({h:1.7,wf:1.4,skin:0x8a9a3a,head:0x788a30,leg:0x6a7a28,eye:0x9bbf22,armFwd:1});
+      const u=g.userData;_ob(g,u.torsoW*0.85,u.torsoH*0.7,u.torsoD*1.4,0,u.legH+u.torsoH*0.35,0.1,0x9aab4a);return g;}},
+  crawler:{family:'zombie',w:0.7,h:0.75,hp:14,spd:3.3,dmg:3,ranged:false,pc:'#5a7a4a',
+    build:()=>{const g=new THREE.Group(),S=0x5a7a4a;
+      _ob(g,0.55,0.3,0.95,0,0.2,0,S);_ob(g,0.36,0.32,0.34,0,0.34,0.58,0x4e6a3e);
+      _eob(g,0.06,0.05,0.04,-0.09,0.36,0.75,0xbb2222);_eob(g,0.06,0.05,0.04,0.09,0.36,0.75,0xbb2222);
+      _ob(g,0.13,0.13,0.42,-0.3,0.14,0.42,S);_ob(g,0.13,0.13,0.42,0.3,0.14,0.42,S);return g;}},
+  screamer:{family:'zombie',w:0.5,h:2.1,hp:18,spd:2.7,dmg:2,ranged:false,pc:'#bcb4a4',
+    build:()=>{const g=humanoid({h:2.1,wf:0.7,skin:0xbcb4a4,head:0xc8c0b0,leg:0xa89e8c,eye:0xffe033,armFwd:1});
+      const u=g.userData;_ob(g,0.13,0.18,0.05,0,u.headY-u.headS*0.22,u.headS/2+0.02,0x180d0d);return g;}},
+  brute:{family:'zombie',w:0.95,h:2.35,hp:55,spd:1.6,dmg:7,ranged:false,pc:'#3a5a2a',
+    build:()=>{const g=humanoid({h:2.35,wf:1.5,skin:0x3a5a2a,head:0x2f4d1d,leg:0x2a4018,eye:0xff2200,armFwd:1});
+      const u=g.userData;_ob(g,u.torsoW*1.1,u.torsoH*0.45,u.torsoD*1.1,0,u.shY-0.06,-0.08,0x2f4a1c);return g;}},
+  husk:{family:'zombie',w:0.6,h:1.8,hp:22,spd:2.2,dmg:3,ranged:false,pc:'#c2a878',
+    build:()=>humanoid({h:1.8,skin:0xc2a878,head:0xb89868,leg:0xa88a5a,eye:0x141414,armFwd:1})},
+  bone:{family:'skeleton',w:0.6,h:1.8,hp:18,spd:1.6,dmg:3,ranged:true,pc:'#e8e6dc',projColor:0x8B4513,
+    build:()=>humanoid({h:1.8,skin:0xe8e6dc,head:0xf0eee4,leg:0xdcdad0,eye:0x222222})},
+  wither:{family:'skeleton',w:0.6,h:2.0,hp:26,spd:1.9,dmg:4,ranged:true,pc:'#2b2b2b',projColor:0x111111,
+    build:()=>humanoid({h:2.0,skin:0x2b2b2b,head:0x232323,leg:0x222222,eye:0xff3300})},
+  flaming:{family:'skeleton',w:0.6,h:1.85,hp:20,spd:2.1,dmg:4,ranged:true,pc:'#ff6a1a',projColor:0xff5511,
+    build:()=>{const g=humanoid({h:1.85,skin:0x5a2410,head:0x6a2a12,leg:0x4a1e0c,eye:0xffd21a});
+      const u=g.userData;_eob(g,0.1,0.15,0.1,-u.torsoW/2,u.shY,0,0xff7a1a);_eob(g,0.1,0.15,0.1,u.torsoW/2,u.shY,0,0xff7a1a);
+      _eob(g,0.13,0.13,0.13,0,u.headY+u.headS*0.65,0,0xffb020);return g;}},
+  frost:{family:'skeleton',w:0.6,h:1.85,hp:22,spd:1.6,dmg:3,ranged:true,pc:'#bfe4ff',projColor:0x88ddff,
+    build:()=>{const g=humanoid({h:1.85,skin:0xbfe4ff,head:0xd0ecff,leg:0xa8d4f0,eye:0x66ffff});
+      const u=g.userData;_eob(g,0.06,0.24,0.06,-u.torsoW/2,u.shY+0.06,0,0x9be6ff);_eob(g,0.06,0.24,0.06,u.torsoW/2,u.shY+0.06,0,0x9be6ff);return g;}},
+  warlord:{family:'skeleton',w:0.85,h:2.15,hp:42,spd:1.7,dmg:5,ranged:true,pc:'#555555',projColor:0x333333,
+    build:()=>{const g=humanoid({h:2.15,wf:1.2,skin:0x2a2a2a,head:0x242424,arm:0x333333,leg:0x222222,eye:0xff2222});
+      const u=g.userData;_ob(g,u.torsoW*1.05,u.torsoH*0.7,u.torsoD*1.05,0,u.legH+u.torsoH*0.55,0,0x6a6a6a);
+      _ob(g,0.08,0.24,0.08,-u.headS*0.42,u.headY+u.headS*0.55,0,0x111111);_ob(g,0.08,0.24,0.08,u.headS*0.42,u.headY+u.headS*0.55,0,0x111111);return g;}},
+  reaper:{family:'skeleton',w:0.6,h:2.2,hp:30,spd:2.3,dmg:6,ranged:false,pc:'#141414',
+    build:()=>{const g=new THREE.Group();
+      _ob(g,0.7,1.7,0.5,0,0.9,0,0x141414);_ob(g,0.5,0.46,0.5,0,1.96,0,0x0e0e0e);
+      _ob(g,0.3,0.32,0.12,0,1.9,0.22,0xd8d4c8);
+      _eob(g,0.06,0.09,0.04,-0.08,1.94,0.3,0x66ff44);_eob(g,0.06,0.09,0.04,0.08,1.94,0.3,0x66ff44);
+      _ob(g,0.1,0.95,0.1,0.42,1.0,0.12,0x2a2018);_ob(g,0.06,0.36,0.42,0.42,1.55,0.12,0x9a9a9a);return g;}}
+};
+const MOB_KEYS=Object.keys(MOBS);
 let spawnCD=3;
 function spawnEnemies(dt){
-  spawnCD-=dt;if(spawnCD>0)return;spawnCD=2+Math.random()*3;
-  if(isDay()||enemies.length>=12)return;
-  const angle=Math.random()*Math.PI*2;
-  const dist=15+Math.random()*15;
-  const ex=player.x+Math.cos(angle)*dist;
-  const ez=player.z+Math.sin(angle)*dist;
+  spawnCD-=dt;if(spawnCD>0)return;spawnCD=1.5+Math.random()*2.5;
+  if(isDay()||enemies.length>=14)return;
+  const angle=Math.random()*Math.PI*2, dist=15+Math.random()*15;
+  const ex=player.x+Math.cos(angle)*dist, ez=player.z+Math.sin(angle)*dist;
   if(ex<1||ex>=WX-1||ez<1||ez>=WZ-1)return;
-  // Find surface
-  let ey=-1;
-  for(let y=WY-1;y>=0;y--){if(isSolid(Math.floor(ex),y,Math.floor(ez))){ey=y+1;break}}
+  let ey=-1;for(let y=WY-1;y>=0;y--){if(isSolid(Math.floor(ex),y,Math.floor(ez))){ey=y+1;break}}
   if(ey<0)return;
-  const type=Math.random()>.6?'skeleton':'zombie';
-  const geo=new THREE.BoxGeometry(0.6,1.8,0.6);
-  const mat=new THREE.MeshLambertMaterial({color:type==='zombie'?0x4a7a3a:0xcccccc});
-  const mesh=new THREE.Mesh(geo,mat);
-  mesh.position.set(ex,ey+0.9,ez);
-  scene.add(mesh);
-  // Head
-  const headGeo=new THREE.BoxGeometry(0.5,0.5,0.5);
-  const headMat=new THREE.MeshLambertMaterial({color:type==='zombie'?0x3a6a2a:0xaaaaaa});
-  const headMesh=new THREE.Mesh(headGeo,headMat);
-  headMesh.position.y=1.15;
-  mesh.add(headMesh);
-  // Eyes
-  const eyeGeo=new THREE.BoxGeometry(0.1,0.1,0.05);
-  const eyeMat=new THREE.MeshBasicMaterial({color:type==='zombie'?0xff0000:0x222222});
-  const eye1=new THREE.Mesh(eyeGeo,eyeMat);eye1.position.set(-0.12,0.05,0.26);headMesh.add(eye1);
-  const eye2=new THREE.Mesh(eyeGeo,eyeMat);eye2.position.set(0.12,0.05,0.26);headMesh.add(eye2);
-
-  enemies.push({type,x:ex,y:ey,z:ez,vx:0,vy:0,vz:0,w:0.6,h:1.8,
-    hp:type==='zombie'?20:18,maxHp:type==='zombie'?20:18,
-    onGround:false,atkCD:0,dir:0,shootCD:2,mesh});
+  const key=MOB_KEYS[Math.floor(Math.random()*MOB_KEYS.length)], m=MOBS[key];
+  const mesh=m.build(); mesh.position.set(ex,ey,ez); scene.add(mesh);
+  enemies.push({type:key,family:m.family,x:ex,y:ey,z:ez,vx:0,vy:0,vz:0,w:m.w,h:m.h,
+    hp:m.hp,maxHp:m.hp,speed:m.spd,dmg:m.dmg,ranged:m.ranged,pc:m.pc,projColor:m.projColor,
+    onGround:false,atkCD:0,dir:0,shootCD:1+Math.random()*2,mesh});
 }
 
 function enemyCollides(e,nx,ny,nz){
@@ -1141,10 +1199,10 @@ function updateEnemies(dt){
     const dx=player.x-e.x,dz=player.z-e.z;
     const dist=Math.sqrt(dx*dx+dz*dz);
     const dirX=dist>0?dx/dist:0, dirZ=dist>0?dz/dist:0;
-    const keepDist=e.type==='skeleton'?8:0;
-    const spd=e.type==='zombie'?2:1.5;
+    const keepDist=e.ranged?8:0;
+    const spd=e.speed||1.8;
     if(dist>keepDist+1){e.vx=dirX*spd;e.vz=dirZ*spd}
-    else if(e.type==='skeleton'&&dist<keepDist){e.vx=-dirX*1.5;e.vz=-dirZ*1.5}
+    else if(e.ranged&&dist<keepDist){e.vx=-dirX*spd*0.8;e.vz=-dirZ*spd*0.8}
     else{e.vx=0;e.vz=0}
 
     // Jump over obstacles
@@ -1168,29 +1226,28 @@ function updateEnemies(dt){
 
     // Attack
     e.atkCD-=dt;
-    if(e.type==='zombie'&&dist<1.5&&e.atkCD<=0){damagePlayer(3);e.atkCD=1}
-    // Skeleton shooting
-    if(e.type==='skeleton'){
+    if(!e.ranged&&dist<1.7&&e.atkCD<=0){damagePlayer(e.dmg||3);e.atkCD=1}
+    if(e.ranged){
       e.shootCD-=dt;
       if(e.shootCD<=0&&dist<20){
         e.shootCD=2.5;
-        const dy=player.y+EYE_H-e.y-1;
-        const dd=Math.sqrt(dx*dx+dy*dy+dz*dz);
-        const spd=8;
-        const arrowGeo=new THREE.BoxGeometry(0.05,0.05,0.4);
-        const arrowMat=new THREE.MeshBasicMaterial({color:0x8B4513});
+        const dy=player.y+EYE_H-e.y-e.h*0.55;
+        const dd=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
+        const spd=9;
+        const arrowGeo=new THREE.BoxGeometry(0.06,0.06,0.45);
+        const arrowMat=new THREE.MeshBasicMaterial({color:e.projColor||0x8B4513});
         const arrowMesh=new THREE.Mesh(arrowGeo,arrowMat);
-        arrowMesh.position.set(e.x,e.y+1,e.z);
+        arrowMesh.position.set(e.x,e.y+e.h*0.55,e.z);
         scene.add(arrowMesh);
-        projectiles.push({x:e.x,y:e.y+1,z:e.z,
+        projectiles.push({x:e.x,y:e.y+e.h*0.55,z:e.z,
           vx:dx/dd*spd,vy:dy/dd*spd,vz:dz/dd*spd,
-          dmg:3,fromEnemy:true,life:3,mesh:arrowMesh});
+          dmg:e.dmg||3,fromEnemy:true,life:3,mesh:arrowMesh});
       }
     }
 
-    // Update mesh
-    e.mesh.position.set(e.x,e.y+0.9,e.z);
-    e.mesh.lookAt(player.x,e.y+0.9,player.z);
+    // Update mesh (origin at feet); face the player, stay upright
+    e.mesh.position.set(e.x,e.y,e.z);
+    e.mesh.rotation.y=Math.atan2(dx,dz);
 
     // Despawn
     if(isDay()||dist>60){
@@ -1198,7 +1255,7 @@ function updateEnemies(dt){
       enemies.splice(i,1);continue;
     }
     if(e.hp<=0){
-      spawnBlockParticles(e.x,e.y+0.9,e.z,e.type==='zombie'?'#4a7a3a':'#ccc');
+      spawnBlockParticles(e.x,e.y+e.h*0.5,e.z,e.pc||'#4a7a3a');
       scene.remove(e.mesh);
       enemies.splice(i,1);
     }
@@ -1242,17 +1299,18 @@ function attackEnemy(){
   const held=getHeld();
   const it=held?items[held.id]:null;
   const dmg=it&&it.damage?it.damage:1;
+  const atkReach=REACH+(it&&it.reach?it.reach:0); // spears reach farther
   const dir=getCamDir();
   function tryHit(e,cy){
     const dx=e.x-player.x,dy=(e.y+cy)-(player.y+EYE_H),dz=e.z-player.z;
     const dist=Math.sqrt(dx*dx+dy*dy+dz*dz);
-    if(dist>REACH)return false;
+    if(dist>atkReach)return false;
     const dot=(dx*dir.x+dy*dir.y+dz*dir.z)/dist;
     if(dot>0.85){
       e.hp-=dmg;
       e.vx=(e.x-player.x>0?1:-1)*5;e.vy=3;e.vz=(e.z-player.z>0?1:-1)*5;
       if(e.fleeT!==undefined) e.fleeT=3; // animals flee when hit
-      if(held&&it&&it.tool==='sword'&&it.durability){
+      if(held&&it&&(it.tool==='sword'||it.tool==='spear')&&it.durability){
         if(!held.dur)held.dur=it.durability;
         held.dur--;if(held.dur<=0)player.inv[player.hotbar]=null;
       }
@@ -1261,7 +1319,7 @@ function attackEnemy(){
     return false;
   }
   // Check enemies
-  for(const e of enemies){if(tryHit(e,0.9))return}
+  for(const e of enemies){if(tryHit(e,e.h*0.5))return}
   // Check animals
   for(const a of animals){if(tryHit(a,a.h/2))return}
 }
@@ -1286,6 +1344,143 @@ function updateEating(dt){
 // ======================== ANIMALS ===============================
 const animals=[];
 let animalSpawnCD=5;
+// --- Otter (blocky version of the FreeCAD build): long low body, raised head,
+//     small ears, pale throat, four short legs, long tapering tail. forward=+Z ---
+const OTTER={w:0.55,h:0.55,hp:12,drop:LEATHER,brown:0x5b4229,pale:0xcabfa6,dark:0x141414};
+function _ob(g,w,h,d,x,y,z,color){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshLambertMaterial({color}));
+  m.position.set(x,y,z);g.add(m);return m;
+}
+function buildOtterMesh(){
+  const g=new THREE.Group(),B=OTTER.brown,P=OTTER.pale,D=OTTER.dark;
+  // origin = collision-box center; feet at y=-h/2 (~-0.275); head toward +Z
+  _ob(g,0.5,0.40,1.35,0,0.12,0.00,B);   // torso
+  _ob(g,0.54,0.44,0.50,0,0.12,-0.42,B); // rear haunches
+  _ob(g,0.50,0.42,0.45,0,0.14,0.45,B);  // shoulders
+  _ob(g,0.34,0.40,0.30,0,0.28,0.72,B);  // neck (rising)
+  _ob(g,0.40,0.38,0.40,0,0.42,0.95,B);  // head
+  _ob(g,0.26,0.22,0.22,0,0.34,1.17,B);  // snout
+  _ob(g,0.10,0.09,0.08,0,0.40,1.29,D);  // nose
+  _ob(g,0.12,0.12,0.09,-0.15,0.62,0.82,B);_ob(g,0.12,0.12,0.09,0.15,0.62,0.82,B); // ears
+  _ob(g,0.06,0.06,0.04,-0.12,0.46,1.11,D);_ob(g,0.06,0.06,0.04,0.12,0.46,1.11,D); // eyes
+  _ob(g,0.22,0.16,0.16,0,0.30,1.12,P);  // pale chin/lower face
+  _ob(g,0.30,0.18,0.80,0,-0.06,0.35,P); // pale belly/throat
+  _ob(g,0.14,0.30,0.16,-0.19,-0.12,0.50,B);_ob(g,0.14,0.30,0.16,0.19,-0.12,0.50,B); // front legs
+  _ob(g,0.15,0.30,0.16,-0.20,-0.12,-0.45,B);_ob(g,0.15,0.30,0.16,0.20,-0.12,-0.45,B); // back legs
+  _ob(g,0.18,0.09,0.24,-0.19,-0.28,0.55,D);_ob(g,0.18,0.09,0.24,0.19,-0.28,0.55,D); // front feet
+  _ob(g,0.19,0.09,0.24,-0.20,-0.28,-0.40,D);_ob(g,0.19,0.09,0.24,0.20,-0.28,-0.40,D); // back feet
+  _ob(g,0.24,0.24,0.45,0,0.04,-0.78,B);  // tail base
+  _ob(g,0.17,0.17,0.40,0,-0.02,-1.10,B); // tail mid
+  _ob(g,0.10,0.10,0.35,0,-0.08,-1.38,B); // tail tip
+  return g;
+}
+function makeOtter(ax,ay,az){
+  const mesh=buildOtterMesh();
+  mesh.position.set(ax,ay+OTTER.h/2,az);
+  scene.add(mesh);
+  animals.push({type:'otter',x:ax,y:ay,z:az,vx:0,vy:0,vz:0,w:OTTER.w,h:OTTER.h,
+    hp:OTTER.hp,maxHp:OTTER.hp,onGround:false,mesh,dropId:OTTER.drop,
+    wanderT:Math.random()*5,wanderDir:Math.random()*Math.PI*2,fleeT:0});
+}
+// --- more animals (blocky versions of the FreeCAD zoo). forward=+Z, feet at y=-h/2 ---
+function buildBearMesh(){
+  const g=new THREE.Group(),B=0x5c4327,D=0x161616;
+  _ob(g,0.7,0.6,1.2,0,0.05,0,B);
+  _ob(g,0.74,0.42,0.55,0,0.30,0.42,B);   // shoulder hump (front higher)
+  _ob(g,0.56,0.5,0.5,0,0.28,0.9,B);      // head
+  _ob(g,0.3,0.28,0.26,0,0.16,1.15,B);    // snout
+  _ob(g,0.12,0.1,0.08,0,0.22,1.28,D);    // nose
+  _ob(g,0.17,0.16,0.1,-0.2,0.55,0.82,B);_ob(g,0.17,0.16,0.1,0.2,0.55,0.82,B); // round ears
+  _ob(g,0.07,0.07,0.04,-0.14,0.32,1.1,D);_ob(g,0.07,0.07,0.04,0.14,0.32,1.1,D);
+  _ob(g,0.22,0.42,0.26,-0.22,-0.24,0.42,B);_ob(g,0.22,0.42,0.26,0.22,-0.24,0.42,B);
+  _ob(g,0.24,0.42,0.26,-0.22,-0.24,-0.42,B);_ob(g,0.24,0.42,0.26,0.22,-0.24,-0.42,B);
+  _ob(g,0.13,0.13,0.13,0,0.1,-0.68,B);   // stub tail
+  return g;
+}
+function buildWolfMesh(){
+  const g=new THREE.Group(),G=0x8f8f8f,P=0xd8d4c8,D=0x171717;
+  _ob(g,0.45,0.4,1.15,0,0.1,0,G);
+  _ob(g,0.46,0.42,0.4,0,0.12,0.4,G);
+  _ob(g,0.34,0.34,0.3,0,0.24,0.62,G);    // neck
+  _ob(g,0.38,0.34,0.4,0,0.32,0.86,G);    // head
+  _ob(g,0.2,0.18,0.3,0,0.22,1.1,G);      // muzzle
+  _ob(g,0.1,0.08,0.06,0,0.26,1.26,D);    // nose
+  _ob(g,0.1,0.22,0.08,-0.13,0.55,0.8,G);_ob(g,0.1,0.22,0.08,0.13,0.55,0.8,G); // erect ears
+  _ob(g,0.06,0.06,0.03,-0.12,0.36,1.04,D);_ob(g,0.06,0.06,0.03,0.12,0.36,1.04,D);
+  _ob(g,0.2,0.14,0.5,0,-0.02,0.5,P);     // pale throat
+  _ob(g,0.3,0.16,0.7,0,-0.2,0.1,P);      // pale belly
+  _ob(g,0.16,0.5,0.18,-0.17,-0.12,0.42,G);_ob(g,0.16,0.5,0.18,0.17,-0.12,0.42,G);
+  _ob(g,0.16,0.5,0.18,-0.17,-0.12,-0.42,G);_ob(g,0.16,0.5,0.18,0.17,-0.12,-0.42,G);
+  _ob(g,0.22,0.22,0.55,0,-0.04,-0.85,G); // bushy tail
+  _ob(g,0.2,0.2,0.2,0,-0.12,-1.15,D);    // black tip
+  return g;
+}
+function buildFoxMesh(){
+  const g=new THREE.Group(),O=0xc75a1e,W=0xf2efe6,D=0x141414;
+  _ob(g,0.32,0.3,0.85,0,0.05,0,O);
+  _ob(g,0.33,0.32,0.3,0,0.06,0.3,O);
+  _ob(g,0.24,0.24,0.2,0,0.13,0.48,O);
+  _ob(g,0.3,0.28,0.3,0,0.19,0.66,O);     // head
+  _ob(g,0.14,0.12,0.26,0,0.11,0.9,O);    // pointy muzzle
+  _ob(g,0.07,0.06,0.05,0,0.11,1.04,D);   // nose
+  _ob(g,0.1,0.3,0.06,-0.12,0.5,0.62,O);_ob(g,0.1,0.3,0.06,0.12,0.5,0.62,O); // big ears
+  _ob(g,0.1,0.1,0.05,-0.12,0.62,0.62,D);_ob(g,0.1,0.1,0.05,0.12,0.62,0.62,D); // black ear tips
+  _ob(g,0.05,0.05,0.03,-0.1,0.22,0.82,D);_ob(g,0.05,0.05,0.03,0.1,0.22,0.82,D);
+  _ob(g,0.2,0.16,0.5,0,-0.1,0.15,W);     // white belly
+  _ob(g,0.15,0.12,0.14,0,0.03,0.86,W);   // white throat
+  _ob(g,0.1,0.32,0.12,-0.13,-0.09,0.28,D);_ob(g,0.1,0.32,0.12,0.13,-0.09,0.28,D); // black legs
+  _ob(g,0.1,0.32,0.12,-0.13,-0.09,-0.28,D);_ob(g,0.1,0.32,0.12,0.13,-0.09,-0.28,D);
+  _ob(g,0.26,0.26,0.5,0,0.0,-0.68,O);    // bushy tail
+  _ob(g,0.22,0.22,0.2,0,-0.04,-0.98,W);  // white tip
+  return g;
+}
+function buildDeerMesh(){
+  const g=new THREE.Group(),T=0xa9895f,C=0xece3cf,D=0x1a1a1a,A=0xcfc3a0;
+  _ob(g,0.4,0.4,1.0,0,0.15,0,T);
+  _ob(g,0.4,0.42,0.35,0,0.16,0.35,T);
+  _ob(g,0.22,0.55,0.24,0,0.5,0.5,T);     // long neck
+  _ob(g,0.24,0.3,0.34,0,0.82,0.6,T);     // head
+  _ob(g,0.16,0.16,0.22,0,0.75,0.76,T);   // muzzle
+  _ob(g,0.08,0.07,0.06,0,0.73,0.86,D);   // nose
+  _ob(g,0.08,0.26,0.14,-0.16,0.95,0.54,T);_ob(g,0.08,0.26,0.14,0.16,0.95,0.54,T); // big ears
+  _ob(g,0.05,0.35,0.05,-0.1,1.05,0.58,A);_ob(g,0.05,0.35,0.05,0.1,1.05,0.58,A);   // antler beams
+  _ob(g,0.04,0.16,0.04,-0.17,1.22,0.58,A);_ob(g,0.04,0.16,0.04,0.17,1.22,0.58,A); // tines
+  _ob(g,0.05,0.05,0.03,-0.09,0.84,0.74,D);_ob(g,0.05,0.05,0.03,0.09,0.84,0.74,D);
+  _ob(g,0.3,0.16,0.7,0,-0.02,0.05,C);    // cream belly
+  _ob(g,0.34,0.3,0.2,0,0.12,-0.48,C);    // cream rump
+  _ob(g,0.1,0.6,0.12,-0.16,-0.2,0.35,T);_ob(g,0.1,0.6,0.12,0.16,-0.2,0.35,T);
+  _ob(g,0.1,0.6,0.12,-0.16,-0.2,-0.35,T);_ob(g,0.1,0.6,0.12,0.16,-0.2,-0.35,T);
+  _ob(g,0.11,0.1,0.14,-0.16,-0.5,0.37,D);_ob(g,0.11,0.1,0.14,0.16,-0.5,0.37,D);   // hooves
+  _ob(g,0.11,0.1,0.14,-0.16,-0.5,-0.33,D);_ob(g,0.11,0.1,0.14,0.16,-0.5,-0.33,D);
+  _ob(g,0.1,0.16,0.1,0,0.28,-0.55,T);    // tail
+  return g;
+}
+const CRITTERS={
+  bear:{w:0.8,h:0.9,hp:30,drop:RAW_BEEF,build:buildBearMesh,pc:'#5c4327'},
+  wolf:{w:0.6,h:0.75,hp:16,drop:LEATHER,build:buildWolfMesh,pc:'#8f8f8f'},
+  fox:{w:0.42,h:0.5,hp:8,drop:LEATHER,build:buildFoxMesh,pc:'#c75a1e'},
+  deer:{w:0.6,h:1.0,hp:14,drop:RAW_BEEF,build:buildDeerMesh,pc:'#a9895f'}
+};
+function makeCritter(type,ax,ay,az){
+  const c=CRITTERS[type], mesh=c.build();
+  mesh.position.set(ax,ay+c.h/2,az);
+  scene.add(mesh);
+  animals.push({type,x:ax,y:ay,z:az,vx:0,vy:0,vz:0,w:c.w,h:c.h,
+    hp:c.hp,maxHp:c.hp,onGround:false,mesh,dropId:c.drop,partColor:c.pc,
+    wanderT:Math.random()*5,wanderDir:Math.random()*Math.PI*2,fleeT:0});
+}
+function spawnCreatureNear(type){
+  for(let t=0;t<60;t++){
+    const a=Math.random()*Math.PI*2,d=6+Math.random()*10;
+    const ox=player.x+Math.cos(a)*d, oz=player.z+Math.sin(a)*d;
+    if(ox<2||ox>=WX-2||oz<2||oz>=WZ-2)continue;
+    let oy=-1;for(let y=WY-1;y>=0;y--){if(isSolid(Math.floor(ox),y,Math.floor(oz))){oy=y+1;break}}
+    if(oy<0)continue;
+    if(type==='otter')makeOtter(ox,oy,oz); else makeCritter(type,ox,oy,oz);
+    return true;
+  }
+  return false;
+}
 function spawnAnimals(dt){
   animalSpawnCD-=dt;if(animalSpawnCD>0)return;animalSpawnCD=8+Math.random()*8;
   if(animals.length>=10)return;
@@ -1296,9 +1491,13 @@ function spawnAnimals(dt){
   if(ax<2||ax>=WX-2||az<2||az>=WZ-2)return;
   let ay=-1;
   for(let y=WY-1;y>=0;y--){if(isSolid(Math.floor(ax),y,Math.floor(az))){ay=y+1;break}}
-  if(ay<0||gB(Math.floor(ax),ay-1,Math.floor(az))!==GRASS)return;
-  const types=['pig','cow','chicken'];
-  const type=types[Math.floor(Math.random()*3)];
+  if(ay<0)return;
+  const surf=gB(Math.floor(ax),ay-1,Math.floor(az));
+  const types=['pig','cow','chicken','otter','bear','wolf','fox','deer'];
+  const type=types[Math.floor(Math.random()*types.length)];
+  if(type==='otter'){ if(surf!==GRASS&&surf!==SAND)return; makeOtter(ax,ay,az); return; }
+  if(CRITTERS[type]){ if(surf!==GRASS&&surf!==SAND)return; makeCritter(type,ax,ay,az); return; }
+  if(surf!==GRASS)return;
   const info={pig:{w:0.7,h:0.7,hp:10,color:0xF0A0A0,drop:RAW_PORK},
               cow:{w:0.8,h:1.0,hp:12,color:0x8B5E3C,drop:RAW_BEEF},
               chicken:{w:0.4,h:0.5,hp:4,color:0xF5F5F0,drop:RAW_CHICKEN}};
@@ -1371,7 +1570,7 @@ function updateAnimals(dt){
     if(pd>80){scene.remove(a.mesh);animals.splice(i,1);continue}
     // Dead
     if(a.hp<=0){
-      spawnBlockParticles(a.x,a.y+a.h/2,a.z,a.type==='pig'?'#F0A0A0':a.type==='cow'?'#8B5E3C':'#F5F5F0');
+      spawnBlockParticles(a.x,a.y+a.h/2,a.z,a.partColor||(a.type==='pig'?'#F0A0A0':a.type==='cow'?'#8B5E3C':a.type==='otter'?'#5b4229':'#F5F5F0'));
       drops.push({x:a.x,y:a.y+0.5,z:a.z,vx:(Math.random()-.5)*2,vy:2,vz:(Math.random()-.5)*2,id:a.dropId,count:1+Math.floor(Math.random()*2),age:0});
       if(a.type==='cow') drops.push({x:a.x,y:a.y+0.5,z:a.z,vx:(Math.random()-.5)*2,vy:2,vz:(Math.random()-.5)*2,id:LEATHER,count:1,age:0});
       scene.remove(a.mesh);animals.splice(i,1);
@@ -1434,21 +1633,20 @@ function updateDayNight(){
 // Item icon canvas cache
 const iconCache={};
 function getItemIcon(id,size=32){
-  const key=id+'_'+size;
-  if(iconCache[key])return iconCache[key];
+  // Return a FRESH canvas each call. Do NOT cache-and-cloneNode: cloneNode on a
+  // <canvas> copies the element but not its pixels, which left every slot icon blank.
   const cvs=document.createElement('canvas');
   cvs.width=size;cvs.height=size;
   const c=cvs.getContext('2d');
   c.imageSmoothingEnabled=false;
   drawItemIcon(c,id,0,0,size);
-  iconCache[key]=cvs;
   return cvs;
 }
 function drawItemIcon(c,id,x,y,sz){
   if(items[id]&&items[id].block){
     // Draw from atlas (side face)
     c.drawImage(atlasCvs,id*TEX_SZ,TEX_SZ,TEX_SZ,TEX_SZ,x,y,sz,sz);
-  }else if(id>=100&&id<=143){
+  }else if(id>=100&&id<=144){
     const tier=Math.floor((id-100)/10),type=(id-100)%10;
     const hc='#6B4F12';
     const tc=TIER_CLR[tier];
@@ -1456,7 +1654,8 @@ function drawItemIcon(c,id,x,y,sz){
     if(type===0){c.fillStyle=hc;c.fillRect(x+sz*.44,y+sz*.25,u*2,sz*.65);c.fillStyle=tc;c.fillRect(x+sz*.1,y+sz*.1,sz*.8,u*3);c.fillRect(x+sz*.1,y+sz*.1,u*2,u*5);c.fillRect(x+sz*.72,y+sz*.1,u*2,u*5)}
     else if(type===1){c.fillStyle=hc;c.fillRect(x+sz*.37,y+sz*.2,u*2,sz*.7);c.fillStyle=tc;c.fillRect(x+sz*.37,y+sz*.08,sz*.45,u*5);c.fillRect(x+sz*.55,y+sz*.08+u*2,sz*.25,u*4)}
     else if(type===2){c.fillStyle=hc;c.fillRect(x+sz*.44,y+sz*.15,u*2,sz*.55);c.fillStyle=tc;c.fillRect(x+sz*.25,y+sz*.6,sz*.5,sz*.3);c.fillRect(x+sz*.31,y+sz*.85,sz*.38,sz*.1)}
-    else{c.fillStyle=tc;c.fillRect(x+sz*.44,y+sz*.05,u*2,sz*.6);c.fillRect(x+sz*.44,y+sz*.02,u,u*2);c.fillStyle=hc;c.fillRect(x+sz*.25,y+sz*.62,sz*.5,u*2);c.fillStyle='#8B4513';c.fillRect(x+sz*.4,y+sz*.72,u*3,sz*.22)}
+    else if(type===3){c.fillStyle=tc;c.fillRect(x+sz*.44,y+sz*.05,u*2,sz*.6);c.fillRect(x+sz*.44,y+sz*.02,u,u*2);c.fillStyle=hc;c.fillRect(x+sz*.25,y+sz*.62,sz*.5,u*2);c.fillStyle='#8B4513';c.fillRect(x+sz*.4,y+sz*.72,u*3,sz*.22)}
+    else{/* spear: long wood shaft + metal point */c.fillStyle=hc;c.fillRect(x+sz*.46,y+sz*.2,u*1.6,sz*.78);c.fillStyle=tc;c.beginPath();c.moveTo(x+sz*.5,y+sz*.02);c.lineTo(x+sz*.62,y+sz*.22);c.lineTo(x+sz*.38,y+sz*.22);c.closePath();c.fill();c.fillRect(x+sz*.43,y+sz*.2,u*3,u*2)}
   }else{
     const clrs={[COAL_I]:'#333',[IRON_I]:'#ddd',[GOLD_I]:'#FFD700',[DIAMOND_I]:'#4DD0E1',[STICK]:'#8B4513',[SAPLING]:'#2E7D32',
       [RAW_PORK]:'#E8A0A0',[RAW_BEEF]:'#C05050',[RAW_CHICKEN]:'#F0D0A0',
@@ -1485,7 +1684,7 @@ function updateHotbarUI(){
     slot.className='hslot'+(i===player.hotbar?' sel':'');
     const s=player.inv[i];
     if(s){
-      slot.appendChild(getItemIcon(s.id,32).cloneNode(true));
+      slot.appendChild(getItemIcon(s.id,32));
       if(s.count>1){const cnt=document.createElement('span');cnt.className='cnt';cnt.textContent=s.count;slot.appendChild(cnt)}
       if(s.dur!==undefined&&items[s.id]&&items[s.id].durability){
         const pct=s.dur/items[s.id].durability;
@@ -1534,7 +1733,7 @@ function updateInvUI(){
     const slot=document.createElement('div');slot.className='islot';
     const s=player.inv[i];
     if(s){
-      slot.appendChild(getItemIcon(s.id,32).cloneNode(true));
+      slot.appendChild(getItemIcon(s.id,32));
       if(s.count>1){const cnt=document.createElement('span');cnt.className='cnt';cnt.textContent=s.count;slot.appendChild(cnt)}
       if(s.dur!==undefined&&items[s.id]&&items[s.id].durability){
         const pct=s.dur/items[s.id].durability;
@@ -1555,7 +1754,7 @@ function updateInvUI(){
     const slot=document.createElement('div');slot.className='islot';
     const s=player.inv[i];
     if(s){
-      slot.appendChild(getItemIcon(s.id,32).cloneNode(true));
+      slot.appendChild(getItemIcon(s.id,32));
       if(s.count>1){const cnt=document.createElement('span');cnt.className='cnt';cnt.textContent=s.count;slot.appendChild(cnt)}
     }
     slot.addEventListener('click',(e)=>{swapSlot(i,e.button);updateInvUI();updateHotbarUI()});
@@ -1569,7 +1768,7 @@ function updateInvUI(){
   for(const r of avail){
     const row=document.createElement('div');
     row.className='craft-row '+(canCraft(r)?'can':'cant');
-    row.appendChild(getItemIcon(r.out[0],24).cloneNode(true));
+    row.appendChild(getItemIcon(r.out[0],24));
     const label=document.createElement('span');
     label.textContent=r.name+(r.out[1]>1?' x'+r.out[1]:'');
     row.appendChild(label);
@@ -1799,6 +1998,65 @@ function updateChunks(){
   }
 }
 
+// ==================== FIRST-PERSON HELD-TOOL VIEWMODEL ====================
+// A small 3D model of the equipped tool, drawn in front of the camera.
+// Box proportions mirror the FreeCAD tool models (DOWNLOAD/tools.FCStd).
+scene.add(camera);                 // so camera's children get rendered
+const vmGroup=new THREE.Group();   // swing pivot (child of camera)
+vmGroup.position.set(0.42,-0.38,-0.72);
+camera.add(vmGroup);
+const vmPose=new THREE.Group();    // fixed "held in hand" pose
+vmPose.rotation.set(0.15,0.45,-0.35);
+vmGroup.add(vmPose);
+let vmCurrentId=-2;
+function _vmBox(parent,w,h,d,px,py,pz,color){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),
+    new THREE.MeshLambertMaterial({color}));
+  m.position.set(px,py,pz);parent.add(m);return m;
+}
+function buildToolViewmodel(id){
+  while(vmPose.children.length){const o=vmPose.children[0];vmPose.remove(o);if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();}
+  vmCurrentId=id;
+  if(id<100||id>144){vmGroup.visible=false;return;}
+  vmGroup.visible=true;
+  const tier=Math.floor((id-100)/10),type=(id-100)%10;
+  const tc=new THREE.Color(TIER_CLR[tier]).getHex();
+  const wood=0x6b4f12,W=0.045;
+  if(type===0){                    // pickaxe: handle + horizontal head bar w/ tips
+    _vmBox(vmPose,W,0.5,W,0,0,0,wood);
+    _vmBox(vmPose,0.34,0.06,0.06,0,0.24,0,tc);
+    _vmBox(vmPose,0.07,0.05,0.05,-0.19,0.22,0,tc);
+    _vmBox(vmPose,0.07,0.05,0.05, 0.19,0.22,0,tc);
+  }else if(type===1){              // axe: handle + blade slab on one side
+    _vmBox(vmPose,W,0.5,W,0,0,0,wood);
+    _vmBox(vmPose,0.09,0.09,0.06,0.07,0.19,0,tc);
+    _vmBox(vmPose,0.16,0.2,0.05,0.13,0.16,0,tc);
+  }else if(type===2){              // shovel: handle + scoop
+    _vmBox(vmPose,W,0.5,W,0,0.05,0,wood);
+    _vmBox(vmPose,0.16,0.16,0.04,0,-0.22,0,tc);
+  }else if(type===3){              // sword: grip + crossguard + blade
+    _vmBox(vmPose,0.05,0.18,0.05,0,-0.16,0,wood);
+    _vmBox(vmPose,0.22,0.05,0.06,0,-0.05,0,tc);
+    _vmBox(vmPose,0.06,0.44,0.03,0,0.2,0,tc);
+  }else{                           // spear: long shaft + point
+    _vmBox(vmPose,0.045,0.62,0.045,0,-0.02,0,wood);
+    _vmBox(vmPose,0.07,0.13,0.05,0,0.33,0,tc);
+    _vmBox(vmPose,0.03,0.09,0.03,0,0.43,0,tc);
+  }
+}
+function updateViewmodel(){
+  const h=getHeld();const id=h?h.id:-1;
+  if(id!==vmCurrentId)buildToolViewmodel(id);
+  if(!vmGroup.visible)return;
+  if(game.showInv||game.paused||player.dead){vmGroup.visible=false;return;}
+  // swing: full arc on attack, chopping loop while mining (left held)
+  let a=0;
+  if(player.attackT>0){a=Math.sin((1-player.attackT/0.3)*Math.PI);}
+  else if(game.mouseBtn===1&&(game.pointerLocked||isMobile)){a=Math.abs(Math.sin(gameAge*10))*0.6;}
+  vmGroup.rotation.x=-a*1.15;
+  vmGroup.rotation.z=a*0.25;
+}
+
 // ======================== GAME LOOP =============================
 let lastTime=0,gameAge=0,saveTimer=0;
 function gameLoop(ts){
@@ -1834,6 +2092,9 @@ function gameLoop(ts){
   camera.rotation.order='YXZ';
   camera.rotation.y=player.yaw;
   camera.rotation.x=player.pitch;
+
+  // First-person held tool
+  updateViewmodel();
 
   // Block highlight
   if(game.pointerLocked||isMobile){
@@ -1879,6 +2140,8 @@ function init(){
         buildChunkMesh(cx,cy,cz);
       }
     }
+    // spawn a welcoming party of the new creatures near the player
+    ['otter','bear','wolf','fox','deer'].forEach(spawnCreatureNear);
     document.getElementById('loading').style.display='none';
     updateHotbarUI();updateHeartsUI();updateHungerUI();
     lastTime=performance.now();

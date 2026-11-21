@@ -1,0 +1,116 @@
+# Active Workflow Schedules - SPFP v2 Session 1 Activation
+# Only top 4 high-impact workflows enabled for initial deployment
+#
+# Selection criteria: stability, value, low risk of noisy failures
+# Remaining 5 workflows in default_schedules.yaml as backup
+#
+# Activated: 2026-03-01 by SPFP v2 Task #14
+
+version: "1.0"
+
+defaults:
+  timezone: "America/New_York"
+  retry:
+    max_retries: 3
+    base_delay_seconds: 60
+    backoff_factor: 2.0
+    policy: "exponential"
+
+schedules:
+  # 1. System Health Check - Critical foundation
+  - workflow_id: "system-health-check"
+    name: "System Health Monitor"
+    description: "Check system health and service status"
+    cron: "*/15 * * * *"
+    timezone: "UTC"
+    enabled: true
+    priority: critical
+    metadata:
+      category: "monitoring"
+      alert_threshold: "warning"
+
+  # 2. Daily Intelligence Aggregator - High value daily
+  - workflow_id: "daily-intelligence"
+    name: "Daily Intelligence Aggregator"
+    description: "Gather daily intelligence from multiple sources"
+    cron: "0 6 * * *"
+    timezone: "America/New_York"
+    enabled: true
+    priority: high
+    metadata:
+      category: "intelligence"
+      owner: "system"
+      notify_on_failure: true
+    retry:
+      max_retries: 3
+      base_delay_seconds: 300
+
+  # 3. Memory Cleanup - Low-risk maintenance
+  - workflow_id: "memory-cleanup"
+    name: "Memory and State Cleanup"
+    description: "Clean up old state files and memory"
+    cron: "0 3 * * *"
+    timezone: "UTC"
+    enabled: true
+    priority: low
+    metadata:
+      category: "maintenance"
+      retention_days: 30
+
+  # 4. Weekly Report - Monday summary
+  - workflow_id: "weekly-report"
+    name: "Weekly Summary Report"
+    description: "Generate weekly performance and activity report"
+    cron: "0 9 * * 1"
+    timezone: "America/New_York"
+    enabled: true
+    priority: medium
+    dependencies:
+      - workflow_id: "daily-intelligence"
+        type: "soft"
+        required: false
+    metadata:
+      category: "reporting"
+      report_type: "weekly"
+
+# Dependencies
+dependencies:
+  - from: "daily-intelligence"
+    to: "weekly-report"
+    type: "soft"
+    required: false
+
+# Notifications - WhatsApp on failures only
+notifications:
+  whatsapp:
+    enabled: true
+    recipient: "15712781730"
+    on_failure: true
+    on_success: false
+    on_retry: true
+  email:
+    enabled: false
+    recipients: []
+
+# Retry policies
+retry_policies:
+  critical:
+    max_retries: 5
+    base_delay_seconds: 30
+    backoff_factor: 2.0
+    policy: "exponential"
+  high:
+    max_retries: 3
+    base_delay_seconds: 60
+    backoff_factor: 2.0
+    policy: "exponential"
+  medium:
+    max_retries: 2
+    base_delay_seconds: 120
+    backoff_factor: 1.5
+    policy: "exponential"
+  low:
+    max_retries: 1
+    base_delay_seconds: 300
+    backoff_factor: 1.0
+    policy: "constant"

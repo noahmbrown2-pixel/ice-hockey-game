@@ -100,3 +100,19 @@ Risk-Off/Defensive (Low Macro Sensitivity):
 - Crypto remains more volatile than traditional assets
 - Past correlations do not guarantee future relationships
 ```
+
+---
+
+## Dynamic Filtering Configuration
+<!-- @REQ-DFS-001: Dynamic Search Filtering | BLP: [AU, SI] -->
+
+This agent uses Anthropic's Dynamic Search Filtering (`web_search_20260209`) for:
+- Automatic Python-based result post-processing before context loading
+- ~24% input token reduction via pre-context filtering
+- Domain-restricted searches per profile configuration
+
+### Domain Profile: Sentiment & Social
+- **Profile**: `sentiment_social`
+- **Mode**: Blocked domains (blocklist)
+- **Source**: `configs/search_domain_profiles.json`
+- **Blocked**: pinterest.com, instagram.com, tiktok.com, facebook.com, linkedin.com

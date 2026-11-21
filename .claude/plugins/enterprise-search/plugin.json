@@ -1,0 +1,41 @@
+{
+  "name": "enterprise-search",
+  "version": "1.0.0",
+  "description": "Cross-tool unified search with filter syntax and activity digests",
+  "author": "Anthropic (adapted for ETAC)",
+  "license": "Apache-2.0",
+  "namespace": "enterprise-search",
+  "commands": [
+    {
+      "name": "search",
+      "file": "commands/search.md",
+      "description": "Search across all connected sources with filter support"
+    },
+    {
+      "name": "digest",
+      "file": "commands/digest.md",
+      "description": "Generate daily or weekly activity summaries across sources"
+    }
+  ],
+  "skills": [
+    {
+      "name": "search-strategy",
+      "file": "skills/search-strategy.md",
+      "triggers": ["find", "search for", "where is", "look up", "locate"]
+    },
+    {
+      "name": "source-management",
+      "file": "skills/source-management.md",
+      "triggers": ["which sources", "connect", "available sources", "search sources"]
+    },
+    {
+      "name": "knowledge-synthesis",
+      "file": "skills/knowledge-synthesis.md",
+      "triggers": ["summarize results", "combine findings", "synthesize", "aggregate"]
+    }
+  ],
+  "connectors": {
+    "required": ["notionApi", "exa"],
+    "optional": ["pocket-pick", "xai-research"]
+  }
+}

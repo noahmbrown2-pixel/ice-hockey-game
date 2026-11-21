@@ -1,0 +1,76 @@
+{
+  "name": "marketing",
+  "version": "1.0.0",
+  "description": "Content creation, campaign planning, and marketing analytics",
+  "author": "Anthropic (adapted for ETAC)",
+  "license": "Apache-2.0",
+  "namespace": "marketing",
+  "commands": [
+    {
+      "name": "write-copy",
+      "file": "commands/write-copy.md",
+      "description": "Generate marketing copy for various channels"
+    },
+    {
+      "name": "campaign-plan",
+      "file": "commands/campaign-plan.md",
+      "description": "Create structured marketing campaign plans"
+    },
+    {
+      "name": "social-post",
+      "file": "commands/social-post.md",
+      "description": "Draft social media posts with hashtags"
+    },
+    {
+      "name": "email-sequence",
+      "file": "commands/email-sequence.md",
+      "description": "Create email marketing sequences"
+    },
+    {
+      "name": "seo-optimize",
+      "file": "commands/seo-optimize.md",
+      "description": "Optimize content for search engines"
+    },
+    {
+      "name": "analyze-performance",
+      "file": "commands/analyze-performance.md",
+      "description": "Analyze marketing campaign performance"
+    },
+    {
+      "name": "persona-create",
+      "file": "commands/persona-create.md",
+      "description": "Create detailed buyer personas"
+    }
+  ],
+  "skills": [
+    {
+      "name": "copywriting-formulas",
+      "file": "skills/copywriting-formulas.md",
+      "triggers": ["AIDA", "PAS", "headline", "copy", "persuasive"]
+    },
+    {
+      "name": "channel-optimization",
+      "file": "skills/channel-optimization.md",
+      "triggers": ["social media", "email", "SEO", "PPC", "channel"]
+    },
+    {
+      "name": "content-calendar",
+      "file": "skills/content-calendar.md",
+      "triggers": ["content plan", "calendar", "schedule posts", "editorial"]
+    },
+    {
+      "name": "ab-testing",
+      "file": "skills/ab-testing.md",
+      "triggers": ["A/B test", "experiment", "test variations", "optimize"]
+    },
+    {
+      "name": "analytics-interpretation",
+      "file": "skills/analytics-interpretation.md",
+      "triggers": ["metrics", "analytics", "performance", "ROI", "conversion"]
+    }
+  ],
+  "connectors": {
+    "required": ["exa"],
+    "optional": ["notionApi", "xai-research", "pocket-pick"]
+  }
+}

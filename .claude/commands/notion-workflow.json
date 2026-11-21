@@ -1,0 +1,132 @@
+{
+  "name": "notion-workflow",
+  "description": "Create comprehensive Notion workflows for problem analysis and resolution",
+  "version": "1.0.0",
+  "author": "Claude Code Agent System",
+  "category": "workflow",
+  "tags": ["notion", "workflow", "problem-analysis", "executive-reporting", "multi-agent"],
+  "command": {
+    "type": "python",
+    "script": "notion_workflow_agent.py",
+    "workingDirectory": "/home/craigmbrown/Project",
+    "interpreter": "python3"
+  },
+  "arguments": [
+    {
+      "name": "title",
+      "type": "string",
+      "required": true,
+      "description": "Title of the problem or issue",
+      "example": "Database Performance Crisis"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "required": true,
+      "description": "Detailed description of the problem",
+      "example": "Production database experiencing 500% response time increase"
+    },
+    {
+      "name": "impact",
+      "type": "string",
+      "required": false,
+      "default": "$100K/hour",
+      "description": "Business or financial impact",
+      "example": "$500K/hour revenue loss"
+    },
+    {
+      "name": "systems",
+      "type": "array",
+      "required": false,
+      "default": ["All production systems"],
+      "description": "List of affected systems",
+      "example": ["Database", "API", "Frontend"]
+    },
+    {
+      "name": "transcript",
+      "type": "file",
+      "required": false,
+      "description": "Path to transcript file for context",
+      "example": "/path/to/emergency_meeting.txt"
+    }
+  ],
+  "environment": {
+    "required": [
+      "NOTION_API_KEY",
+      "PROJECTS_DATABASE_ID",
+      "TASKS_DATABASE_ID"
+    ],
+    "optional": [
+      "TODO_DATABASE_ID",
+      "NOTION_WORKFLOW_LOG_LEVEL"
+    ]
+  },
+  "features": {
+    "creates_notion_pages": true,
+    "multi_agent_analysis": true,
+    "executive_reporting": true,
+    "task_management": true,
+    "progress_tracking": true,
+    "research_questions": true,
+    "milestone_tracking": true,
+    "cross_linking": true
+  },
+  "outputs": {
+    "main_project_url": "URL to the main project dashboard in Notion",
+    "ceo_report_url": "URL to the executive CEO/Board report",
+    "workflow_id": "Unique identifier for the workflow",
+    "pages_created": "Number of Notion pages created",
+    "tasks_created": "Number of tasks created and linked",
+    "results_file": "JSON file with complete workflow results"
+  },
+  "examples": [
+    {
+      "description": "Create workflow for database crisis",
+      "command": "claude notion-workflow --title \"Database Performance Crisis\" --description \"Critical performance degradation affecting all production systems\" --impact \"$100K/hour\" --systems Database API Frontend"
+    },
+    {
+      "description": "Create workflow from transcript",
+      "command": "claude notion-workflow --title \"System Outage\" --description \"Complete system failure detected in production\" --transcript /logs/emergency_meeting_transcript.txt"
+    },
+    {
+      "description": "Quick crisis workflow",
+      "command": "claude notion-workflow --title \"API Gateway Down\" --description \"API gateway not responding to requests\""
+    }
+  ],
+  "integration": {
+    "limitless_lifelog": {
+      "enabled": true,
+      "auto_trigger": true,
+      "problem_detection": true
+    },
+    "agentops": {
+      "enabled": true,
+      "trace_name": "notion_workflow_creation",
+      "metrics": ["pages_created", "execution_time", "api_calls"]
+    },
+    "multi_agent": {
+      "agents": ["grok-4", "gpt-4o", "claude-3.5", "gemini-2.5"],
+      "analysis_types": ["infrastructure", "optimization", "architecture", "scaling"]
+    }
+  },
+  "workflow_stages": [
+    "Problem Identified",
+    "Research In Progress",
+    "Analysis Complete",
+    "Solution Designed",
+    "Implementation Started",
+    "Testing & Validation",
+    "Deployment Ready",
+    "Completed"
+  ],
+  "templates": {
+    "agile_project": true,
+    "problem_understanding": true,
+    "milestone_tracking": true,
+    "executive_reporting": true
+  },
+  "permissions": {
+    "notion_scopes": ["read", "write", "create"],
+    "database_access": ["projects", "tasks", "todos"]
+  }
+}

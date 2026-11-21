@@ -103708,6 +103708,872 @@
       "bytes": 5636,
       "local": "agents\\tfunk1030__datagolf\\rules.md",
       "flags": []
+    },
+    "ChampiP/Cairn::.opencode/agent/founder.md": {
+      "repo": "ChampiP/Cairn",
+      "path": ".opencode/agent/founder.md",
+      "sha": "74c0b592ca7ee9f2f13f9500d4d6ff63cc2167d5",
+      "bytes": 451,
+      "local": "agents\\ChampiP__Cairn\\founder.md",
+      "flags": []
+    },
+    "stevenfackley/opencode-amplifier::.opencode/agent/reviewer-cheap.md": {
+      "repo": "stevenfackley/opencode-amplifier",
+      "path": ".opencode/agent/reviewer-cheap.md",
+      "sha": "8b5ea7525c0c72b1cb9cc1987a4807e5206f1a3b",
+      "bytes": 1761,
+      "local": "agents\\stevenfackley__opencode-amplifier\\reviewer-cheap.md",
+      "flags": []
+    },
+    "TomNguyen10101/YearEndWebGame::.opencode/agent/bmad-agent-bmgd-game-scrum-master.md": {
+      "repo": "TomNguyen10101/YearEndWebGame",
+      "path": ".opencode/agent/bmad-agent-bmgd-game-scrum-master.md",
+      "sha": "7873999e6fe948ebaf8e7cf3f8a6a57746d662a4",
+      "bytes": 622,
+      "local": "agents\\TomNguyen10101__YearEndWebGame\\bmad-agent-bmgd-game-scrum-master.md",
+      "flags": []
+    },
+    "nicolas2601/router-skills::agents/ecc/cpp-build-resolver.md": {
+      "repo": "nicolas2601/router-skills",
+      "path": "agents/ecc/cpp-build-resolver.md",
+      "sha": "7c2c41557ccb6049a2b1e42e2266823d4a6a095f",
+      "bytes": 4122,
+      "local": "agents\\nicolas2601__router-skills\\cpp-build-resolver.md",
+      "flags": []
+    },
+    "chatbot-pf/memex::agents/wiki-researcher.md": {
+      "repo": "chatbot-pf/memex",
+      "path": "agents/wiki-researcher.md",
+      "sha": "37a32ba77af931e11e9e1027022fa4a44b415f45",
+      "bytes": 1332,
+      "local": "agents\\chatbot-pf__memex\\wiki-researcher.md",
+      "flags": []
+    },
+    "WitchyNibbles/archon::.claude/agents/observability-engineer/AGENT.md": {
+      "repo": "WitchyNibbles/archon",
+      "path": ".claude/agents/observability-engineer/AGENT.md",
+      "sha": "2e1af1ca9a42c297cf8ef5b1649f3699f89abb74",
+      "bytes": 3523,
+      "local": "agents\\WitchyNibbles__archon\\AGENT.md",
+      "flags": []
+    },
+    "zuirela/AI-OS-Ty-tila::.claude/agents/secretary-audit.md": {
+      "repo": "zuirela/AI-OS-Ty-tila",
+      "path": ".claude/agents/secretary-audit.md",
+      "sha": "0923399bb6b1daa8ed58c0828b8f187fb2013be3",
+      "bytes": 2271,
+      "local": "agents\\zuirela__AI-OS-Ty-tila\\secretary-audit.md",
+      "flags": []
+    },
+    "elinxie/books-of-samuel::.claude/agents/fable-architect.md": {
+      "repo": "elinxie/books-of-samuel",
+      "path": ".claude/agents/fable-architect.md",
+      "sha": "76d631e0dc1c736b9e4b07a46132addccaa3d415",
+      "bytes": 1950,
+      "local": "agents\\elinxie__books-of-samuel\\fable-architect.md",
+      "flags": []
+    },
+    "modu-ai/moai-adk::.claude/agents/harness/harness-release-update-specialist.md": {
+      "repo": "modu-ai/moai-adk",
+      "path": ".claude/agents/harness/harness-release-update-specialist.md",
+      "sha": "53a32c55e541eb413f216b16c5f9a3978d834fc8",
+      "bytes": 11493,
+      "local": "agents\\modu-ai__moai-adk\\harness-release-update-specialist.md",
+      "flags": []
+    },
+    "benriworks/deep-earth::.claude/agents/deep-reasoner.md": {
+      "repo": "benriworks/deep-earth",
+      "path": ".claude/agents/deep-reasoner.md",
+      "sha": "a2c97229b7b0bfdbd7d94c5d3f42c993fe00e67f",
+      "bytes": 1424,
+      "local": "agents\\benriworks__deep-earth\\deep-reasoner.md",
+      "flags": []
+    },
+    "razinskymaayan-crypto/AWEAR::.claude/agents/mark.md": {
+      "repo": "razinskymaayan-crypto/AWEAR",
+      "path": ".claude/agents/mark.md",
+      "sha": "572490fb1f02129e74839a6566811a1b426c4ea1",
+      "bytes": 2803,
+      "local": "agents\\razinskymaayan-crypto__AWEAR\\mark.md",
+      "flags": []
+    },
+    "0Beemik/Omnipus::.claude/agents/planner.md": {
+      "repo": "0Beemik/Omnipus",
+      "path": ".claude/agents/planner.md",
+      "sha": "368fa9494492b86d20fdaf0d28824ef16cdb6ab5",
+      "bytes": 5534,
+      "local": "agents\\0Beemik__Omnipus\\planner.md",
+      "flags": []
+    },
+    "Cristian1911/personal_finance_manager_claude::.claude/agents/recurring-doctor.md": {
+      "repo": "Cristian1911/personal_finance_manager_claude",
+      "path": ".claude/agents/recurring-doctor.md",
+      "sha": "a9a8b81ca07542b23ca154e851e0e16f78b86129",
+      "bytes": 9211,
+      "local": "agents\\Cristian1911__personal_finance_manager_claude\\recurring-doctor.md",
+      "flags": []
+    },
+    "foutoucour/guitar-match::.claude/agents/finops.md": {
+      "repo": "foutoucour/guitar-match",
+      "path": ".claude/agents/finops.md",
+      "sha": "0c51cd6f9677c7b8d39be63f28506381c1bfd9f3",
+      "bytes": 2811,
+      "local": "agents\\foutoucour__guitar-match\\finops.md",
+      "flags": []
+    },
+    "Nasche12/agents-hq::.claude/agents/content-recherche.md": {
+      "repo": "Nasche12/agents-hq",
+      "path": ".claude/agents/content-recherche.md",
+      "sha": "936dfd126ed02dc3ea0811697cba56150eb73b9b",
+      "bytes": 3756,
+      "local": "agents\\Nasche12__agents-hq\\content-recherche.md",
+      "flags": []
+    },
+    "davistroy/claude-marketplace::.claude/agents/opus-implementer.md": {
+      "repo": "davistroy/claude-marketplace",
+      "path": ".claude/agents/opus-implementer.md",
+      "sha": "09aaeea92998b721d1f999e07dc6ca9cf8f2e8cd",
+      "bytes": 2409,
+      "local": "agents\\davistroy__claude-marketplace\\opus-implementer.md",
+      "flags": []
+    },
+    "peerasak-u/ksk-keying::.claude/agents/ksk-columbo.md": {
+      "repo": "peerasak-u/ksk-keying",
+      "path": ".claude/agents/ksk-columbo.md",
+      "sha": "97ba878e03e425706bbe876f4adff0b9c4bc1cba",
+      "bytes": 5239,
+      "local": "agents\\peerasak-u__ksk-keying\\ksk-columbo.md",
+      "flags": []
+    },
+    "DrBradStanfield/roadmap::.claude/agents/fable-advisor.md": {
+      "repo": "DrBradStanfield/roadmap",
+      "path": ".claude/agents/fable-advisor.md",
+      "sha": "050cf071cf4fab5174762b72cb549feb229850a2",
+      "bytes": 1869,
+      "local": "agents\\DrBradStanfield__roadmap\\fable-advisor.md",
+      "flags": []
+    },
+    "gcuddy/dot::.config/agents/skills/vercel-react-best-practices/rules/js-cache-storage.md": {
+      "repo": "gcuddy/dot",
+      "path": ".config/agents/skills/vercel-react-best-practices/rules/js-cache-storage.md",
+      "sha": "aa4a30c08176aabd27b41fa44d5c1981457b675f",
+      "bytes": 1651,
+      "local": "agents\\gcuddy__dot\\js-cache-storage.md",
+      "flags": []
+    },
+    "SteamedFish/dotfiles::.config/agents/skills/code-review-expert/references/security-checklist.md": {
+      "repo": "SteamedFish/dotfiles",
+      "path": ".config/agents/skills/code-review-expert/references/security-checklist.md",
+      "sha": "193469e6a932b90b7d953a8514c08f746a1b5279",
+      "bytes": 4420,
+      "local": "agents\\SteamedFish__dotfiles\\security-checklist.md",
+      "flags": []
+    },
+    "mxfng/dotfiles::.config/agents/skills/frontend-craft/references/architecture.md": {
+      "repo": "mxfng/dotfiles",
+      "path": ".config/agents/skills/frontend-craft/references/architecture.md",
+      "sha": "32a4889190613f243e31609ab24a379521ba3048",
+      "bytes": 4983,
+      "local": "agents\\mxfng__dotfiles\\architecture.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/create-agent-skills/references/best-practices.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/create-agent-skills/references/best-practices.md",
+      "sha": "23c763924778fcb482e905dff69f72162829282e",
+      "bytes": 9282,
+      "local": "agents\\madyankin__dotfiles\\best-practices.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/create-agent-skills/references/using-scripts.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/create-agent-skills/references/using-scripts.md",
+      "sha": "5d8747c2b2f42f48be22589b60b29ff3b7a3a899",
+      "bytes": 3023,
+      "local": "agents\\madyankin__dotfiles\\using-scripts.md",
+      "flags": []
+    },
+    "darekrossman/.dotfiles::.config/agents/skills/turborepo/references/best-practices/dependencies.md": {
+      "repo": "darekrossman/.dotfiles",
+      "path": ".config/agents/skills/turborepo/references/best-practices/dependencies.md",
+      "sha": "7a6fd2b8a51ce591b18cddb075e914f6affd355f",
+      "bytes": 4261,
+      "local": "agents\\darekrossman__.dotfiles\\dependencies.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/germany-tax-consultant/references/official-bzst-idnr-and-finanzamt.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/germany-tax-consultant/references/official-bzst-idnr-and-finanzamt.md",
+      "sha": "17bfde94082e3a8462fedb7e0876a65aeaa12373",
+      "bytes": 2202,
+      "local": "agents\\madyankin__dotfiles\\official-bzst-idnr-and-finanzamt.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/create-agent-skills/templates/simple-skill.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/create-agent-skills/templates/simple-skill.md",
+      "sha": "6678fa73cc36f0af6c42e563f16f6489df8a313f",
+      "bytes": 636,
+      "local": "agents\\madyankin__dotfiles\\simple-skill.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/obsidian-bases/references/FUNCTIONS_REFERENCE.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/obsidian-bases/references/FUNCTIONS_REFERENCE.md",
+      "sha": "94bbba6953405ec03c33befe9255db3d73867c91",
+      "bytes": 7725,
+      "local": "agents\\madyankin__dotfiles\\FUNCTIONS_REFERENCE.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/create-agent-skills/workflows/audit-skill.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/create-agent-skills/workflows/audit-skill.md",
+      "sha": "364f78efeb914655b4daa2fb700edc88d20ced8a",
+      "bytes": 3559,
+      "local": "agents\\madyankin__dotfiles\\audit-skill.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/germany-tax-consultant/references/trusted-consumer-guides-finanztip.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/germany-tax-consultant/references/trusted-consumer-guides-finanztip.md",
+      "sha": "147be44ee6e6cbb95543695e3e54480ee324bc60",
+      "bytes": 1158,
+      "local": "agents\\madyankin__dotfiles\\trusted-consumer-guides-finanztip.md",
+      "flags": []
+    },
+    "vegerot/dotfiles::.config/agents/skills/lark-doc/references/lark-doc-media-insert.md": {
+      "repo": "vegerot/dotfiles",
+      "path": ".config/agents/skills/lark-doc/references/lark-doc-media-insert.md",
+      "sha": "9b557b70117b993565b95afea320c4a60d3f0c58",
+      "bytes": 6944,
+      "local": "agents\\vegerot__dotfiles\\lark-doc-media-insert.md",
+      "flags": []
+    },
+    "mitchnielsen/dotfiles::.config/agents/skills/slop/SKILL.md": {
+      "repo": "mitchnielsen/dotfiles",
+      "path": ".config/agents/skills/slop/SKILL.md",
+      "sha": "10001a722fa6f3458706b675202c8203d2682ed4",
+      "bytes": 2585,
+      "local": "agents\\mitchnielsen__dotfiles\\SKILL.md",
+      "flags": []
+    },
+    "vegerot/dotfiles::.config/agents/skills/lark-im/references/lark-im-messages-resources-download.md": {
+      "repo": "vegerot/dotfiles",
+      "path": ".config/agents/skills/lark-im/references/lark-im-messages-resources-download.md",
+      "sha": "cf10bdedba30a87fea5f264c3117645b7fcbdeb9",
+      "bytes": 4845,
+      "local": "agents\\vegerot__dotfiles\\lark-im-messages-resources-download.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/create-agent-skills/templates/router-skill.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/create-agent-skills/templates/router-skill.md",
+      "sha": "b2dc762e8e404362dab5dbd6e1b5967f06586a70",
+      "bytes": 1494,
+      "local": "agents\\madyankin__dotfiles\\router-skill.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/create-agent-skills/workflows/verify-skill.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/create-agent-skills/workflows/verify-skill.md",
+      "sha": "ab85743cb129250864f3ad63d78b892618efec5c",
+      "bytes": 5194,
+      "local": "agents\\madyankin__dotfiles\\verify-skill.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/germany-tax-consultant/references/employee-tax-basics.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/germany-tax-consultant/references/employee-tax-basics.md",
+      "sha": "a0ff4b7ba16ec6d9aaf1c1a6d2345f3915202166",
+      "bytes": 1652,
+      "local": "agents\\madyankin__dotfiles\\employee-tax-basics.md",
+      "flags": []
+    },
+    "SteamedFish/dotfiles::.config/agents/skills/claudeception/resources/research-references.md": {
+      "repo": "SteamedFish/dotfiles",
+      "path": ".config/agents/skills/claudeception/resources/research-references.md",
+      "sha": "aeb08a6e88c40def9f5f399fd34ba6bec470e2a8",
+      "bytes": 7666,
+      "local": "agents\\SteamedFish__dotfiles\\research-references.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/agents/rpi-data-integrity-guardian.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/agents/rpi-data-integrity-guardian.md",
+      "sha": "71b71d3e3c6ea2639dad6b85394386c6be2774d1",
+      "bytes": 938,
+      "local": "agents\\madyankin__dotfiles\\rpi-data-integrity-guardian.md",
+      "flags": []
+    },
+    "ffuugoo/dots::.config/agents/skills/rust/SKILL.md": {
+      "repo": "ffuugoo/dots",
+      "path": ".config/agents/skills/rust/SKILL.md",
+      "sha": "b28f2761179a9dd6e38bff91059403beab185ff6",
+      "bytes": 639,
+      "local": "agents\\ffuugoo__dots\\SKILL.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/agents/rpi-codebase-locator.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/agents/rpi-codebase-locator.md",
+      "sha": "cb0ebad3c7e89f486e0d6a1cd4dc1d6a08d4821b",
+      "bytes": 1339,
+      "local": "agents\\madyankin__dotfiles\\rpi-codebase-locator.md",
+      "flags": []
+    },
+    "SteamedFish/dotfiles::.config/agents/skills/using-superpowers/SKILL.zh-CN.md": {
+      "repo": "SteamedFish/dotfiles",
+      "path": ".config/agents/skills/using-superpowers/SKILL.zh-CN.md",
+      "sha": "590d7eba565ed8eb598f8b7fbc64885e1f39dd3e",
+      "bytes": 3407,
+      "local": "agents\\SteamedFish__dotfiles\\SKILL.zh-CN.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/document-review/SKILL.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/document-review/SKILL.md",
+      "sha": "3376c3233677d93d3fcf3c00beef1bdd1dde1792",
+      "bytes": 3191,
+      "local": "agents\\madyankin__dotfiles\\SKILL.md",
+      "flags": []
+    },
+    "vegerot/dotfiles::.config/agents/skills/lark-doc/references/lark-doc-xml.md": {
+      "repo": "vegerot/dotfiles",
+      "path": ".config/agents/skills/lark-doc/references/lark-doc-xml.md",
+      "sha": "ad4c65e360e56b1d0fac04caf648bf80a1ea921b",
+      "bytes": 9043,
+      "local": "agents\\vegerot__dotfiles\\lark-doc-xml.md",
+      "flags": []
+    },
+    "gtk-grafana/grafana-echarts::.config/AGENTS/e2e-testing.md": {
+      "repo": "gtk-grafana/grafana-echarts",
+      "path": ".config/AGENTS/e2e-testing.md",
+      "sha": "bde637fb4fd8aa1ff128bc010117263a875415ad",
+      "bytes": 8143,
+      "local": "agents\\gtk-grafana__grafana-echarts\\e2e-testing.md",
+      "flags": []
+    },
+    "vegerot/dotfiles::.config/agents/skills/lark-im/references/lark-im-chat-update.md": {
+      "repo": "vegerot/dotfiles",
+      "path": ".config/agents/skills/lark-im/references/lark-im-chat-update.md",
+      "sha": "a3bdf6b8ad8d687f07daec3b3727fa12cbdf0355",
+      "bytes": 3281,
+      "local": "agents\\vegerot__dotfiles\\lark-im-chat-update.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/swiftdata/docs/cloudkit.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/swiftdata/docs/cloudkit.md",
+      "sha": "53876c5107d22ecc4cf13d16a1183c837382f875",
+      "bytes": 9617,
+      "local": "agents\\madyankin__dotfiles\\cloudkit.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/obsidian-bases/SKILL.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/obsidian-bases/SKILL.md",
+      "sha": "2d33b5ca6ec4a169c378f347e03b11dd3378785e",
+      "bytes": 13782,
+      "local": "agents\\madyankin__dotfiles\\SKILL.md",
+      "flags": []
+    },
+    "baggiiiie/dotfiles::.config/agents/TMUX_TUI.md": {
+      "repo": "baggiiiie/dotfiles",
+      "path": ".config/agents/TMUX_TUI.md",
+      "sha": "4c2b0f90c20000a67908fded2d6e5c2bfb08f98c",
+      "bytes": 1745,
+      "local": "agents\\baggiiiie__dotfiles\\TMUX_TUI.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/create-agent-skills/SKILL.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/create-agent-skills/SKILL.md",
+      "sha": "efcbd1a8ca812044cbeec0ef0fa9c9d5c1e4855b",
+      "bytes": 8736,
+      "local": "agents\\madyankin__dotfiles\\SKILL.md",
+      "flags": []
+    },
+    "vegerot/dotfiles::.config/agents/skills/lark-im/references/lark-im-feed-groups.md": {
+      "repo": "vegerot/dotfiles",
+      "path": ".config/agents/skills/lark-im/references/lark-im-feed-groups.md",
+      "sha": "60cf9eca26c3105c5232fa78548681a7b05f4547",
+      "bytes": 18664,
+      "local": "agents\\vegerot__dotfiles\\lark-im-feed-groups.md",
+      "flags": []
+    },
+    "SteamedFish/dotfiles::.config/agents/skills/brainstorming/SKILL.zh-CN.md": {
+      "repo": "SteamedFish/dotfiles",
+      "path": ".config/agents/skills/brainstorming/SKILL.zh-CN.md",
+      "sha": "8991675d874e513b62208cc72eeee6e16c40e88a",
+      "bytes": 2515,
+      "local": "agents\\SteamedFish__dotfiles\\SKILL.zh-CN.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/ios-concurrency/docs/legacy.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/ios-concurrency/docs/legacy.md",
+      "sha": "411bfa5310c00c6aebf1ec70ec01b66d26fa218c",
+      "bytes": 12801,
+      "local": "agents\\madyankin__dotfiles\\legacy.md",
+      "flags": []
+    },
+    "vegerot/dotfiles::.config/agents/skills/lark-im/references/lark-im-flag-cancel.md": {
+      "repo": "vegerot/dotfiles",
+      "path": ".config/agents/skills/lark-im/references/lark-im-flag-cancel.md",
+      "sha": "6a54d603fe6343e9050b13fa82c7e37f05b6f47e",
+      "bytes": 2961,
+      "local": "agents\\vegerot__dotfiles\\lark-im-flag-cancel.md",
+      "flags": []
+    },
+    "madyankin/dotfiles::.config/agents/skills/germany-tax-consultant/SKILL.md": {
+      "repo": "madyankin/dotfiles",
+      "path": ".config/agents/skills/germany-tax-consultant/SKILL.md",
+      "sha": "b814674a826272a76a46b2933ebca4c07dd9db66",
+      "bytes": 5403,
+      "local": "agents\\madyankin__dotfiles\\SKILL.md",
+      "flags": []
+    },
+    "SteamedFish/dotfiles::.config/agents/skills/shell-scripting/SKILL.zh-CN.md": {
+      "repo": "SteamedFish/dotfiles",
+      "path": ".config/agents/skills/shell-scripting/SKILL.zh-CN.md",
+      "sha": "a7bc05e1c55db9bce1eec3230a0a445e75de936d",
+      "bytes": 8584,
+      "local": "agents\\SteamedFish__dotfiles\\SKILL.zh-CN.md",
+      "flags": []
+    },
+    "SteamedFish/dotfiles::.config/agents/skills/shell-scripting/SKILL.md": {
+      "repo": "SteamedFish/dotfiles",
+      "path": ".config/agents/skills/shell-scripting/SKILL.md",
+      "sha": "9e4aa6d9fe6bd5782f0dacce86b2f8e3e40296ad",
+      "bytes": 8506,
+      "local": "agents\\SteamedFish__dotfiles\\SKILL.md",
+      "flags": []
+    },
+    "nico0695/ai-tools::agents/agents-generic/pr-code-reviewer.agent.md": {
+      "repo": "nico0695/ai-tools",
+      "path": "agents/agents-generic/pr-code-reviewer.agent.md",
+      "sha": "c1d14cca1c3eba9da933fbe396b8cb4ab6fd7e18",
+      "bytes": 8790,
+      "local": "agents\\nico0695__ai-tools\\pr-code-reviewer.agent.md",
+      "flags": []
+    },
+    "JeremyTubongbanua/dotfiles::agents/.agents/agents/test-automator.md": {
+      "repo": "JeremyTubongbanua/dotfiles",
+      "path": "agents/.agents/agents/test-automator.md",
+      "sha": "4ab4275a937ecaf565c7e3ee484b363bcd1e3df7",
+      "bytes": 6469,
+      "local": "agents\\JeremyTubongbanua__dotfiles\\test-automator.md",
+      "flags": []
+    },
+    "Pacifisty/YT_multi_publi::agents/gsd-roadmapper.md": {
+      "repo": "Pacifisty/YT_multi_publi",
+      "path": "agents/gsd-roadmapper.md",
+      "sha": "0b1f18a49e3ed9b1ee04185bc307bbd61efb6e41",
+      "bytes": 18351,
+      "local": "agents\\Pacifisty__YT_multi_publi\\gsd-roadmapper.md",
+      "flags": []
+    },
+    "Sapeksh2001/MasterAgents::agents/gsd-roadmapper.md": {
+      "repo": "Sapeksh2001/MasterAgents",
+      "path": "agents/gsd-roadmapper.md",
+      "sha": "0b1f18a49e3ed9b1ee04185bc307bbd61efb6e41",
+      "bytes": 18351,
+      "local": "agents\\Sapeksh2001__MasterAgents\\gsd-roadmapper.md",
+      "flags": []
+    },
+    "pradeep7093432182/Omega-Singularity-Master::agents/gsd-roadmapper.md": {
+      "repo": "pradeep7093432182/Omega-Singularity-Master",
+      "path": "agents/gsd-roadmapper.md",
+      "sha": "0b1f18a49e3ed9b1ee04185bc307bbd61efb6e41",
+      "bytes": 18351,
+      "local": "agents\\pradeep7093432182__Omega-Singularity-Master\\gsd-roadmapper.md",
+      "flags": []
+    },
+    "adventurewave-labs/NOIP::agents/deno-runtime-specialist.md": {
+      "repo": "adventurewave-labs/NOIP",
+      "path": "agents/deno-runtime-specialist.md",
+      "sha": "a97ac91e5c4487c2c290be8324826f30ca4d0d98",
+      "bytes": 31134,
+      "local": "agents\\adventurewave-labs__NOIP\\deno-runtime-specialist.md",
+      "flags": []
+    },
+    "adventurewave-labs/HASEB::agents/deno-runtime-specialist.md": {
+      "repo": "adventurewave-labs/HASEB",
+      "path": "agents/deno-runtime-specialist.md",
+      "sha": "a97ac91e5c4487c2c290be8324826f30ca4d0d98",
+      "bytes": 31134,
+      "local": "agents\\adventurewave-labs__HASEB\\deno-runtime-specialist.md",
+      "flags": []
+    },
+    "ChrisRoyse/610ClaudeSubagents::agents/deno-runtime-specialist.md": {
+      "repo": "ChrisRoyse/610ClaudeSubagents",
+      "path": "agents/deno-runtime-specialist.md",
+      "sha": "a97ac91e5c4487c2c290be8324826f30ca4d0d98",
+      "bytes": 31134,
+      "local": "agents\\ChrisRoyse__610ClaudeSubagents\\deno-runtime-specialist.md",
+      "flags": []
+    },
+    "rsurasin/claude-code-toolkit::agents/doc-sync.md": {
+      "repo": "rsurasin/claude-code-toolkit",
+      "path": "agents/doc-sync.md",
+      "sha": "d309f30e78f8b3076daab66199917125e7a16de3",
+      "bytes": 4574,
+      "local": "agents\\rsurasin__claude-code-toolkit\\doc-sync.md",
+      "flags": []
+    },
+    "howells/fiction::agents/chapter-reviewer.md": {
+      "repo": "howells/fiction",
+      "path": "agents/chapter-reviewer.md",
+      "sha": "9625982f6957271c6125ae1d132c3760dd9402ec",
+      "bytes": 10056,
+      "local": "agents\\howells__fiction\\chapter-reviewer.md",
+      "flags": []
+    },
+    "benkruger/flow::agents/pre-mortem.md": {
+      "repo": "benkruger/flow",
+      "path": "agents/pre-mortem.md",
+      "sha": "867b32adb9e2b96433135eb83fce4a3e7de154b1",
+      "bytes": 7724,
+      "local": "agents\\benkruger__flow\\pre-mortem.md",
+      "flags": []
+    },
+    "M4F-S/Ultimate-Claude-Skills::Agents/ruflo/v3/@claude-flow/cli/.claude/agents/sparc/refinement.md": {
+      "repo": "M4F-S/Ultimate-Claude-Skills",
+      "path": "Agents/ruflo/v3/@claude-flow/cli/.claude/agents/sparc/refinement.md",
+      "sha": "ee988d32d51e1a3b02032f34740a71a44d20b73e",
+      "bytes": 22661,
+      "local": "agents\\M4F-S__Ultimate-Claude-Skills\\refinement.md",
+      "flags": []
+    },
+    "tiendung/flow-next::agents/repo-scout.md": {
+      "repo": "tiendung/flow-next",
+      "path": "agents/repo-scout.md",
+      "sha": "55f05d1fe80c63c0bdcde22c2f3750262c125a2d",
+      "bytes": 2545,
+      "local": "agents\\tiendung__flow-next\\repo-scout.md",
+      "flags": []
+    },
+    "drdave-flexnetos/noa_ark_os::agents/subject-specialist/08-business-product/content-marketer.md": {
+      "repo": "drdave-flexnetos/noa_ark_os",
+      "path": "agents/subject-specialist/08-business-product/content-marketer.md",
+      "sha": "92352a8b631fe430496c614d7da3d64554fd597c",
+      "bytes": 6660,
+      "local": "agents\\drdave-flexnetos__noa_ark_os\\content-marketer.md",
+      "flags": []
+    },
+    "drdave-flexnetos/noa-server::agents/subject-specialist/08-business-product/content-marketer.md": {
+      "repo": "drdave-flexnetos/noa-server",
+      "path": "agents/subject-specialist/08-business-product/content-marketer.md",
+      "sha": "92352a8b631fe430496c614d7da3d64554fd597c",
+      "bytes": 6660,
+      "local": "agents\\drdave-flexnetos__noa-server\\content-marketer.md",
+      "flags": []
+    },
+    "DataDog/pup::agents/synthetics.md": {
+      "repo": "DataDog/pup",
+      "path": "agents/synthetics.md",
+      "sha": "3b6db101b19b7e51446e7d4a3d61c7464e448dfd",
+      "bytes": 7707,
+      "local": "agents\\DataDog__pup\\synthetics.md",
+      "flags": []
+    },
+    "chromium/chromium::agents/skills/latency-instrumentation/SKILL.md": {
+      "repo": "chromium/chromium",
+      "path": "agents/skills/latency-instrumentation/SKILL.md",
+      "sha": "dd224197df10880e9acc6a3814225821f45ef962",
+      "bytes": 4674,
+      "local": "agents\\chromium__chromium\\SKILL.md",
+      "flags": []
+    },
+    "Thanhtuan96/course-builder::agents/spotter.md": {
+      "repo": "Thanhtuan96/course-builder",
+      "path": "agents/spotter.md",
+      "sha": "27153e112f6f4e251294b390622fcf9f538b87c8",
+      "bytes": 4545,
+      "local": "agents\\Thanhtuan96__course-builder\\spotter.md",
+      "flags": []
+    },
+    "Kai-ste/CLAUDE::agents/research-analyst.md": {
+      "repo": "Kai-ste/CLAUDE",
+      "path": "agents/research-analyst.md",
+      "sha": "fc838fe358efe96b7bafa0b2ffb3abb57213693e",
+      "bytes": 2001,
+      "local": "agents\\Kai-ste__CLAUDE\\research-analyst.md",
+      "flags": []
+    },
+    "xiaoshuangLi/aibo::agents/validator.md": {
+      "repo": "xiaoshuangLi/aibo",
+      "path": "agents/validator.md",
+      "sha": "99e05cd12250ebffb8b01e570a657874596645d6",
+      "bytes": 2878,
+      "local": "agents\\xiaoshuangLi__aibo\\validator.md",
+      "flags": []
+    },
+    "laguagu/claude-code-nextjs-skills::agents/e2e-tester.md": {
+      "repo": "laguagu/claude-code-nextjs-skills",
+      "path": "agents/e2e-tester.md",
+      "sha": "6f3d380759ba5f3bd2534b2a9b29471cd6a8fcfe",
+      "bytes": 9590,
+      "local": "agents\\laguagu__claude-code-nextjs-skills\\e2e-tester.md",
+      "flags": []
+    },
+    "PeterGessler89/AiAgentFramework::agents/04-quality-security/architect-reviewer.md": {
+      "repo": "PeterGessler89/AiAgentFramework",
+      "path": "agents/04-quality-security/architect-reviewer.md",
+      "sha": "5eead7a352337689cebae697a0c526ecda69fe3e",
+      "bytes": 6987,
+      "local": "agents\\PeterGessler89__AiAgentFramework\\architect-reviewer.md",
+      "flags": []
+    },
+    "tonone-ai/tonone::agents/kube.md": {
+      "repo": "tonone-ai/tonone",
+      "path": "agents/kube.md",
+      "sha": "9cb627950c4aaa40b053ab0eeaa3771b88a30f88",
+      "bytes": 3098,
+      "local": "agents\\tonone-ai__tonone\\kube.md",
+      "flags": []
+    },
+    "s1nny0ur/claude-agents::agents/role-oriented/sales-automator.md": {
+      "repo": "s1nny0ur/claude-agents",
+      "path": "agents/role-oriented/sales-automator.md",
+      "sha": "7a6ac38d30066862e210f078b9264b0899277709",
+      "bytes": 924,
+      "local": "agents\\s1nny0ur__claude-agents\\sales-automator.md",
+      "flags": []
+    },
+    "brmatola/gremlins::agents/task-bug-fixer.md": {
+      "repo": "brmatola/gremlins",
+      "path": "agents/task-bug-fixer.md",
+      "sha": "9c6fbfe7edc67faa1e50ac10f01c8018ea26f925",
+      "bytes": 3615,
+      "local": "agents\\brmatola__gremlins\\task-bug-fixer.md",
+      "flags": []
+    },
+    "Eflarus/claude-dotfiles::agents/test-writer.md": {
+      "repo": "Eflarus/claude-dotfiles",
+      "path": "agents/test-writer.md",
+      "sha": "8968ef647ef49fa6f38b10eb9f836a866e92eeca",
+      "bytes": 836,
+      "local": "agents\\Eflarus__claude-dotfiles\\test-writer.md",
+      "flags": []
+    },
+    "PeterPonyu/oh-my-grokbuild::agents/security-reviewer.md": {
+      "repo": "PeterPonyu/oh-my-grokbuild",
+      "path": "agents/security-reviewer.md",
+      "sha": "79f265e2e2e11b539cabf9be67fb9810b172406d",
+      "bytes": 3033,
+      "local": "agents\\PeterPonyu__oh-my-grokbuild\\security-reviewer.md",
+      "flags": []
+    },
+    "ShreyanshVaibhaw/switcharoo::agents/scout.md": {
+      "repo": "ShreyanshVaibhaw/switcharoo",
+      "path": "agents/scout.md",
+      "sha": "261092b0d33851c779900124dc4e1f783a39a322",
+      "bytes": 945,
+      "local": "agents\\ShreyanshVaibhaw__switcharoo\\scout.md",
+      "flags": []
+    },
+    "dylanbstorey/claude-agents::agents/orchestrators/technical-lead-orchestrator.md": {
+      "repo": "dylanbstorey/claude-agents",
+      "path": "agents/orchestrators/technical-lead-orchestrator.md",
+      "sha": "f9b2790d9324be02e229b53b344dd3a9deffaefb",
+      "bytes": 8729,
+      "local": "agents\\dylanbstorey__claude-agents\\technical-lead-orchestrator.md",
+      "flags": []
+    },
+    "johnoconnor0/claude-memex::agents/memex-planner.md": {
+      "repo": "johnoconnor0/claude-memex",
+      "path": "agents/memex-planner.md",
+      "sha": "57da551c7ec2f5ea7828b4e0d2c81d64605050b7",
+      "bytes": 2237,
+      "local": "agents\\johnoconnor0__claude-memex\\memex-planner.md",
+      "flags": []
+    },
+    "launchstack-dev/loom-ai::agents/stage-teammates/execute-stage.md": {
+      "repo": "launchstack-dev/loom-ai",
+      "path": "agents/stage-teammates/execute-stage.md",
+      "sha": "593661c8d657c85e2215da74d4ecdd35dd8b44a0",
+      "bytes": 5724,
+      "local": "agents\\launchstack-dev__loom-ai\\execute-stage.md",
+      "flags": []
+    },
+    "littlelingo/context-engine::agents/mcp-researcher.md": {
+      "repo": "littlelingo/context-engine",
+      "path": "agents/mcp-researcher.md",
+      "sha": "8796e1b2cebd4a251176402d59c555ea058b9eb7",
+      "bytes": 1703,
+      "local": "agents\\littlelingo__context-engine\\mcp-researcher.md",
+      "flags": []
+    },
+    "rlpatrao/claude_harness_forge::agents/generator.md": {
+      "repo": "rlpatrao/claude_harness_forge",
+      "path": "agents/generator.md",
+      "sha": "e7f92668be726dbc841b54d0045ec06aa085a4a0",
+      "bytes": 8128,
+      "local": "agents\\rlpatrao__claude_harness_forge\\generator.md",
+      "flags": []
+    },
+    "haytamAroui/OpenPi::agents/migration-expert.md": {
+      "repo": "haytamAroui/OpenPi",
+      "path": "agents/migration-expert.md",
+      "sha": "a9d6d8adf7e16e938dacee6ca8516c9d2146eed3",
+      "bytes": 1760,
+      "local": "agents\\haytamAroui__OpenPi\\migration-expert.md",
+      "flags": []
+    },
+    "dnzengou/jobpulse-ai-agent::agents/resume-customizer.md": {
+      "repo": "dnzengou/jobpulse-ai-agent",
+      "path": "agents/resume-customizer.md",
+      "sha": "2fe64f51fa772bb0134e5b589c97abcad58413a9",
+      "bytes": 3459,
+      "local": "agents\\dnzengou__jobpulse-ai-agent\\resume-customizer.md",
+      "flags": []
+    },
+    "JCodesMore/jobs-for-ai-agents::agents/resume-customizer.md": {
+      "repo": "JCodesMore/jobs-for-ai-agents",
+      "path": "agents/resume-customizer.md",
+      "sha": "2fe64f51fa772bb0134e5b589c97abcad58413a9",
+      "bytes": 3459,
+      "local": "agents\\JCodesMore__jobs-for-ai-agents\\resume-customizer.md",
+      "flags": []
+    },
+    "hekivo/superpowers-sage::agents/visual-verifier.md": {
+      "repo": "hekivo/superpowers-sage",
+      "path": "agents/visual-verifier.md",
+      "sha": "27bb0af05a1392ef919f1aa619373bd3ad1946d6",
+      "bytes": 6193,
+      "local": "agents\\hekivo__superpowers-sage\\visual-verifier.md",
+      "flags": []
+    },
+    "hamzeen/ng-21::agents/security-auditor.md": {
+      "repo": "hamzeen/ng-21",
+      "path": "agents/security-auditor.md",
+      "sha": "0fef18892e51706db2cf34ee2803ffda98b015d9",
+      "bytes": 4379,
+      "local": "agents\\hamzeen__ng-21\\security-auditor.md",
+      "flags": []
+    },
+    "aphamm/.dotfiles::agents/skills/tribunal/SKILL.md": {
+      "repo": "aphamm/.dotfiles",
+      "path": "agents/skills/tribunal/SKILL.md",
+      "sha": "dcf06a5b88147f65eca22144002236643036e6c1",
+      "bytes": 22952,
+      "local": "agents\\aphamm__.dotfiles\\SKILL.md",
+      "flags": [
+        "(?i)exfiltrat"
+      ]
+    },
+    "Omar-Obando/qwen-orchestrator::agents/performance-engineer.md": {
+      "repo": "Omar-Obando/qwen-orchestrator",
+      "path": "agents/performance-engineer.md",
+      "sha": "d0abad70d9cec1ce9af48684a513ff1a6f494ca1",
+      "bytes": 2331,
+      "local": "agents\\Omar-Obando__qwen-orchestrator\\performance-engineer.md",
+      "flags": []
+    },
+    "pra2107tham/stilltrue::.claude/agents/stilltrue-core-dev.md": {
+      "repo": "pra2107tham/stilltrue",
+      "path": ".claude/agents/stilltrue-core-dev.md",
+      "sha": "b36aca7df80e666b1ba8a48f685da30aa045ebf6",
+      "bytes": 2967,
+      "local": "agents\\pra2107tham__stilltrue\\stilltrue-core-dev.md",
+      "flags": []
+    },
+    "Orange0618/mengmeng-diary::.claude/agents/zhuge-liang-dispatcher.md": {
+      "repo": "Orange0618/mengmeng-diary",
+      "path": ".claude/agents/zhuge-liang-dispatcher.md",
+      "sha": "f29db9ae6856fae0fe150d800482b4dedfc6618e",
+      "bytes": 2711,
+      "local": "agents\\Orange0618__mengmeng-diary\\zhuge-liang-dispatcher.md",
+      "flags": []
+    },
+    "qlan-ro/mainframe::.claude/agents/renderer-porter.md": {
+      "repo": "qlan-ro/mainframe",
+      "path": ".claude/agents/renderer-porter.md",
+      "sha": "51f63ddfa6c4f38a505866a236dbb95c321e7293",
+      "bytes": 4175,
+      "local": "agents\\qlan-ro__mainframe\\renderer-porter.md",
+      "flags": []
+    },
+    "WUNDU/wundu-api::.claude/agents/software-architect.md": {
+      "repo": "WUNDU/wundu-api",
+      "path": ".claude/agents/software-architect.md",
+      "sha": "1b17439b540021526ecef9c03ab72de76ba09e93",
+      "bytes": 7740,
+      "local": "agents\\WUNDU__wundu-api\\software-architect.md",
+      "flags": []
+    },
+    "kevrcress/hve-claude::.claude/agents/hve-researcher.md": {
+      "repo": "kevrcress/hve-claude",
+      "path": ".claude/agents/hve-researcher.md",
+      "sha": "5740fa2e50d7ddac2ecb29b036e74229947b9c78",
+      "bytes": 3687,
+      "local": "agents\\kevrcress__hve-claude\\hve-researcher.md",
+      "flags": []
+    },
+    "jdeleon3/RD.Creations.Site::.claude/agents/studio-operations/infrastructure-maintainer.md": {
+      "repo": "jdeleon3/RD.Creations.Site",
+      "path": ".claude/agents/studio-operations/infrastructure-maintainer.md",
+      "sha": "781a2d79a2dc840a946784a10ef6b00858b5f841",
+      "bytes": 2464,
+      "local": "agents\\jdeleon3__RD.Creations.Site\\infrastructure-maintainer.md",
+      "flags": []
+    },
+    "metavoli/cyber-security-pulse::.claude/agents/test-agent.md": {
+      "repo": "metavoli/cyber-security-pulse",
+      "path": ".claude/agents/test-agent.md",
+      "sha": "c73b4b3ccfb2907a0b590a65d8ea6689eac80c2e",
+      "bytes": 4088,
+      "local": "agents\\metavoli__cyber-security-pulse\\test-agent.md",
+      "flags": []
+    },
+    "hugodurieux/PIIN_FRANKA::.claude/agents/implementer.md": {
+      "repo": "hugodurieux/PIIN_FRANKA",
+      "path": ".claude/agents/implementer.md",
+      "sha": "e8acfcb04635a0ed7521bf3230c2523a470fdd37",
+      "bytes": 2716,
+      "local": "agents\\hugodurieux__PIIN_FRANKA\\implementer.md",
+      "flags": []
+    },
+    "supermalang/ai-augmented-coding::.claude/agents/coder.md": {
+      "repo": "supermalang/ai-augmented-coding",
+      "path": ".claude/agents/coder.md",
+      "sha": "2b4f8a4ed1ea449a8e479f05029c5d332b1c2575",
+      "bytes": 1085,
+      "local": "agents\\supermalang__ai-augmented-coding\\coder.md",
+      "flags": []
+    },
+    "dhelweg/gentriduck::.claude/agents/geo-data-scientist.md": {
+      "repo": "dhelweg/gentriduck",
+      "path": ".claude/agents/geo-data-scientist.md",
+      "sha": "05d6f2395916902f209cf87096588102cf51febf",
+      "bytes": 2177,
+      "local": "agents\\dhelweg__gentriduck\\geo-data-scientist.md",
+      "flags": []
+    },
+    "ChunkyTortoise/EnterpriseHub::.claude/agents/database-migration.md": {
+      "repo": "ChunkyTortoise/EnterpriseHub",
+      "path": ".claude/agents/database-migration.md",
+      "sha": "3dac1b4e1b429deecc7af01a69304bbf6f94baf8",
+      "bytes": 5478,
+      "local": "agents\\ChunkyTortoise__EnterpriseHub\\database-migration.md",
+      "flags": []
+    },
+    "leonardo02lobo/Dining-System-UNET-Front::.claude/agents/unet-frontend-developer.md": {
+      "repo": "leonardo02lobo/Dining-System-UNET-Front",
+      "path": ".claude/agents/unet-frontend-developer.md",
+      "sha": "c2a1a60b5fc2c5255ea46d96800b8eaded80c767",
+      "bytes": 24780,
+      "local": "agents\\leonardo02lobo__Dining-System-UNET-Front\\unet-frontend-developer.md",
+      "flags": []
+    },
+    "fightingzzz/whsss::.claude/agents/README.md": {
+      "repo": "fightingzzz/whsss",
+      "path": ".claude/agents/README.md",
+      "sha": "e1d840e7c38a31496a0800e565a0657f8262a709",
+      "bytes": 14525,
+      "local": "agents\\fightingzzz__whsss\\README.md",
+      "flags": []
     }
   },
   "flagged": [
@@ -103819,6 +104685,7 @@
     "LinXueyuanStdio/AutoRamsey::.claude/agents/plan.md",
     "Jabberwocky238/console::.claude/agents/plan.md",
     "aRustyDev/forge::.claude/agents/dioxus.md",
-    "lst97/opencode-commands::.opencode/agent/security-review.md"
+    "lst97/opencode-commands::.opencode/agent/security-review.md",
+    "aphamm/.dotfiles::agents/skills/tribunal/SKILL.md"
   ]
 }

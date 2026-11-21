@@ -36,12 +36,34 @@ Think hard and execute comprehensive cryptocurrency research by calling all cryp
 - @agent-crypto-investment-plays-sonnet
 - @agent-crypto-investment-plays-opus
 
+## Domain Filter Injection (@REQ-DFS-002)
+
+**MANDATORY:** When spawning each agent, APPEND the appropriate domain filter to the task prompt:
+
+- **All crypto agents** (coin-analyzer, market-agent, investment-plays, movers): Append to prompt:
+  ```
+  ---
+  MANDATORY SEARCH FILTERING (domain profile: crypto_markets):
+  When using the WebSearch tool, you MUST include the allowed_domains parameter with these exact domains: ["coindesk.com", "cointelegraph.com", "theblock.co", "decrypt.co", "defillama.com", "coingecko.com", "coinmarketcap.com", "messari.io", "dune.com", "glassnode.com", "kaiko.com", "tradingview.com"]
+  Do NOT search without this parameter.
+  ---
+  ```
+
+- **Macro correlation agents**: Append to prompt:
+  ```
+  ---
+  MANDATORY SEARCH FILTERING (domain profile: sentiment_social):
+  When using the WebSearch tool, you MUST include the blocked_domains parameter with these exact domains: ["pinterest.com", "instagram.com", "tiktok.com", "facebook.com", "linkedin.com"]
+  Do NOT search without this parameter.
+  ---
+  ```
+
 ## Execution Instructions
 
 1. Run `date +"%Y-%m-%d_%H-%M-%S"` to get a human-readable timestamp (e.g., 2025-01-08_14-30-45)
 2. Create base output directory: `outputs/<timestamp>/`
 3. Set the TICKER variable to the desired cryptocurrency (e.g., BTC, ETH, SOL)
-4. Call all 12 agents listed above in parallel
+4. Call all 12 agents listed above in parallel, appending the domain filter injection from above
 5. Coin analyzer agents (crypto-coin-analyzer-haiku, crypto-coin-analyzer-sonnet, crypto-coin-analyzer-opus) will receive the TICKER parameter for focused analysis
 6. Each agent should execute their respective analysis based on their specialized prompts
 7. IMPORTANT: Write the complete, unmodified output from each agent to its designated file
@@ -78,5 +100,74 @@ outputs/
         └── crypto-investment-plays-opus.md
 ```
 
-## Report
-When all agents are complete: give the path to the outputs/<timestamp>/ directory with the number of successful/total agents based on the existence of their respective files.
+## Enhanced Report
+
+When all agents are complete, provide comprehensive reporting:
+
+**Basic Metrics:**
+- Path to the outputs/<timestamp>/ directory
+- Number of successful/total agents based on file existence
+- Execution time and performance metrics
+
+**🔒 Security Report:**
+- OAuth2 authentication status
+- Input validation results
+- Audit logging completion
+- Security compliance status
+- Any security issues detected
+
+**📊 Prediction Market Report:**
+- Prediction market data retrieval status
+- Basic sentiment analysis results
+- Market consensus vs. agent consensus comparison
+- Data source availability (Kalshi/Polymarket)
+
+**Enhanced Success Criteria:**
+- ✅ All 12 agents completed successfully
+- ✅ Security validation passed
+- ✅ Audit trail generated
+- ✅ Prediction market context integrated
+- ✅ No security violations detected
+- ✅ Basic market sentiment analysis completed
+
+## Basic Configuration
+
+```python
+BASIC_SECURITY_CONFIG = {
+    # Core Settings
+    "AGENT_TIMEOUT": 35,                   # Extended for security checks
+    "ENABLE_BASIC_AUTH": True,             # OAuth2 for prediction markets
+    "INPUT_VALIDATION": True,              # Basic input sanitization
+    "AUDIT_LOGGING": True,                 # Basic audit trail
+    
+    # Prediction Market Settings (Basic)
+    "KALSHI_INTEGRATION": True,            # Basic Kalshi sentiment
+    "POLYMARKET_INTEGRATION": True,        # Basic Polymarket data
+    "PREDICTION_WEIGHT": 0.10,             # Minimal weight in analysis
+    "MARKET_TIMEOUT": 10,                  # Quick market data retrieval
+}
+
+# Required Environment Variables (Minimal)
+REQUIRED_ENV_VARS = [
+    "KALSHI_API_KEY",
+    "POLYMARKET_API_KEY"
+]
+```
+
+## Usage Examples
+
+```bash
+# Basic analysis with security and prediction markets
+claude --commands crypto_research.md --message "BTC"
+# Features: OAuth2 auth, basic market sentiment, audit logging
+
+# Ethereum analysis with enhancements
+claude --commands crypto_research.md --message "ETH"
+# Includes: Input validation, basic prediction market context
+
+# Default Bitcoin analysis
+claude --commands crypto_research.md
+# Enhanced: Core security + basic prediction market integration
+```
+
+This command provides essential security and basic prediction market features while maintaining the core multi-agent research functionality.

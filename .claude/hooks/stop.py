@@ -1,231 +1,66 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#     "python-dotenv",
-# ]
-# ///
+#!/usr/bin/env python3
+"""Stop hook — logs session completion. Called when Claude Code stops.
 
-import argparse
+RQ-215 (2026-05-14): emits `terminalSequence` JSON field (CC 2.1.141+) so
+cron/daemon-spawned sessions can surface their completion via window-title
+and bell without a controlling terminal. Respects WhatsApp P0-only rule —
+this is the lightweight visibility surface for everything below P0.
+"""
 import json
 import os
 import sys
-import random
-import subprocess
-from pathlib import Path
-from datetime import datetime
-
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass  # dotenv is optional
+from datetime import datetime, timezone
 
 
-def get_completion_messages():
-    """Return list of friendly completion messages."""
-    return [
-        "Work complete!",
-        "All done!",
-        "Task finished!",
-        "Job complete!",
-        "Ready for next task!"
-    ]
+def _build_terminal_sequence(session_id: str, stop_reason: str) -> str:
+    """RQ-215: build OSC-0 (window title) sequence.
 
-
-def get_tts_script_path():
+    Uses xterm OSC-0 escape: ESC ]0; <title> BEL — universally supported
+    by tmux, screen, gnome-terminal, iTerm2, and Windows Terminal.
     """
-    Determine which TTS script to use based on available API keys.
-    Priority order: ElevenLabs > OpenAI > pyttsx3
-    """
-    # Get current script directory and construct utils/tts path
-    script_dir = Path(__file__).parent
-    tts_dir = script_dir / "utils" / "tts"
-    
-    # Check for ElevenLabs API key (highest priority)
-    if os.getenv('ELEVENLABS_API_KEY'):
-        elevenlabs_script = tts_dir / "elevenlabs_tts.py"
-        if elevenlabs_script.exists():
-            return str(elevenlabs_script)
-    
-    # Check for OpenAI API key (second priority)
-    if os.getenv('OPENAI_API_KEY'):
-        openai_script = tts_dir / "openai_tts.py"
-        if openai_script.exists():
-            return str(openai_script)
-    
-    # Fall back to pyttsx3 (no API key required)
-    pyttsx3_script = tts_dir / "pyttsx3_tts.py"
-    if pyttsx3_script.exists():
-        return str(pyttsx3_script)
-    
-    return None
-
-
-def get_llm_completion_message():
-    """
-    Generate completion message using available LLM services.
-    Priority order: OpenAI > Anthropic > Ollama > fallback to random message
-    
-    Returns:
-        str: Generated or fallback completion message
-    """
-    # Get current script directory and construct utils/llm path
-    script_dir = Path(__file__).parent
-    llm_dir = script_dir / "utils" / "llm"
-    
-    # Try OpenAI first (highest priority)
-    if os.getenv('OPENAI_API_KEY'):
-        oai_script = llm_dir / "oai.py"
-        if oai_script.exists():
-            try:
-                result = subprocess.run([
-                    "uv", "run", str(oai_script), "--completion"
-                ], 
-                capture_output=True,
-                text=True,
-                timeout=10
-                )
-                if result.returncode == 0 and result.stdout.strip():
-                    return result.stdout.strip()
-            except (subprocess.TimeoutExpired, subprocess.SubprocessError):
-                pass
-    
-    # Try Anthropic second
-    if os.getenv('ANTHROPIC_API_KEY'):
-        anth_script = llm_dir / "anth.py"
-        if anth_script.exists():
-            try:
-                result = subprocess.run([
-                    "uv", "run", str(anth_script), "--completion"
-                ], 
-                capture_output=True,
-                text=True,
-                timeout=10
-                )
-                if result.returncode == 0 and result.stdout.strip():
-                    return result.stdout.strip()
-            except (subprocess.TimeoutExpired, subprocess.SubprocessError):
-                pass
-    
-    # Try Ollama third (local LLM)
-    ollama_script = llm_dir / "ollama.py"
-    if ollama_script.exists():
-        try:
-            result = subprocess.run([
-                "uv", "run", str(ollama_script), "--completion"
-            ], 
-            capture_output=True,
-            text=True,
-            timeout=10
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                return result.stdout.strip()
-        except (subprocess.TimeoutExpired, subprocess.SubprocessError):
-            pass
-    
-    # Fallback to random predefined message
-    messages = get_completion_messages()
-    return random.choice(messages)
-
-def announce_completion():
-    """Announce completion using the best available TTS service."""
-    try:
-        tts_script = get_tts_script_path()
-        if not tts_script:
-            return  # No TTS scripts available
-        
-        # Get completion message (LLM-generated or fallback)
-        completion_message = get_llm_completion_message()
-        
-        # Call the TTS script with the completion message
-        subprocess.run([
-            "uv", "run", tts_script, completion_message
-        ], 
-        capture_output=True,  # Suppress output
-        timeout=10  # 10-second timeout
-        )
-        
-    except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
-        # Fail silently if TTS encounters issues
-        pass
-    except Exception:
-        # Fail silently for any other errors
-        pass
+    short_sid = (session_id or "session")[:8]
+    label = "OK" if stop_reason in ("user", "completed", "unknown") else "ERR"
+    title = f"TB:{label}:{short_sid}"
+    # \x1b]0;TITLE\x07 — OSC 0 + BEL
+    return f"\x1b]0;{title}\x07"
 
 
 def main():
     try:
-        # Parse command line arguments
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--chat', action='store_true', help='Copy transcript to chat.json')
-        parser.add_argument('--notify', action='store_true', help='Enable TTS completion announcement')
-        args = parser.parse_args()
-        
-        # Read JSON input from stdin
-        input_data = json.load(sys.stdin)
-
-        # Extract required fields
-        session_id = input_data.get("session_id", "")
-        stop_hook_active = input_data.get("stop_hook_active", False)
-
-        # Ensure log directory exists
-        log_dir = os.path.join(os.getcwd(), "logs")
-        os.makedirs(log_dir, exist_ok=True)
-        log_path = os.path.join(log_dir, "stop.json")
-
-        # Read existing log data or initialize empty list
-        if os.path.exists(log_path):
-            with open(log_path, 'r') as f:
-                try:
-                    log_data = json.load(f)
-                except (json.JSONDecodeError, ValueError):
-                    log_data = []
-        else:
-            log_data = []
-        
-        # Append new data
-        log_data.append(input_data)
-        
-        # Write back to file with formatting
-        with open(log_path, 'w') as f:
-            json.dump(log_data, f, indent=2)
-        
-        # Handle --chat switch
-        if args.chat and 'transcript_path' in input_data:
-            transcript_path = input_data['transcript_path']
-            if os.path.exists(transcript_path):
-                # Read .jsonl file and convert to JSON array
-                chat_data = []
-                try:
-                    with open(transcript_path, 'r') as f:
-                        for line in f:
-                            line = line.strip()
-                            if line:
-                                try:
-                                    chat_data.append(json.loads(line))
-                                except json.JSONDecodeError:
-                                    pass  # Skip invalid lines
-                    
-                    # Write to logs/chat.json
-                    chat_file = os.path.join(log_dir, 'chat.json')
-                    with open(chat_file, 'w') as f:
-                        json.dump(chat_data, f, indent=2)
-                except Exception:
-                    pass  # Fail silently
-
-        # Announce completion via TTS (only if --notify flag is set)
-        if args.notify:
-            announce_completion()
-
-        sys.exit(0)
-
-    except json.JSONDecodeError:
-        # Handle JSON decode errors gracefully
-        sys.exit(0)
+        data = json.load(sys.stdin) if not sys.stdin.isatty() else {}
     except Exception:
-        # Handle any other errors gracefully
-        sys.exit(0)
+        data = {}
+
+    timestamp = datetime.now(timezone.utc).isoformat()
+    stop_reason = data.get("stop_reason", "unknown")
+    session_id = data.get("session_id", "unknown")
+
+    response = {
+        "timestamp": timestamp,
+        "stop_reason": stop_reason,
+    }
+
+    # RQ-215: emit terminalSequence only when CC 2.1.141+ feature is supported.
+    # The flag CC_HOOK_TERMINAL_SEQUENCE=1 in env gates this — set by the
+    # super_orchestrator-daemon.service tier-a-live.conf override.
+    if os.environ.get("CC_HOOK_TERMINAL_SEQUENCE") == "1":
+        response["terminalSequence"] = _build_terminal_sequence(session_id, stop_reason)
+
+    # Linguistic-AI-agent-anatomy gap #2 (2026-05-15): memory curation pass.
+    # Propose-only, throttled to 1/24h, fail-silent. <50ms on ~150 files.
+    # Disable with MEMORY_PRUNER_ENABLED=0.
+    if os.environ.get("MEMORY_PRUNER_ENABLED", "1") == "1":
+        try:
+            from memory_pruner import maybe_run as _prune_maybe_run  # type: ignore
+            _prune_result = _prune_maybe_run()
+            if _prune_result.get("ran") and _prune_result.get("stale_count", 0) > 0:
+                response["memory_prune_proposal"] = {
+                    "stale_count": _prune_result["stale_count"],
+                }
+        except Exception:
+            pass  # never block on memory pruning
+
+    print(json.dumps(response))
 
 
 if __name__ == "__main__":

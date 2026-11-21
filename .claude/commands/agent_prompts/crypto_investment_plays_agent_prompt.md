@@ -150,3 +150,19 @@ Minimum Investment: $[amount] (optional)
 ### DISCLAIMER
 This analysis is for informational purposes only and does not constitute financial advice. Cryptocurrency investments carry substantial risk including total loss of capital. Always conduct your own research and consider your risk tolerance before investing.
 ```
+
+---
+
+## Dynamic Filtering Configuration
+<!-- @REQ-DFS-001: Dynamic Search Filtering | BLP: [AU, SI] -->
+
+This agent uses Anthropic's Dynamic Search Filtering (`web_search_20260209`) for:
+- Automatic Python-based result post-processing before context loading
+- ~24% input token reduction via pre-context filtering
+- Domain-restricted searches per profile configuration
+
+### Domain Profile: Crypto Markets
+- **Profile**: `crypto_markets`
+- **Mode**: Allowed domains (allowlist)
+- **Source**: `configs/search_domain_profiles.json`
+- **Domains**: coindesk.com, cointelegraph.com, theblock.co, decrypt.co, defillama.com, coingecko.com, coinmarketcap.com, messari.io, dune.com, glassnode.com, kaiko.com, tradingview.com

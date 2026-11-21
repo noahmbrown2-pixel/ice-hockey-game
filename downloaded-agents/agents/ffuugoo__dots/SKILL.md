@@ -1,44 +1,26 @@
 ---
-name: github
+name: rust
 description: >-
-  Use for official GitHub documentation, basic `gh` CLI operations,
-  and installing, updating, or removing agent skills with `gh skill`
+  Use when writing, editing, reviewing, testing, or debugging Rust code
 ---
 
-# GitHub 🐙
+# Rust 🦀
 
 ## Documentation
 
-For official GitHub documentation use [`Docs`](../docs/SKILL.md) skill.
+When exact standard library behavior matters, consult source under
+`~/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/src/rust/library`.
 
-## GitHub CLI
+When exact third-party crate behavior matters, inspect crate source under
+`~/.cargo/registry` and `~/.cargo/git`.
 
-<!-- TODO: Manage GitHub issues, PRs and CI with `gh` CLI -->
+For Rust Reference and Rustonomicon use [`Docs`](../docs/SKILL.md) skill.
 
-## Agent Skills
+## Formatting
 
-`gh skill` finds, installs, and updates agent skills from GitHub repositories.
+Follow style of existing code and `rustfmt.toml`.
+Format Rust code with `cargo +nightly fmt`.
 
-Discover skills with:
+## Validation
 
-```zsh
-gh skill search <query>
-gh skill preview <owner>/<repo> <skill>
-```
-
-Manage skills with:
-
-```zsh
-gh skill install --dir ~/.agents/skills <owner>/<repo> <skill>
-gh skill update --dir ~/.agents/skills --all
-gh skill list --dir ~/.agents/skills
-```
-
-Skills live in the shared `~/.agents/skills` directory, which every agent reads.
-Always pass `--dir ~/.agents/skills`, otherwise `gh skill` installs a separate copy per agent.
-
-To uninstall a skill, remove its directory:
-
-```zsh
-rm -r ~/.agents/skills/<skill>
-```
+Run tests with `cargo nextest run`.

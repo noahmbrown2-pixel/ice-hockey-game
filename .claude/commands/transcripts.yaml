@@ -1,0 +1,79 @@
+# Claude Custom Commands for Transcript Processing
+# These commands can be invoked from Claude using /command syntax
+
+commands:
+  # Main command to process all transcripts
+  process-transcripts:
+    description: "Process and upload Limitless transcripts to Notion"
+    alias: ["transcripts", "pt"]
+    script: "/home/craigmbrown/Project/.claude/commands/process-transcripts.sh"
+    args:
+      days:
+        description: "Number of days to fetch (default: 1)"
+        type: integer
+        default: 1
+    examples:
+      - "/process-transcripts"        # Process today's transcripts
+      - "/process-transcripts 7"       # Process last 7 days
+      - "/pt"                          # Short alias
+
+  # Quick upload command (skip fetching)
+  upload-transcripts:
+    description: "Upload already staged transcripts to Notion"
+    alias: ["upload", "ut"]
+    command: |
+      cd /home/craigmbrown/Project/drop-zones && \
+      python3 batch_upload.py --process-staging
+    
+  # Status check command
+  transcript-status:
+    description: "Check transcript processing status"
+    alias: ["status", "ts"]
+    command: |
+      echo "📊 Transcript Processing Status" && \
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━" && \
+      echo "Staging:" && \
+      ls -la /home/craigmbrown/Project/drop-zones/staging/*.json 2>/dev/null | wc -l && \
+      echo "Processed today:" && \
+      ls /home/craigmbrown/Project/drop-zones/drop-zones/archived/$(date +%Y-%m-%d)/*.json 2>/dev/null | wc -l && \
+      cd /home/craigmbrown/Project/drop-zones && \
+      python3 batch_upload.py --status
+
+  # Clean staging command
+  clean-staging:
+    description: "Clean staging directory and reset"
+    alias: ["clean", "cs"]
+    command: |
+      cd /home/craigmbrown/Project/drop-zones && \
+      mkdir -p staging/backup_$(date +%Y%m%d_%H%M%S) && \
+      mv staging/*.json staging/backup_$(date +%Y%m%d_%H%M%S)/ 2>/dev/null || true && \
+      echo '[]' > staging/queue.json && \
+      echo '{"hashes": []}' > drop-zones/staging/processed_hashes.json && \
+      echo "✅ Staging directory cleaned"
+
+  # Test single transcript
+  test-transcript:
+    description: "Process a single test transcript"
+    alias: ["test", "tt"]
+    command: |
+      cd /home/craigmbrown/Project/drop-zones && \
+      python3 << 'EOF'
+      import json
+      from datetime import datetime
+      
+      test_item = {
+          "type": "Research",
+          "title": f"Test Transcript - {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+          "content": "This is a test transcript to verify the upload pipeline is working correctly.",
+          "metadata": {
+              "source": "test",
+              "processed_at": datetime.now().isoformat()
+          }
+      }
+      
+      with open('staging/test_transcript.json', 'w') as f:
+          json.dump(test_item, f, indent=2)
+      
+      print("✅ Test transcript created in staging")
+      print("Run /upload-transcripts to upload")
+      EOF

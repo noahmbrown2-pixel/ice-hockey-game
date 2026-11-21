@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CREEPER — Card Duel</title>
+<style>
+  :root{
+    --bg0:#0e0a06; --bg1:#1c140c; --panel:#241a10; --panel2:#2c1f13;
+    --wood:#4a3320; --wood-lt:#6b4a2b; --gold:#e8b84b; --gold-dim:#b58a3a;
+    --green:#5fd97a; --red:#ff6b6b; --ink:#f1e6d2; --ink-dim:#c9b898;
+    --black:#1a1a1a; --cardbg:#fbf3e3; --creeper:#4caf50; --creeper-dk:#1b5e20;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; font-family:Georgia,'Times New Roman',serif;
+    background:radial-gradient(ellipse at 50% -10%, #3a2814, var(--bg0) 60%);
+    color:var(--ink); padding:18px;
+  }
+  #app{max-width:1080px; margin:0 auto;}
+  header{text-align:center; margin-bottom:14px;}
+  header h1{
+    font-size:2.6rem; margin:0; letter-spacing:4px; color:var(--gold);
+    text-shadow:0 0 18px rgba(232,184,75,.35), 0 2px 0 #000;
+  }
+  header .sub{color:var(--ink-dim); font-size:.95rem; margin-top:4px;}
+  header .tip{color:#8a7455; font-size:.78rem; margin-top:6px; font-style:italic;}
+
+  .hidden{display:none !important;}
+
+  /* ---------- SETUP ---------- */
+  #setup-screen{
+    background:var(--panel); border:2px solid var(--wood-lt); border-radius:14px;
+    padding:22px; max-width:760px; margin:0 auto; text-align:center;
+  }
+  #setup-screen h2{color:var(--gold); margin-top:0;}
+  #setup-screen p{color:var(--ink-dim); line-height:1.5; font-size:.92rem;}
+  .setup-row{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:18px 0;}
+  .setup-slot{display:flex; flex-direction:column; align-items:center; gap:6px;}
+  .setup-slot .pos-label{font-size:.68rem; color:#8a7455;}
+  .arrows{display:flex; gap:4px;}
+  .arrows button{
+    background:var(--wood); border:1px solid var(--wood-lt); color:var(--ink);
+    border-radius:5px; cursor:pointer; font-size:.75rem; padding:2px 6px;
+  }
+  .arrows button:hover{background:var(--wood-lt);}
+  .arrows button:disabled{opacity:.25; cursor:default;}
+  #start-btn, .primary-btn{
+    background:linear-gradient(180deg,var(--gold),var(--gold-dim));
+    border:none; color:#2a1c08; font-weight:bold; font-size:1.05rem;
+    padding:12px 26px; border-radius:10px; cursor:pointer; margin-top:8px;
+    box-shadow:0 4px 0 #7a5a24;
+  }
+  #start-btn:active, .primary-btn:active{transform:translateY(2px); box-shadow:0 2px 0 #7a5a24;}
+
+  /* ---------- CARD ---------- */
+  .card{
+    width:58px; height:82px; background:var(--cardbg); border-radius:7px;
+    border:1px solid #cbb98f; display:flex; flex-direction:column; justify-content:space-between;
+    padding:4px 5px; font-weight:bold; font-size:1.05rem; color:var(--black);
+    box-shadow:0 2px 6px rgba(0,0,0,.5); position:relative; flex-shrink:0;
+  }
+  .card.red{color:#b3232e;}
+  .card.joker{
+    background:repeating-linear-gradient(135deg,#fff 0 8px,#c62828 8px 16px);
+    color:#fff; text-align:center; justify-content:center; font-size:1.4rem;
+    text-shadow:0 1px 3px rgba(0,0,0,.8);
+  }
+  .card.small{width:40px; height:58px; font-size:.78rem; padding:3px 4px;}
+  .card .corner-b{align-self:flex-end; transform:rotate(180deg);}
+  .card-back{
+    width:58px; height:82px; border-radius:7px; flex-shrink:0;
+    background:repeating-linear-gradient(45deg,#3a2410,#3a2410 6px,#4a3018 6px,#4a3018 12px);
+    border:1px solid #241708; box-shadow:0 2px 6px rgba(0,0,0,.5);
+  }
+  .card-back.small{width:40px; height:58px;}
+  .card-slot-empty{
+    width:58px; height:82px; border:2px dashed #55432b; border-radius:7px; flex-shrink:0;
+  }
+
+  /* ---------- ARENA ---------- */
+  .arena{display:grid; grid-template-columns:1fr 1.1fr 1fr; gap:14px; align-items:start;}
+  .fighter{
+    background:var(--panel); border:2px solid var(--wood-lt); border-radius:14px;
+    padding:14px; text-align:center;
+  }
+  .fighter.player{border-color:#3f6b4a;}
+  .fighter.creeper{border-color:var(--creeper-dk);}
+  .fighter h2{margin:0 0 10px; font-size:1.15rem; color:var(--gold);}
+  .guard-wrap{display:flex; flex-direction:column; align-items:center; gap:6px;}
+  .guard-label{font-size:.68rem; color:#8a7455; letter-spacing:1px; text-transform:uppercase;}
+  .pile-info{margin-top:10px; font-size:.82rem; color:var(--ink-dim);}
+  .pile-info b{color:var(--ink);}
+  .stack-label{font-size:.65rem; color:#8a7455; letter-spacing:.5px; text-transform:uppercase; margin-top:8px;}
+  .pile-stack{display:flex; margin-top:6px; justify-content:center; gap:4px; flex-wrap:wrap; min-height:58px;}
+  .pile-stack .card-back{margin-left:-38px;}
+  .pile-stack .card-back:first-child{margin-left:0;}
+  .hp-hint{font-size:.7rem; color:#8a7455; margin-top:2px;}
+
+  .center{display:flex; flex-direction:column; align-items:center; gap:10px;}
+  .deck-row{display:flex; align-items:center; gap:16px;}
+  .deck-count{font-size:.75rem; color:#8a7455;}
+  .streak-area{
+    min-height:100px; width:100%; background:var(--panel2); border-radius:10px;
+    border:1px solid var(--wood); padding:10px; display:flex; flex-direction:column;
+    align-items:center; gap:8px;
+  }
+  .streak-cards{display:flex; gap:6px; flex-wrap:wrap; justify-content:center; min-height:60px;}
+  .streak-total{font-size:1.3rem; color:var(--gold); font-weight:bold;}
+  .streak-hint{font-size:.72rem; color:var(--ink-dim); text-align:center;}
+  .controls{display:flex; gap:10px; flex-wrap:wrap; justify-content:center;}
+  .btn{
+    border:none; border-radius:9px; padding:10px 16px; font-weight:bold; cursor:pointer;
+    font-size:.9rem; box-shadow:0 3px 0 rgba(0,0,0,.4);
+  }
+  .btn:active{transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,.4);}
+  .btn.heal{background:var(--green); color:#0a2b12;}
+  .btn.attack{background:var(--red); color:#2b0a0a;}
+  .btn.push{background:var(--gold); color:#2a1c08;}
+  .btn.bank{background:#7fb0ff; color:#0a1c3a;}
+  .btn:disabled{opacity:.35; cursor:default;}
+  .turn-banner{
+    text-align:center; font-size:.95rem; color:var(--gold); letter-spacing:1px;
+    text-transform:uppercase; margin-bottom:2px; min-height:1.2em;
+  }
+
+  .flash-heal{animation:flashHeal .5s ease;}
+  .flash-dmg{animation:flashDmg .5s ease;}
+  .flash-bust{animation:flashBust .5s ease;}
+  @keyframes flashHeal{0%{box-shadow:0 0 0 0 rgba(95,217,122,0);}30%{box-shadow:0 0 24px 6px rgba(95,217,122,.6);}100%{box-shadow:0 0 0 0 rgba(95,217,122,0);}}
+  @keyframes flashDmg{0%{box-shadow:0 0 0 0 rgba(255,107,107,0);}30%{box-shadow:0 0 24px 6px rgba(255,107,107,.6);}100%{box-shadow:0 0 0 0 rgba(255,107,107,0);}}
+  @keyframes flashBust{0%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-6px);}80%{transform:translateX(6px);}100%{transform:translateX(0);}}
+
+  #log{
+    margin-top:14px; background:#120c07; border:1px solid var(--wood); border-radius:10px;
+    padding:10px 14px; height:170px; overflow-y:auto; font-size:.82rem; color:var(--ink-dim);
+  }
+  #log div{padding:2px 0; border-bottom:1px dotted #2a1e12;}
+  #log .sys{color:#8a7455; font-style:italic;}
+  #log .dmg{color:var(--red);}
+  #log .heal{color:var(--green);}
+  #log .joker{color:#ff8a65; font-weight:bold;}
+  #log .turn{color:var(--gold); font-weight:bold;}
+
+  #gameover-screen{
+    text-align:center; background:var(--panel); border:2px solid var(--gold-dim);
+    border-radius:14px; padding:32px; max-width:640px; margin:20px auto;
+  }
+  #gameover-screen h2{font-size:2rem; color:var(--gold); margin-top:0;}
+  #gameover-screen p{color:var(--ink-dim); line-height:1.6;}
+
+  @media(max-width:820px){
+    .arena{grid-template-columns:1fr; }
+    header h1{font-size:2rem;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>🟩 CREEPER</h1>
+    <div class="sub">a card duel with a Creeper (sssss...)</div>
+    <div class="tip">House Rule: everyone stays on their own side of the table. 💥</div>
+  </header>
+
+  <div id="setup-screen">
+    <h2>Set Your Guard</h2>
+    <p>
+      Your health is your card stack. The <b>top card</b> is your <b>guard</b> — whatever you draw
+      has to match its suit, or beat its rank, to do you any good. Big cards make tough guards but
+      cost you more if they fall. Small cards guard cheaply but let almost anything through.
+      Order your six starting cards below (lowest guard on top is the classic move — health goes away
+      <i>fast</i> once the fuse is lit).
+    </p>
+    <div class="setup-row" id="setup-row"></div>
+    <button id="start-btn">Begin the Duel</button>
+  </div>
+
+  <div id="game-screen" class="hidden">
+    <div class="turn-banner" id="turn-banner">—</div>
+    <div class="arena">
+      <div class="fighter player">
+        <h2>🧑 You</h2>
+        <div class="guard-wrap">
+          <div class="guard-label">Your Guard</div>
+          <div id="player-guard"></div>
+        </div>
+        <div class="pile-info" id="player-pile-info"></div>
+        <div class="stack-label">Next in your pile</div>
+        <div class="pile-stack" id="player-pile-stack"></div>
+      </div>
+
+      <div class="center">
+        <div class="deck-row">
+          <div class="card-back" id="deck-visual"></div>
+          <div class="deck-count" id="deck-count">54 cards left</div>
+        </div>
+        <div class="streak-area" id="streak-area">
+          <div class="streak-hint" id="streak-hint">Draw to start your turn.</div>
+          <div class="streak-cards" id="streak-cards"></div>
+          <div class="streak-total" id="streak-total"></div>
+        </div>
+        <div class="controls" id="controls"></div>
+      </div>
+
+      <div class="fighter creeper">
+        <h2>🟩 Creeper</h2>
+        <div class="guard-wrap">
+          <div class="guard-label">Creeper's Guard</div>
+          <div id="creeper-guard"></div>
+        </div>
+        <div class="pile-info" id="creeper-pile-info"></div>
+        <div class="stack-label">Hidden pile</div>
+        <div class="pile-stack" id="creeper-pile-stack"></div>
+      </div>
+    </div>
+
+    <div id="log"></div>
+  </div>
+
+  <div id="gameover-screen" class="hidden">
+    <h2 id="gameover-title"></h2>
+    <p id="gameover-text"></p>
+    <button class="primary-btn" id="restart-btn">Deal Again</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const SUITS = [
+    {sym:'♠', color:'black'}, {sym:'♥', color:'red'},
+    {sym:'♦', color:'red'},   {sym:'♣', color:'black'}
+  ];
+  const RANKS = [
+    {r:'2',v:2},{r:'3',v:3},{r:'4',v:4},{r:'5',v:5},{r:'6',v:6},
+    {r:'7',v:7},{r:'8',v:8},{r:'9',v:9},{r:'10',v:10},
+    {r:'J',v:11},{r:'Q',v:12},{r:'K',v:13},{r:'A',v:14}
+  ];
+
+  function freshDeck(){
+    const d = [];
+    for(const s of SUITS){
+      for(const rk of RANKS){
+        d.push({rank:rk.r, value:rk.v, suit:s.sym, color:s.color, wild:false});
+      }
+    }
+    d.push({rank:'TNT', value:15, suit:null, color:'joker', wild:true, name:'TNT'});
+    d.push({rank:'TNT', value:15, suit:null, color:'joker', wild:true, name:'TNT'});
+    return d;
+  }
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]] = [arr[j],arr[i]];
+    }
+    return arr;
+  }
+
+  // Core rule: does `card` succeed against `reference`?
+  // Wild (TNT) always succeeds, and a wild reference is so unpredictable it lets anything through.
+  function beats(card, reference){
+    if(card.wild || reference.wild) return true;
+    return card.suit === reference.suit || card.value >= reference.value;
+  }
+
+  function cardLabel(c){
+    if(c.wild) return `🧨 ${c.name || 'TNT'}`;
+    return `${c.rank}${c.suit}`;
+  }
+
+  function renderCard(c, extraClass){
+    extraClass = extraClass || '';
+    if(!c){
+      return `<div class="card-slot-empty ${extraClass}"></div>`;
+    }
+    if(c.wild){
+      return `<div class="card joker ${extraClass}">🧨</div>`;
+    }
+    const cls = c.color === 'red' ? 'red' : '';
+    return `<div class="card ${cls} ${extraClass}">
+      <div class="corner-t">${c.rank}<br>${c.suit}</div>
+      <div class="corner-b">${c.rank}<br>${c.suit}</div>
+    </div>`;
+  }
+
+  // ---------------- State ----------------
+  let state = null;
+
+  function newState(){
+    const deck = shuffle(freshDeck());
+    const playerHealth = deck.splice(0,6);
+    const creeperHealth = shuffle(deck.splice(0,6)); // Creeper gets its own random order
+    return {
+      deck, discard:[],
+      playerHealth,        // index 0 = TOP / guard
+      creeperHealth,
+      phase:'setup',        // setup | player-turn | creeper-turn | over
+      streak:null,          // {cards:[], total:0, compareCard:null, side:'player'|'creeper'}
+    };
+  }
+
+  function drawCard(st){
+    if(st.deck.length === 0){
+      if(st.discard.length === 0){
+        // absolute fallback, should not really happen
+        st.deck = shuffle(freshDeck());
+      } else {
+        st.deck = shuffle(st.discard);
+        st.discard = [];
+        log('🔄 The draw pile ran dry — reshuffled the discards back in.', 'sys');
+      }
+    }
+    return st.deck.pop();
+  }
+
+  function pileValue(pile){
+    return pile.reduce((s,c)=>s+c.value,0);
+  }
+
+  // ---------------- Logging ----------------
+  function log(msg, cls){
+    const el = document.getElementById('log');
+    const line = document.createElement('div');
+    if(cls) line.className = cls;
+    line.textContent = msg;
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+  }
+  function clearLog(){ document.getElementById('log').innerHTML = ''; }
+
+  // ---------------- Setup screen ----------------
+  function renderSetup(){
+    const row = document.getElementById('setup-row');
+    row.innerHTML = '';
+    state.playerHealth.forEach((c, i) => {
+      const slot = document.createElement('div');
+      slot.className = 'setup-slot';
+      const posLabel = i === 0 ? 'TOP (guard)' : (i === state.playerHealth.length-1 ? 'bottom' : '');
+      slot.innerHTML = `
+        <div class="pos-label">${posLabel || '&nbsp;'}</div>
+        ${renderCard(c)}
+        <div class="arrows">
+          <button data-dir="up" data-i="${i}" ${i===0?'disabled':''}>◀ up</button>
+          <button data-dir="down" data-i="${i}" ${i===state.playerHealth.length-1?'disabled':''}>down ▶</button>
+        </div>
+      `;
+      row.appendChild(slot);
+    });
+    row.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const i = parseInt(btn.dataset.i,10);
+        const dir = btn.dataset.dir;
+        const j = dir==='up' ? i-1 : i+1;
+        if(j<0 || j>=state.playerHealth.length) return;
+        [state.playerHealth[i], state.playerHealth[j]] = [state.playerHealth[j], state.playerHealth[i]];
+        renderSetup();
+      });
+    });
+  }
+
+  document.getElementById('start-btn').addEventListener('click', ()=>{
+    document.getElementById('setup-screen').classList.add('hidden');
+    document.getElementById('game-screen').classList.remove('hidden');
+    clearLog();
+    log('The deck is shuffled. The Creeper twitches and squares up. Sssss...', 'sys');
+    log(`Your guard is ${cardLabel(state.playerHealth[0])}. The Creeper's guard is ${cardLabel(state.creeperHealth[0])}.`, 'sys');
+    beginPlayerTurn();
+  });
+
+  document.getElementById('restart-btn').addEventListener('click', ()=>{
+    document.getElementById('gameover-screen').classList.add('hidden');
+    document.getElementById('setup-screen').classList.remove('hidden');
+    state = newState();
+    renderSetup();
+  });
+
+  // ---------------- Render main board ----------------
+  function renderBoard(){
+    document.getElementById('player-guard').innerHTML = renderCard(state.playerHealth[0]);
+    document.getElementById('creeper-guard').innerHTML = renderCard(state.creeperHealth[0]);
+
+    document.getElementById('player-pile-info').innerHTML =
+      `<b>${state.playerHealth.length}</b> cards &middot; <span class="hp-hint">${pileValue(state.playerHealth)} total power</span>`;
+    document.getElementById('creeper-pile-info').innerHTML =
+      `<b>${state.creeperHealth.length}</b> cards &middot; <span class="hp-hint">${pileValue(state.creeperHealth)} total power</span>`;
+
+    // Player's own pile is face-up (you know your own stack); Creeper's stays hidden.
+    renderPileStack('player-pile-stack', state.playerHealth, true);
+    renderPileStack('creeper-pile-stack', state.creeperHealth, false);
+
+    document.getElementById('deck-count').textContent = `${state.deck.length} cards left`;
+  }
+  function renderPileStack(id, pile, faceUp){
+    const el = document.getElementById(id);
+    el.innerHTML = '';
+    if(faceUp){
+      const upcoming = pile.slice(1); // the current top card is already shown as the guard above
+      const n = Math.min(upcoming.length, 8);
+      for(let i=0;i<n;i++){
+        el.insertAdjacentHTML('beforeend', renderCard(upcoming[i], 'small'));
+      }
+      if(upcoming.length === 0){
+        el.innerHTML = '<span class="hp-hint">last card standing</span>';
+      }
+    } else {
+      const n = Math.min(pile.length, 6);
+      for(let i=0;i<n;i++){
+        const d = document.createElement('div');
+        d.className = 'card-back small';
+        el.appendChild(d);
+      }
+    }
+  }
+
+  function setBanner(text){ document.getElementById('turn-banner').textContent = text; }
+  function setStreakHint(text){ document.getElementById('streak-hint').textContent = text; }
+  function renderStreak(){
+    const cardsEl = document.getElementById('streak-cards');
+    const totalEl = document.getElementById('streak-total');
+    if(!state.streak){
+      cardsEl.innerHTML = '';
+      totalEl.textContent = '';
+      return;
+    }
+    cardsEl.innerHTML = state.streak.cards.map(c=>renderCard(c,'small')).join('');
+    totalEl.textContent = state.streak.cards.length ? `Combo total: ${state.streak.total}` : '';
+  }
+
+  function setControls(html){ document.getElementById('controls').innerHTML = html; }
+
+  function flashSide(side, cls){
+    const el = document.querySelector(side === 'player' ? '.fighter.player' : '.fighter.creeper');
+    el.classList.remove('flash-heal','flash-dmg','flash-bust');
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+
+  // ---------------- Damage / heal ----------------
+  function applyDamage(pile, dmg, name, sideForFlash){
+    let remaining = dmg;
+    const lost = [];
+    while(remaining > 0 && pile.length > 0){
+      const c = pile.shift();
+      lost.push(c);
+      remaining -= c.value;
+      state.discard.push(c);
+    }
+    if(lost.length){
+      log(`💥 ${name} takes ${dmg} damage — loses ${lost.map(cardLabel).join(', ')}.`, 'dmg');
+    }
+    flashSide(sideForFlash, 'flash-dmg');
+    return pile.length === 0;
+  }
+
+  function healOnto(pile, card, name, sideForFlash){
+    pile.unshift(card);
+    log(`💚 ${name} heals with ${cardLabel(card)} — new guard is ${cardLabel(pile[0])}.`, 'heal');
+    flashSide(sideForFlash, 'flash-heal');
+  }
+
+  // ---------------- Game over ----------------
+  function endGame(playerWon){
+    state.phase = 'over';
+    document.getElementById('game-screen').classList.add('hidden');
+    const scr = document.getElementById('gameover-screen');
+    scr.classList.remove('hidden');
+    if(playerWon){
+      document.getElementById('gameover-title').textContent = '🏆 You blew up the Creeper!';
+      document.getElementById('gameover-text').textContent =
+        "The Creeper's whole health pile is gone. Sssss... BOOM — it puffs into a cloud of gunpowder " +
+        "and smoke. Victory is yours!";
+    } else {
+      document.getElementById('gameover-title').textContent = '💀 The Creeper got you first.';
+      document.getElementById('gameover-text').textContent =
+        "Your pile hit zero. Turns out the Creeper really is lethal — sssBOOM, health goes away way " +
+        "faster than it feels like, and you got a little complacent.";
+    }
+  }
+
+  // ================= PLAYER TURN =================
+  function beginPlayerTurn(){
+    if(state.phase === 'over') return;
+    state.phase = 'player-turn';
+    state.streak = null;
+    setBanner('Your Turn');
+    log('— Your turn —', 'turn');
+    renderBoard();
+    renderStreak();
+    setStreakHint('Draw to see what you get.');
+    setControls(`<button class="btn attack" id="draw-btn">Draw</button>`);
+    document.getElementById('draw-btn').addEventListener('click', playerFirstDraw);
+  }
+
+  function playerFirstDraw(){
+    const card = drawCard(state);
+    const guard = state.playerHealth[0];
+    renderBoard();
+
+    if(!beats(card, guard)){
+      log(`You draw ${cardLabel(card)}. It's not ${guard.suit}-suited and doesn't beat your guard (${cardLabel(guard)}). Turn wasted.`, 'sys');
+      state.discard.push(card);
+      setStreakHint(`Drew ${cardLabel(card)} — no good against your guard.`);
+      setControls('');
+      setTimeout(()=>beginCreeperTurn(), 1100);
+      return;
+    }
+
+    if(card.wild) log(`🧨 TNT PRIMES! Automatic success.`, 'joker');
+    log(`You draw ${cardLabel(card)} — it beats your guard.`, 'sys');
+
+    state.streak = {cards:[card], total:card.value, compareCard:card, side:'player'};
+    renderStreak();
+    setStreakHint('Heal it onto your pile, or gamble and push the combo for more damage.');
+    setControls(`
+      <button class="btn heal" id="heal-btn">Heal (+${card.value} to your guard)</button>
+      <button class="btn attack" id="attack-btn">Attack for ${state.streak.total}</button>
+    `);
+    document.getElementById('heal-btn').addEventListener('click', ()=>{
+      healOnto(state.playerHealth, state.streak.cards[0], 'You', 'player');
+      state.streak = null;
+      renderBoard(); renderStreak();
+      setControls('');
+      setTimeout(()=>beginCreeperTurn(), 900);
+    });
+    document.getElementById('attack-btn').addEventListener('click', playerOfferPush);
+  }
+
+  function playerOfferPush(){
+    setStreakHint(`Combo total ${state.streak.total}. Push your luck for more, or bank it now.`);
+    setControls(`
+      <button class="btn push" id="push-btn">Push Luck (draw again)</button>
+      <button class="btn bank" id="bank-btn">Bank ${state.streak.total} Damage</button>
+    `);
+    document.getElementById('push-btn').addEventListener('click', playerPushDraw);
+    document.getElementById('bank-btn').addEventListener('click', playerBankDamage);
+  }
+
+  function playerPushDraw(){
+    const card = drawCard(state);
+    const cmp = state.streak.compareCard;
+    renderBoard();
+
+    if(!beats(card, cmp)){
+      log(`You push and draw ${cardLabel(card)} — doesn't match or beat ${cardLabel(cmp)}. BUST! The whole ${state.streak.total}-damage combo is lost.`, 'dmg');
+      state.discard.push(card);
+      state.discard.push(...state.streak.cards);
+      state.streak = null;
+      renderStreak();
+      flashSide('player', 'flash-bust');
+      setControls('');
+      setTimeout(()=>beginCreeperTurn(), 1200);
+      return;
+    }
+
+    if(card.wild){
+      log(`🧨 TNT extends the combo — +5 bonus damage!`, 'joker');
+      state.streak.total += 5;
+    }
+    state.streak.cards.push(card);
+    state.streak.total += card.value;
+    state.streak.compareCard = card;
+    log(`Combo continues with ${cardLabel(card)} — running total ${state.streak.total}.`, 'sys');
+    renderStreak();
+    playerOfferPush();
+  }
+
+  function playerBankDamage(){
+    const dmg = state.streak.total;
+    log(`You bank the combo: KABOOM! ${dmg} damage to the Creeper!`, 'dmg');
+    state.discard.push(...state.streak.cards);
+    const dead = applyDamage(state.creeperHealth, dmg, 'Creeper', 'creeper');
+    state.streak = null;
+    renderBoard(); renderStreak();
+    setControls('');
+    if(dead){ endGame(true); return; }
+    setTimeout(()=>beginCreeperTurn(), 1100);
+  }
+
+  // ================= CREEPER TURN (AI) =================
+  function beginCreeperTurn(){
+    if(state.phase === 'over') return;
+    state.phase = 'creeper-turn';
+    state.streak = null;
+    setBanner("Creeper's Turn");
+    log('— The Creeper hisses and sways, eyeing the deck —', 'turn');
+    renderBoard(); renderStreak();
+    setStreakHint("The Creeper is thinking...");
+    setControls('');
+    setTimeout(creeperFirstDraw, 900);
+  }
+
+  function creeperFirstDraw(){
+    const card = drawCard(state);
+    const guard = state.creeperHealth[0];
+    renderBoard();
+
+    if(!beats(card, guard)){
+      log(`Creeper draws ${cardLabel(card)} — doesn't beat its guard (${cardLabel(guard)}). Its turn is wasted.`, 'sys');
+      state.discard.push(card);
+      setStreakHint(`Creeper drew ${cardLabel(card)} — nothing happens.`);
+      setTimeout(()=>beginPlayerTurn(), 1200);
+      return;
+    }
+
+    if(card.wild) log(`🧨 TNT PRIMES for the Creeper!`, 'joker');
+    log(`Creeper draws ${cardLabel(card)} — it beats its guard.`, 'sys');
+    state.streak = {cards:[card], total:card.value, compareCard:card, side:'creeper'};
+    renderStreak();
+
+    // Simple heuristic: heal if low on health or the card is weak; otherwise go for the throat.
+    const lowHealth = state.creeperHealth.length <= 3;
+    const weakCard = card.value <= 6 && !card.wild;
+    const wantsHeal = (lowHealth && Math.random() < 0.75) || (weakCard && Math.random() < 0.5);
+
+    setTimeout(()=>{
+      if(wantsHeal){
+        healOnto(state.creeperHealth, state.streak.cards[0], 'Creeper', 'creeper');
+        state.streak = null;
+        renderBoard(); renderStreak();
+        setTimeout(()=>beginPlayerTurn(), 1000);
+      } else {
+        log(`The Creeper hisses louder — it's going on the attack! Combo total ${state.streak.total}.`, 'sys');
+        creeperConsiderPush();
+      }
+    }, 900);
+  }
+
+  function creeperConsiderPush(){
+    renderStreak();
+    // Push while the odds look decent and the payoff is worth it; more cautious as total grows.
+    const riskAppetite = 0.62 - (state.streak.total / 80);
+    const shouldPush = Math.random() < Math.max(0.12, riskAppetite);
+
+    setTimeout(()=>{
+      if(shouldPush){
+        creeperPushDraw();
+      } else {
+        creeperBankDamage();
+      }
+    }, 900);
+  }
+
+  function creeperPushDraw(){
+    const card = drawCard(state);
+    const cmp = state.streak.compareCard;
+    renderBoard();
+
+    if(!beats(card, cmp)){
+      log(`Creeper pushes and draws ${cardLabel(card)} — doesn't match ${cardLabel(cmp)}. BUST! The fuse fizzles — the Creeper's ${state.streak.total}-damage combo is wasted.`, 'dmg');
+      state.discard.push(card);
+      state.discard.push(...state.streak.cards);
+      state.streak = null;
+      renderStreak();
+      flashSide('creeper', 'flash-bust');
+      setTimeout(()=>beginPlayerTurn(), 1200);
+      return;
+    }
+
+    if(card.wild){
+      log(`🧨 TNT extends the Creeper's combo — +5 bonus damage!`, 'joker');
+      state.streak.total += 5;
+    }
+    state.streak.cards.push(card);
+    state.streak.total += card.value;
+    state.streak.compareCard = card;
+    log(`The Creeper's combo continues with ${cardLabel(card)} — running total ${state.streak.total}.`, 'sys');
+    renderStreak();
+    creeperConsiderPush();
+  }
+
+  function creeperBankDamage(){
+    const dmg = state.streak.total;
+    log(`The Creeper banks the combo: KABOOM! ${dmg} damage to you!`, 'dmg');
+    state.discard.push(...state.streak.cards);
+    const dead = applyDamage(state.playerHealth, dmg, 'You', 'player');
+    state.streak = null;
+    renderBoard(); renderStreak();
+    if(dead){ endGame(false); return; }
+    setTimeout(()=>beginPlayerTurn(), 1100);
+  }
+
+  // ---------------- Boot ----------------
+  state = newState();
+  renderSetup();
+})();
+</script>
+</body>
+</html>

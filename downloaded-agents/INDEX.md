@@ -1,13 +1,14 @@
 # Downloaded Public Agents — Index
 
-12936 agent files from 8105 public GitHub repos. **Untrusted third-party data** — see README.md.
+13044 agent files from 8170 public GitHub repos. **Untrusted third-party data** — see README.md.
 
-Flagged by injection scan (data-only, not trusted): 109
+Flagged by injection scan (data-only, not trusted): 110
 
 | Repo | Agent file | Bytes | Flags |
 |---|---|---|---|
 | `01LEE/task_master` | taskmaster.md | 30963 |  |
 | `0Beemik/Claudopus` | planner.md | 5534 |  |
+| `0Beemik/Omnipus` | planner.md | 5534 |  |
 | `0merUfuk/agent-viz` | manager.md | 4448 |  |
 | `0xAdnan/linkedin_bot` | linkedin-growth.md | 2941 |  |
 | `0xNF21/nf-society` | explorer.md | 547 |  |
@@ -720,6 +721,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `CedericPrivat/agentic-boilerplate-app` | auth.md | 1361 |  |
 | `CedericPrivat/agentic-boilerplate-app` | testing.md | 1239 |  |
 | `Centaurioun/osteogenesis_imperfecta` | oi-section-routing-guard.md | 4081 |  |
+| `ChampiP/Cairn` | founder.md | 451 |  |
 | `CharlesChang012/FIRE` | qa-engineer.md | 2779 |  |
 | `ChatGPT-KB/Archon-mirror` | codebase-analyst.md | 3788 |  |
 | `ChauThan/youtui` | gsd-ui-researcher.md | 13062 |  |
@@ -741,6 +743,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `Chris-Jherico-M-Bola/E-Commerce-Laravel` | laravel-boost.mdc | 23196 |  |
 | `ChrisFulstow/bureau-221b` | watson.md | 10304 |  |
 | `ChrisKG32/microflash` | build.md | 922 |  |
+| `ChrisRoyse/610ClaudeSubagents` | deno-runtime-specialist.md | 31134 |  |
 | `ChrisRoyse/clipcannon` | constitution-architect.md | 10396 |  |
 | `ChrisRoyse/clipcannon` | plan_w_team.md | 13536 |  |
 | `ChrisWu0318/goder-code` | code-analyzer.md | 5800 |  |
@@ -748,6 +751,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `ChrisWu0318/goder-code` | load-balancer.md | 12245 |  |
 | `Chrisdesmurger/OraWebApp` | README.md | 6399 |  |
 | `Chrisdesmurger/OraWebApp` | firestore-validator.md | 5552 |  |
+| `ChunkyTortoise/EnterpriseHub` | database-migration.md | 5478 |  |
 | `CicerBro/SpotEngine` | AGENTS.md | 9386 |  |
 | `Citadel-Cloud-Management/citadel-saas-factory` | content-docs.md | 2236 |  |
 | `Citadel-Cloud-Management/citadel-saas-factory` | content-internal.md | 2272 |  |
@@ -864,6 +868,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `CredoDivaldo/planilha-notas-alunos-ia` | pm.agent.md | 1816 |  |
 | `CredoDivaldo/planilha-notas-alunos-ia` | aiox-master.agent.md | 1638 |  |
 | `CredoDivaldo/planilha-notas-alunos-ia` | analyst.agent.md | 1882 |  |
+| `Cristian1911/personal_finance_manager_claude` | recurring-doctor.md | 9211 |  |
 | `Crius-Technology/ISBN` | api-designer.md | 6301 |  |
 | `CruzerUzer/PotteryTracker` | backend-dev.md | 2738 |  |
 | `CryptoAssassin02/ai-trainer-app` | ui-designer.mdc | 5989 |  |
@@ -942,6 +947,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `Darv0n/feature-forge` | code-explorer.md | 1562 |  |
 | `Darv0n/feature-forge` | code-reviewer.md | 1998 |  |
 | `Data-Wise/craft` | api-documenter.md | 7431 |  |
+| `DataDog/pup` | synthetics.md | 7707 |  |
 | `Datai-Network/datai-mcp-server` | AGNO_Structured_Output.mdc | 20802 |  |
 | `Datai-Network/datai-mcp-server` | elizaos_v2_api_plugins_core.mdc | 19904 |  |
 | `Datai-Network/datai-mcp-server` | elizaos_v2_core_runtime.mdc | 33066 |  |
@@ -1027,6 +1033,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `Dorky-Robot/kubo` | dockerfile-reviewer.md | 3692 | (?i)curl\s+.*\|\s*(bash|sh)\b |
 | `DoryZi/ai-dev-team-workflow` | sde.md | 4926 |  |
 | `DoryZi/software-engineering-workflows` | sde.md | 4926 |  |
+| `DrBradStanfield/roadmap` | fable-advisor.md | 1869 |  |
 | `DrJLabs/Forgetful` | dev.md | 4359 |  |
 | `DrLuggels/my_dhbw` | ui-designer.md | 6302 |  |
 | `DrNabeelKhan/maxim` | cto-office.md | 3205 |  |
@@ -1085,6 +1092,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `EffortlessMetrics/perl-lsp-swarm` | scout-find-ci-ops-gaps.md | 4210 |  |
 | `EffortlessMetrics/tokmd` | README.md | 171 |  |
 | `EffortlessMetrics/tokmd-swarm` | README.md | 171 |  |
+| `Eflarus/claude-dotfiles` | test-writer.md | 836 |  |
 | `EgorSanko/smart-price` | backend-dev.md | 3318 |  |
 | `EijiYoshimura/jogo-memoria` | process-auditor.md | 9351 |  |
 | `EinShervin/GymBook` | AGENTS.md | 1956 |  |
@@ -1561,6 +1569,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `JCGDeveloper/sap-nvim` | sap-orchestrator.md | 1979 |  |
 | `JCLMAQ/ngx-material-intl-tel-input-main` | jest.mdc | 4236 |  |
 | `JCLMAQ/ngx-material-intl-tel-input-main` | AGENTS.md | 13218 |  |
+| `JCodesMore/jobs-for-ai-agents` | resume-customizer.md | 3459 |  |
 | `JDWorkdog/ai-workbench` | README.md | 1268 |  |
 | `JDenn0514/surveycore` | builder.md | 5153 |  |
 | `JFeelgoodOfficial/minicuration` | qa.md | 4245 |  |
@@ -1648,6 +1657,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `Jens-Erven/fe-brio-vision-2027` | front-end-cursor-rules.mdc | 2178 |  |
 | `Jeremy-Kr/create-agent-system` | cto.md | 1014 |  |
 | `JeremyKalmus/parade` | README.md | 2255 |  |
+| `JeremyTubongbanua/dotfiles` | test-automator.md | 6469 |  |
 | `JericoFX/advance-territories` | AGENTS.MD | 3461 |  |
 | `JeromyJSmith/fre-meta-harness` | source-indexer.md | 2235 |  |
 | `JeromyJSmith/sunrise-landscape-anna-farm-proposal` | osm-integration-engineer.md | 1910 |  |
@@ -1798,6 +1808,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `Kadmon7/kadmon-harness` | mekanik.md | 8613 |  |
 | `Kadmon7/kadmon-harness` | orakle.md | 8064 |  |
 | `Kadmon7/kadmon-harness` | spektr.md | 7704 |  |
+| `Kai-ste/CLAUDE` | research-analyst.md | 2001 |  |
 | `Kalliaras/clublinked` | backend.md | 2703 |  |
 | `Kalliaras/clublinked` | frontend.md | 16733 |  |
 | `Kalliaras/clublinked` | git.md | 3216 |  |
@@ -2033,6 +2044,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `M-HamzaAdeem/MarketDirectionPredictor` | devops-engineer.md | 7161 |  |
 | `M0WA/ai-town` | prod-owner.md | 4366 |  |
 | `M3XH4/invyte` | AGENTS.md | 8271 |  |
+| `M4F-S/Ultimate-Claude-Skills` | refinement.md | 22661 |  |
 | `M7MDRAUF/Agile` | final-reviewer.md | 20157 |  |
 | `MAXLINqaq/Claude-Code-Novel-Writer` | genre-specialist.md | 4066 |  |
 | `MAdrid1011/Zircon-VLIW` | README.md | 1255 |  |
@@ -2330,6 +2342,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `Nantero1/ai-first-devops-toolkit` | create-commit.mdc | 3432 |  |
 | `NaqibL/salary-matching` | db-agent.md | 4612 |  |
 | `NarubyRiverlione/FishBowl` | CLAUDE.md | 5750 |  |
+| `Nasche12/agents-hq` | content-recherche.md | 3756 |  |
 | `NathanChung4/habit-tracker-poc` | agents.md | 2621 |  |
 | `NatureBlueee/Bachelor-thesis` | dev.md | 28058 |  |
 | `NatureBlueee/Bachelor-thesis` | prd.md | 24799 |  |
@@ -2432,6 +2445,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `OlimzhanovUmid/TakeYourPill` | material-design-architect.md | 22191 |  |
 | `Omais-Rana/ai-project` | AGENTS.md | 11090 |  |
 | `Omakidx/maxxy-me` | core.md | 1985 |  |
+| `Omar-Obando/qwen-orchestrator` | performance-engineer.md | 2331 |  |
 | `OmarA1-Bakri/bmad-adapter` | WORK-CRITIC.md | 17450 |  |
 | `OmegaTeee/prompthub` | code-docs.md | 2014 |  |
 | `Ondrej-Sulc/CereBro` | gemini.md | 3403 |  |
@@ -2461,6 +2475,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `OpenFn/lightning` | idea-machine.md | 3770 |  |
 | `OpenSPP/openspp-modules` | 00-cursor-rules-mdc.mdc | 3491 |  |
 | `Orange0618/mengmeng-diary` | xiao-he-data.md | 2112 |  |
+| `Orange0618/mengmeng-diary` | zhuge-liang-dispatcher.md | 2711 |  |
 | `OrbitCloud/graviton-oss` | dev.md | 4474 |  |
 | `OrbitXSolutions/eleva` | optimized-nextjs-typescript-best-practices-modern-ui-ux.mdc | 7745 |  |
 | `OrbitXSolutions/gloria` | optimized-nextjs-typescript-best-practices-modern-ui-ux.mdc | 7745 |  |
@@ -2508,6 +2523,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `PabloLION/claude-hookwatch` | server.md | 1758 |  |
 | `PabloLION/claude-hookwatch` | tester.md | 2036 |  |
 | `PabloLION/claude-hookwatch` | ui.md | 2300 |  |
+| `Pacifisty/YT_multi_publi` | gsd-roadmapper.md | 18351 |  |
 | `Paddione/Bachelorprojekt` | bachelorprojekt-website.md | 4050 |  |
 | `Pall00/midi-keyboard` | coding-rules.mdc | 1255 |  |
 | `PanchalDhavalGIT/marketing-joes-pizza-palace` | deployer.md | 2127 |  |
@@ -2552,8 +2568,10 @@ Flagged by injection scan (data-only, not trusted): 109
 | `PerTengkvist/ocbreakout` | developer.md | 1892 |  |
 | `PerTengkvist/ocbreakout` | validator.md | 1986 |  |
 | `Pesach85/I_Tuoi_Versetti` | it-service-manager.mdc | 27362 |  |
+| `PeterGessler89/AiAgentFramework` | architect-reviewer.md | 6987 |  |
 | `PeterGessler89/AiAgentFramework` | m365-admin.md | 1849 |  |
 | `PeterHasitschka/brutally-honest-board` | cfo.md | 867 |  |
+| `PeterPonyu/oh-my-grokbuild` | security-reviewer.md | 3033 |  |
 | `PetriLahdelma/digitaltableteur` | chatbot-expert.md | 17596 |  |
 | `PharaohTwang/Cortex` | expo-react-native-javascript-best-practices.mdc | 2810 |  |
 | `Pharmexpert/pharmtahrirchi` | gsd-roadmapper.md | 18439 |  |
@@ -2967,6 +2985,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `Santiagoisper/BOPE_VERSION_DEFINITIVA` | PIXEL.md | 2439 |  |
 | `Santiagoisper/BOPE_VERSION_DEFINITIVA` | SICARIO.md | 3233 |  |
 | `Santiagoisper/BOPE_VERSION_DEFINITIVA` | WINSTON.md | 7114 |  |
+| `Sapeksh2001/MasterAgents` | gsd-roadmapper.md | 18351 |  |
 | `SaraHan774/Lingual` | coder.md | 24323 |  |
 | `Satilian/router` | AGENTS.md | 544 |  |
 | `SaxonWolcott/broseph` | typescript-validator.md | 4796 |  |
@@ -3027,6 +3046,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `Shigeki-Kamimura/my-claude-agents` | reviewer.md | 17390 |  |
 | `Shin-sibainu/ccmux` | defender.md | 2885 |  |
 | `Shin-sibainu/ccmux` | planner.md | 2477 |  |
+| `ShreyanshVaibhaw/switcharoo` | scout.md | 945 |  |
 | `ShrinivasanSS/API-SQL-Views` | todo-Phase-4.md | 8887 |  |
 | `ShubhamMChandra/Jeeves` | elite-ui-designer.md | 10828 |  |
 | `ShunsukeHayashi/mergegate` | README.md | 1916 |  |
@@ -3121,20 +3141,25 @@ Flagged by injection scan (data-only, not trusted): 109
 | `StarterES-sgaleano/fil-starter-kit` | laravel-development.md | 12028 |  |
 | `SteamedFish/dotfiles` | AGENTS.md | 7734 |  |
 | `SteamedFish/dotfiles` | SKILL.md | 5600 |  |
+| `SteamedFish/dotfiles` | SKILL.zh-CN.md | 2515 |  |
 | `SteamedFish/dotfiles` | README.md | 906 |  |
 | `SteamedFish/dotfiles` | SKILL.md | 2916 |  |
 | `SteamedFish/dotfiles` | WARP.md | 1798 |  |
 | `SteamedFish/dotfiles` | SKILL.md | 4123 |  |
 | `SteamedFish/dotfiles` | SKILL.md | 4737 |  |
 | `SteamedFish/dotfiles` | SKILL.md | 5732 |  |
+| `SteamedFish/dotfiles` | research-references.md | 7666 |  |
 | `SteamedFish/dotfiles` | code-quality-checklist.md | 4632 |  |
 | `SteamedFish/dotfiles` | removal-plan.md | 1672 |  |
+| `SteamedFish/dotfiles` | security-checklist.md | 4420 |  |
 | `SteamedFish/dotfiles` | SKILL.md | 6015 |  |
 | `SteamedFish/dotfiles` | SKILL.md | 10177 |  |
 | `SteamedFish/dotfiles` | SKILL.md | 36282 |  |
 | `SteamedFish/dotfiles` | SKILL.zh-CN.md | 6880 |  |
 | `SteamedFish/dotfiles` | SKILL.md | 6314 |  |
 | `SteamedFish/dotfiles` | code-reviewer.zh-CN.md | 3372 |  |
+| `SteamedFish/dotfiles` | SKILL.md | 8506 |  |
+| `SteamedFish/dotfiles` | SKILL.zh-CN.md | 8584 |  |
 | `SteamedFish/dotfiles` | SKILL.zh-CN.md | 7478 |  |
 | `SteamedFish/dotfiles` | code-quality-reviewer-prompt.md | 618 |  |
 | `SteamedFish/dotfiles` | implementer-prompt.md | 2195 |  |
@@ -3160,6 +3185,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `SteamedFish/dotfiles` | testing-anti-patterns.md | 8251 |  |
 | `SteamedFish/dotfiles` | testing-anti-patterns.zh-CN.md | 8134 |  |
 | `SteamedFish/dotfiles` | SKILL.md | 9250 |  |
+| `SteamedFish/dotfiles` | SKILL.zh-CN.md | 3407 |  |
 | `SteamedFish/dotfiles` | SKILL.md | 7981 |  |
 | `SteamedFish/dotfiles` | SKILL.zh-CN.md | 5145 |  |
 | `SteamedFish/dotfiles` | SKILL.md | 23715 |  |
@@ -3377,6 +3403,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `Thabonel/unimogcommunityhub` | code-simplifier 2.md | 15883 |  |
 | `Thabonel/unimogcommunityhub` | index.md | 2549 |  |
 | `Thabonel/wheels-wins-landing-page` | bugbot.md | 3409 |  |
+| `Thanhtuan96/course-builder` | spotter.md | 4545 |  |
 | `ThanosKa/WhisperV2` | tech-lead.md | 783 |  |
 | `ThanosKa/magic-self` | tech-lead.md | 783 |  |
 | `ThatRendle/notIRC` | _project.md | 119 |  |
@@ -3477,6 +3504,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `TobiAiHawk/PRPs-agentic-eng` | performance-optimizer.md | 7251 |  |
 | `TokkoLabs/Lead-Trust-Score` | leader.md | 5179 |  |
 | `TokujyouKaisennDonnburi/optical-backend` | review.md | 2890 |  |
+| `TomNguyen10101/YearEndWebGame` | bmad-agent-bmgd-game-scrum-master.md | 622 |  |
 | `Tombarr/ai-microgames` | game-marketer.md | 831 |  |
 | `Tommertom/opencoder-telegram-plugin` | beast-grok.md | 5718 |  |
 | `TommyFork/tomross.dev` | checks.md | 1904 |  |
@@ -3614,6 +3642,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `WANDERCOLTD/HF` | eval-engineer.md | 5470 |  |
 | `WHITS-ISLAND/inspirehub-mobile` | ios-dev.md | 1815 |  |
 | `WHaoxM/cpa-agent-demo` | components-feedback.md | 19565 |  |
+| `WUNDU/wundu-api` | software-architect.md | 7740 |  |
 | `Wan-ZL/Genesis` | planner.md | 7800 |  |
 | `Wania-Kazmi/claude-code-autonomous-agent-workflow` | architect.md | 4722 |  |
 | `Wania-Kazmi/claude-code-autonomous-agent-workflow` | git-ops.md | 1693 |  |
@@ -3638,6 +3667,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `Willyfrog/agents-warning` | AGENTS.md | 1182 |  |
 | `Willyfrog/nvm-global-sync` | AGENTS.md | 1181 |  |
 | `WintechAutomation/wta-agents` | docs.md | 1392 |  |
+| `WitchyNibbles/archon` | AGENT.md | 3523 |  |
 | `Wizardworks-AB/wizardworks-client-agent-template` | planner.md | 1962 |  |
 | `WojciechKorban/ProjectStartMDRepository` | reality-checker.md | 9969 |  |
 | `WolfOfTheNorth/SailorBook` | linting.md | 14711 |  |
@@ -3860,6 +3890,8 @@ Flagged by injection scan (data-only, not trusted): 109
 | `adrianwedd/terminal` | groomer.md | 4983 |  |
 | `adriel87/Dm-manager` | nextjs-component-architect.md | 10373 |  |
 | `adrirobg/minimal-test` | README.md | 1719 |  |
+| `adventurewave-labs/HASEB` | deno-runtime-specialist.md | 31134 |  |
+| `adventurewave-labs/NOIP` | deno-runtime-specialist.md | 31134 |  |
 | `adviet9x/claude-coding-guide` | backend.md | 1479 |  |
 | `advisely/claude-code-agents-team-nation-of-elites` | UX_UI_Architect.md | 4114 |  |
 | `advisely/claude-code-agents-team-nation-of-elites` | Cyber_Sentinel.md | 4276 |  |
@@ -4301,6 +4333,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `aoreshkov/kmp-ledger` | rv-data.md | 2485 |  |
 | `apassuello/multimodal_insight_engine` | debugger.md | 780 |  |
 | `apassuello/multimodal_insight_engine` | tdd-orchestrator.md | 9826 |  |
+| `aphamm/.dotfiles` | SKILL.md | 22952 | (?i)exfiltrat |
 | `aphp/IG-fhir-dm` | dbt-pro.md | 5002 |  |
 | `aphp/IG-fhir-dm` | debugger.md | 780 |  |
 | `aphp/IG-fhir-dm` | sql-pro.md | 1188 |  |
@@ -4569,6 +4602,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `baekenough/oh-my-customcode` | sec-codeql-expert.md | 1994 |  |
 | `baekenough/second-brain` | mgr-updater.md | 1027 |  |
 | `baekenough/second-brain` | sec-codeql-expert.md | 1994 |  |
+| `baggiiiie/dotfiles` | TMUX_TUI.md | 1745 |  |
 | `baggiiiie/dotfiles` | SKILL.md | 3598 |  |
 | `bagzhanzhumash/sales_scoring` | front.mdc | 5688 |  |
 | `bahaabdelwahed/embedded-claude-plugin` | stm32-build-flasher.md | 17201 |  |
@@ -4664,10 +4698,12 @@ Flagged by injection scan (data-only, not trusted): 109
 | `benjaminshafii/digital-empire` | designer.md | 1096 |  |
 | `benjaminshafii/digital-empire` | openwork.md | 2103 |  |
 | `benjosaur/countdown` | code-reviewer.md | 3496 |  |
+| `benkruger/flow` | pre-mortem.md | 7724 |  |
 | `bennyh960/my-mehunan` | game-developer.md | 9570 |  |
 | `benogren/Brand-Studio` | debugger.md | 12089 |  |
 | `benogren/Brand-Studio` | technical-writer.md | 3691 |  |
 | `benredmond/apex` | web-researcher.md | 14555 |  |
+| `benriworks/deep-earth` | deep-reasoner.md | 1424 |  |
 | `berkaygumusay/ai-letterbox` | image-designer-gemini.md | 6635 |  |
 | `berkaygumusay/ai-letterbox` | web-scraper.md | 8285 |  |
 | `berkcangumusisik/forge-flow-ai` | backend.md | 1337 |  |
@@ -4887,6 +4923,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `brikdesigns/renew-pms` | qa.md | 4701 |  |
 | `brixtonpham/claude-config` | planner.md | 4093 |  |
 | `brixtonpham/claude-config` | researcher.md | 4010 |  |
+| `brmatola/gremlins` | task-bug-fixer.md | 3615 |  |
 | `brookcs3/transcription-guide` | README.md | 1137 |  |
 | `brookcs3/transcription-guide` | h1-validator.md | 566 |  |
 | `brownzinoart/stacks` | docs.md | 518 |  |
@@ -5088,6 +5125,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `chasemp/iceberg` | adr.md | 23449 |  |
 | `chaseoneillrnd/marketplace-ai` | stage-executor.md | 11974 |  |
 | `chasinglogic/dfm` | AGENTS.md | 3071 |  |
+| `chatbot-pf/memex` | wiki-researcher.md | 1332 |  |
 | `chawkitariq/fidely` | pwa.md | 7285 |  |
 | `chawkitariq/fidely` | testing.md | 9934 |  |
 | `chee86j/nextjstodo` | javascript-rules.mdc | 3385 |  |
@@ -5156,6 +5194,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `christopherime/droidfarm` | spatial-design.md | 3538 |  |
 | `christopherwoodall/2025-hack-the-boo` | README.md | 2383 |  |
 | `christopherwoodall/flare-on12` | README.md | 2383 |  |
+| `chromium/chromium` | SKILL.md | 4674 |  |
 | `chrs-myrs/msl-specification` | msl-validator.md | 6576 |  |
 | `chrysa/cdn-explorer` | general-frontend-developer.md | 4492 |  |
 | `chrysa/django-query-optimizer` | general-frontend-developer.md | 4492 |  |
@@ -5484,6 +5523,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `dapi/valera` | test-fixer.md | 3809 |  |
 | `darekrossman/.dotfiles` | turborepo.md | 2563 |  |
 | `darekrossman/.dotfiles` | RULE.md | 4907 |  |
+| `darekrossman/.dotfiles` | dependencies.md | 4261 |  |
 | `darekrossman/.dotfiles` | packages.md | 6308 |  |
 | `darekrossman/.dotfiles` | structure.md | 5001 |  |
 | `darekrossman/.dotfiles` | RULE.md | 1948 |  |
@@ -5569,6 +5609,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `davidvaldeleonceo/the-monaco` | project-architect.md | 8569 |  |
 | `davinaleong/davdevs-cms-2026` | AGENTS.md | 10225 |  |
 | `davis7dotsh/r8y` | global.mdc | 1109 |  |
+| `davistroy/claude-marketplace` | opus-implementer.md | 2409 |  |
 | `davoodwadi/self` | philosophy.md | 585 |  |
 | `dawid-dahl-umain/augmented-ai-development` | aaid.mdc | 9947 |  |
 | `daydream-software/dnd-notes` | brand.md | 1918 |  |
@@ -5711,6 +5752,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `dhananjay431/data-share` | agents.md | 12025 |  |
 | `dhaneswaramandrasa/Jabodetabek-Transit-Equity-Mapper` | api-tester.md | 2192 |  |
 | `dharmveer97/fitness-app-workout-rules-with-claude` | expo-design-system-architect.md | 4046 |  |
+| `dhelweg/gentriduck` | geo-data-scientist.md | 2177 |  |
 | `dhruvgupta-og/anonchat2` | sdk-integration.md | 4555 |  |
 | `dhrvrm/portfolio` | seo-ai-auditor.md | 7042 |  |
 | `diagmatrix/blisterpod-manager` | review-sql.md | 5249 |  |
@@ -5813,6 +5855,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `dnvriend/claude-code-scheduler` | planner.md | 4006 |  |
 | `dnvriend/claude-code-scheduler` | qc.md | 5906 |  |
 | `dnvriend/claude-code-scheduler` | worker.md | 3214 |  |
+| `dnzengou/jobpulse-ai-agent` | resume-customizer.md | 3459 |  |
 | `do-ops885/dermatology-goap-orchestrator` | debugger.md | 5505 |  |
 | `do-ops885/dermatology-goap-orchestrator` | devops.md | 12337 |  |
 | `do-ops885/dermatology-goap-orchestrator` | security-audit.md | 7349 |  |
@@ -5880,6 +5923,8 @@ Flagged by injection scan (data-only, not trusted): 109
 | `drbobsevilweb/Aliens` | coding.md | 1615 |  |
 | `drdave-flexnetos/noa-server` | app-store.md | 4028 |  |
 | `drdave-flexnetos/noa-server` | ui-engineer.md | 4026 |  |
+| `drdave-flexnetos/noa-server` | content-marketer.md | 6660 |  |
+| `drdave-flexnetos/noa_ark_os` | content-marketer.md | 6660 |  |
 | `drdave-flexnetos/ripple-env` | test-runner-agent.md | 3241 |  |
 | `dreamcatcher-tech/HAL` | test-assessor.md | 1739 |  |
 | `dreamcatcher-tech/HAL` | test-results-summary.md | 2216 |  |
@@ -5969,6 +6014,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `dydanz/go-loyalty-point` | observability.md | 7451 |  |
 | `dykyi-roman/awesome-claude-code` | cqrs-generator.md | 4881 |  |
 | `dykyi-roman/awesome-claude-code` | diagram-designer.md | 7793 |  |
+| `dylanbstorey/claude-agents` | technical-lead-orchestrator.md | 8729 |  |
 | `dylanburkey/haze_shopify_theme` | impl-task.md | 949 |  |
 | `dylanburkey/shopify-development-toolkit` | primer.md | 3150 |  |
 | `dylanburkey/superfly-cms` | api.md | 2285 |  |
@@ -6078,6 +6124,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `elieldiniz/crm-php` | AGENTS.md | 26162 |  |
 | `eliferjunior/Claude` | SKILL.md | 4111 | (?i)curl\s+.*\|\s*(bash|sh)\b |
 | `eliferjunior/Claude` | SKILL.md | 4751 |  |
+| `elinxie/books-of-samuel` | fable-architect.md | 1950 |  |
 | `elliotsteene/polypy` | codebase-analyzer.md | 5659 |  |
 | `elliotsteene/polypy` | web-search-researcher.md | 5822 |  |
 | `eltanno/sdlc-framework` | engineer.md | 6793 |  |
@@ -6312,6 +6359,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `fernandoruanb/FT_IRC` | c++42.chatmode.md | 400 |  |
 | `ffffyhffff/loveAgent` | plan.md | 327 |  |
 | `ffuugoo/dots` | SKILL.md | 997 |  |
+| `ffuugoo/dots` | SKILL.md | 639 |  |
 | `ffuugoo/the-dot` | SKILL.md | 265 |  |
 | `ffuugoo/the-dot` | INDEX.md | 2375 |  |
 | `ffuugoo/the-dot` | SKILL.md | 361 |  |
@@ -6332,6 +6380,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `fiftynotai/fifty_flutter_kit` | releaser.md | 3825 |  |
 | `fiftynotai/fifty_flutter_kit` | tester.md | 3349 |  |
 | `fightezo/fightezo.github.io` | reviewer.md | 363 |  |
+| `fightingzzz/whsss` | README.md | 14525 |  |
 | `fijiaaron/claude-workflow` | designer.md | 855 |  |
 | `fijiaaron/claude-workflow` | tester.md | 715 |  |
 | `fikrimastor/memory-library` | vilt-pro.md | 4774 |  |
@@ -6419,6 +6468,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `foutoucour/guitar-exercises` | rust.md | 3629 |  |
 | `foutoucour/guitar-exercises` | sre.md | 2837 |  |
 | `foutoucour/guitar-match` | dba.md | 2864 |  |
+| `foutoucour/guitar-match` | finops.md | 2811 |  |
 | `foutoucour/guitar-match` | python.md | 3460 |  |
 | `foutoucour/guitar-match` | rust.md | 3629 |  |
 | `fox3000wang/my-claude` | gan-planner.md | 3517 |  |
@@ -6566,6 +6616,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `gcuddy/dot` | client-localstorage-schema.md | 1950 |  |
 | `gcuddy/dot` | client-passive-event-listeners.md | 1644 |  |
 | `gcuddy/dot` | js-cache-property-access.md | 532 |  |
+| `gcuddy/dot` | js-cache-storage.md | 1651 |  |
 | `gcuddy/dot` | js-early-exit.md | 1133 |  |
 | `gcuddy/dot` | js-index-maps.md | 837 |  |
 | `gcuddy/dot` | js-length-check-first.md | 1747 |  |
@@ -6783,6 +6834,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `grupa-repo/Containers` | claude.md | 614 |  |
 | `grythman/expert-funicular` | gry.mdc | 2253 |  |
 | `grythman/ims-proj1` | gry.mdc | 2253 |  |
+| `gtk-grafana/grafana-echarts` | e2e-testing.md | 8143 |  |
 | `guacsec/trustify-ui` | ux-reviewer.md | 8651 |  |
 | `guardiatechnology/ahrena` | warrior-theseus.md | 8229 |  |
 | `guardiatechnology/design-system` | warrior-theseus.md | 8229 |  |
@@ -6855,6 +6907,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `hamdysdiri/opencode-test` | master-planner.md | 334 |  |
 | `hamidfzm/glyph` | builder.md | 577 |  |
 | `hamilton-sky/playwright-stepper-framework` | quick.md | 322 |  |
+| `hamzeen/ng-21` | security-auditor.md | 4379 |  |
 | `handoiditu1508/react-template` | eslint.agent.md | 3413 |  |
 | `handsomevictor/allocmap` | architect.md | 2508 |  |
 | `haneelteja/Propellex` | database-specialist.md | 2904 |  |
@@ -6914,6 +6967,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `haterade22/TAOM` | debugger.md | 3074 |  |
 | `hauglandvegard/python-toolbox` | brainstorm.md | 3061 |  |
 | `haxita/Alex-quest` | kids-ux-designer.md | 2618 |  |
+| `haytamAroui/OpenPi` | migration-expert.md | 1760 |  |
 | `hbuddenberg/karina_system` | bmad-agent-bmgd-game-scrum-master.md | 622 |  |
 | `hbvg234/jnmt.vn` | project-architect.md | 10965 |  |
 | `hcd1983/comic-team` | reader-14.md | 1129 |  |
@@ -6929,6 +6983,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `heitorpolidoro/cash_lens` | pm.md | 362 |  |
 | `heitorpolidoro/cash_lens` | qa.md | 359 |  |
 | `heitorpolidoro/cash_lens` | sre.md | 380 |  |
+| `hekivo/superpowers-sage` | visual-verifier.md | 6193 |  |
 | `hellohanchen/expanda` | react-and-typescript-general-rules.mdc | 710 |  |
 | `hellohejinyu/ban-word` | AGENTS.md | 544 |  |
 | `hellozim22/QRclaw_release` | build-error-resolver.md | 3768 |  |
@@ -7051,6 +7106,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `houseworthe/house-agents` | house-mcp.md | 3901 |  |
 | `houseworthe/house-agents` | house-research.md | 3453 |  |
 | `houshuang/awesome-claude-code` | code-reviewer.md | 3043 |  |
+| `howells/fiction` | chapter-reviewer.md | 10056 |  |
 | `hpenne/basic-snmp-agent` | compliance-checker.md | 3712 |  |
 | `hpenne/basic-snmp-agent` | implementer.md | 1277 |  |
 | `hpharmsen/justai` | tester.md | 1175 |  |
@@ -7074,6 +7130,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `hugochisholm/images2kmz-gv` | code-reviewer.md | 3873 |  |
 | `hugochisholm/images2kmz-gv` | openagent.md | 17852 |  |
 | `hugochisholm/images2kmz-gv` | frontend-developer.md | 5242 |  |
+| `hugodurieux/PIIN_FRANKA` | implementer.md | 2716 |  |
 | `hugoganet/hackathon_blackbox` | prompts.md | 13421 |  |
 | `huifer/zeus` | zeus-docs.md | 651 |  |
 | `hulusi-tunc/unicorn-skills` | SKILL.md | 1849 |  |
@@ -7488,6 +7545,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `jcurbelo/agent-seed` | reflection.md | 2105 |  |
 | `jdebetaz/mr-starter-kit` | docs-writer.md | 265 |  |
 | `jdebetaz/mr-starter-kit` | review.md | 369 |  |
+| `jdeleon3/RD.Creations.Site` | infrastructure-maintainer.md | 2464 |  |
 | `jdemolar/pedal_shootout` | doc.md | 9400 |  |
 | `jdemuth17/market-analysis` | debugger.md | 14779 |  |
 | `jdonohoo/vern-bot` | yolo.md | 1156 |  |
@@ -7675,6 +7733,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `johncarpenter/dnd-dm-tools` | dm.md | 2752 |  |
 | `johncarpenter/knowledge-base` | INDEX.md | 2712 |  |
 | `johnneerdael/streamx` | thoughts-locator.md | 4226 |  |
+| `johnoconnor0/claude-memex` | memex-planner.md | 2237 |  |
 | `johnpphd/Web3-Claude` | web3-implementer.md | 13562 |  |
 | `johnzastrow/actalog` | debugger.md | 2915 |  |
 | `johnzastrow/seh` | debugger.md | 2915 |  |
@@ -7946,6 +8005,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `kevinlin0638/super-supplier-portal` | ui-visual-designer.md | 5164 |  |
 | `kevinlupera/opencode-example` | copy-writer.md | 1532 |  |
 | `kevrcress/hve-claude` | hve-plan-validator.md | 4190 |  |
+| `kevrcress/hve-claude` | hve-researcher.md | 3687 |  |
 | `kewalaka/aca-samples` | janitor.chatmode.md | 3586 |  |
 | `kewalaka/github-azure-iac-templates` | janitor.chatmode.md | 3586 |  |
 | `kewalaka/terraform-azure-starter-template` | janitor.chatmode.md | 3586 |  |
@@ -8186,6 +8246,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `labclaw/labclaw` | tech-lead.md | 1682 |  |
 | `laceto/AIstudioAccademiaMilano` | core-architect.md | 1251 |  |
 | `ladislav-lettovsky/ai-project-template` | planner.md | 7141 |  |
+| `laguagu/claude-code-nextjs-skills` | e2e-tester.md | 9590 |  |
 | `laikhtman/CryptoVault-Exchange` | qa.md | 6027 |  |
 | `lainniay/BananaByte` | start.md | 3920 |  |
 | `laiqa94/Phase_3_Chatbot_AI` | nextjs-ui-architect.md | 5162 |  |
@@ -8212,6 +8273,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `larsnyg/claude-code-template-sql` | debugger.md | 7350 |  |
 | `lastdays03/team-standards` | README.md | 5823 |  |
 | `launchdarkly-labs/statsig-to-ld` | statsig-to-ld.md | 1596 |  |
+| `launchstack-dev/loom-ai` | execute-stage.md | 5724 |  |
 | `laurac8r/python-mac-fan-control` | architecture.md | 2272 |  |
 | `lautimi/CTO-TIDY` | ander.md | 2800 |  |
 | `lautimi/CTO-TIDY` | delgado.md | 1603 |  |
@@ -8296,6 +8358,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `leokeba/design-system` | ato.mdc | 20196 |  |
 | `leomerida15/next-rocket-kit` | base.mdc | 1392 |  |
 | `leon1205/MUPC-AI` | 02_WORKFLOW.md | 4455 |  |
+| `leonardo02lobo/Dining-System-UNET-Front` | unet-frontend-developer.md | 24780 |  |
 | `leonardoFu/legofy-photo` | typescript.mdc | 1923 |  |
 | `leonardoFu/live-broadcast-dubbing` | analyze.md | 2751 |  |
 | `leonardoFu/live-broadcast-dubbing` | plan.md | 2512 |  |
@@ -8388,6 +8451,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `lite-lake/litecore-go` | lite-git.md | 2202 |  |
 | `littleCareless/dish-ai-commit` | rules.md | 11015 |  |
 | `littleCareless/dish-power-context-menu` | rules.md | 11015 |  |
+| `littlelingo/context-engine` | mcp-researcher.md | 1703 |  |
 | `liuliu521789/report` | repor.mdc | 701 |  |
 | `livesans/sans_landing_page` | nextjs.mdc | 2183 |  |
 | `lizTheDeveloper/ai_game_theory_simulation` | devops.md | 9852 |  |
@@ -8564,8 +8628,10 @@ Flagged by injection scan (data-only, not trusted): 109
 | `madyankin/dotfiles` | refactor-function.md | 931 |  |
 | `madyankin/dotfiles` | rpi-agent-native-reviewer.md | 1151 |  |
 | `madyankin/dotfiles` | rpi-codebase-analyzer.md | 1705 |  |
+| `madyankin/dotfiles` | rpi-codebase-locator.md | 1339 |  |
 | `madyankin/dotfiles` | rpi-compound-orchestrator.md | 1386 |  |
 | `madyankin/dotfiles` | rpi-compound.md | 879 |  |
+| `madyankin/dotfiles` | rpi-data-integrity-guardian.md | 938 |  |
 | `madyankin/dotfiles` | rpi-pattern-finder.md | 1823 |  |
 | `madyankin/dotfiles` | rpi-rails-reviewer.md | 1003 |  |
 | `madyankin/dotfiles` | rpi-reviewer.md | 2667 |  |
@@ -8575,20 +8641,35 @@ Flagged by injection scan (data-only, not trusted): 109
 | `madyankin/dotfiles` | SKILL.md | 6085 |  |
 | `madyankin/dotfiles` | SKILL.md | 12017 |  |
 | `madyankin/dotfiles` | critical-pattern-template.md | 875 |  |
+| `madyankin/dotfiles` | SKILL.md | 8736 |  |
 | `madyankin/dotfiles` | api-security.md | 6193 |  |
+| `madyankin/dotfiles` | best-practices.md | 9282 |  |
 | `madyankin/dotfiles` | common-patterns.md | 14431 |  |
 | `madyankin/dotfiles` | skill-structure.md | 4437 |  |
+| `madyankin/dotfiles` | using-scripts.md | 3023 |  |
 | `madyankin/dotfiles` | using-templates.md | 2924 |  |
 | `madyankin/dotfiles` | workflows-and-validation.md | 11845 |  |
+| `madyankin/dotfiles` | router-skill.md | 1494 |  |
+| `madyankin/dotfiles` | simple-skill.md | 636 |  |
+| `madyankin/dotfiles` | audit-skill.md | 3559 |  |
 | `madyankin/dotfiles` | create-new-skill.md | 5972 |  |
 | `madyankin/dotfiles` | get-guidance.md | 3098 |  |
+| `madyankin/dotfiles` | verify-skill.md | 5194 |  |
+| `madyankin/dotfiles` | SKILL.md | 3191 |  |
 | `madyankin/dotfiles` | SKILL.md | 4635 |  |
+| `madyankin/dotfiles` | SKILL.md | 5403 |  |
 | `madyankin/dotfiles` | common-deductions-checklist.md | 1783 |  |
+| `madyankin/dotfiles` | employee-tax-basics.md | 1652 |  |
+| `madyankin/dotfiles` | official-bzst-idnr-and-finanzamt.md | 2202 |  |
 | `madyankin/dotfiles` | official-elster-workflow.md | 2036 |  |
+| `madyankin/dotfiles` | trusted-consumer-guides-finanztip.md | 1158 |  |
 | `madyankin/dotfiles` | SKILL.md | 8664 |  |
 | `madyankin/dotfiles` | gcd.md | 13489 |  |
+| `madyankin/dotfiles` | legacy.md | 12801 |  |
 | `madyankin/dotfiles` | swift-concurrency.md | 11803 |  |
 | `madyankin/dotfiles` | SKILL.md | 8292 |  |
+| `madyankin/dotfiles` | SKILL.md | 13782 |  |
+| `madyankin/dotfiles` | FUNCTIONS_REFERENCE.md | 7725 |  |
 | `madyankin/dotfiles` | SKILL.md | 4570 |  |
 | `madyankin/dotfiles` | PROPERTIES.md | 1149 |  |
 | `madyankin/dotfiles` | SKILL.md | 47797 |  |
@@ -8602,6 +8683,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `madyankin/dotfiles` | synchronization.md | 7082 |  |
 | `madyankin/dotfiles` | owasp-api-top10.md | 6429 |  |
 | `madyankin/dotfiles` | SKILL.md | 16566 |  |
+| `madyankin/dotfiles` | cloudkit.md | 9617 |  |
 | `madyankin/dotfiles` | migrations.md | 10009 |  |
 | `madyankin/dotfiles` | SKILL.md | 3013 |  |
 | `maever/obsidian-noteapi-nodejs` | agents.md | 4552 |  |
@@ -8913,6 +8995,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `metaphorex/metaphorex` | smelter.md | 8712 |  |
 | `metasurveyr/metasurvey` | devops.md | 6041 |  |
 | `metasystem-core/core-os` | PRIVACY_FIREWALL_PERSONAL_MATERIAL.md | 3872 |  |
+| `metavoli/cyber-security-pulse` | test-agent.md | 4088 |  |
 | `metrodiesign/pol-admin` | spec-architect.md | 556 |  |
 | `metrodiesign/pol-core` | spec-architect.md | 556 |  |
 | `metrodiesign/spec-driven-development` | spec-architect.md | 556 |  |
@@ -9061,6 +9144,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `mitchnielsen/dotfiles` | SKILL.md | 979 |  |
 | `mitchnielsen/dotfiles` | SKILL.md | 515 |  |
 | `mitchnielsen/dotfiles` | SKILL.md | 1568 |  |
+| `mitchnielsen/dotfiles` | SKILL.md | 2585 |  |
 | `mitchnielsen/dotfiles` | SKILL.md | 3894 |  |
 | `mitchnielsen/dotfiles` | SKILL.md | 24577 |  |
 | `mitekk/codeViber` | bug-fixer.md | 8282 |  |
@@ -9121,6 +9205,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `mochi-minds/mochiminds` | sage.md | 8593 |  |
 | `modernnerdplace/nerd.ms` | stylist.md | 4956 |  |
 | `modu-ai/cc-plugins` | manager-tdd.md | 21522 |  |
+| `modu-ai/moai-adk` | harness-release-update-specialist.md | 11493 |  |
 | `modu-ai/moai-rank` | manager-tdd.md | 21522 |  |
 | `modu-ai/moai-rank` | team-frontend-dev.md | 1903 |  |
 | `modu-ai/moai-rank` | claude-code-sub-agents-official.md | 12631 |  |
@@ -9309,6 +9394,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `mxaddict/dotfiles` | AGENTS.md | 4013 |  |
 | `mxaddict/dotfiles` | RTK.md | 482 |  |
 | `mxfng/dotfiles` | OPINIONS.md | 8066 |  |
+| `mxfng/dotfiles` | architecture.md | 4983 |  |
 | `mxfng/dotfiles` | design.md | 3460 |  |
 | `myasirdotin/junior-coders-git-lab` | css-tutor.md | 1016 |  |
 | `myasirdotin/junior-coders-git-lab` | html-tutor.md | 1036 |  |
@@ -9515,6 +9601,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `nicncs/claude_code_agents` | qa-load.md | 7125 |  |
 | `nicncs/claude_code_agents` | sre-gitops.md | 6433 |  |
 | `nicncs/claude_code_agents` | sre-infra.md | 7116 |  |
+| `nico0695/ai-tools` | pr-code-reviewer.agent.md | 8790 |  |
 | `nicobailon/pi-coordination` | worker.md | 4288 |  |
 | `nicodiferd/CPCB-Website` | frontend-website-builder.md | 7224 |  |
 | `nicolas2601/omnicoder` | automation-governance-architect.md | 5724 |  |
@@ -9529,6 +9616,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `nicolas2601/omnicoder` | sales-deal-strategist.md | 13619 |  |
 | `nicolas2601/omnicoder` | testing-tool-evaluator.md | 17223 |  |
 | `nicolas2601/omnicoder` | zk-steward.md | 10811 |  |
+| `nicolas2601/router-skills` | cpp-build-resolver.md | 4122 |  |
 | `nicolasabosch/ProyectoNicoAngular` | AGENTS.md | 2251 |  |
 | `nicolasayotte/lbazaar` | builder.md | 4022 |  |
 | `nicolasayotte/lbazaar` | planner.md | 4496 |  |
@@ -10000,6 +10088,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `pedropachecog/RayMe` | gsd-debugger.md | 50697 |  |
 | `pedropachecog/RayMe` | gsd-research-synthesizer.md | 7324 |  |
 | `pedyc/dg.pedyc` | debugger.md | 935 |  |
+| `peerasak-u/ksk-keying` | ksk-columbo.md | 5239 |  |
 | `peerasak-u/pacioli` | luca.md | 6283 |  |
 | `pellepelster/pages` | review.md | 2557 |  |
 | `peopledear/peopledear` | core.md | 1421 |  |
@@ -10140,6 +10229,8 @@ Flagged by injection scan (data-only, not trusted): 109
 | `ppak10/additive-manufacturing` | ow.md | 3518 |  |
 | `ppalms/contest-hq` | linter.md | 2042 |  |
 | `ppink-purin/vibe-kanban-demo` | backend.md | 278 |  |
+| `pra2107tham/stilltrue` | stilltrue-core-dev.md | 2967 |  |
+| `pradeep7093432182/Omega-Singularity-Master` | gsd-roadmapper.md | 18351 |  |
 | `prafful-panwar/ai-resume-analyzer` | AGENTS.md | 15351 |  |
 | `pragma-collective/cirkuloxyz` | blockchain-developer.md | 9266 |  |
 | `pragya-t0822/Demo-Billing-project` | agents.md | 7322 |  |
@@ -10298,6 +10389,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `qdhenry/Claude-Command-Suite` | project-architect.md | 10965 |  |
 | `qianxiR/Agent-IHGEOAI` | vue3.mdc | 2025 |  |
 | `qkrdkwl9090/jobkorea-ai-challenge` | docs.md | 948 |  |
+| `qlan-ro/mainframe` | renderer-porter.md | 4175 |  |
 | `qpwo/TensorRT-LLM` | exec-compile-specialist.md | 4635 |  |
 | `qreceperen/BuffaloUP-Accounting` | apex-dev.md | 23830 |  |
 | `qtcyy/FastAPIProject` | bmad-qa.md | 13737 |  |
@@ -10444,6 +10536,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `rayketcham-lab/qn-claude-web` | backend.md | 1243 |  |
 | `rayketcham-lab/qn-claude-web` | infra.md | 1213 |  |
 | `rayketcham-lab/qn-claude-web` | mobile.md | 1099 |  |
+| `razinskymaayan-crypto/AWEAR` | mark.md | 2803 |  |
 | `razzezz/adversarial-review-harness` | recon.md | 3611 |  |
 | `razzezz/adversarial-review-harness` | scout-template.md | 4836 |  |
 | `rblake2320/pka-team` | AXIOM.md | 14421 |  |
@@ -10598,6 +10691,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `rkorrapolu/koma-mind` | videoprompt.md | 4289 |  |
 | `rlagycks/oh-my-forge` | pytorch-build-resolver.md | 6723 |  |
 | `rlcurrall/jwks-auth-example` | dotnet-dev.mdc | 3383 |  |
+| `rlpatrao/claude_harness_forge` | generator.md | 8128 |  |
 | `rmax-ai/rlinks` | deep-researcher.md | 576 |  |
 | `rmax-ai/rlinks` | git.md | 395 |  |
 | `rmax-ai/rlinks` | plan.md | 472 |  |
@@ -10698,6 +10792,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `rsheftel/raccoon` | AGENTS.md | 9713 |  |
 | `rspockframework/ast-transform` | base.mdc | 2452 |  |
 | `rspockframework/rspock` | base.mdc | 2452 |  |
+| `rsurasin/claude-code-toolkit` | doc-sync.md | 4574 |  |
 | `rtdickerson/JPA4ApiServerTemplateProject` | debugger.md | 1104 |  |
 | `rtkelly13/blog` | SKILL.md | 418 |  |
 | `rtkelly13/blog` | SKILL.md | 445 |  |
@@ -10766,6 +10861,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `rysweet/azure-tenant-grapher` | issue-127-body.md | 3158 |  |
 | `s-hiraoku/cc-flow` | spec-design.md | 10461 |  |
 | `s1nny0ur/claude-agents` | prompt-engineer.md | 1652 |  |
+| `s1nny0ur/claude-agents` | sales-automator.md | 924 |  |
 | `s4kr4/agents` | code-investigator.md | 6653 |  |
 | `s780609/our-family-journeys` | planner.md | 3223 |  |
 | `sachidananda-panigrahi/skill-brain` | security-agent.md | 10459 | (?i)exfiltrat |
@@ -11319,6 +11415,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `stevekinney/ariadne` | bun.mdc | 1511 |  |
 | `stevekinney/cash-out` | bun.mdc | 1511 |  |
 | `stevekinney/vector-frankl` | bun.mdc | 1511 |  |
+| `stevenfackley/opencode-amplifier` | reviewer-cheap.md | 1761 |  |
 | `stevessr/bug-v3` | code-linter.md | 1973 |  |
 | `stevessr/bug-v3` | doc-writer.md | 7550 |  |
 | `stevessr/bug-v3` | refactor.md | 7529 |  |
@@ -11377,6 +11474,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `sunzcdev/archon-dev-team` | codebase-analyst.md | 3788 |  |
 | `superlff888/aiAutoTest` | system-prompts.md | 18970 | (?i)ignore\s+(all\s+)?(previous|prior|above)\s+instructions |
 | `supermaciz/sessions-chronicle` | mii-beta-gtk-designer.md | 20728 |  |
+| `supermalang/ai-augmented-coding` | coder.md | 1085 |  |
 | `supermarsx/sora-json-prompt-crafter` | agents.md | 37723 |  |
 | `supernalintelligence/bill-of-computational-rights` | deprecate-safely.mdc | 358 |  |
 | `superproducer64/faceless_agent` | channel-onboarding.md | 3687 |  |
@@ -11675,6 +11773,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `tiagrib/webeater` | README.md | 1332 |  |
 | `tianbuyung/fitzaro-seabw` | privy.md | 1569 |  |
 | `tianzecn/myclaudecode` | agent-sdk-verifier-ts.md | 5419 |  |
+| `tiendung/flow-next` | repo-scout.md | 2545 |  |
 | `tienkhoa03/DigitalWallet` | backend-developer.md | 28651 |  |
 | `tieumainhi/simple-sales-noti-avada` | debugger.md | 8051 |  |
 | `tieumainhi/simple-sales-noti-avada` | security-auditor.md | 8843 |  |
@@ -11810,6 +11909,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `tonone-ai/tonone` | ink.md | 14129 |  |
 | `tonone-ai/tonone` | keel.md | 8978 |  |
 | `tonone-ai/tonone` | keep.md | 12898 |  |
+| `tonone-ai/tonone` | kube.md | 3098 |  |
 | `tonone-ai/tonone` | lens.md | 9236 |  |
 | `tonone-ai/tonone` | lumen.md | 10358 |  |
 | `tonone-ai/tonone` | mint.md | 10735 |  |
@@ -12142,14 +12242,20 @@ Flagged by injection scan (data-only, not trusted): 109
 | `vegerot/dotfiles` | lark-contact-search-user.md | 5390 |  |
 | `vegerot/dotfiles` | SKILL.md | 7309 |  |
 | `vegerot/dotfiles` | lark-doc-media-download.md | 2169 |  |
+| `vegerot/dotfiles` | lark-doc-media-insert.md | 6944 |  |
 | `vegerot/dotfiles` | lark-doc-media-preview.md | 1647 |  |
+| `vegerot/dotfiles` | lark-doc-xml.md | 9043 |  |
 | `vegerot/dotfiles` | SKILL.md | 19197 |  |
 | `vegerot/dotfiles` | lark-im-chat-create.md | 7996 |  |
+| `vegerot/dotfiles` | lark-im-chat-update.md | 3281 |  |
 | `vegerot/dotfiles` | lark-im-feed-group-query-item.md | 2391 |  |
+| `vegerot/dotfiles` | lark-im-feed-groups.md | 18664 |  |
 | `vegerot/dotfiles` | lark-im-feed-shortcut-remove.md | 2100 |  |
+| `vegerot/dotfiles` | lark-im-flag-cancel.md | 2961 |  |
 | `vegerot/dotfiles` | lark-im-flag-create.md | 2707 |  |
 | `vegerot/dotfiles` | lark-im-message-enrichment.md | 7081 |  |
 | `vegerot/dotfiles` | lark-im-messages-mget.md | 4392 |  |
+| `vegerot/dotfiles` | lark-im-messages-resources-download.md | 4845 |  |
 | `vegerot/dotfiles` | lark-im-reactions.md | 10556 |  |
 | `vegerot/dotfiles` | lark-im-threads-messages-list.md | 5978 |  |
 | `vegerot/dotfiles` | lark-markdown-diff.md | 6400 |  |
@@ -12662,6 +12768,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `xiaohan2012/stgym` | developer.md | 586 |  |
 | `xiaohan2012/stgym` | pm.md | 4203 |  |
 | `xiaolai/vmark` | planner.md | 1229 |  |
+| `xiaoshuangLi/aibo` | validator.md | 2878 |  |
 | `xiaotiaojiang/feline-lit` | AGENTS.md | 613 |  |
 | `xiapeli/jobim` | jobim.md | 10040 |  |
 | `xiapeli/jobim` | scout.md | 4555 |  |
@@ -12935,6 +13042,7 @@ Flagged by injection scan (data-only, not trusted): 109
 | `zsxawerdu/postnoctum` | plan-dotnet.md | 1497 |  |
 | `zubair-io/Maple` | AGENTS.md | 3035 |  |
 | `zubair-io/Maple-ok` | AGENTS.md | 3035 |  |
+| `zuirela/AI-OS-Ty-tila` | secretary-audit.md | 2271 |  |
 | `zxdxjtu/claudecode-rule2hook` | rule2hook.md | 6380 |  |
 | `zxkane/social-agents` | reddit.md | 4212 |  |
 | `zxkane/social-agents` | twitter.md | 3915 |  |

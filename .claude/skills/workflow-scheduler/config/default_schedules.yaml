@@ -1,0 +1,224 @@
+# Default Workflow Schedules Configuration
+#
+# BLP Coverage:
+# - BLP-011 (Autonomy): Define autonomous workflow execution
+# - BLP-051 (Self-Organization): Structured workflow definitions
+#
+# Cron Expression Format:
+#   ┌───────────── minute (0 - 59)
+#   │ ┌───────────── hour (0 - 23)
+#   │ │ ┌───────────── day of month (1 - 31)
+#   │ │ │ ┌───────────── month (1 - 12)
+#   │ │ │ │ ┌───────────── day of week (0 - 6) (Sunday = 0)
+#   │ │ │ │ │
+#   * * * * *
+#
+# Author: DITD Implementation Agent
+# Created: 2025-12-29
+
+version: "1.0"
+
+# Global defaults
+defaults:
+  timezone: "America/New_York"
+  retry:
+    max_retries: 3
+    base_delay_seconds: 60
+    backoff_factor: 2.0
+    policy: "exponential"
+
+# Scheduled workflows
+schedules:
+  # Daily Intelligence Aggregator
+  - workflow_id: "daily-intelligence"
+    name: "Daily Intelligence Aggregator"
+    description: "Gather daily intelligence from multiple sources"
+    cron: "0 6 * * *"  # Every day at 6:00 AM
+    timezone: "America/New_York"
+    enabled: true
+    priority: high
+    metadata:
+      category: "intelligence"
+      owner: "system"
+      notify_on_failure: true
+    retry:
+      max_retries: 3
+      base_delay_seconds: 300
+
+  # Email Processing Workflow
+  - workflow_id: "email-to-action"
+    name: "Email to Action Processor"
+    description: "Process incoming emails and create action items"
+    cron: "*/30 * * * *"  # Every 30 minutes
+    timezone: "America/New_York"
+    enabled: true
+    priority: high
+    dependencies:
+      - workflow_id: "system-health-check"
+        type: "soft"
+        required: false
+    metadata:
+      category: "email"
+      max_emails: 10
+
+  # TB Auto Processor
+  - workflow_id: "tb-auto-processor"
+    name: "TB Command Auto Processor"
+    description: "Process pending TB commands and approvals"
+    cron: "*/5 * * * *"  # Every 5 minutes
+    timezone: "UTC"
+    enabled: true
+    priority: critical
+    metadata:
+      category: "automation"
+      approval_required: true
+
+  # X Bookmarks to Insights
+  - workflow_id: "x-bookmarks-insights"
+    name: "X Bookmarks to Insights"
+    description: "Process X/Twitter bookmarks into insights"
+    cron: "0 */4 * * *"  # Every 4 hours
+    timezone: "America/New_York"
+    enabled: true
+    priority: medium
+    metadata:
+      category: "social"
+
+  # Crypto Portfolio Analysis
+  - workflow_id: "crypto-portfolio-analysis"
+    name: "Crypto Portfolio Analyzer"
+    description: "Analyze crypto portfolio performance"
+    cron: "0 8,20 * * *"  # Twice daily at 8 AM and 8 PM
+    timezone: "America/New_York"
+    enabled: true
+    priority: medium
+    metadata:
+      category: "finance"
+      report_format: "html"
+
+  # System Health Check
+  - workflow_id: "system-health-check"
+    name: "System Health Monitor"
+    description: "Check system health and service status"
+    cron: "*/15 * * * *"  # Every 15 minutes
+    timezone: "UTC"
+    enabled: true
+    priority: critical
+    metadata:
+      category: "monitoring"
+      alert_threshold: "warning"
+
+  # Dashboard Refresh
+  - workflow_id: "dashboard-refresh"
+    name: "Dashboard Status Refresh"
+    description: "Generate and update status dashboards"
+    cron: "*/10 * * * *"  # Every 10 minutes
+    timezone: "UTC"
+    enabled: true
+    priority: low
+    dependencies:
+      - workflow_id: "system-health-check"
+        type: "hard"
+        required: true
+    metadata:
+      category: "reporting"
+
+  # Weekly Report Generation
+  - workflow_id: "weekly-report"
+    name: "Weekly Summary Report"
+    description: "Generate weekly performance and activity report"
+    cron: "0 9 * * 1"  # Every Monday at 9 AM
+    timezone: "America/New_York"
+    enabled: true
+    priority: medium
+    dependencies:
+      - workflow_id: "daily-intelligence"
+        type: "soft"
+        required: false
+    metadata:
+      category: "reporting"
+      report_type: "weekly"
+
+  # Memory Cleanup
+  - workflow_id: "memory-cleanup"
+    name: "Memory and State Cleanup"
+    description: "Clean up old state files and memory"
+    cron: "0 3 * * *"  # Every day at 3 AM
+    timezone: "UTC"
+    enabled: true
+    priority: low
+    metadata:
+      category: "maintenance"
+      retention_days: 30
+
+  # Backup Workflow
+  - workflow_id: "backup-workflow"
+    name: "System Backup"
+    description: "Backup critical system files and state"
+    cron: "0 2 * * *"  # Every day at 2 AM
+    timezone: "UTC"
+    enabled: true
+    priority: high
+    metadata:
+      category: "maintenance"
+      backup_location: "/home/craigmbrown/backups"
+
+# Dependency graph definitions
+dependencies:
+  # Dashboard requires health check to complete first
+  - from: "system-health-check"
+    to: "dashboard-refresh"
+    type: "hard"
+    required: true
+
+  # Weekly report benefits from daily intelligence
+  - from: "daily-intelligence"
+    to: "weekly-report"
+    type: "soft"
+    required: false
+
+  # Email processing should wait for health check
+  - from: "system-health-check"
+    to: "email-to-action"
+    type: "soft"
+    required: false
+
+# Notification settings
+notifications:
+  whatsapp:
+    enabled: true
+    recipient: "15712781730"
+    on_failure: true
+    on_success: false
+    on_retry: true
+
+  # Future: email notifications
+  email:
+    enabled: false
+    recipients: []
+
+# Retry policies by category
+retry_policies:
+  critical:
+    max_retries: 5
+    base_delay_seconds: 30
+    backoff_factor: 2.0
+    policy: "exponential"
+
+  high:
+    max_retries: 3
+    base_delay_seconds: 60
+    backoff_factor: 2.0
+    policy: "exponential"
+
+  medium:
+    max_retries: 2
+    base_delay_seconds: 120
+    backoff_factor: 1.5
+    policy: "exponential"
+
+  low:
+    max_retries: 1
+    base_delay_seconds: 300
+    backoff_factor: 1.0
+    policy: "constant"

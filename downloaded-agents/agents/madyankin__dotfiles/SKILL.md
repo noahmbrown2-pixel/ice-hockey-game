@@ -1,302 +1,151 @@
 ---
-name: git-worktree
-description: This skill manages Git worktrees for isolated parallel development. It handles creating, listing, switching, and cleaning up worktrees with a simple interactive interface, following KISS principles.
+name: germany-tax-consultant
+description: This skill should be used when helping private individuals and employees with German personal income tax questions, including ELSTER filing, tax return preparation, common deductions, tax classes, filing deadlines, and tax identification number issues, while avoiding business taxation and complex cross-border advice.
 ---
 
-# Git Worktree Manager
+# Germany Tax Consultant
 
-This skill provides a unified interface for managing Git worktrees across your development workflow. Whether you're reviewing PRs in isolation or working on features in parallel, this skill handles all the complexity.
+## Overview
 
-## What This Skill Does
+Provide bilingual practical guidance for German personal income tax questions aimed at private individuals and employees. Explain in English first, preserve key German tax and ELSTER terminology, and ground answers in official sources before using trusted consumer guidance.
 
-- **Create worktrees** from main branch with clear branch names
-- **List worktrees** with current status
-- **Switch between worktrees** for parallel work
-- **Clean up completed worktrees** automatically
-- **Interactive confirmations** at each step
-- **Automatic .gitignore management** for worktree directory
-- **Automatic .env file copying** from main repo to new worktrees
+## Scope
 
-## CRITICAL: Always Use the Manager Script
+Use this skill for:
 
-**NEVER call `git worktree add` directly.** Always use the `worktree-manager.sh` script.
+- employee income tax return questions
+- ELSTER filing and account workflow questions
+- `IdNr` and basic `Finanzamt` routing questions
+- common deduction questions for employees
+- filing-deadline and filing-obligation orientation
+- high-level `Steuerklasse` and residency basics
 
-The script handles critical setup that raw git commands don't:
-1. Copies `.env`, `.env.local`, `.env.test`, etc. from main repo
-2. Ensures `.worktrees` is in `.gitignore`
-3. Creates consistent directory structure
+Do not use this skill for:
 
-```bash
-# ✅ CORRECT - Always use the script
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh create feature-name
+- self-employment or business taxes
+- VAT, trade tax, or corporate tax
+- deep double-tax treaty or cross-border analysis
+- inheritance tax, gift tax, or crypto tax
+- litigation, audits, objections, or binding legal advice
 
-# ❌ WRONG - Never do this directly
-git worktree add .worktrees/feature-name -b feature-name main
-```
+## Source Priority
 
-## When to Use This Skill
+Use sources in this order:
 
-Use this skill in these scenarios:
+1. `references/official-legal-and-tax-tariff.md`
+2. `references/official-elster-workflow.md`
+3. `references/official-bzst-idnr-and-finanzamt.md`
+4. `references/employee-tax-basics.md`
+5. `references/common-deductions-checklist.md`
+6. `references/tax-classes-and-residency-basics.md`
+7. `references/trusted-consumer-guides-finanztip.md`
+8. `references/red-flags-and-escalation.md`
 
-1. **Code Review (`/ce:review`)**: If NOT already on the target branch (PR branch or requested branch), offer worktree for isolated review
-2. **Feature Work (`/ce:work`)**: Always ask if user wants parallel worktree or live branch work
-3. **Parallel Development**: When working on multiple features simultaneously
-4. **Cleanup**: After completing work in a worktree
+Prefer statute and official agency guidance over consumer guides whenever there is tension.
 
-## How to Use
+## Workflow
 
-### In Claude Code Workflows
+### 1. Classify the request
 
-The skill is automatically called from `/ce:review` and `/ce:work` commands:
+Identify whether the user needs:
 
-```
-# For review: offers worktree if not on PR branch
-# For work: always asks - new branch or worktree?
-```
+- ELSTER workflow help
+- tax return filing help
+- deduction guidance
+- `IdNr` help
+- filing obligation or deadline guidance
+- `Steuerklasse` orientation
+- residency orientation
 
-### Manual Usage
+If the request falls outside scope, narrow the answer immediately or escalate.
 
-You can also invoke the skill directly from bash:
+### 2. Gather the minimum facts
 
-```bash
-# Create a new worktree (copies .env files automatically)
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh create feature-login
+Before giving a firm-sounding answer, collect the missing facts that matter most:
 
-# List all worktrees
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh list
+- tax year
+- whether the user lived in Germany the full year
+- whether the user had only employment income
+- marital status
+- children if relevant
+- church tax relevance if relevant
+- whether an ELSTER account already exists
+- what documents and receipts are available
 
-# Switch to a worktree
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh switch feature-login
+Avoid long questionnaires when a short clarification is enough.
 
-# Copy .env files to an existing worktree (if they weren't copied)
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh copy-env feature-login
+### 3. Load only the needed references
 
-# Clean up completed worktrees
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh cleanup
-```
+- Load `references/official-elster-workflow.md` for filing portal questions.
+- Load `references/official-bzst-idnr-and-finanzamt.md` for `IdNr` or office-responsibility questions.
+- Load `references/common-deductions-checklist.md` for deduction questions.
+- Load `references/tax-classes-and-residency-basics.md` for `Steuerklasse` or move-in/move-out questions.
+- Load `references/trusted-consumer-guides-finanztip.md` only after the official answer is established and clearer wording is needed.
 
-## Commands
+### 4. Answer bilingually
 
-### `create <branch-name> [from-branch]`
+- Explain in English first.
+- Add the German term in parentheses on first mention.
+- Keep German terms unchanged when the user will see them in ELSTER, on a notice, or in a form.
+- Example: `income-related expenses (Werbungskosten)`.
 
-Creates a new worktree with the given branch name.
+### 5. Stay inside safe confidence limits
 
-**Options:**
-- `branch-name` (required): The name for the new branch and worktree
-- `from-branch` (optional): Base branch to create from (defaults to `main`)
+- Use language like "usually," "often," or "depends on" when facts are incomplete.
+- Distinguish between payroll withholding and final annual tax.
+- Distinguish between an estimate and the final assessment by the tax office.
+- Recommend the local `Finanzamt` or a `Steuerberater` when the case is fact-heavy or regulated.
 
-**Example:**
-```bash
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh create feature-login
-```
+## Response Patterns
 
-**What happens:**
-1. Checks if worktree already exists
-2. Updates the base branch from remote
-3. Creates new worktree and branch
-4. **Copies all .env files from main repo** (.env, .env.local, .env.test, etc.)
-5. Shows path for cd-ing to the worktree
+### ELSTER help
 
-### `list` or `ls`
+- Confirm whether the user needs account setup, login recovery, form entry help, or submission help.
+- Give step-by-step guidance with bilingual labels.
+- Flag that exact menu wording can change.
 
-Lists all available worktrees with their branches and current status.
+### Deduction help
 
-**Example:**
-```bash
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh list
-```
+- Identify the expense category first.
+- Ask about reimbursements, work-related use, and receipts.
+- Explain the usual rule and what evidence matters.
 
-**Output shows:**
-- Worktree name
-- Branch name
-- Which is current (marked with ✓)
-- Main repo status
+### Filing obligation or deadline help
 
-### `switch <name>` or `go <name>`
+- Give the official framing first.
+- Use trusted consumer guidance only to simplify the explanation.
+- Avoid pretending the obligation is settled if major facts are missing.
 
-Switches to an existing worktree and cd's into it.
+### Tax class help
 
-**Example:**
-```bash
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh switch feature-login
-```
+- Explain that `Steuerklasse` affects withholding during the year.
+- Do not present `Steuerklasse` as the final annual tax result.
 
-**Optional:**
-- If name not provided, lists available worktrees and prompts for selection
+### IdNr help
 
-### `cleanup` or `clean`
+- Explain what the `IdNr` is.
+- State where it is commonly found.
+- Mention the official BZSt re-notification path.
+- Mention that filing may still be possible without knowing it.
 
-Interactively cleans up inactive worktrees with confirmation.
+## Escalation Rules
 
-**Example:**
-```bash
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh cleanup
-```
+Consult `references/red-flags-and-escalation.md` and escalate or narrow the answer when the user mentions:
 
-**What happens:**
-1. Lists all inactive worktrees
-2. Asks for confirmation
-3. Removes selected worktrees
-4. Cleans up empty directories
+- freelance or business income
+- foreign income or dual residence
+- stock compensation or complex capital gains
+- crypto activity
+- disputes with the tax office
+- inheritance or gift tax
 
-## Workflow Examples
+## Included References
 
-### Code Review with Worktree
-
-```bash
-# Claude Code recognizes you're not on the PR branch
-# Offers: "Use worktree for isolated review? (y/n)"
-
-# You respond: yes
-# Script runs (copies .env files automatically):
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh create pr-123-feature-name
-
-# You're now in isolated worktree for review with all env vars
-cd .worktrees/pr-123-feature-name
-
-# After review, return to main:
-cd ../..
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh cleanup
-```
-
-### Parallel Feature Development
-
-```bash
-# For first feature (copies .env files):
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh create feature-login
-
-# Later, start second feature (also copies .env files):
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh create feature-notifications
-
-# List what you have:
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh list
-
-# Switch between them as needed:
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh switch feature-login
-
-# Return to main and cleanup when done:
-cd .
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh cleanup
-```
-
-## Key Design Principles
-
-### KISS (Keep It Simple, Stupid)
-
-- **One manager script** handles all worktree operations
-- **Simple commands** with sensible defaults
-- **Interactive prompts** prevent accidental operations
-- **Clear naming** using branch names directly
-
-### Opinionated Defaults
-
-- Worktrees always created from **main** (unless specified)
-- Worktrees stored in **.worktrees/** directory
-- Branch name becomes worktree name
-- **.gitignore** automatically managed
-
-### Safety First
-
-- **Confirms before creating** worktrees
-- **Confirms before cleanup** to prevent accidental removal
-- **Won't remove current worktree**
-- **Clear error messages** for issues
-
-## Integration with Workflows
-
-### `/ce:review`
-
-Instead of always creating a worktree:
-
-```
-1. Check current branch
-2. If ALREADY on target branch (PR branch or requested branch) → stay there, no worktree needed
-3. If DIFFERENT branch than the review target → offer worktree:
-   "Use worktree for isolated review? (y/n)"
-   - yes → call git-worktree skill
-   - no → proceed with PR diff on current branch
-```
-
-### `/ce:work`
-
-Always offer choice:
-
-```
-1. Ask: "How do you want to work?
-   1. New branch on current worktree (live work)
-   2. Worktree (parallel work)"
-
-2. If choice 1 → create new branch normally
-3. If choice 2 → call git-worktree skill to create from main
-```
-
-## Troubleshooting
-
-### "Worktree already exists"
-
-If you see this, the script will ask if you want to switch to it instead.
-
-### "Cannot remove worktree: it is the current worktree"
-
-Switch out of the worktree first (to main repo), then cleanup:
-
-```bash
-cd $(git rev-parse --show-toplevel)
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh cleanup
-```
-
-### Lost in a worktree?
-
-See where you are:
-
-```bash
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh list
-```
-
-### .env files missing in worktree?
-
-If a worktree was created without .env files (e.g., via raw `git worktree add`), copy them:
-
-```bash
-bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh copy-env feature-name
-```
-
-Navigate back to main:
-
-```bash
-cd $(git rev-parse --show-toplevel)
-```
-
-## Technical Details
-
-### Directory Structure
-
-```
-.worktrees/
-├── feature-login/          # Worktree 1
-│   ├── .git
-│   ├── app/
-│   └── ...
-├── feature-notifications/  # Worktree 2
-│   ├── .git
-│   ├── app/
-│   └── ...
-└── ...
-
-.gitignore (updated to include .worktrees)
-```
-
-### How It Works
-
-- Uses `git worktree add` for isolated environments
-- Each worktree has its own branch
-- Changes in one worktree don't affect others
-- Share git history with main repo
-- Can push from any worktree
-
-### Performance
-
-- Worktrees are lightweight (just file system links)
-- No repository duplication
-- Shared git objects for efficiency
-- Much faster than cloning or stashing/switching
+- `references/official-elster-workflow.md`
+- `references/official-bzst-idnr-and-finanzamt.md`
+- `references/official-legal-and-tax-tariff.md`
+- `references/employee-tax-basics.md`
+- `references/common-deductions-checklist.md`
+- `references/tax-classes-and-residency-basics.md`
+- `references/trusted-consumer-guides-finanztip.md`
+- `references/red-flags-and-escalation.md`

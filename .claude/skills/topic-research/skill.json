@@ -1,0 +1,52 @@
+{
+  "name": "topic-research",
+  "version": "1.0.0",
+  "description": "Direct topic research tool - Research any topic without email trigger. Same quality as Email Research Pipeline v2.0",
+  "category": "research",
+  "author": "ETAC System",
+  "created": "2026-02-04",
+  "updated": "2026-02-04",
+  "blp_properties": ["Alignment", "Autonomy", "Durability", "Self-Improvement"],
+  "req_ids": ["REQ-TRT-001", "REQ-TRT-002", "REQ-TRT-003", "REQ-TRT-004", "REQ-TRT-005"],
+  "arguments": [
+    {
+      "name": "topic",
+      "type": "string",
+      "required": true,
+      "description": "Research topic to analyze"
+    },
+    {
+      "name": "url",
+      "type": "string",
+      "required": false,
+      "description": "Optional context URL to analyze alongside topic"
+    },
+    {
+      "name": "depth",
+      "type": "enum",
+      "values": ["quick", "standard", "comprehensive"],
+      "default": "standard",
+      "description": "Research depth level"
+    },
+    {
+      "name": "channels",
+      "type": "string",
+      "default": "all",
+      "description": "Delivery channels: all, email, whatsapp, html (comma-separated)"
+    }
+  ],
+  "outputs": [
+    "HTML dashboard with research findings",
+    "Email with research report",
+    "WhatsApp notification",
+    "State file with research history"
+  ],
+  "dependencies": [
+    "gmail_token (babyproject418)",
+    "whatsapp_api (localhost:8082)"
+  ],
+  "related_skills": [
+    "run-workflow-topic-research",
+    "html-email-research-delivery"
+  ]
+}

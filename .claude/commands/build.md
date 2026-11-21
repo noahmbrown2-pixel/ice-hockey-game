@@ -1,45 +1,50 @@
----
-model: opus
-description: Execute a prompt and build the requested feature.
-argument-hint: <prompt>
-hooks:
-  Stop:
-    - hooks:
-        - type: command
-          command: "uv run \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/validators/ty-validator.py"
-        - type: command
-          command: "uv run \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/validators/ruff-validator.py"
----
+# Build Task
 
-# Build Command
-
-## Purpose
-
-Execute a user prompt and build the requested feature.
+Implement a task directly without creating a plan first.
 
 ## Variables
-
-USER_PROMPT: $ARGUMENTS
+adw_id: $ARGUMENTS
+task_description: $ARGUMENTS
 
 ## Instructions
 
-- Execute the user's prompt as the primary task
-- Focus on writing clean, well-typed Python code
-- If validation fails, fix the issues and try again
+1. **Prime with Context**: First, read and execute `.claude/commands/prime.md` to understand the codebase
+2. **Analyze Task**: Carefully read and understand the task description
+3. **Implement Solution**: Think hard and then directly implement the solution for the task
+4. **Validate Work**: Ensure the implementation is complete and working
+5. **Report Results**: Summarize what was done
 
-## Workflow
+## Setup Phase
 
-1. Read and understand the USER_PROMPT
-2. Execute the requested task
-3. Ensure any code written follows Python best practices
-4. Report the results of your work
+Before implementing the task:
+- Execute the prime command to understand the codebase structure
+- Read relevant documentation files (README.md, etc.)
+- Understand the existing patterns and conventions
+
+## Implementation Guidelines
+
+- Follow existing code patterns and conventions
+- Use the libraries and frameworks already in the codebase
+- Write clean, maintainable code
+- Add appropriate error handling
+- Follow security best practices
+
+## Task Description
+
+task_description
+
+## Expected Actions
+
+1. **Research**: Understand the codebase and task requirements
+2. **Implement**: Make the necessary changes to complete the task
+3. **Test**: Verify the implementation works as expected
+4. **Commit**: Create a meaningful commit with the changes
 
 ## Report
 
-After completing the task:
-
-## Build Complete
-
-**Task**: [brief summary of what was done]
-
-**Files modified**: [list of files]
+After completing the implementation:
+- Summarize the work done in clear bullet points
+- List all files created or modified
+- Report the total lines changed with `git diff --stat`
+- Note any important decisions or trade-offs made
+- Highlight any follow-up tasks that may be needed

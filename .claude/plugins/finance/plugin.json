@@ -1,0 +1,71 @@
+{
+  "name": "finance",
+  "version": "1.0.0",
+  "description": "Financial analysis, budgeting, and reporting tools",
+  "author": "Anthropic (adapted for ETAC)",
+  "license": "Apache-2.0",
+  "namespace": "finance",
+  "commands": [
+    {
+      "name": "analyze-statement",
+      "file": "commands/analyze-statement.md",
+      "description": "Analyze financial statements and extract insights"
+    },
+    {
+      "name": "budget-create",
+      "file": "commands/budget-create.md",
+      "description": "Create and manage budgets with variance analysis"
+    },
+    {
+      "name": "forecast",
+      "file": "commands/forecast.md",
+      "description": "Generate financial forecasts and projections"
+    },
+    {
+      "name": "expense-categorize",
+      "file": "commands/expense-categorize.md",
+      "description": "Categorize and analyze expenses"
+    },
+    {
+      "name": "report-generate",
+      "file": "commands/report-generate.md",
+      "description": "Generate financial reports and summaries"
+    }
+  ],
+  "skills": [
+    {
+      "name": "financial-ratios",
+      "file": "skills/financial-ratios.md",
+      "triggers": ["ratio", "liquidity", "profitability", "solvency"]
+    },
+    {
+      "name": "variance-analysis",
+      "file": "skills/variance-analysis.md",
+      "triggers": ["variance", "budget vs actual", "over budget", "under budget"]
+    },
+    {
+      "name": "cash-flow-analysis",
+      "file": "skills/cash-flow-analysis.md",
+      "triggers": ["cash flow", "working capital", "runway", "burn rate"]
+    },
+    {
+      "name": "financial-modeling",
+      "file": "skills/financial-modeling.md",
+      "triggers": ["model", "DCF", "valuation", "projection"]
+    },
+    {
+      "name": "compliance-checks",
+      "file": "skills/compliance-checks.md",
+      "triggers": ["compliance", "audit", "GAAP", "controls"]
+    },
+    {
+      "name": "tax-optimization",
+      "file": "skills/tax-optimization.md",
+      "triggers": ["tax", "deduction", "depreciation", "credits"]
+    }
+  ],
+  "connectors": {
+    "required": ["notionApi"],
+    "optional": ["quick-data", "pocket-pick"]
+  }
+}

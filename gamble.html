@@ -1,0 +1,2443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>GAMBLE - Casino Hub</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+@font-face{font-family:'Casino';src:local('Georgia');}
+:root{
+--bg:#0a0a0a;--bg2:#111;--gold:#d4a843;--gold2:#f0d060;--green:#1a4a2e;
+--red:#c0392b;--felt:#0d5e2e;--card-white:#f5f5f0;--text:#e0e0e0;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Georgia,'Times New Roman',serif;}
+#app{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;}
+
+/* HEADER */
+#header{display:flex;justify-content:space-between;align-items:center;padding:10px 20px;background:linear-gradient(180deg,#1a1a1a,#0d0d0d);border-bottom:2px solid var(--gold);flex-shrink:0;z-index:10;}
+#title{font-size:2.2em;font-weight:bold;color:var(--gold);text-shadow:0 0 20px rgba(212,168,67,0.6),0 0 40px rgba(212,168,67,0.3);letter-spacing:8px;}
+#balance-box{text-align:right;}
+#balance-label{font-size:0.7em;color:#888;text-transform:uppercase;letter-spacing:2px;}
+#balance{font-size:1.5em;font-weight:bold;transition:color 0.3s;}
+.bal-up{color:#2ecc71 !important;}
+.bal-down{color:#e74c3c !important;}
+.bal-normal{color:var(--gold);}
+
+/* LOBBY */
+#lobby{flex:1;overflow-y:auto;padding:10px 20px 80px 20px;}
+.cat-section{margin-bottom:18px;}
+.cat-title{font-size:1em;color:var(--gold);margin-bottom:8px;padding-left:4px;letter-spacing:2px;text-transform:uppercase;border-left:3px solid var(--gold);padding-left:10px;}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}
+.game-card{background:#1a1a1a;border:2px solid #333;border-radius:8px;padding:10px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.game-card:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(0,0,0,0.5);border-color:var(--gold);}
+.game-card.full-impl::after{content:'PLAY';position:absolute;top:4px;right:4px;background:var(--gold);color:#000;font-size:0.55em;padding:1px 5px;border-radius:3px;font-weight:bold;}
+.gc-name{font-size:0.85em;font-weight:bold;margin-bottom:4px;color:#fff;}
+.gc-emoji{font-size:1.3em;margin-bottom:3px;}
+.gc-info{font-size:0.6em;color:#888;line-height:1.4;}
+.gc-edge{color:#e74c3c;}
+
+/* MODAL */
+#modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:100;overflow-y:auto;}
+#modal{background:#111;max-width:900px;margin:0 auto;min-height:100%;padding:20px;animation:slideUp 0.3s ease;}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+#modal-close{position:fixed;top:10px;right:15px;font-size:2em;color:var(--gold);cursor:pointer;z-index:110;background:#000;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--gold);}
+#modal-header{border-bottom:1px solid #333;padding-bottom:12px;margin-bottom:15px;}
+#modal-title{font-size:1.5em;color:var(--gold);}
+#modal-cat{font-size:0.8em;color:#888;margin-top:2px;}
+#modal-stats{display:flex;gap:15px;margin:10px 0;flex-wrap:wrap;}
+.stat{background:#1a1a1a;padding:6px 12px;border-radius:5px;font-size:0.75em;}
+.stat b{color:var(--gold);}
+#modal-rules{background:#0d1a0d;border:1px solid #1a3a1a;border-radius:6px;padding:10px;margin:10px 0;font-size:0.8em;line-height:1.5;}
+#modal-rules li{margin:3px 0 3px 15px;}
+#game-area{margin-top:15px;min-height:300px;}
+
+/* GAME COMMON */
+.bet-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0;}
+.bet-btn{background:linear-gradient(180deg,#d4a843,#b8922e);color:#000;border:none;padding:8px 16px;border-radius:5px;cursor:pointer;font-weight:bold;font-size:0.9em;font-family:inherit;}
+.bet-btn:hover{background:linear-gradient(180deg,#f0d060,#d4a843);}
+.bet-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.bet-btn.danger{background:linear-gradient(180deg,#c0392b,#962d22);}
+.bet-btn.danger:hover{background:linear-gradient(180deg,#e74c3c,#c0392b);}
+.bet-btn.small{padding:5px 10px;font-size:0.8em;}
+.bet-input{background:#222;border:1px solid #555;color:var(--gold);padding:8px;border-radius:5px;width:80px;font-size:1em;text-align:center;font-family:inherit;}
+.result-msg{padding:10px;border-radius:6px;margin:8px 0;font-weight:bold;text-align:center;font-size:1.1em;}
+.result-win{background:#0d2e0d;border:1px solid #1a5a1a;color:#2ecc71;}
+.result-lose{background:#2e0d0d;border:1px solid #5a1a1a;color:#e74c3c;}
+.result-push{background:#2e2e0d;border:1px solid #5a5a1a;color:#f0d060;}
+
+/* CARDS */
+.cards-row{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap;justify-content:center;}
+.card-div{width:60px;height:85px;background:var(--card-white);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1em;box-shadow:0 2px 8px rgba(0,0,0,0.5);position:relative;transition:transform 0.3s;}
+.card-div.face-down{background:linear-gradient(135deg,#1a3a6a,#0d2040);border:2px solid #2a4a7a;}
+.card-div.face-down::after{content:'';position:absolute;inset:6px;border:1px solid #2a4a7a;border-radius:3px;}
+.card-div .cv{font-weight:bold;font-size:1.1em;}
+.card-div .cs{font-size:1.3em;}
+.card-red{color:#c0392b;}
+.card-black{color:#222;}
+.hand-label{text-align:center;font-size:0.8em;color:#888;margin:3px 0;}
+.hand-total{text-align:center;font-size:1em;color:var(--gold);font-weight:bold;}
+
+/* DICE */
+.dice-row{display:flex;gap:12px;justify-content:center;margin:10px 0;}
+.die{width:55px;height:55px;background:#fff;border-radius:8px;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;padding:6px;box-shadow:0 3px 10px rgba(0,0,0,0.4);}
+.die.rolling{animation:diceRoll 0.4s ease-in-out;}
+@keyframes diceRoll{0%{transform:rotate(0) scale(1)}25%{transform:rotate(90deg) scale(0.9)}50%{transform:rotate(180deg) scale(1.1)}75%{transform:rotate(270deg) scale(0.9)}100%{transform:rotate(360deg) scale(1)}}
+.dot{width:10px;height:10px;background:#222;border-radius:50%;align-self:center;justify-self:center;display:none;}
+
+/* ROULETTE */
+.roulette-container{text-align:center;}
+.wheel-wrapper{position:relative;width:220px;height:220px;margin:10px auto;}
+.wheel-outer{width:220px;height:220px;border-radius:50%;border:4px solid var(--gold);overflow:hidden;position:relative;transition:transform 4s cubic-bezier(0.2,0.8,0.3,1);}
+.wheel-pointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:18px solid var(--gold);z-index:5;}
+.wheel-canvas{width:100%;height:100%;}
+.bet-table{display:grid;grid-template-columns:repeat(14,1fr);gap:1px;margin:8px 0;font-size:0.65em;}
+.bet-cell{background:#0d5e2e;border:1px solid #1a7a3a;padding:4px 2px;text-align:center;cursor:pointer;transition:background 0.1s;min-height:28px;display:flex;align-items:center;justify-content:center;}
+.bet-cell:hover{background:#1a7a3a;}
+.bet-cell.selected{background:var(--gold);color:#000;font-weight:bold;}
+.bet-cell.red-num{color:#e74c3c;}
+.bet-cell.green-num{color:#2ecc71;}
+.bet-cell.span2{grid-column:span 2;}
+.bet-cell.span3{grid-column:span 3;}
+.bet-cell.span4{grid-column:span 4;}
+.bet-cell.span6{grid-column:span 6;}
+.bet-cell.span7{grid-column:span 7;}
+.bet-cell.span14{grid-column:span 14;}
+
+/* BIG SIX WHEEL */
+.bigsix-wheel-wrapper{position:relative;width:250px;height:250px;margin:10px auto;}
+.bigsix-canvas{width:250px;height:250px;}
+.bigsix-pointer{position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:18px solid var(--gold);z-index:5;}
+.bigsix-bets{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;}
+.bigsix-bet{padding:8px 14px;background:#1a1a1a;border:2px solid #333;border-radius:6px;cursor:pointer;font-size:0.85em;transition:all 0.2s;}
+.bigsix-bet:hover{border-color:var(--gold);}
+.bigsix-bet.selected{border-color:var(--gold);background:#2a2a1a;}
+
+/* QUICK PLAY */
+.qp-container{text-align:center;padding:15px;}
+.qp-slider-row{display:flex;align-items:center;gap:10px;justify-content:center;margin:10px 0;}
+.qp-slider{width:200px;accent-color:var(--gold);}
+
+/* CARD TABLE */
+.ct-wrap{background:radial-gradient(ellipse at 50% 28%,#2e8545 0%,#1a6030 55%,#0c3d1c 100%);border-radius:18px;border:11px solid #5c2e0a;box-shadow:0 0 0 3px #8b4a14,0 0 0 7px #3e1c06,inset 0 0 90px rgba(0,0,0,0.38),0 10px 36px rgba(0,0,0,0.85);padding:20px 22px 20px;position:relative;max-width:840px;margin:0 auto;}
+.ct-wrap::before{content:'';position:absolute;inset:0;border-radius:8px;background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(255,255,255,0.011) 3px,rgba(255,255,255,0.011) 6px);pointer-events:none;}
+.ct-arc{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:70%;height:2px;background:linear-gradient(90deg,transparent,rgba(212,168,67,0.25),transparent);pointer-events:none;}
+.ct-dealer-zone{display:flex;align-items:flex-end;justify-content:center;gap:14px;padding-bottom:14px;border-bottom:2px solid rgba(255,255,255,0.1);margin-bottom:14px;position:relative;}
+.ct-dealer-zone::after{content:'DEALER';position:absolute;top:-2px;left:50%;transform:translateX(-50%);font-size:0.58em;letter-spacing:4px;color:rgba(255,255,255,0.18);background:rgba(0,0,0,0.3);padding:2px 10px;border-radius:0 0 6px 6px;border:1px solid rgba(255,255,255,0.07);border-top:none;}
+.ct-chips{display:flex;flex-direction:column;gap:4px;align-items:center;}
+.ct-chip{width:36px;height:36px;border-radius:50%;border:3px dashed rgba(255,255,255,0.32);display:flex;align-items:center;justify-content:center;font-size:0.56em;font-weight:bold;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.8);box-shadow:inset 0 2px 4px rgba(255,255,255,0.18),0 3px 8px rgba(0,0,0,0.5);letter-spacing:0;}
+.ct-dealer-msg-wrap{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:6px;}
+.ct-speech{background:rgba(0,0,0,0.62);border:1px solid rgba(255,255,255,0.13);border-radius:14px 14px 14px 0;padding:10px 14px;font-size:0.8em;color:#ddd;font-style:italic;line-height:1.5;margin-left:4px;transition:background 0.3s;}
+.cg-inner{background:rgba(0,0,0,0.13);border-radius:10px;padding:14px 12px 10px;border:1px solid rgba(255,255,255,0.06);}
+.ct-player-label{text-align:center;color:rgba(255,255,255,0.2);font-size:0.66em;letter-spacing:6px;margin-top:12px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.07);text-transform:uppercase;}
+/* Adapt card/hand styles on felt */
+.cg-inner .hand-label{color:rgba(255,255,255,0.6);}
+.cg-inner .hand-total{color:#f0d060;}
+.cg-inner .bet-input{background:rgba(0,0,0,0.5);border-color:#555;}
+.cg-inner .result-win{background:rgba(0,60,0,0.7);border-color:#2ecc71;}
+.cg-inner .result-lose{background:rgba(80,0,0,0.7);border-color:#e74c3c;}
+.cg-inner .result-push{background:rgba(60,60,0,0.7);border-color:#f0d060;}
+.qp-amount{color:var(--gold);font-size:1.2em;font-weight:bold;min-width:60px;}
+
+/* CRAPS */
+.craps-bets{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px;margin:8px 0;}
+.craps-bet{background:#0d3e1e;border:1px solid #1a5a2a;padding:6px;border-radius:4px;cursor:pointer;text-align:center;font-size:0.75em;transition:all 0.2s;}
+.craps-bet:hover{background:#1a5a2a;}
+.craps-bet.selected{background:var(--gold);color:#000;font-weight:bold;}
+.craps-info{font-size:0.8em;color:#aaa;margin:4px 0;}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  #title{font-size:1.4em;letter-spacing:4px;}
+  #balance{font-size:1.1em;}
+  .cat-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;}
+  .game-card{padding:7px;}
+  .gc-name{font-size:0.75em;}
+  .bet-table{font-size:0.55em;}
+  #modal{padding:12px;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title">GAMBLE</div>
+    <div id="balance-box">
+      <div id="balance-label">Balance</div>
+      <div id="balance" class="bal-normal">$1,000</div>
+    </div>
+  </div>
+  <div id="lobby"></div>
+</div>
+
+<div id="modal-overlay">
+  <div id="modal-close" onclick="closeModal()">&times;</div>
+  <div id="modal">
+    <div id="modal-header">
+      <div id="modal-title"></div>
+      <div id="modal-cat"></div>
+    </div>
+    <div id="modal-stats"></div>
+    <ul id="modal-rules"></ul>
+    <div id="game-area"></div>
+  </div>
+</div>
+
+<script>
+// ===== GAME DATA =====
+const CATEGORIES = [
+  {name:'Card Games',color:'#1a4a2e',emoji:'🃏'},
+  {name:'Dice Games',color:'#4a1a1a',emoji:'🎲'},
+  {name:'Wheel & Ball',color:'#2a1a4a',emoji:'🎡'},
+  {name:'Tile & Domino',color:'#4a3a1a',emoji:'🀄'},
+  {name:'Specialty/Carnival',color:'#1a3a4a',emoji:'🎪'},
+  {name:'Electronic/Hybrid',color:'#1a2a4a',emoji:'💻'},
+  {name:'Skill-Based',color:'#4a2a1a',emoji:'🎯'},
+  {name:'Traditional',color:'#2a2a2a',emoji:'♟️'},
+  {name:'Billiards',color:'#0d3d1e',emoji:'🎱'}
+];
+
+const GAMES = [
+  // Card Games
+  {name:'Blackjack',cat:0,spend:'$50-200/hr',edge:'0.5%',edgeN:0.005,full:true,minBet:5,maxBet:500,
+   rules:['Get closer to 21 than dealer without going over','Face cards = 10, Aces = 1 or 11','Blackjack (Ace + 10-card) pays 3:2','Hit, Stand, Double Down, or Split pairs','Dealer stands on 17']},
+  {name:'Spanish 21',cat:0,spend:'$50-200/hr',edge:'0.76%',edgeN:0.0076,
+   rules:['Like Blackjack but all 10s removed from deck','Player 21 always wins','Late surrender available','Bonus payouts for 5/6/7 card 21s']},
+  {name:'Pontoon',cat:0,spend:'$50-150/hr',edge:'0.38%',edgeN:0.0038,
+   rules:['British version of Blackjack','Both dealer cards face down','5-card trick (5 cards under 21) pays 2:1','Pontoon (Ace + 10) pays 2:1']},
+  {name:'Baccarat',cat:0,spend:'$100-400/hr',edge:'1.06%',edgeN:0.0106,full:true,minBet:10,maxBet:1000,
+   rules:['Bet on Player, Banker, or Tie','Cards dealt per baccarat rules','Closest to 9 wins','Face cards and 10s = 0','Banker bet pays 0.95:1 (5% commission)']},
+  {name:'Chemin de Fer',cat:0,spend:'$100-500/hr',edge:'1.23%',edgeN:0.0123,
+   rules:['French version of Baccarat','Players take turns being Banker','Banker can choose to draw or stand','More strategic than standard Baccarat']},
+  {name:'Punto Banco',cat:0,spend:'$100-400/hr',edge:'1.06%',edgeN:0.0106,
+   rules:['Most common form of Baccarat','Fully automated dealing rules','No player decisions after bet','Same rules as standard Baccarat']},
+  {name:'Dragon Tiger',cat:0,spend:'$50-200/hr',edge:'3.73%',edgeN:0.0373,full:true,minBet:5,maxBet:500,
+   rules:['One card to Dragon, one to Tiger','Higher card wins (Ace is lowest)','Bet Dragon, Tiger, or Tie','Tie pays 8:1','Simplest casino card game']},
+  {name:'Casino War',cat:0,spend:'$30-100/hr',edge:'2.88%',edgeN:0.0288,full:true,minBet:5,maxBet:500,
+   rules:['Player and dealer each get one card','Higher card wins, pays 1:1','On tie: Go to War or Surrender','Go to War: double bet, deal again','Surrender: lose half your bet']},
+  {name:'Three Card Poker',cat:0,spend:'$50-200/hr',edge:'3.37%',edgeN:0.0337,full:true,minBet:5,maxBet:500,
+   rules:['Place Ante bet, get 3 cards','Choose Play (match ante) or Fold (lose ante)','Dealer needs Queen-high to qualify','Pair Plus side bet: pair or better wins','Straight Flush pays 40:1']},
+  {name:'Caribbean Stud',cat:0,spend:'$50-200/hr',edge:'5.22%',edgeN:0.0522,
+   rules:['5-card poker vs dealer','Ante up, get 5 cards','Call (2x ante) or fold','Dealer needs Ace-King to qualify','Progressive jackpot side bet available']},
+  {name:'Pai Gow Poker',cat:0,spend:'$20-80/hr',edge:'2.84%',edgeN:0.0284,
+   rules:['7 cards dealt, make 5-card and 2-card hands','Both hands must beat dealer to win','5-card hand must outrank 2-card hand','Pushes are common (~40% of hands)']},
+  {name:'Let It Ride',cat:0,spend:'$30-120/hr',edge:'3.51%',edgeN:0.0351,
+   rules:['Place 3 equal bets, get 3 cards','Two community cards revealed one at a time','Pull back bets or Let It Ride','Need pair of 10s or better to win']},
+  {name:'Ultimate Texas Hold\'em',cat:0,spend:'$50-200/hr',edge:'2.19%',edgeN:0.0219,
+   rules:['Heads-up Hold\'em vs dealer','Ante and Blind bets required','Raise 3x-4x pre-flop, 2x on flop, 1x on river','Dealer needs pair to qualify','Trips side bet available']},
+  {name:'Mississippi Stud',cat:0,spend:'$30-120/hr',edge:'4.91%',edgeN:0.0491,
+   rules:['Place ante, get 2 cards','3 community cards revealed one at a time','Bet 1x-3x ante at each stage or fold','Need pair of 6s or better to win']},
+  {name:'Crazy 4 Poker',cat:0,spend:'$40-150/hr',edge:'3.42%',edgeN:0.0342,
+   rules:['Get 5 cards, make best 4-card hand','Place ante and Super Bonus bet','Raise 1x-3x or fold','Dealer needs King-high to qualify']},
+  {name:'Casino Hold\'em',cat:0,spend:'$40-150/hr',edge:'2.16%',edgeN:0.0216,
+   rules:['Texas Hold\'em vs dealer','Ante up, get 2 cards + 3 community','Call (2x ante) or fold','Dealer needs pair of 4s to qualify','AA bonus side bet available']},
+  {name:'High Card Flush',cat:0,spend:'$30-100/hr',edge:'2.71%',edgeN:0.0271,
+   rules:['7 cards dealt, count cards of same suit','Most cards in one suit = your flush','Beat dealer\'s flush to win','Raise based on flush length']},
+  {name:'Texas Hold\'em',cat:0,spend:'$50-500/hr',edge:'varies',edgeN:0.02,
+   rules:['2 hole cards + 5 community cards','Bet pre-flop, flop, turn, river','Make best 5-card hand','Player vs player (house takes rake)']},
+  {name:'Omaha',cat:0,spend:'$50-500/hr',edge:'varies',edgeN:0.02,
+   rules:['4 hole cards, must use exactly 2','5 community cards dealt','More action than Hold\'em','Pot Limit is most common format']},
+  {name:'Seven-Card Stud',cat:0,spend:'$30-200/hr',edge:'varies',edgeN:0.02,
+   rules:['7 cards dealt over 5 rounds','No community cards','3 face-down, 4 face-up','Best 5-card hand wins']},
+  {name:'Razz',cat:0,spend:'$30-200/hr',edge:'varies',edgeN:0.02,
+   rules:['Lowball version of 7-Card Stud','Lowest hand wins','A-2-3-4-5 is the best hand','No qualifying hand needed']},
+  {name:'2-7 Triple Draw',cat:0,spend:'$30-200/hr',edge:'varies',edgeN:0.02,
+   rules:['5 cards, 3 draw rounds','Lowest hand wins','Straights and flushes count against you','2-3-4-5-7 is the best hand']},
+
+  // Dice Games
+  {name:'Craps',cat:1,spend:'$50-300/hr',edge:'1.36%',edgeN:0.0136,full:true,minBet:5,maxBet:500,
+   rules:['Shooter rolls two dice','Come Out: 7/11 wins Pass Line, 2/3/12 loses','Any other number sets the Point','Roll Point again before 7 to win','Many side bets: Come, Field, Place, etc.']},
+  {name:'Sic Bo',cat:1,spend:'$30-150/hr',edge:'2.78%',edgeN:0.0278,full:true,minBet:5,maxBet:500,
+   rules:['Three dice are rolled','Bet on totals, combinations, or specific numbers','Small (4-10) and Big (11-17) pay 1:1','Specific triples pay 150:1','Many bet types with different payouts']},
+  {name:'Chuck-a-Luck',cat:1,spend:'$20-80/hr',edge:'7.87%',edgeN:0.0787,
+   rules:['Three dice in a cage','Bet on numbers 1-6','Win 1:1 for each die matching','Simple carnival dice game']},
+  {name:'Hazard',cat:1,spend:'$30-100/hr',edge:'varies',edgeN:0.03,
+   rules:['Medieval predecessor to Craps','Caster calls a main (5-9)','Roll to match the main','Complex rules with nicks and outs']},
+
+  // Wheel & Ball
+  {name:'Roulette',cat:2,spend:'$40-200/hr',edge:'2.70%',edgeN:0.027,full:true,minBet:1,maxBet:500,variant:'european',
+   rules:['Spin the wheel, bet on where ball lands','Numbers 0-36','Inside bets: specific numbers (35:1)','Outside bets: red/black, odd/even (1:1)','European has single zero (2.7% edge)']},
+  {name:'American Roulette',cat:2,spend:'$40-200/hr',edge:'5.26%',edgeN:0.0526,full:true,minBet:1,maxBet:500,variant:'american',
+   rules:['Same as European but with 0 AND 00','38 total pockets instead of 37','Higher house edge (5.26%)','Inside and outside bets available','00 is the key difference']},
+  {name:'European Roulette',cat:2,spend:'$40-200/hr',edge:'2.70%',edgeN:0.027,
+   rules:['Single zero wheel','37 pockets (0-36)','La Partage rule sometimes applies','Better odds than American']},
+  {name:'French Roulette',cat:2,spend:'$40-200/hr',edge:'1.35%',edgeN:0.0135,
+   rules:['Same wheel as European','La Partage: half back on even bets when 0 hits','En Prison rule available','Best roulette odds at 1.35% edge']},
+  {name:'Big Six Wheel',cat:2,spend:'$20-80/hr',edge:'11.11%',edgeN:0.1111,full:true,minBet:1,maxBet:100,
+   rules:['Large vertical wheel with 54 segments','Bet on $1, $2, $5, $10, $20, or Logo','Wheel spins and pointer determines winner','$1 appears most (24x), Logo least (1x)','Simple to play, high house edge']},
+  {name:'Money Wheel',cat:2,spend:'$20-80/hr',edge:'11.11%',edgeN:0.1111,
+   rules:['Variant of Big Six Wheel','Different segment values possible','Spin and hope for your number','High house edge carnival game']},
+
+  // Tile & Domino
+  {name:'Pai Gow',cat:3,spend:'$20-80/hr',edge:'2.84%',edgeN:0.0284,
+   rules:['Played with Chinese dominoes','Set tiles into high and low hands','Both hands beat dealer to win','Many pushes, slow-paced game']},
+  {name:'Mahjong',cat:3,spend:'$20-100/hr',edge:'varies',edgeN:0.02,
+   rules:['Tile-matching game from China','Collect sets and pairs','Multiple regional rule variants','Skill-based with some luck']},
+
+  // Specialty/Carnival
+  {name:'Keno',cat:4,spend:'$5-50/hr',edge:'25-29%',edgeN:0.27,
+   rules:['Pick numbers from 1-80','20 numbers drawn randomly','More matches = bigger payout','Very high house edge','Lottery-style casino game']},
+  {name:'Andar Bahar',cat:4,spend:'$30-100/hr',edge:'2.15%',edgeN:0.0215,
+   rules:['One card dealt face up (joker)','Cards dealt alternately to Andar/Bahar','Bet which side gets matching value','Simple and fast Indian card game']},
+  {name:'Teen Patti',cat:4,spend:'$30-100/hr',edge:'varies',edgeN:0.03,
+   rules:['Indian version of 3-card poker','Players bet on best 3-card hand','Trail (three of a kind) is highest','Can play blind or seen']},
+  {name:'Fan-Tan',cat:4,spend:'$20-80/hr',edge:'varies',edgeN:0.03,
+   rules:['Pile of buttons/beads on table','Buttons removed 4 at a time','Bet on how many remain (1-4)','Traditional Chinese game']},
+  {name:'Red Dog',cat:4,spend:'$20-80/hr',edge:'3.16%',edgeN:0.0316,
+   rules:['Two cards dealt face up','Bet if third card falls between them','Larger spread = lower payout','Consecutive cards = push','Same rank = pays 11:1']},
+  {name:'Beat the Dealer',cat:4,spend:'$30-100/hr',edge:'varies',edgeN:0.04,
+   rules:['Draw a card higher than dealer','Simple high-card comparison','Multiple variants exist','Low skill, pure luck']},
+
+  // Electronic/Hybrid
+  {name:'Electronic Blackjack',cat:5,spend:'$20-100/hr',edge:'0.5%',edgeN:0.005,
+   rules:['Same rules as table Blackjack','Played on a video terminal','Lower minimum bets usually','Faster pace of play']},
+  {name:'Electronic Roulette',cat:5,spend:'$20-100/hr',edge:'2.7%',edgeN:0.027,
+   rules:['Real wheel with electronic betting','Touch screen bet placement','Lower minimums than table','Same odds as live roulette']},
+  {name:'Stadium Craps',cat:5,spend:'$20-100/hr',edge:'1.36%',edgeN:0.0136,
+   rules:['Live dice roll with electronic bets','Multiple players share one table','Individual betting terminals','Same rules as table Craps']},
+  {name:'Video Poker',cat:5,spend:'$20-100/hr',edge:'0.46%',edgeN:0.0046,
+   rules:['5-card draw poker on a machine','Hold/discard cards for best hand','Jacks or Better is most common','Full pay machines have lowest edge']},
+  {name:'Multi-Game Terminal',cat:5,spend:'$20-100/hr',edge:'varies',edgeN:0.03,
+   rules:['Multiple games on one machine','Switch between games freely','Blackjack, roulette, poker, etc.','Convenient but same odds']},
+
+  // Skill-Based
+  {name:'Texas Shootout',cat:6,spend:'$30-100/hr',edge:'varies',edgeN:0.03,
+   rules:['Tournament-style elimination','Heads-up poker brackets','Winner-take-all format','Fast-paced skill game']},
+  {name:'Lucky Ladies',cat:6,spend:'$30-100/hr',edge:'17-24%',edgeN:0.2,
+   rules:['Blackjack side bet','Two Queens of Hearts = jackpot','Any 20 = win','High house edge side bet']},
+  {name:'Dream Catcher',cat:6,spend:'$30-150/hr',edge:'3.96%',edgeN:0.0396,
+   rules:['Money wheel with multipliers','Segments: 1, 2, 5, 10, 20, 40','2x and 7x multiplier segments','Live dealer game show format']},
+  {name:'Monopoly Live',cat:6,spend:'$30-150/hr',edge:'3.96%',edgeN:0.0396,
+   rules:['Money wheel + Monopoly board','Chance/2 Rolls/4 Rolls segments','Bonus round plays Monopoly board','Live game show with multipliers']},
+
+  // Traditional
+  {name:'Backgammon',cat:7,spend:'$10-50/hr',edge:'varies',edgeN:0.02,
+   rules:['Race to move 15 pieces off board','Dice determine movement','Strategy + luck balance','Doubling cube for betting']},
+  {name:'Dominoes',cat:7,spend:'$5-30/hr',edge:'varies',edgeN:0.02,
+   rules:['Match domino ends to play','Block or draw game variants','First to empty hand wins','Score based on remaining tiles']},
+  {name:'Pusoy',cat:7,spend:'$10-50/hr',edge:'varies',edgeN:0.02,
+   rules:['Filipino card game (Big Two)','Play combinations to empty hand','2 is highest card','Straights, flushes, full houses']},
+  {name:'Brag',cat:7,spend:'$10-50/hr',edge:'varies',edgeN:0.02,
+   rules:['British ancestor of poker','3 cards, ranking similar to poker','Blind betting allowed','Prial (three of a kind) is highest']},
+
+  // Billiards
+  {name:'8-Ball Pool',cat:8,spend:'$10-50/game',edge:'varies',edgeN:0.02,full:true,minBet:5,maxBet:500,
+   rules:['Sink all 7 of your balls (solids or stripes)','Then pocket the 8-ball to win','First ball sunk determines your group','Sinking 8-ball early = instant loss','Scratch = cue ball reset, opponent\'s turn']}
+];
+
+// ===== BALANCE =====
+let balance = parseInt(localStorage.getItem('gamble_balance')) || 1000;
+let prevBal = balance;
+
+function saveBalance(){
+  localStorage.setItem('gamble_balance', balance);
+  updateBalanceDisplay();
+}
+
+function updateBalanceDisplay(){
+  const el = document.getElementById('balance');
+  el.textContent = '$' + balance.toLocaleString();
+  el.classList.remove('bal-up','bal-down','bal-normal');
+  if(balance > prevBal) el.classList.add('bal-up');
+  else if(balance < prevBal) el.classList.add('bal-down');
+  else el.classList.add('bal-normal');
+  setTimeout(()=>{el.classList.remove('bal-up','bal-down');el.classList.add('bal-normal');},1500);
+  prevBal = balance;
+}
+
+// ===== DECK UTILS =====
+const SUITS = ['♠','♥','♦','♣'];
+const VALS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+function makeDeck(n=1){
+  let d=[];
+  for(let i=0;i<n;i++) for(let s of SUITS) for(let v of VALS) d.push({suit:s,val:v});
+  return shuffle(d);
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function cardVal(c){
+  if(c.val==='A') return 11;
+  if(['K','Q','J'].includes(c.val)) return 10;
+  return parseInt(c.val);
+}
+function cardHTML(c, faceDown=false){
+  if(faceDown) return '<div class="card-div face-down"></div>';
+  const isRed = c.suit==='♥'||c.suit==='♦';
+  return `<div class="card-div ${isRed?'card-red':'card-black'}"><span class="cv">${c.val}</span><span class="cs">${c.suit}</span></div>`;
+}
+function handHTML(cards, faceDownIdx=-1){
+  return '<div class="cards-row">'+cards.map((c,i)=>cardHTML(c,i===faceDownIdx)).join('')+'</div>';
+}
+function pokerRank3(cards){
+  let vs=cards.map(c=>{if(c.val==='A')return 14;if(c.val==='K')return 13;if(c.val==='Q')return 12;if(c.val==='J')return 11;return parseInt(c.val);}).sort((a,b)=>b-a);
+  let flush=cards[0].suit===cards[1].suit&&cards[1].suit===cards[2].suit;
+  let straight=(vs[0]-vs[1]===1&&vs[1]-vs[2]===1)||(vs[0]===14&&vs[1]===3&&vs[2]===2);
+  if(straight&&vs[0]===14&&vs[1]===3){vs=[3,2,1];}
+  let trips=vs[0]===vs[1]&&vs[1]===vs[2];
+  let pair=vs[0]===vs[1]||vs[1]===vs[2]||vs[0]===vs[2];
+  if(straight&&flush) return {rank:5,name:'Straight Flush',vs};
+  if(trips) return {rank:4,name:'Three of a Kind',vs};
+  if(straight) return {rank:3,name:'Straight',vs};
+  if(flush) return {rank:2,name:'Flush',vs};
+  if(pair){
+    let pv,k;
+    if(vs[0]===vs[1]){pv=vs[0];k=[vs[2]];}
+    else if(vs[1]===vs[2]){pv=vs[1];k=[vs[0]];}
+    else{pv=vs[0];k=[vs[1]];}
+    return {rank:1,name:'Pair',vs:[pv,...k]};
+  }
+  return {rank:0,name:'High Card',vs};
+}
+function cmpHand3(a,b){
+  if(a.rank!==b.rank) return a.rank-b.rank;
+  for(let i=0;i<a.vs.length;i++){if(a.vs[i]!==b.vs[i]) return a.vs[i]-b.vs[i];}
+  return 0;
+}
+
+// ===== LOBBY RENDER =====
+function renderLobby(){
+  const lobby = document.getElementById('lobby');
+  let html = '';
+  CATEGORIES.forEach((cat,ci)=>{
+    const games = GAMES.filter(g=>g.cat===ci);
+    if(!games.length) return;
+    html += `<div class="cat-section">
+      <div class="cat-title">${cat.emoji} ${cat.name}</div>
+      <div class="cat-grid">`;
+    games.forEach(g=>{
+      const idx = GAMES.indexOf(g);
+      html += `<div class="game-card ${g.full?'full-impl':''}" style="border-color:${cat.color}" onclick="openGame(${idx})">
+        <div class="gc-emoji">${cat.emoji}</div>
+        <div class="gc-name">${g.name}</div>
+        <div class="gc-info">${g.spend}<br><span class="gc-edge">Edge: ${g.edge}</span></div>
+      </div>`;
+    });
+    html += '</div></div>';
+  });
+  lobby.innerHTML = html;
+}
+
+// ===== MODAL =====
+function openGame(idx){
+  const g = GAMES[idx];
+  const cat = CATEGORIES[g.cat];
+  document.getElementById('modal-title').textContent = cat.emoji + ' ' + g.name;
+  document.getElementById('modal-cat').textContent = cat.name;
+  document.getElementById('modal-stats').innerHTML =
+    `<div class="stat"><b>Avg Spend:</b> ${g.spend}</div>
+     <div class="stat"><b>House Edge:</b> ${g.edge}</div>
+     <div class="stat"><b>Min Bet:</b> $${g.minBet||5}</div>
+     <div class="stat"><b>Max Bet:</b> $${g.maxBet||500}</div>`;
+  document.getElementById('modal-rules').innerHTML = g.rules.map(r=>'<li>'+r+'</li>').join('');
+  const ga = document.getElementById('game-area');
+  ga.innerHTML = '';
+
+  const CARD_GAME_NAMES=['Blackjack','Baccarat','Dragon Tiger','Casino War','Three Card Poker'];
+  if(g.full){
+    const target=CARD_GAME_NAMES.includes(g.name)?initCardTable(ga,g.name):ga;
+    if(g.name==='Blackjack') initBlackjack(target,g);
+    else if(g.name==='Baccarat') initBaccarat(target,g);
+    else if(g.name==='Dragon Tiger') initDragonTiger(target,g);
+    else if(g.name==='Casino War') initCasinoWar(target,g);
+    else if(g.name==='Three Card Poker') initThreeCardPoker(target,g);
+    else if(g.name==='Craps') initCraps(ga,g);
+    else if(g.name==='Sic Bo') initSicBo(ga,g);
+    else if(g.name==='Roulette'||g.name==='American Roulette') initRoulette(ga,g);
+    else if(g.name==='Big Six Wheel') initBigSix(ga,g);
+    else if(g.name==='8-Ball Pool') initPool(ga,g);
+  } else {
+    initQuickPlay(ga,g);
+  }
+
+  document.getElementById('modal-overlay').style.display='block';
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(){
+  document.getElementById('modal-overlay').style.display='none';
+  document.body.style.overflow='';
+  document.getElementById('game-area').innerHTML='';
+}
+
+// ===== QUICK PLAY =====
+function initQuickPlay(el,g){
+  let bet = 25;
+  el.innerHTML = `<div class="qp-container">
+    <h3 style="color:var(--gold);margin-bottom:10px;">Quick Play</h3>
+    <div class="qp-slider-row">
+      <span style="font-size:0.8em">$5</span>
+      <input type="range" class="qp-slider" id="qp-bet" min="5" max="${g.maxBet||500}" step="5" value="25">
+      <span style="font-size:0.8em">$${g.maxBet||500}</span>
+    </div>
+    <div class="qp-amount" id="qp-amount">$25</div>
+    <button class="bet-btn" id="qp-play" style="font-size:1.1em;padding:12px 30px;margin:10px;">Play Hand</button>
+    <div id="qp-result"></div>
+  </div>`;
+  document.getElementById('qp-bet').oninput = function(){
+    bet = parseInt(this.value);
+    document.getElementById('qp-amount').textContent='$'+bet;
+  };
+  document.getElementById('qp-play').onclick = function(){
+    if(bet > balance){document.getElementById('qp-result').innerHTML='<div class="result-msg result-lose">Insufficient funds!</div>';return;}
+    const edge = g.edgeN || 0.05;
+    const winProb = (1 - edge) * 0.48; // roughly fair with house edge
+    const r = Math.random();
+    if(r < winProb){
+      balance += bet;
+      saveBalance();
+      document.getElementById('qp-result').innerHTML=`<div class="result-msg result-win">You win $${bet}!</div>`;
+    } else {
+      balance -= bet;
+      saveBalance();
+      document.getElementById('qp-result').innerHTML=`<div class="result-msg result-lose">You lose $${bet}.</div>`;
+    }
+  };
+}
+
+// ===== CARD TABLE HELPERS =====
+function setDealerMsg(msg){
+  const el=document.getElementById('ct-speech');
+  if(el){el.textContent='“'+msg+'”';el.style.background='rgba(0,0,0,0.62)';}
+}
+function flashDealerMsg(msg){
+  const el=document.getElementById('ct-speech');
+  if(!el)return;
+  el.textContent='“'+msg+'”';
+  el.style.background='rgba(212,168,67,0.18)';
+  setTimeout(()=>{if(el)el.style.background='rgba(0,0,0,0.62)';},1200);
+}
+
+function initCardTable(el, gameName){
+  const svg=`<svg viewBox="0 0 100 120" width="74" height="88" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="50" cy="118" rx="26" ry="4" fill="rgba(0,0,0,0.28)"/>
+    <path d="M22 72 Q17 100 19 116 L81 116 Q83 100 78 72 Q64 61 50 65 Q36 61 22 72z" fill="#0f0f22"/>
+    <path d="M38 68 Q50 75 62 68 L60 112 L40 112z" fill="#f5f5f5"/>
+    <path d="M38 68 L27 76 L35 107 L40 88z" fill="#0a0a1a"/>
+    <path d="M62 68 L73 76 L65 107 L60 88z" fill="#0a0a1a"/>
+    <polygon points="43,70 50,76 57,70 50,65" fill="#1a6030"/>
+    <path d="M38 68 L50 75 L62 68" stroke="rgba(255,255,255,0.08)" stroke-width="1" fill="none"/>
+    <circle cx="50" cy="83" r="1.4" fill="#bbb"/>
+    <circle cx="50" cy="92" r="1.4" fill="#bbb"/>
+    <circle cx="50" cy="101" r="1.4" fill="#bbb"/>
+    <path d="M22 72 Q8 85 11 109" stroke="#0f0f22" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M78 72 Q92 85 89 109" stroke="#0f0f22" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <ellipse cx="12" cy="113" rx="10" ry="6" fill="#f0c090"/>
+    <ellipse cx="88" cy="113" rx="10" ry="6" fill="#f0c090"/>
+    <rect x="44" y="56" width="12" height="13" rx="4" fill="#f0c090"/>
+    <ellipse cx="50" cy="39" rx="20" ry="22" fill="#f0c090"/>
+    <ellipse cx="30" cy="40" rx="4.5" ry="6" fill="#f0c090"/><ellipse cx="30" cy="40" rx="2.8" ry="4.2" fill="#e0a878"/>
+    <ellipse cx="70" cy="40" rx="4.5" ry="6" fill="#f0c090"/><ellipse cx="70" cy="40" rx="2.8" ry="4.2" fill="#e0a878"/>
+    <ellipse cx="50" cy="21" rx="20" ry="11" fill="#2e1600"/>
+    <rect x="29" y="30" width="6" height="14" rx="3" fill="#2e1600"/>
+    <rect x="65" y="30" width="6" height="14" rx="3" fill="#2e1600"/>
+    <ellipse cx="41" cy="39" rx="3.8" ry="4.5" fill="#fff"/>
+    <ellipse cx="59" cy="39" rx="3.8" ry="4.5" fill="#fff"/>
+    <circle cx="42" cy="40" r="2.4" fill="#2e1600"/>
+    <circle cx="60" cy="40" r="2.4" fill="#2e1600"/>
+    <circle cx="43" cy="39.2" r="0.9" fill="#fff"/>
+    <circle cx="61" cy="39.2" r="0.9" fill="#fff"/>
+    <path d="M36 33 Q41 31 46 33" stroke="#2e1600" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M54 33 Q59 31 64 33" stroke="#2e1600" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M47 49 Q50 53 53 49" stroke="#c08050" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+    <path d="M43 53 Q50 59 57 53" stroke="#a06030" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M44 54 Q50 59 56 54" stroke="rgba(255,255,255,0.45)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M30 24 Q50 16 70 24 L72 30 Q50 23 28 30z" fill="#1a6030"/>
+    <path d="M28 30 Q50 25 72 30 L74 35 Q50 30 26 35z" fill="#0d4020"/>
+    <path d="M26 35 Q50 31 74 35" stroke="#d4a843" stroke-width="1.5" fill="none"/>
+  </svg>`;
+
+  const msgs={
+    'Blackjack':"Place your bet and I'll deal!",
+    'Baccarat':"Player, Banker, or Tie?",
+    'Dragon Tiger':"Dragon fights Tiger — who wins?",
+    'Casino War':"Highest card takes all!",
+    'Three Card Poker':"Ante up — three cards each."
+  };
+
+  el.innerHTML=`<div class="ct-wrap">
+    <div class="ct-arc"></div>
+    <div class="ct-dealer-zone">
+      <div class="ct-chips">
+        <div class="ct-chip" style="background:#c0392b">$5</div>
+        <div class="ct-chip" style="background:#27ae60">$25</div>
+        <div class="ct-chip" style="background:#2980b9">$100</div>
+        <div class="ct-chip" style="background:#8e44ad">$500</div>
+      </div>
+      <div>${svg}</div>
+      <div class="ct-dealer-msg-wrap">
+        <div id="ct-speech" class="ct-speech">&#x201c;${msgs[gameName]||'Place your bet!'}&#x201d;</div>
+      </div>
+    </div>
+    <div id="cg-inner" class="cg-inner"></div>
+    <div class="ct-player-label">◆ &nbsp; P &nbsp; L &nbsp; A &nbsp; Y &nbsp; E &nbsp; R &nbsp; ◆</div>
+  </div>`;
+  return document.getElementById('cg-inner');
+}
+
+// ===== BLACKJACK =====
+function initBlackjack(el, g){
+  let deck, playerHands, dealerHand, bets, currentHand, phase, bet;
+  bet = 25;
+
+  function bjVal(hand){
+    let sum=0, aces=0;
+    for(let c of hand){
+      if(c.val==='A'){aces++;sum+=11;}
+      else if(['K','Q','J'].includes(c.val)) sum+=10;
+      else sum+=parseInt(c.val);
+    }
+    while(sum>21&&aces>0){sum-=10;aces--;}
+    return sum;
+  }
+
+  function render(){
+    let html = `<div class="bet-controls">
+      <label>Bet: </label>
+      <input type="number" class="bet-input" id="bj-bet" min="${g.minBet}" max="${g.maxBet}" step="5" value="${bet}" ${phase!=='bet'?'disabled':''}>
+      ${phase==='bet'?`<button class="bet-btn" id="bj-deal">Deal</button>`:''}
+    </div>`;
+
+    if(phase!=='bet'){
+      html += `<div class="hand-label">Dealer${phase==='done'?' ('+bjVal(dealerHand)+')':''}</div>`;
+      html += handHTML(dealerHand, phase==='done'?-1:0);
+      html += `<div class="hand-total">${phase==='done'?bjVal(dealerHand):'?'}</div>`;
+
+      playerHands.forEach((hand,hi)=>{
+        const active = phase==='player'&&hi===currentHand;
+        const v = bjVal(hand);
+        html += `<div class="hand-label" style="${active?'color:var(--gold)':''}">Player${playerHands.length>1?' Hand '+(hi+1):''} (${v})${v>21?' - BUST':''}</div>`;
+        html += handHTML(hand);
+        html += `<div class="hand-total">${v}</div>`;
+        if(active && v <= 21){
+          html += `<div class="bet-controls" style="justify-content:center;">
+            <button class="bet-btn" onclick="bjAction('hit')">Hit</button>
+            <button class="bet-btn" onclick="bjAction('stand')">Stand</button>
+            ${hand.length===2&&balance>=bets[hi]?`<button class="bet-btn" onclick="bjAction('double')">Double</button>`:''}
+            ${hand.length===2&&hand[0].val===hand[1].val&&balance>=bets[hi]?`<button class="bet-btn" onclick="bjAction('split')">Split</button>`:''}
+          </div>`;
+        }
+      });
+    }
+
+    if(phase==='done'){
+      html += `<div id="bj-results"></div>`;
+      html += `<button class="bet-btn" onclick="bjNewRound()" style="margin-top:10px;">New Hand</button>`;
+    }
+
+    el.innerHTML = html;
+
+    if(phase==='bet'){
+      document.getElementById('bj-bet').oninput = function(){bet=parseInt(this.value)||g.minBet;};
+      document.getElementById('bj-deal').onclick = bjDeal;
+    }
+    if(phase==='done') showResults();
+  }
+
+  function showResults(){
+    const dv = bjVal(dealerHand);
+    const dBust = dv > 21;
+    let html = '';
+    playerHands.forEach((hand,hi)=>{
+      const pv = bjVal(hand);
+      const pBust = pv > 21;
+      const pBJ = hand.length===2 && pv===21;
+      const dBJ = dealerHand.length===2 && dv===21;
+      let result, winAmt;
+      if(pBust){result='lose';winAmt=-bets[hi];}
+      else if(pBJ && !dBJ){result='win';winAmt=Math.floor(bets[hi]*1.5);}
+      else if(dBust){result='win';winAmt=bets[hi];}
+      else if(pv>dv){result='win';winAmt=bets[hi];}
+      else if(pv<dv){result='lose';winAmt=-bets[hi];}
+      else{result='push';winAmt=0;}
+
+      if(result==='win'){balance+=winAmt;html+=`<div class="result-msg result-win">${playerHands.length>1?'Hand '+(hi+1)+': ':''}Win $${winAmt}${pBJ?' (Blackjack!)':''}</div>`;}
+      else if(result==='lose'){balance+=winAmt;html+=`<div class="result-msg result-lose">${playerHands.length>1?'Hand '+(hi+1)+': ':''}Lose $${Math.abs(winAmt)}</div>`;}
+      else{html+=`<div class="result-msg result-push">${playerHands.length>1?'Hand '+(hi+1)+': ':''}Push</div>`;}
+    });
+    saveBalance();
+    document.getElementById('bj-results').innerHTML = html;
+    const wins=html.includes('result-win'),loses=html.includes('result-lose');
+    if(wins&&!loses) flashDealerMsg("Congratulations, you win!");
+    else if(loses&&!wins) flashDealerMsg("Better luck next hand!");
+    else if(wins&&loses) flashDealerMsg("A split result — interesting!");
+    else flashDealerMsg("Push — your bet is returned.");
+  }
+
+  function bjDeal(){
+    bet = parseInt(document.getElementById('bj-bet').value) || g.minBet;
+    if(bet > balance){el.querySelector('#bj-deal').textContent='Not enough $';return;}
+    balance -= bet;
+    saveBalance();
+    deck = makeDeck(6);
+    playerHands = [[deck.pop(), deck.pop()]];
+    dealerHand = [deck.pop(), deck.pop()];
+    bets = [bet];
+    currentHand = 0;
+    phase = 'player';
+
+    // Check for dealer blackjack
+    if(bjVal(dealerHand)===21){phase='done';setDealerMsg("Blackjack! Dealer wins.");}
+    // Check for player blackjack
+    if(bjVal(playerHands[0])===21 && phase!=='done'){
+      phase='done';setDealerMsg("Blackjack! Congratulations!");
+    }
+    if(phase==='done'){render();return;}
+    setDealerMsg("Cards dealt — hit, stand, or double?");
+    render();
+  }
+
+  window.bjAction = function(action){
+    const hand = playerHands[currentHand];
+    if(action==='hit'){
+      hand.push(deck.pop());
+      const hv=bjVal(hand);
+      if(hv>21) setDealerMsg("Bust! That's too many.");
+      else if(hv===21) setDealerMsg("Twenty-one! Perfect hand.");
+      else setDealerMsg("You have "+hv+". Hit again?");
+      if(hv>=21) advanceHand();
+      else render();
+    } else if(action==='stand'){
+      setDealerMsg("Standing on "+bjVal(hand)+". Dealer's turn.");
+      advanceHand();
+    } else if(action==='double'){
+      balance -= bets[currentHand];
+      bets[currentHand] *= 2;
+      saveBalance();
+      hand.push(deck.pop());
+      advanceHand();
+    } else if(action==='split'){
+      const c = hand.pop();
+      hand.push(deck.pop());
+      playerHands.splice(currentHand+1, 0, [c, deck.pop()]);
+      bets.splice(currentHand+1, 0, bets[currentHand]);
+      balance -= bets[currentHand];
+      saveBalance();
+      if(bjVal(hand)>=21) advanceHand();
+      else render();
+    }
+  };
+
+  function advanceHand(){
+    currentHand++;
+    if(currentHand >= playerHands.length){
+      // Dealer plays
+      dealerPlay();
+    } else {
+      render();
+    }
+  }
+
+  function dealerPlay(){
+    while(bjVal(dealerHand)<17) dealerHand.push(deck.pop());
+    phase='done';
+    render();
+  }
+
+  window.bjNewRound = function(){phase='bet';render();};
+
+  phase = 'bet';
+  render();
+}
+
+// ===== BACCARAT =====
+function initBaccarat(el, g){
+  let bet=25, betType='player', phase='bet';
+
+  function bacVal(hand){
+    let s=0;
+    for(let c of hand) s += (cardVal(c)>=10?0:cardVal(c)===11?1:cardVal(c));
+    return s % 10;
+  }
+
+  function render(){
+    let html = '';
+    if(phase==='bet'){
+      html += `<div class="bet-controls" style="justify-content:center;">
+        <input type="number" class="bet-input" id="bac-bet" value="${bet}" min="${g.minBet}" max="${g.maxBet}" step="5">
+      </div>
+      <div class="bet-controls" style="justify-content:center;">
+        <button class="bet-btn ${betType==='player'?'':'small'}" onclick="bacBetType('player')" style="${betType==='player'?'box-shadow:0 0 10px var(--gold)':''}">Player (1:1)</button>
+        <button class="bet-btn ${betType==='banker'?'':'small'}" onclick="bacBetType('banker')" style="${betType==='banker'?'box-shadow:0 0 10px var(--gold)':''}">Banker (0.95:1)</button>
+        <button class="bet-btn ${betType==='tie'?'':'small'}" onclick="bacBetType('tie')" style="${betType==='tie'?'box-shadow:0 0 10px var(--gold)':''}">Tie (8:1)</button>
+      </div>
+      <div style="text-align:center;margin:8px 0;">
+        <button class="bet-btn" id="bac-deal" style="font-size:1.1em;padding:10px 25px;">Deal</button>
+      </div>`;
+    }
+    el.innerHTML = html;
+    if(phase==='bet'){
+      document.getElementById('bac-deal').onclick = bacDeal;
+    }
+  }
+
+  window.bacBetType = function(t){betType=t;render();};
+
+  function bacDeal(){
+    bet = parseInt(document.getElementById('bac-bet').value)||g.minBet;
+    if(bet>balance){return;}
+    balance -= bet;
+    saveBalance();
+
+    const deck = makeDeck(8);
+    let pHand = [deck.pop(), deck.pop()];
+    let bHand = [deck.pop(), deck.pop()];
+    let pVal = bacVal(pHand), bVal = bacVal(bHand);
+
+    // Natural check
+    let natural = pVal>=8||bVal>=8;
+    if(!natural){
+      // Player 3rd card rule
+      let pThird = null;
+      if(pVal<=5){pThird=deck.pop();pHand.push(pThird);pVal=bacVal(pHand);}
+      // Banker 3rd card rule
+      if(pThird===null){
+        if(bVal<=5){bHand.push(deck.pop());bVal=bacVal(bHand);}
+      } else {
+        let pt = cardVal(pThird)>=10?0:cardVal(pThird)===11?1:cardVal(pThird);
+        if(bVal<=2){bHand.push(deck.pop());}
+        else if(bVal===3&&pt!==8){bHand.push(deck.pop());}
+        else if(bVal===4&&[2,3,4,5,6,7].includes(pt)){bHand.push(deck.pop());}
+        else if(bVal===5&&[4,5,6,7].includes(pt)){bHand.push(deck.pop());}
+        else if(bVal===6&&[6,7].includes(pt)){bHand.push(deck.pop());}
+        bVal=bacVal(bHand);
+      }
+    }
+
+    let winner = pVal>bVal?'player':bVal>pVal?'banker':'tie';
+    let winAmt = 0;
+    let resultClass = 'result-lose';
+    let resultText = '';
+
+    if(winner===betType){
+      if(betType==='player'){winAmt=bet;resultClass='result-win';resultText=`Player wins! You win $${bet}`;}
+      else if(betType==='banker'){winAmt=Math.floor(bet*0.95);resultClass='result-win';resultText=`Banker wins! You win $${winAmt} (5% commission)`;}
+      else{winAmt=bet*8;resultClass='result-win';resultText=`Tie! You win $${winAmt}`;}
+      balance += bet + winAmt;
+      flashDealerMsg("Winner! You picked right!");
+    } else {
+      if(winner==='tie'&&betType!=='tie'){
+        balance += bet; // push on tie for player/banker bets
+        resultClass='result-push';
+        resultText='Tie - bet returned';
+        flashDealerMsg("It's a tie — bet returned.");
+      } else {
+        resultText=`${winner.charAt(0).toUpperCase()+winner.slice(1)} wins. You lose $${bet}.`;
+        flashDealerMsg(`${winner.charAt(0).toUpperCase()+winner.slice(1)} wins this round.`);
+      }
+    }
+    saveBalance();
+
+    el.innerHTML = `
+      <div class="hand-label">Player (${bacVal(pHand)})</div>${handHTML(pHand)}
+      <div class="hand-label">Banker (${bacVal(bHand)})</div>${handHTML(bHand)}
+      <div class="result-msg ${resultClass}">${resultText}</div>
+      <div style="text-align:center"><button class="bet-btn" onclick="bacReset()">New Hand</button></div>`;
+  }
+
+  window.bacReset = function(){phase='bet';render();};
+  render();
+}
+
+// ===== DRAGON TIGER =====
+function initDragonTiger(el, g){
+  let bet=25, betType='dragon', phase='bet';
+
+  function dtVal(c){
+    if(c.val==='A') return 1;
+    if(c.val==='K') return 13;
+    if(c.val==='Q') return 12;
+    if(c.val==='J') return 11;
+    return parseInt(c.val);
+  }
+
+  function render(){
+    el.innerHTML = `
+      <div class="bet-controls" style="justify-content:center;">
+        <input type="number" class="bet-input" id="dt-bet" value="${bet}" min="${g.minBet}" max="${g.maxBet}" step="5">
+      </div>
+      <div class="bet-controls" style="justify-content:center;">
+        <button class="bet-btn ${betType==='dragon'?'':'small'}" onclick="dtBet('dragon')" style="${betType==='dragon'?'box-shadow:0 0 10px var(--gold)':''}">Dragon (1:1)</button>
+        <button class="bet-btn ${betType==='tiger'?'':'small'}" onclick="dtBet('tiger')" style="${betType==='tiger'?'box-shadow:0 0 10px var(--gold)':''}">Tiger (1:1)</button>
+        <button class="bet-btn ${betType==='tie'?'':'small'}" onclick="dtBet('tie')" style="${betType==='tie'?'box-shadow:0 0 10px var(--gold)':''}">Tie (8:1)</button>
+      </div>
+      <div style="text-align:center"><button class="bet-btn" id="dt-deal" style="padding:10px 25px;">Deal</button></div>
+      <div id="dt-result"></div>`;
+    document.getElementById('dt-deal').onclick = dtDeal;
+  }
+
+  window.dtBet = function(t){betType=t;render();};
+
+  function dtDeal(){
+    bet = parseInt(document.getElementById('dt-bet').value)||g.minBet;
+    if(bet>balance) return;
+    balance -= bet;
+    saveBalance();
+
+    const deck = makeDeck(1);
+    const dragon = deck.pop(), tiger = deck.pop();
+    const dv = dtVal(dragon), tv = dtVal(tiger);
+    let winner = dv>tv?'dragon':tv>dv?'tiger':'tie';
+    let winAmt=0, rc='result-lose', rt='';
+
+    if(winner===betType){
+      if(betType==='tie'){winAmt=bet*8;}else{winAmt=bet;}
+      balance += bet + winAmt;
+      rc='result-win';
+      rt=`${winner.charAt(0).toUpperCase()+winner.slice(1)} wins! You win $${winAmt}!`;
+      flashDealerMsg("You picked the winner!");
+    } else {
+      if(winner==='tie'&&betType!=='tie'){
+        balance += Math.floor(bet/2);
+        rt=`Tie! You lose half your bet ($${Math.ceil(bet/2)}).`;
+        flashDealerMsg("Tie game — half bet returned.");
+      } else {
+        rt=`${winner.charAt(0).toUpperCase()+winner.slice(1)} wins. You lose $${bet}.`;
+        flashDealerMsg(winner.charAt(0).toUpperCase()+winner.slice(1)+" wins it!");
+      }
+    }
+    saveBalance();
+
+    el.innerHTML = `
+      <div style="display:flex;gap:30px;justify-content:center;align-items:center;margin:15px 0;">
+        <div><div class="hand-label">Dragon</div>${cardHTML(dragon)}</div>
+        <div style="font-size:1.5em;color:var(--gold);">VS</div>
+        <div><div class="hand-label">Tiger</div>${cardHTML(tiger)}</div>
+      </div>
+      <div class="result-msg ${rc}">${rt}</div>
+      <div style="text-align:center"><button class="bet-btn" onclick="dtReset()">New Hand</button></div>`;
+  }
+
+  window.dtReset = function(){render();};
+  render();
+}
+
+// ===== CASINO WAR =====
+function initCasinoWar(el, g){
+  let bet=25;
+
+  function warVal(c){
+    if(c.val==='A') return 14;
+    if(c.val==='K') return 13;
+    if(c.val==='Q') return 12;
+    if(c.val==='J') return 11;
+    return parseInt(c.val);
+  }
+
+  function render(){
+    el.innerHTML = `
+      <div class="bet-controls" style="justify-content:center;">
+        <label>Bet: </label>
+        <input type="number" class="bet-input" id="cw-bet" value="${bet}" min="${g.minBet}" max="${g.maxBet}" step="5">
+        <button class="bet-btn" id="cw-deal">Deal</button>
+      </div>
+      <div id="cw-area"></div>`;
+    document.getElementById('cw-deal').onclick = cwDeal;
+  }
+
+  function cwDeal(){
+    bet = parseInt(document.getElementById('cw-bet').value)||g.minBet;
+    if(bet>balance) return;
+    balance -= bet;
+    saveBalance();
+
+    const deck = makeDeck(6);
+    const pc = deck.pop(), dc = deck.pop();
+    const pv = warVal(pc), dv = warVal(dc);
+    const area = document.getElementById('cw-area');
+
+    if(pv > dv){
+      balance += bet*2;
+      saveBalance();
+      flashDealerMsg("Your card wins! Well played.");
+      area.innerHTML = `
+        <div style="display:flex;gap:30px;justify-content:center;align-items:center;margin:15px 0;">
+          <div><div class="hand-label">You</div>${cardHTML(pc)}</div>
+          <div style="font-size:1.5em;color:var(--gold);">VS</div>
+          <div><div class="hand-label">Dealer</div>${cardHTML(dc)}</div>
+        </div>
+        <div class="result-msg result-win">You win $${bet}!</div>
+        <div style="text-align:center"><button class="bet-btn" onclick="cwReset()">New Hand</button></div>`;
+    } else if(pv < dv){
+      saveBalance();
+      flashDealerMsg("Dealer card wins this round.");
+      area.innerHTML = `
+        <div style="display:flex;gap:30px;justify-content:center;align-items:center;margin:15px 0;">
+          <div><div class="hand-label">You</div>${cardHTML(pc)}</div>
+          <div style="font-size:1.5em;color:var(--gold);">VS</div>
+          <div><div class="hand-label">Dealer</div>${cardHTML(dc)}</div>
+        </div>
+        <div class="result-msg result-lose">Dealer wins. You lose $${bet}.</div>
+        <div style="text-align:center"><button class="bet-btn" onclick="cwReset()">New Hand</button></div>`;
+    } else {
+      // Tie - offer war or surrender
+      setDealerMsg("A tie! Go to War or Surrender?");
+      area.innerHTML = `
+        <div style="display:flex;gap:30px;justify-content:center;align-items:center;margin:15px 0;">
+          <div><div class="hand-label">You</div>${cardHTML(pc)}</div>
+          <div style="font-size:1.5em;color:var(--gold);">TIE!</div>
+          <div><div class="hand-label">Dealer</div>${cardHTML(dc)}</div>
+        </div>
+        <div style="text-align:center;margin:10px 0;">
+          <button class="bet-btn" id="cw-war">Go to War (double bet)</button>
+          <button class="bet-btn danger" id="cw-surrender">Surrender (lose half)</button>
+        </div>`;
+      document.getElementById('cw-surrender').onclick = function(){
+        balance += Math.floor(bet/2);
+        saveBalance();
+        area.innerHTML += `<div class="result-msg result-lose">Surrendered. Lost $${Math.ceil(bet/2)}.</div>
+          <div style="text-align:center"><button class="bet-btn" onclick="cwReset()">New Hand</button></div>`;
+        this.disabled=true;
+        document.getElementById('cw-war').disabled=true;
+      };
+      document.getElementById('cw-war').onclick = function(){
+        if(bet>balance){area.innerHTML+=`<div class="result-msg result-lose">Not enough to go to war!</div>`;return;}
+        balance -= bet;
+        saveBalance();
+        const pc2 = deck.pop(), dc2 = deck.pop();
+        const pv2 = warVal(pc2), dv2 = warVal(dc2);
+        let msg, cls;
+        if(pv2 >= dv2){
+          balance += bet*3; // original + war bet + win
+          saveBalance();
+          msg = `War won! You win $${bet}!`;
+          cls = 'result-win';
+          flashDealerMsg("You won the war! Well fought.");
+        } else {
+          msg = `War lost. You lose $${bet*2} total.`;
+          cls = 'result-lose';
+          flashDealerMsg("Dealer wins the war. Tough luck!");
+        }
+        area.innerHTML = `
+          <div style="display:flex;gap:30px;justify-content:center;align-items:center;margin:15px 0;">
+            <div><div class="hand-label">You</div>${cardHTML(pc)}${cardHTML(pc2)}</div>
+            <div style="font-size:1.5em;color:var(--gold);">WAR!</div>
+            <div><div class="hand-label">Dealer</div>${cardHTML(dc)}${cardHTML(dc2)}</div>
+          </div>
+          <div class="result-msg ${cls}">${msg}</div>
+          <div style="text-align:center"><button class="bet-btn" onclick="cwReset()">New Hand</button></div>`;
+      };
+    }
+  }
+
+  window.cwReset = function(){render();};
+  render();
+}
+
+// ===== THREE CARD POKER =====
+function initThreeCardPoker(el, g){
+  let ante=25, pairPlus=0;
+
+  function render(){
+    el.innerHTML = `
+      <div class="bet-controls" style="justify-content:center;">
+        <label>Ante: </label>
+        <input type="number" class="bet-input" id="tcp-ante" value="${ante}" min="${g.minBet}" max="${g.maxBet}" step="5">
+        <label>Pair+: </label>
+        <input type="number" class="bet-input" id="tcp-pp" value="${pairPlus}" min="0" max="${g.maxBet}" step="5">
+      </div>
+      <div style="text-align:center"><button class="bet-btn" id="tcp-deal">Deal</button></div>
+      <div id="tcp-area"></div>`;
+    document.getElementById('tcp-deal').onclick = tcpDeal;
+  }
+
+  function tcpDeal(){
+    ante = parseInt(document.getElementById('tcp-ante').value)||g.minBet;
+    pairPlus = parseInt(document.getElementById('tcp-pp').value)||0;
+    const totalBet = ante + pairPlus;
+    if(totalBet > balance) return;
+    balance -= totalBet;
+    saveBalance();
+
+    const deck = makeDeck(1);
+    const pCards = [deck.pop(),deck.pop(),deck.pop()];
+    const dCards = [deck.pop(),deck.pop(),deck.pop()];
+    const pRank = pokerRank3(pCards);
+
+    // Pair Plus payout
+    let ppWin = 0;
+    if(pairPlus > 0 && pRank.rank >= 1){
+      if(pRank.rank===5) ppWin = pairPlus*40;
+      else if(pRank.rank===4) ppWin = pairPlus*30;
+      else if(pRank.rank===3) ppWin = pairPlus*6;
+      else if(pRank.rank===2) ppWin = pairPlus*3;
+      else if(pRank.rank===1) ppWin = pairPlus;
+    }
+
+    setDealerMsg("You have a "+pRank.name+". Play or fold?");
+    const area = document.getElementById('tcp-area');
+    area.innerHTML = `
+      <div class="hand-label">Your Hand (${pRank.name})</div>${handHTML(pCards)}
+      <div class="hand-label">Dealer (face down)</div>
+      <div class="cards-row">${cardHTML({},true)}${cardHTML({},true)}${cardHTML({},true)}</div>
+      <div class="bet-controls" style="justify-content:center;">
+        <button class="bet-btn" id="tcp-play">Play ($${ante})</button>
+        <button class="bet-btn danger" id="tcp-fold">Fold</button>
+      </div>`;
+
+    document.getElementById('tcp-fold').onclick = function(){
+      balance += ppWin;
+      saveBalance();
+      flashDealerMsg(ppWin>0?"Folded, but Pair Plus pays!":"Safe fold. Try again!");
+      let msg = `Folded. Lost ante ($${ante}).`;
+      if(ppWin>0) msg += ` Pair Plus wins $${ppWin}!`;
+      area.innerHTML = `<div class="hand-label">Your Hand (${pRank.name})</div>${handHTML(pCards)}
+        <div class="result-msg ${ppWin>0?'result-push':'result-lose'}">${msg}</div>
+        <div style="text-align:center"><button class="bet-btn" onclick="tcpReset()">New Hand</button></div>`;
+    };
+
+    document.getElementById('tcp-play').onclick = function(){
+      if(ante > balance){area.innerHTML+=`<div class="result-msg result-lose">Not enough to play!</div>`;return;}
+      balance -= ante;
+      saveBalance();
+
+      const dRank = pokerRank3(dCards);
+      const dealerQualifies = dRank.rank>=1 || (dRank.rank===0 && dRank.vs[0]>=12); // Queen high+
+
+      let anteWin=0, playWin=0, resultMsg='';
+      if(!dealerQualifies){
+        anteWin = ante; // ante returned + ante won
+        playWin = ante; // play returned
+        balance += ante*2 + ante; // ante bet back + ante win + play bet back
+        resultMsg = `Dealer doesn't qualify. Ante wins $${ante}, Play pushes.`;
+      } else {
+        const cmp = cmpHand3(pRank, dRank);
+        if(cmp > 0){
+          anteWin = ante;
+          playWin = ante;
+          balance += ante*4; // ante bet+win + play bet+win
+          resultMsg = `You beat the dealer! Win $${ante*2}!`;
+        } else if(cmp < 0){
+          resultMsg = `Dealer wins with ${dRank.name}. Lost $${ante*2}.`;
+        } else {
+          balance += ante*2; // push
+          resultMsg = 'Push - bets returned.';
+        }
+      }
+
+      balance += ppWin;
+      saveBalance();
+      if(ppWin>0) resultMsg += ` Pair Plus: +$${ppWin}!`;
+
+      const totalResult = anteWin+playWin+ppWin;
+      const cls = totalResult>0?'result-win':totalResult<0?'result-lose':'result-push';
+      if(totalResult>0) flashDealerMsg("Nice hand! You beat the dealer.");
+      else if(totalResult<0) flashDealerMsg(dealerQualifies?"Dealer wins this one.":"Better luck next round!");
+      else flashDealerMsg("Push — no one wins this hand.");
+      area.innerHTML = `
+        <div class="hand-label">Your Hand (${pRank.name})</div>${handHTML(pCards)}
+        <div class="hand-label">Dealer (${dRank.name})${!dealerQualifies?' - Does not qualify':''}</div>${handHTML(dCards)}
+        <div class="result-msg ${cls}">${resultMsg}</div>
+        <div style="text-align:center"><button class="bet-btn" onclick="tcpReset()">New Hand</button></div>`;
+    };
+  }
+
+  window.tcpReset = function(){render();};
+  render();
+}
+
+// ===== CRAPS =====
+function initCraps(el, g){
+  let bet=25, phase='bet', point=0, bets={};
+
+  function rollDice(){return [Math.ceil(Math.random()*6), Math.ceil(Math.random()*6)];}
+
+  function dieHTML(val){
+    const dots = {
+      1:[5],2:[3,7],3:[3,5,7],4:[1,3,7,9],5:[1,3,5,7,9],6:[1,3,4,6,7,9]
+    };
+    let html='<div class="die rolling">';
+    for(let i=1;i<=9;i++){
+      html+=`<div class="dot" style="${dots[val].includes(i)?'display:block':''}"></div>`;
+    }
+    return html+'</div>';
+  }
+
+  function render(){
+    let html = `<div class="craps-info">Phase: ${point?'Point is '+point:'Come Out Roll'}</div>`;
+    html += `<div class="bet-controls" style="justify-content:center;">
+      <label>Bet: </label>
+      <input type="number" class="bet-input" id="cr-bet" value="${bet}" min="${g.minBet}" max="${g.maxBet}" step="5">
+    </div>`;
+
+    html += `<div class="craps-bets">
+      <div class="craps-bet ${bets.pass?'selected':''}" onclick="crBet('pass')">Pass Line</div>
+      <div class="craps-bet ${bets.dontpass?'selected':''}" onclick="crBet('dontpass')">Don't Pass</div>
+      <div class="craps-bet ${bets.come?'selected':''}" onclick="crBet('come')">Come</div>
+      <div class="craps-bet ${bets.dontcome?'selected':''}" onclick="crBet('dontcome')">Don't Come</div>
+      <div class="craps-bet ${bets.field?'selected':''}" onclick="crBet('field')">Field</div>
+      <div class="craps-bet ${bets.any7?'selected':''}" onclick="crBet('any7')">Any 7 (4:1)</div>
+      <div class="craps-bet ${bets.place6?'selected':''}" onclick="crBet('place6')">Place 6 (7:6)</div>
+      <div class="craps-bet ${bets.place8?'selected':''}" onclick="crBet('place8')">Place 8 (7:6)</div>
+    </div>`;
+
+    html += `<div style="text-align:center;margin:10px 0;">
+      <button class="bet-btn" id="cr-roll" style="font-size:1.2em;padding:12px 30px;">Roll Dice</button>
+    </div>`;
+    html += `<div id="cr-dice" class="dice-row"></div>`;
+    html += `<div id="cr-result"></div>`;
+
+    el.innerHTML = html;
+    document.getElementById('cr-roll').onclick = crRoll;
+  }
+
+  window.crBet = function(type){
+    if(bets[type]){delete bets[type];}else{bets[type]=true;}
+    render();
+  };
+
+  function crRoll(){
+    bet = parseInt(document.getElementById('cr-bet').value)||g.minBet;
+    const activeBets = Object.keys(bets).filter(k=>bets[k]);
+    if(activeBets.length===0){document.getElementById('cr-result').innerHTML='<div class="result-msg result-lose">Place at least one bet!</div>';return;}
+    const totalWager = bet * activeBets.length;
+    if(totalWager > balance){document.getElementById('cr-result').innerHTML='<div class="result-msg result-lose">Not enough funds!</div>';return;}
+
+    balance -= totalWager;
+    saveBalance();
+
+    const [d1,d2] = rollDice();
+    const total = d1+d2;
+    document.getElementById('cr-dice').innerHTML = dieHTML(d1)+dieHTML(d2);
+
+    let results = [];
+    let totalWin = 0;
+
+    // Pass Line
+    if(bets.pass){
+      if(!point){
+        if(total===7||total===11){totalWin+=bet*2;results.push({msg:'Pass Line WINS!',win:true});}
+        else if(total===2||total===3||total===12){results.push({msg:'Pass Line loses (craps)',win:false});}
+        else{point=total;results.push({msg:`Point set: ${point}`,win:null});totalWin+=bet;}// bet stays
+      } else {
+        if(total===point){totalWin+=bet*2;results.push({msg:'Pass Line WINS - Point hit!',win:true});point=0;}
+        else if(total===7){results.push({msg:'Pass Line loses - Seven out!',win:false});point=0;}
+        else{totalWin+=bet;results.push({msg:`Roll ${total}, point is still ${point}`,win:null});}
+      }
+    }
+
+    // Don't Pass
+    if(bets.dontpass){
+      if(!point){
+        if(total===2||total===3){totalWin+=bet*2;results.push({msg:'Don\'t Pass WINS!',win:true});}
+        else if(total===12){totalWin+=bet;results.push({msg:'Don\'t Pass pushes (12)',win:null});}
+        else if(total===7||total===11){results.push({msg:'Don\'t Pass loses',win:false});}
+        else{totalWin+=bet;results.push({msg:`Don't Pass: point ${point}`,win:null});}
+      } else {
+        if(total===7){totalWin+=bet*2;results.push({msg:'Don\'t Pass WINS - Seven!',win:true});}
+        else if(total===point){results.push({msg:'Don\'t Pass loses - point hit',win:false});}
+        else{totalWin+=bet;results.push({msg:`Don't Pass waiting`,win:null});}
+      }
+    }
+
+    // Come
+    if(bets.come){
+      if(total===7||total===11){totalWin+=bet*2;results.push({msg:'Come bet WINS!',win:true});}
+      else if(total===2||total===3||total===12){results.push({msg:'Come bet loses',win:false});}
+      else{totalWin+=bet;results.push({msg:`Come bet moves to ${total}`,win:null});}
+    }
+
+    // Don't Come
+    if(bets.dontcome){
+      if(total===2||total===3){totalWin+=bet*2;results.push({msg:'Don\'t Come WINS!',win:true});}
+      else if(total===12){totalWin+=bet;results.push({msg:'Don\'t Come pushes',win:null});}
+      else if(total===7||total===11){results.push({msg:'Don\'t Come loses',win:false});}
+      else{totalWin+=bet;results.push({msg:`Don't Come moves to ${total}`,win:null});}
+    }
+
+    // Field
+    if(bets.field){
+      if([2,3,4,9,10,11,12].includes(total)){
+        let mult = (total===2||total===12)?2:1;
+        totalWin+=bet*(1+mult);
+        results.push({msg:`Field WINS${mult===2?' (2x)':''}!`,win:true});
+      } else {
+        results.push({msg:'Field loses',win:false});
+      }
+    }
+
+    // Any 7
+    if(bets.any7){
+      if(total===7){totalWin+=bet*5;results.push({msg:'Any 7 WINS (4:1)!',win:true});}
+      else{results.push({msg:'Any 7 loses',win:false});}
+    }
+
+    // Place 6
+    if(bets.place6){
+      if(total===6){totalWin+=bet+Math.floor(bet*7/6);results.push({msg:'Place 6 WINS!',win:true});}
+      else if(total===7){results.push({msg:'Place 6 loses',win:false});}
+      else{totalWin+=bet;results.push({msg:'Place 6 still active',win:null});}
+    }
+
+    // Place 8
+    if(bets.place8){
+      if(total===8){totalWin+=bet+Math.floor(bet*7/6);results.push({msg:'Place 8 WINS!',win:true});}
+      else if(total===7){results.push({msg:'Place 8 loses',win:false});}
+      else{totalWin+=bet;results.push({msg:'Place 8 still active',win:null});}
+    }
+
+    balance += totalWin;
+    saveBalance();
+
+    let rhtml = `<div style="text-align:center;font-size:1.3em;color:var(--gold);margin:8px 0;">Rolled: ${total} (${d1}+${d2})</div>`;
+    results.forEach(r=>{
+      const cls = r.win===true?'result-win':r.win===false?'result-lose':'result-push';
+      rhtml += `<div class="result-msg ${cls}" style="font-size:0.9em;padding:5px;margin:3px 0;">${r.msg}</div>`;
+    });
+    document.getElementById('cr-result').innerHTML = rhtml;
+  }
+
+  render();
+}
+
+// ===== SIC BO =====
+function initSicBo(el, g){
+  let bet=10, selectedBets={};
+
+  const SB_BETS = [
+    {id:'small',name:'Small (4-10)',pay:1,check:(d)=>{let t=d[0]+d[1]+d[2];return t>=4&&t<=10&&!(d[0]===d[1]&&d[1]===d[2]);}},
+    {id:'big',name:'Big (11-17)',pay:1,check:(d)=>{let t=d[0]+d[1]+d[2];return t>=11&&t<=17&&!(d[0]===d[1]&&d[1]===d[2]);}},
+    {id:'any_triple',name:'Any Triple',pay:24,check:(d)=>d[0]===d[1]&&d[1]===d[2]},
+    {id:'total4',name:'Total 4',pay:50,check:(d)=>d[0]+d[1]+d[2]===4},
+    {id:'total5',name:'Total 5',pay:20,check:(d)=>d[0]+d[1]+d[2]===5},
+    {id:'total6',name:'Total 6',pay:15,check:(d)=>d[0]+d[1]+d[2]===6},
+    {id:'total7',name:'Total 7',pay:12,check:(d)=>d[0]+d[1]+d[2]===7},
+    {id:'total8',name:'Total 8',pay:8,check:(d)=>d[0]+d[1]+d[2]===8},
+    {id:'total9',name:'Total 9',pay:6,check:(d)=>d[0]+d[1]+d[2]===9},
+    {id:'total10',name:'Total 10',pay:6,check:(d)=>d[0]+d[1]+d[2]===10},
+    {id:'total11',name:'Total 11',pay:6,check:(d)=>d[0]+d[1]+d[2]===11},
+    {id:'total12',name:'Total 12',pay:6,check:(d)=>d[0]+d[1]+d[2]===12},
+    {id:'total13',name:'Total 13',pay:8,check:(d)=>d[0]+d[1]+d[2]===13},
+    {id:'total14',name:'Total 14',pay:12,check:(d)=>d[0]+d[1]+d[2]===14},
+    {id:'total15',name:'Total 15',pay:15,check:(d)=>d[0]+d[1]+d[2]===15},
+    {id:'total16',name:'Total 16',pay:20,check:(d)=>d[0]+d[1]+d[2]===16},
+    {id:'total17',name:'Total 17',pay:50,check:(d)=>d[0]+d[1]+d[2]===17},
+    {id:'double1',name:'Double 1',pay:8,check:(d)=>(d[0]===1&&d[1]===1)||(d[0]===1&&d[2]===1)||(d[1]===1&&d[2]===1)},
+    {id:'double6',name:'Double 6',pay:8,check:(d)=>(d[0]===6&&d[1]===6)||(d[0]===6&&d[2]===6)||(d[1]===6&&d[2]===6)},
+  ];
+
+  function dieHTML(val){
+    const dots={1:[5],2:[3,7],3:[3,5,7],4:[1,3,7,9],5:[1,3,5,7,9],6:[1,3,4,6,7,9]};
+    let html='<div class="die rolling">';
+    for(let i=1;i<=9;i++) html+=`<div class="dot" style="${dots[val].includes(i)?'display:block':''}"></div>`;
+    return html+'</div>';
+  }
+
+  function render(){
+    let html = `<div class="bet-controls" style="justify-content:center;">
+      <label>Bet per spot: </label>
+      <input type="number" class="bet-input" id="sb-bet" value="${bet}" min="${g.minBet}" max="${g.maxBet}" step="5">
+    </div>`;
+    html += `<div class="craps-bets">`;
+    SB_BETS.forEach(b=>{
+      html += `<div class="craps-bet ${selectedBets[b.id]?'selected':''}" onclick="sbToggle('${b.id}')">${b.name} (${b.pay}:1)</div>`;
+    });
+    html += `</div>`;
+    html += `<div style="text-align:center;margin:10px 0;">
+      <button class="bet-btn" id="sb-roll" style="font-size:1.2em;padding:12px 30px;">Roll Dice</button>
+    </div>`;
+    html += `<div id="sb-dice" class="dice-row"></div>`;
+    html += `<div id="sb-result"></div>`;
+    el.innerHTML = html;
+    document.getElementById('sb-roll').onclick = sbRoll;
+  }
+
+  window.sbToggle = function(id){
+    if(selectedBets[id]) delete selectedBets[id];
+    else selectedBets[id]=true;
+    render();
+  };
+
+  function sbRoll(){
+    bet = parseInt(document.getElementById('sb-bet').value)||g.minBet;
+    const active = Object.keys(selectedBets).filter(k=>selectedBets[k]);
+    if(!active.length){document.getElementById('sb-result').innerHTML='<div class="result-msg result-lose">Select at least one bet!</div>';return;}
+    const totalWager = bet*active.length;
+    if(totalWager>balance){document.getElementById('sb-result').innerHTML='<div class="result-msg result-lose">Not enough funds!</div>';return;}
+
+    balance -= totalWager;
+    const dice = [Math.ceil(Math.random()*6),Math.ceil(Math.random()*6),Math.ceil(Math.random()*6)];
+    const total = dice[0]+dice[1]+dice[2];
+
+    document.getElementById('sb-dice').innerHTML = dice.map(d=>dieHTML(d)).join('');
+
+    let rhtml = `<div style="text-align:center;font-size:1.3em;color:var(--gold);margin:8px 0;">Total: ${total} (${dice.join('+')})</div>`;
+    let totalWin = 0;
+
+    active.forEach(id=>{
+      const b = SB_BETS.find(x=>x.id===id);
+      if(b.check(dice)){
+        const win = bet * b.pay;
+        totalWin += bet + win;
+        rhtml += `<div class="result-msg result-win" style="font-size:0.9em;padding:5px;margin:3px 0;">${b.name}: WIN $${win}!</div>`;
+      } else {
+        rhtml += `<div class="result-msg result-lose" style="font-size:0.9em;padding:5px;margin:3px 0;">${b.name}: lose</div>`;
+      }
+    });
+
+    balance += totalWin;
+    saveBalance();
+    document.getElementById('sb-result').innerHTML = rhtml;
+  }
+
+  render();
+}
+
+// ===== ROULETTE =====
+function initRoulette(el, g){
+  const isAmerican = g.variant === 'american';
+  const REDS = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+  let bet=5, selectedBets=[], lastResult=null;
+
+  // Numbers in wheel order
+  const EU_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+  const US_ORDER = [0,28,9,26,30,11,7,20,32,17,5,22,34,15,3,24,36,13,1,37,27,10,25,29,12,8,19,31,18,6,21,33,16,4,23,35,14,2];
+  const ORDER = isAmerican ? US_ORDER : EU_ORDER;
+
+  function getColor(n){
+    if(n===0||n===37) return '#0a6e0a';
+    return REDS.includes(n)?'#c0392b':'#111';
+  }
+
+  function drawWheel(canvas, highlightNum){
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const cx = w/2, cy = h/2, r = w/2-4;
+    ctx.clearRect(0,0,w,h);
+
+    const count = ORDER.length;
+    const arc = Math.PI*2/count;
+
+    ORDER.forEach((num,i)=>{
+      const startA = i*arc - Math.PI/2;
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,r,startA,startA+arc);
+      ctx.fillStyle = getColor(num);
+      if(num===highlightNum) ctx.fillStyle='#f0d060';
+      ctx.fill();
+      ctx.strokeStyle='#333';
+      ctx.lineWidth=0.5;
+      ctx.stroke();
+
+      // Number text
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.rotate(startA+arc/2);
+      ctx.fillStyle='#fff';
+      ctx.font='bold 9px sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText(num===37?'00':num.toString(), r*0.78, 3);
+      ctx.restore();
+    });
+
+    // Center
+    ctx.beginPath();
+    ctx.arc(cx,cy,r*0.3,0,Math.PI*2);
+    ctx.fillStyle='#1a1a1a';
+    ctx.fill();
+    ctx.strokeStyle=getColor(highlightNum!==undefined?highlightNum:-1)==='#0a6e0a'?'#2ecc71':'#d4a843';
+    ctx.lineWidth=2;
+    ctx.stroke();
+    if(highlightNum!==undefined){
+      ctx.fillStyle='#fff';
+      ctx.font='bold 18px sans-serif';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText(highlightNum===37?'00':highlightNum.toString(),cx,cy);
+    }
+  }
+
+  function render(){
+    let html = `<div class="roulette-container">
+      <div class="wheel-wrapper">
+        <div class="wheel-pointer"></div>
+        <canvas class="wheel-canvas" id="rl-canvas" width="220" height="220"></canvas>
+      </div>
+    </div>`;
+
+    // Betting table
+    html += `<div class="bet-controls" style="justify-content:center;">
+      <label>Chip: $</label>
+      <input type="number" class="bet-input" id="rl-bet" value="${bet}" min="1" max="${g.maxBet}" step="1">
+      <button class="bet-btn small" onclick="rlClear()">Clear Bets</button>
+    </div>`;
+
+    // Build table
+    html += `<div class="bet-table">`;
+    // 0 (and 00)
+    if(isAmerican){
+      html += `<div class="bet-cell green-num" onclick="rlPlace('0')" data-bet="0">0</div>`;
+      html += `<div class="bet-cell green-num" onclick="rlPlace('00')" data-bet="00">00</div>`;
+    } else {
+      html += `<div class="bet-cell green-num span2" onclick="rlPlace('0')" data-bet="0">0</div>`;
+    }
+    // Numbers 1-36 in 3 rows
+    for(let col=0;col<12;col++){
+      for(let row=2;row>=0;row--){
+        const n = col*3 + (3-row);
+        const isRed = REDS.includes(n);
+        html += `<div class="bet-cell ${isRed?'red-num':''}" onclick="rlPlace('${n}')" data-bet="${n}">${n}</div>`;
+      }
+    }
+    // Bottom bets
+    html += `<div class="bet-cell span2" style="visibility:hidden"></div>`;
+    html += `<div class="bet-cell span4" onclick="rlPlace('1st12')" data-bet="1st12">1st 12</div>`;
+    html += `<div class="bet-cell span4" onclick="rlPlace('2nd12')" data-bet="2nd12">2nd 12</div>`;
+    html += `<div class="bet-cell span4" onclick="rlPlace('3rd12')" data-bet="3rd12">3rd 12</div>`;
+    html += `<div class="bet-cell span2" style="visibility:hidden"></div>`;
+    html += `<div class="bet-cell span2" onclick="rlPlace('1-18')" data-bet="1-18">1-18</div>`;
+    html += `<div class="bet-cell span2" onclick="rlPlace('even')" data-bet="even">Even</div>`;
+    html += `<div class="bet-cell span2 red-num" onclick="rlPlace('red')" data-bet="red">Red</div>`;
+    html += `<div class="bet-cell span2" onclick="rlPlace('black')" data-bet="black">Black</div>`;
+    html += `<div class="bet-cell span2" onclick="rlPlace('odd')" data-bet="odd">Odd</div>`;
+    html += `<div class="bet-cell span2" onclick="rlPlace('19-36')" data-bet="19-36">19-36</div>`;
+    html += `</div>`;
+
+    html += `<div id="rl-bets-display" style="font-size:0.8em;color:#888;margin:5px 0;min-height:20px;"></div>`;
+    html += `<div style="text-align:center;margin:8px 0;">
+      <button class="bet-btn" id="rl-spin" style="font-size:1.2em;padding:12px 30px;">Spin!</button>
+    </div>`;
+    html += `<div id="rl-result"></div>`;
+
+    el.innerHTML = html;
+
+    const canvas = document.getElementById('rl-canvas');
+    drawWheel(canvas);
+    document.getElementById('rl-spin').onclick = rlSpin;
+    updateBetsDisplay();
+  }
+
+  function updateBetsDisplay(){
+    const disp = document.getElementById('rl-bets-display');
+    if(!disp) return;
+    if(selectedBets.length===0){disp.textContent='Click the table to place bets';return;}
+    const total = selectedBets.reduce((s,b)=>s+b.amount,0);
+    disp.textContent = selectedBets.map(b=>`${b.type}: $${b.amount}`).join(' | ') + ` (Total: $${total})`;
+    // Highlight selected cells
+    document.querySelectorAll('.bet-cell').forEach(c=>{
+      c.classList.remove('selected');
+      if(selectedBets.find(b=>b.type===c.dataset.bet)) c.classList.add('selected');
+    });
+  }
+
+  window.rlPlace = function(type){
+    bet = parseInt(document.getElementById('rl-bet').value)||1;
+    const existing = selectedBets.find(b=>b.type===type);
+    if(existing) existing.amount += bet;
+    else selectedBets.push({type, amount: bet});
+    updateBetsDisplay();
+  };
+
+  window.rlClear = function(){selectedBets=[];updateBetsDisplay();};
+
+  function checkWin(type, num){
+    const n = num===37 ? -1 : num; // 00 treated as 37 internally
+    if(type==='0') return num===0;
+    if(type==='00') return num===37;
+    if(!isNaN(parseInt(type))) return num===parseInt(type);
+    if(type==='red') return REDS.includes(num);
+    if(type==='black') return num>0 && num!==37 && !REDS.includes(num);
+    if(type==='even') return num>0 && num!==37 && num%2===0;
+    if(type==='odd') return num>0 && num!==37 && num%2===1;
+    if(type==='1-18') return num>=1 && num<=18;
+    if(type==='19-36') return num>=19 && num<=36;
+    if(type==='1st12') return num>=1 && num<=12;
+    if(type==='2nd12') return num>=13 && num<=24;
+    if(type==='3rd12') return num>=25 && num<=36;
+    return false;
+  }
+
+  function getPayout(type){
+    if(!isNaN(parseInt(type))||type==='0'||type==='00') return 35;
+    if(type==='red'||type==='black'||type==='even'||type==='odd'||type==='1-18'||type==='19-36') return 1;
+    if(type.includes('12')) return 2;
+    return 1;
+  }
+
+  function rlSpin(){
+    if(selectedBets.length===0){document.getElementById('rl-result').innerHTML='<div class="result-msg result-lose">Place a bet first!</div>';return;}
+    const totalWager = selectedBets.reduce((s,b)=>s+b.amount,0);
+    if(totalWager>balance){document.getElementById('rl-result').innerHTML='<div class="result-msg result-lose">Not enough funds!</div>';return;}
+    balance -= totalWager;
+    saveBalance();
+
+    const winIdx = Math.floor(Math.random()*ORDER.length);
+    const winNum = ORDER[winIdx];
+    const canvas = document.getElementById('rl-canvas');
+    const spinBtn = document.getElementById('rl-spin');
+    spinBtn.disabled = true;
+
+    let angle = 0;
+    const targetAngle = 360*5 + (winIdx/ORDER.length)*360;
+    const duration = 4000;
+    const start = performance.now();
+
+    // Ball setup — spins CCW (opposite to wheel), lands at top (pointer at -π/2)
+    const r = 106, cx = 110, cy = 110, BALL_R = 7;
+    const BALL_REVS = 11;
+    const ballStartPos = Math.random() * Math.PI * 2;
+    let adj = (ballStartPos - (-Math.PI/2)) % (Math.PI*2);
+    if(adj < 0) adj += Math.PI*2;
+    const ballTotalAngle = -(BALL_REVS * Math.PI*2 + adj);
+    const ballOuterR = r * 0.89;
+    const ballInnerR = r * 0.76;
+
+    function drawBall(ctx, bx, by){
+      ctx.save();
+      ctx.shadowColor = 'rgba(255,255,255,0.8)';
+      ctx.shadowBlur = 10;
+      const g = ctx.createRadialGradient(bx-2, by-2.5, 1, bx, by, BALL_R);
+      g.addColorStop(0, '#ffffff');
+      g.addColorStop(0.6, '#e0e0e0');
+      g.addColorStop(1, '#999');
+      ctx.beginPath();
+      ctx.arc(bx, by, BALL_R, 0, Math.PI*2);
+      ctx.fillStyle = g;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function animateSpin(now){
+      const elapsed = now - start;
+      const t = Math.min(elapsed/duration, 1);
+      const ease = 1 - Math.pow(1-t, 3);
+      angle = ease * targetAngle;
+
+      const ctx = canvas.getContext('2d');
+      ctx.save();
+      ctx.clearRect(0,0,220,220);
+      ctx.translate(110,110);
+      ctx.rotate(-angle*Math.PI/180);
+      ctx.translate(-110,-110);
+      drawWheel(canvas);
+      ctx.restore();
+
+      // Ball in world space (not rotating with wheel)
+      const ballAngle = ballStartPos + ballTotalAngle * (1 - Math.pow(1-t, 1.8));
+      let ballRadius;
+      if(t < 0.62){
+        ballRadius = ballOuterR;
+      } else {
+        const pct = (t - 0.62) / 0.38;
+        const pEase = 1 - Math.pow(1-pct, 2);
+        ballRadius = ballOuterR + (ballInnerR - ballOuterR) * pEase;
+        // Clatter as ball drops into pocket
+        const bounce = Math.sin(pct * Math.PI * 5) * (1-pct) * 6;
+        ballRadius -= bounce;
+      }
+      const bx = cx + Math.cos(ballAngle) * ballRadius;
+      const by = cy + Math.sin(ballAngle) * ballRadius;
+      drawBall(ctx, bx, by);
+
+      if(t<1){
+        requestAnimationFrame(animateSpin);
+      } else {
+        // Final frame: keep wheel at final rotation, highlight winner
+        ctx.save();
+        ctx.clearRect(0,0,220,220);
+        ctx.translate(110,110);
+        ctx.rotate(-targetAngle*Math.PI/180);
+        ctx.translate(-110,-110);
+        drawWheel(canvas, winNum);
+        ctx.restore();
+        // Ball settled at pointer (top of wheel)
+        drawBall(ctx, cx + Math.cos(-Math.PI/2)*ballInnerR, cy + Math.sin(-Math.PI/2)*ballInnerR);
+        showSpinResult(winNum);
+        spinBtn.disabled = false;
+      }
+    }
+    requestAnimationFrame(animateSpin);
+  }
+
+  function showSpinResult(winNum){
+    const isRed = REDS.includes(winNum);
+    const colorText = winNum===0||winNum===37?'Green':isRed?'Red':'Black';
+    let rhtml = `<div style="text-align:center;font-size:1.3em;margin:8px 0;">
+      <span style="color:${getColor(winNum)==='#c0392b'?'#e74c3c':getColor(winNum)==='#0a6e0a'?'#2ecc71':'#fff'}">${winNum===37?'00':winNum} ${colorText}</span>
+    </div>`;
+
+    let totalWin = 0;
+    selectedBets.forEach(b=>{
+      if(checkWin(b.type, winNum)){
+        const payout = getPayout(b.type);
+        const win = b.amount * payout;
+        totalWin += b.amount + win;
+        rhtml += `<div class="result-msg result-win" style="font-size:0.85em;padding:4px;margin:2px 0;">${b.type}: Win $${win} (${payout}:1)</div>`;
+      } else {
+        rhtml += `<div class="result-msg result-lose" style="font-size:0.85em;padding:4px;margin:2px 0;">${b.type}: Lose $${b.amount}</div>`;
+      }
+    });
+
+    balance += totalWin;
+    saveBalance();
+    document.getElementById('rl-result').innerHTML = rhtml;
+    selectedBets = [];
+    updateBetsDisplay();
+  }
+
+  render();
+}
+
+// ===== BIG SIX WHEEL =====
+function initBigSix(el, g){
+  let bet=5, selectedValue=null;
+
+  // 54 segments
+  const SEGMENTS = [];
+  const SEGS_DATA = [
+    {val:'$1',count:24,pay:1,color:'#f0d060'},
+    {val:'$2',count:15,pay:2,color:'#3498db'},
+    {val:'$5',count:7,pay:5,color:'#e74c3c'},
+    {val:'$10',count:4,pay:10,color:'#2ecc71'},
+    {val:'$20',count:2,pay:20,color:'#9b59b6'},
+    {val:'Logo',count:1,pay:40,color:'#e67e22'},
+    {val:'Logo2',count:1,pay:40,color:'#e67e22'},
+  ];
+  SEGS_DATA.forEach(s=>{for(let i=0;i<s.count;i++) SEGMENTS.push(s);});
+  shuffle(SEGMENTS);
+
+  function drawBigSixWheel(canvas, rotation=0, highlightIdx=-1){
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const cx = w/2, cy = h/2, r = w/2 - 8;
+    ctx.clearRect(0,0,w,h);
+
+    const count = SEGMENTS.length;
+    const arc = Math.PI*2/count;
+
+    SEGMENTS.forEach((seg,i)=>{
+      const startA = i*arc + rotation - Math.PI/2;
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,r,startA,startA+arc);
+      ctx.fillStyle = i===highlightIdx ? '#fff' : seg.color;
+      ctx.fill();
+      ctx.strokeStyle='#1a1a1a';
+      ctx.lineWidth=1;
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.rotate(startA+arc/2);
+      ctx.fillStyle = i===highlightIdx ? '#000' : '#000';
+      ctx.font='bold 8px sans-serif';
+      ctx.textAlign='center';
+      const label = seg.val.startsWith('Logo')?'L':seg.val;
+      ctx.fillText(label, r*0.7, 3);
+      ctx.restore();
+    });
+
+    ctx.beginPath();
+    ctx.arc(cx,cy,r*0.15,0,Math.PI*2);
+    ctx.fillStyle='#1a1a1a';
+    ctx.fill();
+    ctx.strokeStyle='#d4a843';
+    ctx.lineWidth=2;
+    ctx.stroke();
+  }
+
+  function render(){
+    let html = `<div class="bigsix-wheel-wrapper">
+      <div class="bigsix-pointer"></div>
+      <canvas class="bigsix-canvas" id="bs-canvas" width="250" height="250"></canvas>
+    </div>`;
+
+    html += `<div class="bet-controls" style="justify-content:center;">
+      <label>Bet: $</label>
+      <input type="number" class="bet-input" id="bs-bet" value="${bet}" min="1" max="${g.maxBet}" step="1">
+    </div>`;
+
+    html += `<div class="bigsix-bets">`;
+    const shownBets = SEGS_DATA.filter(s=>s.val!=='Logo2');
+    shownBets.forEach(s=>{
+      const label = s.val==='Logo'?'Logo (40:1)':s.val+' ('+s.pay+':1)';
+      const id = s.val;
+      html += `<div class="bigsix-bet ${selectedValue===id?'selected':''}" onclick="bsSel('${id}')" style="border-color:${s.color}">${label}</div>`;
+    });
+    html += `</div>`;
+
+    html += `<div style="text-align:center;margin:10px 0;">
+      <button class="bet-btn" id="bs-spin" style="font-size:1.2em;padding:12px 30px;">Spin!</button>
+    </div>`;
+    html += `<div id="bs-result"></div>`;
+
+    el.innerHTML = html;
+    const canvas = document.getElementById('bs-canvas');
+    drawBigSixWheel(canvas);
+    document.getElementById('bs-spin').onclick = bsSpin;
+  }
+
+  window.bsSel = function(v){selectedValue=v;render();};
+
+  function bsSpin(){
+    bet = parseInt(document.getElementById('bs-bet').value)||1;
+    if(!selectedValue){document.getElementById('bs-result').innerHTML='<div class="result-msg result-lose">Select a bet!</div>';return;}
+    if(bet>balance){document.getElementById('bs-result').innerHTML='<div class="result-msg result-lose">Not enough funds!</div>';return;}
+    balance -= bet;
+    saveBalance();
+
+    const winIdx = Math.floor(Math.random()*SEGMENTS.length);
+    const winSeg = SEGMENTS[winIdx];
+
+    const canvas = document.getElementById('bs-canvas');
+    const spinBtn = document.getElementById('bs-spin');
+    spinBtn.disabled = true;
+
+    const targetAngle = Math.PI*2*6 + (winIdx/SEGMENTS.length)*Math.PI*2;
+    const duration = 4000;
+    const start = performance.now();
+
+    function animate(now){
+      const elapsed = now - start;
+      const t = Math.min(elapsed/duration, 1);
+      const ease = 1 - Math.pow(1-t, 4);
+      const angle = ease * targetAngle;
+      drawBigSixWheel(canvas, -angle);
+
+      if(t<1){
+        requestAnimationFrame(animate);
+      } else {
+        drawBigSixWheel(canvas, -targetAngle, winIdx);
+        showBigSixResult(winSeg);
+        spinBtn.disabled = false;
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+
+  function showBigSixResult(winSeg){
+    const won = selectedValue === winSeg.val || (selectedValue.startsWith('Logo') && winSeg.val.startsWith('Logo'));
+    let rhtml = `<div style="text-align:center;font-size:1.3em;color:${winSeg.color};margin:8px 0;">${winSeg.val.startsWith('Logo')?'LOGO':winSeg.val}</div>`;
+    if(won){
+      const win = bet * winSeg.pay;
+      balance += bet + win;
+      saveBalance();
+      rhtml += `<div class="result-msg result-win">You win $${win}!</div>`;
+    } else {
+      rhtml += `<div class="result-msg result-lose">No match. Lost $${bet}.</div>`;
+    }
+    document.getElementById('bs-result').innerHTML = rhtml;
+  }
+
+  render();
+}
+
+// ===== 8-BALL POOL =====
+function initPool(el, g) {
+  const W=680,H=340,RAIL=32,BR=8,FRIC=0.988,MIN_V=0.05,PCK_R=17,STICK_LEN=230;
+  const pockets=[
+    {x:RAIL+2,y:RAIL+2},{x:W/2,y:RAIL-6},{x:W-RAIL-2,y:RAIL+2},
+    {x:RAIL+2,y:H-RAIL-2},{x:W/2,y:H-RAIL+6},{x:W-RAIL-2,y:H-RAIL-2}
+  ];
+  const BCOLOR=['#f5f5f0','#f7d000','#1040d0','#d02010','#8b008b','#ff7000','#006600','#900000','#111111',
+    '#f7d000','#1040d0','#d02010','#8b008b','#ff7000','#006600','#900000'];
+
+  let balls=[],cueBall,sinkingBalls=[];
+  let state='BET';
+  let pType=null,hType=null,assigned=false,isPlayerTurn=true,sunkThisTurn=[];
+  let betAmt=25;
+  let aimDx=1,aimDy=0,shootPower=0.5;
+  let strikeStart=0,aiAimStart=0,aiTargNx=0,aiTargNy=0;
+  let mousePos=null,ballInHand=false;
+  let audioCtx=null;
+  let animId=null;
+
+  el.innerHTML=`
+    <div style="text-align:center">
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:6px 0;flex-wrap:wrap">
+        <div style="background:#0d2e0d;border:2px solid #1a5a1a;border-radius:6px;padding:5px 14px;min-width:130px">
+          <div style="color:#888;font-size:0.65em;letter-spacing:1px">YOU</div>
+          <div id="pl-p-type" style="color:#aaa;font-weight:bold;font-size:0.85em">—</div>
+        </div>
+        <div id="pl-status" style="color:var(--gold);font-size:0.85em;max-width:240px;line-height:1.3">Place your bet!</div>
+        <div style="background:#2e0d0d;border:2px solid #5a1a1a;border-radius:6px;padding:5px 14px;min-width:130px">
+          <div style="color:#888;font-size:0.65em;letter-spacing:1px">CPU</div>
+          <div id="pl-ai-type" style="color:#aaa;font-weight:bold;font-size:0.85em">—</div>
+        </div>
+      </div>
+      <div id="pl-bet-area" class="bet-controls" style="justify-content:center;flex-wrap:wrap;margin:4px 0;gap:8px">
+        <label style="font-size:0.85em">Bet: $</label>
+        <input type="number" id="pl-bet-in" class="bet-input" value="25" min="5" max="500" step="5">
+        <select id="pl-diff" style="background:#222;border:1px solid #555;color:var(--gold);padding:7px 8px;border-radius:5px;font-size:0.85em;font-family:inherit">
+          <option value="easy">CPU: Easy</option>
+          <option value="medium" selected>CPU: Medium</option>
+          <option value="hard">CPU: Hard</option>
+        </select>
+        <button class="bet-btn" id="pl-start-btn">Start Game</button>
+      </div>
+      <div style="display:inline-flex;align-items:stretch;gap:8px;max-width:100%">
+        <canvas id="pl-canvas" width="${W}" height="${H}" style="max-width:calc(100% - 52px);border-radius:8px;display:block;touch-action:none;cursor:crosshair;flex-shrink:1"></canvas>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;width:38px">
+          <div style="color:#aaa;font-size:8px;letter-spacing:1px;writing-mode:vertical-lr;transform:rotate(180deg);margin-bottom:2px;font-weight:bold">POWER</div>
+          <div id="pl-pwr-bar" style="width:26px;flex:1;background:#0a0a0a;border-radius:10px;border:2px solid #333;cursor:ns-resize;position:relative;overflow:hidden;user-select:none;min-height:200px">
+            <div id="pl-pwr-fill" style="position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(to top,#27ae60 0%,#f0d060 50%,#e74c3c 100%);border-radius:0 0 8px 8px"></div>
+            <div id="pl-pwr-knob" style="position:absolute;left:-2px;right:-2px;height:4px;background:rgba(255,255,255,0.95);box-shadow:0 0 6px rgba(255,255,255,0.8);bottom:calc(50% - 2px);border-radius:2px;pointer-events:none"></div>
+          </div>
+          <div id="pl-pwr-pct" style="color:#f0d060;font-size:11px;font-weight:bold;letter-spacing:0">50%</div>
+        </div>
+      </div>
+      <div id="pl-hint" style="font-size:0.72em;color:#888;margin:3px 0;min-height:14px"></div>
+      <div id="pl-result"></div>
+      <button class="bet-btn" id="pl-again-btn" style="display:none;margin-top:8px">Play Again</button>
+    </div>`;
+
+  const canvas=document.getElementById('pl-canvas');
+  const ctx=canvas.getContext('2d');
+  document.getElementById('pl-start-btn').onclick=startPool;
+  document.getElementById('pl-again-btn').onclick=resetPool;
+
+  function mk(num,x,y){return{num,x,y,vx:0,vy:0,sunk:false};}
+  function rackBalls(){
+    balls=[];cueBall=mk(0,W*0.27,H/2);balls.push(cueBall);
+    const ax=W*0.67,ay=H/2,sp=BR*2+0.7;
+    [[1],[2,9],[3,8,10],[4,11,5,12],[6,13,7,14,15]].forEach((row,ri)=>{
+      const bx=ax+ri*sp*0.866,sy0=ay-(row.length-1)*sp/2;
+      row.forEach((num,ci)=>balls.push(mk(num,bx,sy0+ci*sp)));
+    });
+  }
+
+  function lighten(hex,a){
+    let n=parseInt(hex.slice(1),16);
+    return`rgb(${Math.min(255,(n>>16)+a)},${Math.min(255,((n>>8)&0xff)+a)},${Math.min(255,(n&0xff)+a)})`;
+  }
+  function isMyBall(num,type){if(!type||num===0||num===8)return false;return type==='solid'?num<=7:num>=9;}
+  function setStatus(s){document.getElementById('pl-status').textContent=s;}
+  function setHint(s){document.getElementById('pl-hint').textContent=s;}
+  function getDiff(){try{return document.getElementById('pl-diff').value;}catch(e){return'medium';}}
+
+  // — Audio (Web Audio API) —
+  function getAC(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+  function playHit(power=0.5){
+    try{
+      const ac=getAC(),osc=ac.createOscillator(),gain=ac.createGain();
+      osc.connect(gain);gain.connect(ac.destination);osc.type='triangle';
+      osc.frequency.value=700+power*700;
+      gain.gain.setValueAtTime(0.12+power*0.22,ac.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.07);
+      osc.start(ac.currentTime);osc.stop(ac.currentTime+0.07);
+    }catch(e){}
+  }
+  function playPocket(){
+    try{
+      const ac=getAC();
+      [0,0.06].forEach((delay,i)=>{
+        const osc=ac.createOscillator(),gain=ac.createGain();
+        osc.connect(gain);gain.connect(ac.destination);osc.type='sine';
+        osc.frequency.setValueAtTime(220-i*60,ac.currentTime+delay);
+        osc.frequency.exponentialRampToValueAtTime(55,ac.currentTime+delay+0.35);
+        gain.gain.setValueAtTime(0.3-i*0.08,ac.currentTime+delay);
+        gain.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+delay+0.35);
+        osc.start(ac.currentTime+delay);osc.stop(ac.currentTime+delay+0.4);
+      });
+    }catch(e){}
+  }
+  function playBallHit(){
+    try{
+      const ac=getAC(),osc=ac.createOscillator(),gain=ac.createGain();
+      osc.connect(gain);gain.connect(ac.destination);osc.type='sine';
+      osc.frequency.value=450;
+      gain.gain.setValueAtTime(0.08,ac.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.04);
+      osc.start(ac.currentTime);osc.stop(ac.currentTime+0.04);
+    }catch(e){}
+  }
+
+  // — Ball-in-hand drawing —
+  function drawBallInHand(){
+    if(!ballInHand||!mousePos)return;
+    const pos=mousePos;
+    const inBounds=pos.x>RAIL+BR&&pos.x<W-RAIL-BR&&pos.y>RAIL+BR&&pos.y<H-RAIL-BR;
+    const noOverlap=!balls.some(b=>!b.sunk&&b!==cueBall&&Math.hypot(b.x-pos.x,b.y-pos.y)<BR*2+1);
+    const valid=inBounds&&noOverlap;
+    ctx.save();
+    ctx.beginPath();ctx.arc(pos.x,pos.y,BR,0,Math.PI*2);
+    ctx.fillStyle=valid?'rgba(255,255,255,0.45)':'rgba(255,60,60,0.4)';ctx.fill();
+    ctx.strokeStyle=valid?'rgba(255,255,255,0.85)':'rgba(255,60,60,0.85)';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle=valid?'rgba(255,255,255,0.7)':'rgba(255,80,80,0.7)';
+    ctx.font='9px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(valid?'PLACE':'INVALID',pos.x,pos.y+BR+10);
+    ctx.restore();
+  }
+  function updateTypePanels(){
+    const pe=document.getElementById('pl-p-type'),ae=document.getElementById('pl-ai-type');
+    if(!assigned){pe.textContent='—';pe.style.color='#aaa';ae.textContent='—';ae.style.color='#aaa';return;}
+    if(pType==='solid'){pe.innerHTML='🟡 Solids (1-7)';pe.style.color='#f7d000';ae.innerHTML='🔵 Stripes (9-15)';ae.style.color='#7db8ff';}
+    else{pe.innerHTML='🔵 Stripes (9-15)';pe.style.color='#7db8ff';ae.innerHTML='🟡 Solids (1-7)';ae.style.color='#f7d000';}
+  }
+
+  // — Drawing —
+  function drawTable(){
+    const rg=ctx.createLinearGradient(0,0,0,H);
+    rg.addColorStop(0,'#6b3d12');rg.addColorStop(0.5,'#4a2808');rg.addColorStop(1,'#6b3d12');
+    ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#3a2008';ctx.fillRect(3,3,W-6,H-6);
+    ctx.fillStyle='#7a4820';ctx.fillRect(6,6,W-12,H-12);
+    ctx.fillStyle='#1a6b35';ctx.fillRect(RAIL,RAIL,W-RAIL*2,H-RAIL*2);
+    ctx.strokeStyle='rgba(15,80,30,0.22)';ctx.lineWidth=0.5;
+    for(let y=RAIL;y<=H-RAIL;y+=6){ctx.beginPath();ctx.moveTo(RAIL,y);ctx.lineTo(W-RAIL,y);ctx.stroke();}
+    ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;ctx.setLineDash([4,5]);
+    ctx.beginPath();ctx.moveTo(W*0.27,RAIL+4);ctx.lineTo(W*0.27,H-RAIL-4);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(212,168,67,0.65)';
+    [[W/4,RAIL/2],[W/2,RAIL/2],[W*3/4,RAIL/2],[W/4,H-RAIL/2],[W/2,H-RAIL/2],[W*3/4,H-RAIL/2],[RAIL/2,H/2],[W-RAIL/2,H/2]].forEach(([dx,dy])=>{
+      ctx.save();ctx.translate(dx,dy);ctx.rotate(Math.PI/4);ctx.fillRect(-3,-3,6,6);ctx.restore();
+    });
+    pockets.forEach(p=>{
+      ctx.beginPath();ctx.arc(p.x,p.y,PCK_R+4,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fill();
+      ctx.beginPath();ctx.arc(p.x,p.y,PCK_R,0,Math.PI*2);ctx.fillStyle='#060606';ctx.fill();
+      ctx.beginPath();ctx.arc(p.x,p.y,PCK_R+1,0,Math.PI*2);ctx.strokeStyle='#9B6F1A';ctx.lineWidth=2.5;ctx.stroke();
+    });
+  }
+
+  function drawBall(b){
+    if(b.sunk)return;
+    const stripe=b.num>=9,col=BCOLOR[b.num];
+    ctx.save();
+    ctx.beginPath();ctx.arc(b.x+1.5,b.y+2,BR,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.25)';ctx.fill();
+    ctx.beginPath();ctx.arc(b.x,b.y,BR,0,Math.PI*2);
+    if(b.num===0){const g2=ctx.createRadialGradient(b.x-3,b.y-3,1,b.x,b.y,BR);g2.addColorStop(0,'#fff');g2.addColorStop(1,'#ccc');ctx.fillStyle=g2;}
+    else if(stripe){ctx.fillStyle='#f5f5f0';}
+    else{const g2=ctx.createRadialGradient(b.x-3,b.y-3,1,b.x+2,b.y+2,BR);g2.addColorStop(0,lighten(col,50));g2.addColorStop(1,col);ctx.fillStyle=g2;}
+    ctx.fill();ctx.strokeStyle='rgba(0,0,0,0.3)';ctx.lineWidth=0.7;ctx.stroke();
+    if(stripe){
+      ctx.save();ctx.beginPath();ctx.arc(b.x,b.y,BR,0,Math.PI*2);ctx.clip();
+      const sg=ctx.createRadialGradient(b.x-3,b.y,1,b.x,b.y,BR);sg.addColorStop(0,lighten(col,40));sg.addColorStop(1,col);
+      ctx.fillStyle=sg;ctx.fillRect(b.x-BR,b.y-BR*0.44,BR*2,BR*0.88);ctx.restore();
+      ctx.beginPath();ctx.arc(b.x,b.y,BR,0,Math.PI*2);ctx.strokeStyle='rgba(0,0,0,0.15)';ctx.lineWidth=0.5;ctx.stroke();
+    }
+    if(b.num>0){
+      ctx.beginPath();ctx.arc(b.x,b.y,BR*0.44,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.92)';ctx.fill();
+      ctx.fillStyle='#111';ctx.font=`bold ${Math.floor(BR*0.64)}px sans-serif`;
+      ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(b.num,b.x,b.y+0.5);
+    }
+    ctx.beginPath();ctx.arc(b.x-BR*0.32,b.y-BR*0.32,BR*0.2,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.52)';ctx.fill();
+    ctx.restore();
+  }
+
+  function drawSinkingBalls(){
+    sinkingBalls=sinkingBalls.filter(s=>{
+      s.alpha-=0.055;s.scale-=0.07;
+      if(s.alpha<=0||s.scale<=0)return false;
+      ctx.save();ctx.globalAlpha=Math.max(0,s.alpha);
+      ctx.beginPath();ctx.arc(s.x,s.y,BR*Math.max(0,s.scale),0,Math.PI*2);
+      ctx.fillStyle=BCOLOR[s.num];ctx.fill();ctx.restore();
+      return true;
+    });
+  }
+
+  // — Trajectory —
+  function calcTraj(dx,dy){
+    const segs=[],MAX_B=3;
+    let rx=cueBall.x,ry=cueBall.y,d1=dx,d2=dy,hitResult=null;
+    for(let b=0;b<=MAX_B;b++){
+      let minT=1600,hT=null,hBall=null,wNx=0,wNy=0;
+      balls.forEach(ball=>{
+        if(ball.sunk||ball===cueBall)return;
+        const lx=ball.x-rx,ly=ball.y-ry,t=lx*d1+ly*d2;
+        if(t<=0)return;
+        const px=lx-t*d1,py=ly-t*d2,R=BR*2,d2_=px*px+py*py;
+        if(d2_>=R*R)return;
+        const tH=t-Math.sqrt(R*R-d2_);
+        if(tH>1&&tH<minT){minT=tH;hT='ball';hBall=ball;}
+      });
+      if(d1<-0.001){const t=(RAIL+BR-rx)/d1;if(t>0&&t<minT){minT=t;hT='wall';wNx=-1;wNy=0;}}
+      if(d1>0.001){const t=(W-RAIL-BR-rx)/d1;if(t>0&&t<minT){minT=t;hT='wall';wNx=1;wNy=0;}}
+      if(d2<-0.001){const t=(RAIL+BR-ry)/d2;if(t>0&&t<minT){minT=t;hT='wall';wNx=0;wNy=-1;}}
+      if(d2>0.001){const t=(H-RAIL-BR-ry)/d2;if(t>0&&t<minT){minT=t;hT='wall';wNx=0;wNy=1;}}
+      const ex=rx+d1*minT,ey=ry+d2*minT;
+      segs.push({x1:rx,y1:ry,x2:ex,y2:ey});
+      if(hT==='ball'){
+        const cnx=hBall.x-ex,cny=hBall.y-ey,cl=Math.hypot(cnx,cny);
+        if(cl>0){
+          const nx2=cnx/cl,ny2=cny/cl,dot=d1*nx2+d2*ny2;
+          const cdx=d1-dot*nx2,cdy=d2-dot*ny2,cl2=Math.hypot(cdx,cdy);
+          hitResult={ball:hBall,gx:ex,gy:ey,tDx:nx2,tDy:ny2,cDx:cl2>0.01?cdx/cl2:0,cDy:cl2>0.01?cdy/cl2:0};
+        }
+        break;
+      }
+      if(hT==='wall'){rx=ex;ry=ey;if(Math.abs(wNx)>0.5)d1=-d1;if(Math.abs(wNy)>0.5)d2=-d2;}
+      else break;
+    }
+    return{segs,hit:hitResult};
+  }
+
+  function drawTrajectory(){
+    if(!['AIMING','STRIKE'].includes(state)||!cueBall||cueBall.sunk)return;
+    const t=calcTraj(aimDx,aimDy);
+    t.segs.forEach((s,i)=>{
+      ctx.save();ctx.beginPath();ctx.moveTo(s.x1,s.y1);ctx.lineTo(s.x2,s.y2);
+      ctx.setLineDash([7,5]);ctx.lineWidth=1.6;
+      ctx.strokeStyle=i===0?'rgba(255,255,255,0.55)':'rgba(255,255,255,0.2)';
+      ctx.stroke();ctx.setLineDash([]);ctx.restore();
+    });
+    if(t.hit){
+      const h=t.hit;
+      // Ghost ball (where cue will be at impact)
+      ctx.save();ctx.beginPath();ctx.arc(h.gx,h.gy,BR,0,Math.PI*2);
+      ctx.strokeStyle='rgba(255,255,255,0.45)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+      // Target ball deflection (yellow arrow)
+      ctx.save();
+      const tLen=110,ax2=h.ball.x+h.tDx*tLen,ay2=h.ball.y+h.tDy*tLen,an=Math.atan2(h.tDy,h.tDx);
+      ctx.beginPath();ctx.moveTo(h.ball.x,h.ball.y);ctx.lineTo(ax2,ay2);
+      ctx.strokeStyle='rgba(255,210,0,0.78)';ctx.lineWidth=2.2;ctx.setLineDash([5,4]);ctx.stroke();ctx.setLineDash([]);
+      ctx.beginPath();ctx.moveTo(ax2,ay2);ctx.lineTo(ax2-11*Math.cos(an-0.42),ay2-11*Math.sin(an-0.42));ctx.lineTo(ax2-11*Math.cos(an+0.42),ay2-11*Math.sin(an+0.42));
+      ctx.closePath();ctx.fillStyle='rgba(255,210,0,0.78)';ctx.fill();ctx.restore();
+      // Cue ball deflect (cyan)
+      if(Math.abs(h.cDx)+Math.abs(h.cDy)>0.05){
+        ctx.save();ctx.beginPath();ctx.moveTo(h.gx,h.gy);ctx.lineTo(h.gx+h.cDx*70,h.gy+h.cDy*70);
+        ctx.strokeStyle='rgba(80,200,255,0.62)';ctx.lineWidth=1.8;ctx.setLineDash([5,4]);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+      }
+    }
+  }
+
+  // — Cue stick —
+  function getStickOffset(){
+    if(state==='AIMING')return 14+shootPower*54;
+    if(state==='AI_AIM')return 32+Math.sin((Date.now()-aiAimStart)*0.006)*8;
+    if(state==='STRIKE'||state==='AI_STRIKE'){
+      const t=Math.min((Date.now()-strikeStart)/110,1),ease=t*(2-t);
+      return Math.max(1,30*(1-ease));
+    }
+    return 14;
+  }
+  function drawStick(){
+    if(!['AIMING','STRIKE','AI_AIM','AI_STRIKE'].includes(state)||!cueBall||cueBall.sunk)return;
+    // For AI_AIM, smoothly rotate stick toward target
+    if(state==='AI_AIM'){
+      const e=Math.min((Date.now()-aiAimStart)/700,1);
+      const cur=Math.atan2(aimDy,aimDx),targ=Math.atan2(aiTargNy,aiTargNx);
+      let diff=targ-cur;while(diff>Math.PI)diff-=Math.PI*2;while(diff<-Math.PI)diff+=Math.PI*2;
+      const a=cur+diff*e;aimDx=Math.cos(a);aimDy=Math.sin(a);
+    }
+    const nx=aimDx,ny=aimDy,off=getStickOffset();
+    const tipX=cueBall.x-nx*(BR+off),tipY=cueBall.y-ny*(BR+off);
+    const butX=tipX-nx*STICK_LEN,butY=tipY-ny*STICK_LEN;
+    ctx.save();
+    ctx.beginPath();ctx.moveTo(tipX,tipY);ctx.lineTo(tipX-nx*18,tipY-ny*18);
+    ctx.strokeStyle='#e0e0d8';ctx.lineWidth=2.8;ctx.lineCap='round';ctx.stroke();
+    ctx.beginPath();ctx.moveTo(tipX-nx*18,tipY-ny*18);ctx.lineTo(tipX-nx*90,tipY-ny*90);
+    const sg1=ctx.createLinearGradient(tipX-nx*18,tipY-ny*18,tipX-nx*90,tipY-ny*90);
+    sg1.addColorStop(0,'#caa868');sg1.addColorStop(1,'#b89040');ctx.strokeStyle=sg1;ctx.lineWidth=3.5;ctx.stroke();
+    ctx.beginPath();ctx.moveTo(tipX-nx*90,tipY-ny*90);ctx.lineTo(tipX-nx*170,tipY-ny*170);
+    ctx.strokeStyle='#6a3010';ctx.lineWidth=5;ctx.stroke();
+    ctx.beginPath();ctx.moveTo(tipX-nx*170,tipY-ny*170);ctx.lineTo(butX,butY);
+    const sg2=ctx.createLinearGradient(tipX-nx*170,tipY-ny*170,butX,butY);
+    sg2.addColorStop(0,'#4a2008');sg2.addColorStop(1,'#2a1004');ctx.strokeStyle=sg2;ctx.lineWidth=7;ctx.stroke();
+    ctx.beginPath();ctx.arc(butX,butY,4,0,Math.PI*2);ctx.fillStyle='#1a0a02';ctx.fill();
+    ctx.restore();
+  }
+
+  function drawHUD(){
+    if(state==='AIMING'||state==='STRIKE'){
+      ctx.fillStyle='rgba(255,255,255,0.12)';ctx.font='bold 10px sans-serif';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('YOUR SHOT',RAIL+5,RAIL+4);
+    } else if(['AI_AIM','AI_STRIKE'].includes(state)||(state==='SHOOTING'&&!isPlayerTurn)){
+      ctx.fillStyle='rgba(255,80,80,0.2)';ctx.font='bold 10px sans-serif';ctx.textAlign='right';ctx.textBaseline='top';ctx.fillText("CPU'S SHOT",W-RAIL-5,RAIL+4);
+    }
+    // Sunk balls in rail tray
+    const pS=balls.filter(b=>b.sunk&&b.num>0&&b.num!==8&&pType&&isMyBall(b.num,pType));
+    const aS=balls.filter(b=>b.sunk&&b.num>0&&b.num!==8&&hType&&isMyBall(b.num,hType));
+    pS.forEach((b,i)=>{ctx.beginPath();ctx.arc(RAIL+10+i*16,H-11,5,0,Math.PI*2);ctx.fillStyle=BCOLOR[b.num];ctx.fill();});
+    aS.forEach((b,i)=>{ctx.beginPath();ctx.arc(W-RAIL-10-i*16,H-11,5,0,Math.PI*2);ctx.fillStyle=BCOLOR[b.num];ctx.fill();});
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);drawTable();drawTrajectory();drawStick();
+    balls.forEach(drawBall);drawSinkingBalls();drawBallInHand();drawHUD();
+  }
+
+  // — Physics —
+  function physics(){
+    let moving=false;
+    balls.forEach(b=>{
+      if(b.sunk)return;
+      b.x+=b.vx;b.y+=b.vy;b.vx*=FRIC;b.vy*=FRIC;
+      if(Math.abs(b.vx)<MIN_V)b.vx=0;if(Math.abs(b.vy)<MIN_V)b.vy=0;
+      if(b.vx||b.vy)moving=true;
+      const L=RAIL+BR,R=W-RAIL-BR,T=RAIL+BR,Bo=H-RAIL-BR;
+      if(b.x<L){b.x=L;b.vx=Math.abs(b.vx)*0.84;moving=true;}
+      if(b.x>R){b.x=R;b.vx=-Math.abs(b.vx)*0.84;moving=true;}
+      if(b.y<T){b.y=T;b.vy=Math.abs(b.vy)*0.84;moving=true;}
+      if(b.y>Bo){b.y=Bo;b.vy=-Math.abs(b.vy)*0.84;moving=true;}
+    });
+    let playedHitThisFrame=false;
+    for(let iter=0;iter<3;iter++){
+      for(let i=0;i<balls.length;i++){
+        if(balls[i].sunk)continue;
+        for(let j=i+1;j<balls.length;j++){
+          if(balls[j].sunk)continue;
+          const dx=balls[j].x-balls[i].x,dy=balls[j].y-balls[i].y,dist=Math.hypot(dx,dy);
+          if(dist<BR*2&&dist>0){
+            const nx2=dx/dist,ny2=dy/dist,ov=(BR*2-dist)/2;
+            balls[i].x-=nx2*ov;balls[i].y-=ny2*ov;balls[j].x+=nx2*ov;balls[j].y+=ny2*ov;
+            const relV=(balls[j].vx-balls[i].vx)*nx2+(balls[j].vy-balls[i].vy)*ny2;
+            if(relV<0){
+              balls[i].vx+=relV*nx2;balls[i].vy+=relV*ny2;balls[j].vx-=relV*nx2;balls[j].vy-=relV*ny2;
+              moving=true;
+              if(!playedHitThisFrame&&iter===0){playedHitThisFrame=true;playBallHit();}
+            }
+          }
+        }
+      }
+    }
+    balls.forEach(b=>{
+      if(b.sunk)return;
+      pockets.forEach(p=>{
+        if(Math.hypot(b.x-p.x,b.y-p.y)<PCK_R){
+          sinkingBalls.push({num:b.num,x:b.x,y:b.y,scale:1.2,alpha:1});
+          b.sunk=true;b.vx=0;b.vy=0;sunkThisTurn.push(b.num);
+          playPocket();
+        }
+      });
+    });
+    return moving;
+  }
+
+  // — Game logic —
+  function handleTurnEnd(){
+    const sunk=sunkThisTurn,e8=sunk.includes(8),eCue=sunk.includes(0);
+    if(e8){
+      if(isPlayerTurn){
+        if(!assigned){endGame(false,'You sunk the 8-ball before your group was set! You lose.');return;}
+        balls.filter(b=>!b.sunk&&isMyBall(b.num,pType)).length===0?endGame(true,'You sunk the 8-ball! 🎱 You WIN!'):endGame(false,'8-ball sunk early! You lose.');
+      } else {
+        if(!assigned){endGame(true,'CPU sunk 8-ball early! You win!');return;}
+        balls.filter(b=>!b.sunk&&isMyBall(b.num,hType)).length===0?endGame(false,'CPU sunk the 8-ball. You lose.'):endGame(true,'CPU sunk 8-ball early! You win!');
+      }
+      return;
+    }
+    if(eCue){
+      if(isPlayerTurn){
+        // Player scratched — CPU gets ball-in-hand (CPU auto-places)
+        cueBall.sunk=false;cueBall.x=W*0.22+Math.random()*40-20;cueBall.y=H/2+Math.random()*60-30;cueBall.vx=0;cueBall.vy=0;
+        setStatus("You scratched! CPU's turn.");isPlayerTurn=false;sunkThisTurn=[];nextTurn();
+      } else {
+        // CPU scratched — player gets ball-in-hand
+        cueBall.sunk=false;cueBall.vx=0;cueBall.vy=0;
+        cueBall.x=-999;cueBall.y=-999; // hide until placed
+        setStatus('CPU scratched! Ball in hand — click to place the cue ball.');
+        setHint('Click anywhere on the green to place the cue ball');
+        isPlayerTurn=true;sunkThisTurn=[];ballInHand=true;
+        state='BALL_IN_HAND';if(!animId)animId=requestAnimationFrame(gameLoop);
+      }
+      return;
+    }
+    if(!assigned){
+      const first=sunk.find(n=>n>0&&n!==8);
+      if(first!=null){
+        if(isPlayerTurn){pType=first<=7?'solid':'stripe';hType=pType==='solid'?'stripe':'solid';}
+        else{hType=first<=7?'solid':'stripe';pType=hType==='solid'?'stripe':'solid';}
+        assigned=true;updateTypePanels();
+        setStatus(isPlayerTurn?`You have ${pType}s — keep shooting!`:`CPU has ${hType}s — you have ${pType}s!`);
+      }
+    }
+    const validSunk=assigned?sunk.some(n=>isMyBall(n,isPlayerTurn?pType:hType)):sunk.some(n=>n>0&&n!==8);
+    if(isPlayerTurn){
+      if(validSunk)setStatus('Nice shot! Shoot again.');
+      else{setStatus(sunk.length?'Wrong ball — CPU\'s turn.':'Missed — CPU\'s turn.');isPlayerTurn=false;}
+    } else {
+      if(validSunk)setStatus("CPU sinks one! CPU's turn again...");
+      else{setStatus('CPU missed. Your turn!');isPlayerTurn=true;}
+    }
+    sunkThisTurn=[];nextTurn();
+  }
+
+  function nextTurn(){
+    updateTypePanels();
+    if(!isPlayerTurn){
+      const shot=calcCpuShot();aiTargNx=shot.nx2;aiTargNy=shot.ny2;
+      aiAimStart=Date.now();state='AI_AIM';
+      setTimeout(()=>{
+        if(state!=='AI_AIM')return;
+        strikeStart=Date.now();state='AI_STRIKE';
+        setTimeout(()=>{
+          if(state!=='AI_STRIKE')return;
+          const spreads={easy:0.35,medium:0.09,hard:0.018};
+          const spread=(Math.random()-0.5)*spreads[getDiff()];
+          const ang=Math.atan2(aiTargNy,aiTargNx)+spread,pwr=15+Math.random()*7;
+          // Only cue ball gets velocity
+          cueBall.vx=Math.cos(ang)*pwr;cueBall.vy=Math.sin(ang)*pwr;
+          aimDx=Math.cos(ang);aimDy=Math.sin(ang);
+          sunkThisTurn=[];state='SHOOTING';
+          if(!animId)animId=requestAnimationFrame(gameLoop);
+        },130);
+      },1000);
+      if(!animId)animId=requestAnimationFrame(gameLoop);
+    } else {
+      state='AIMING';setHint('Aim with mouse • Set power on bar • Click to shoot');
+      if(!animId)animId=requestAnimationFrame(gameLoop);
+    }
+  }
+
+  function calcCpuShot(){
+    const diff=getDiff();
+    let targets=balls.filter(b=>!b.sunk&&(assigned?isMyBall(b.num,hType):b.num>0&&b.num!==8));
+    if(!targets.length)targets=balls.filter(b=>!b.sunk&&b.num===8);
+    if(!targets.length)return{nx2:0,ny2:1};
+    // Easy: 40% chance of picking a random (bad) target
+    if(diff==='easy'&&Math.random()<0.4){
+      const t=targets[Math.floor(Math.random()*targets.length)];
+      const a=Math.atan2(t.y-cueBall.y,t.x-cueBall.x)+(Math.random()-0.5)*0.8;
+      return{nx2:Math.cos(a),ny2:Math.sin(a)};
+    }
+    let best=null,bestScore=Infinity;
+    targets.forEach(t=>{
+      pockets.forEach(p=>{
+        const dx2=t.x-p.x,dy2=t.y-p.y,tpL=Math.hypot(dx2,dy2);
+        if(tpL<1)return;
+        const gx=t.x+(dx2/tpL)*BR*2,gy=t.y+(dy2/tpL)*BR*2;
+        const score=Math.hypot(cueBall.x-gx,cueBall.y-gy)+tpL*0.3;
+        if(score<bestScore){bestScore=score;best={gx,gy};}
+      });
+    });
+    if(!best)return{nx2:Math.random()*2-1,ny2:Math.random()*2-1};
+    const dx2=best.gx-cueBall.x,dy2=best.gy-cueBall.y,len=Math.hypot(dx2,dy2);
+    return len>0?{nx2:dx2/len,ny2:dy2/len}:{nx2:0,ny2:1};
+  }
+
+  // — Game loop —
+  function gameLoop(){
+    if(state==='SHOOTING'){
+      const mv=physics();draw();
+      if(!mv&&sinkingBalls.length===0){state='IDLE';handleTurnEnd();animId=null;return;}
+    } else draw();
+    // Keep loop alive during ball-in-hand so ghost ball follows cursor
+    if(state==='BALL_IN_HAND'){animId=requestAnimationFrame(gameLoop);return;}
+    animId=requestAnimationFrame(gameLoop);
+  }
+
+  // — Input —
+  function evPos(e){
+    const rect=canvas.getBoundingClientRect(),sx=W/rect.width,sy=H/rect.height;
+    const t=e.touches?e.touches[0]:e;return{x:(t.clientX-rect.left)*sx,y:(t.clientY-rect.top)*sy};
+  }
+  function updDir(pos){const dx=pos.x-cueBall.x,dy=pos.y-cueBall.y,l=Math.hypot(dx,dy);if(l>4){aimDx=dx/l;aimDy=dy/l;}}
+  function tryPlaceBall(pos){
+    const inBounds=pos.x>RAIL+BR&&pos.x<W-RAIL-BR&&pos.y>RAIL+BR&&pos.y<H-RAIL-BR;
+    const noOverlap=!balls.some(b=>!b.sunk&&b!==cueBall&&Math.hypot(b.x-pos.x,b.y-pos.y)<BR*2+1);
+    if(inBounds&&noOverlap){
+      cueBall.x=pos.x;cueBall.y=pos.y;cueBall.vx=0;cueBall.vy=0;
+      ballInHand=false;state='AIMING';
+      setStatus('Cue ball placed! Your shot.');
+      setHint('Aim with mouse • Set power on bar • Click to shoot');
+      if(!animId)animId=requestAnimationFrame(gameLoop);
+    }
+  }
+  function onDown(e){
+    const pos=evPos(e);
+    if(state==='BALL_IN_HAND'){tryPlaceBall(pos);return;}
+    if(state!=='AIMING')return;
+    updDir(pos);
+    const snx=aimDx,sny=aimDy,power=shootPower;
+    playHit(0.3+power*0.7);
+    strikeStart=Date.now();state='STRIKE';
+    setTimeout(()=>{
+      if(state!=='STRIKE')return;
+      cueBall.vx=snx*(0.3+power*0.7)*22;
+      cueBall.vy=sny*(0.3+power*0.7)*22;
+      sunkThisTurn=[];state='SHOOTING';
+      if(!animId)animId=requestAnimationFrame(gameLoop);
+    },110);
+  }
+  function onMove(e){
+    mousePos=evPos(e);
+    if(state==='BALL_IN_HAND'){if(!animId)animId=requestAnimationFrame(gameLoop);return;}
+    if(state!=='AIMING')return;
+    updDir(mousePos);
+  }
+  function onUp(){}
+  canvas.addEventListener('mousemove',onMove);
+  canvas.addEventListener('mousedown',onDown);
+  canvas.addEventListener('mouseup',onUp);
+  canvas.addEventListener('mouseleave',()=>{mousePos=null;});
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();onDown(e);},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();mousePos=evPos(e);if(state==='AIMING')updDir(mousePos);if(state==='BALL_IN_HAND'&&!animId)animId=requestAnimationFrame(gameLoop);},{passive:false});
+  canvas.addEventListener('touchend',e=>{e.preventDefault();if(state==='BALL_IN_HAND'){tryPlaceBall(evPos(e));}else if(state==='AIMING'){onDown(e);}},{passive:false});
+
+  // — Power bar —
+  {
+    const pwrBar=document.getElementById('pl-pwr-bar');
+    const pwrFill=document.getElementById('pl-pwr-fill');
+    const pwrKnob=document.getElementById('pl-pwr-knob');
+    const pwrPct=document.getElementById('pl-pwr-pct');
+    let draggingPwr=false;
+    function updatePwrUI(){
+      const p=shootPower*100;
+      pwrFill.style.height=p+'%';
+      pwrKnob.style.bottom='calc('+p+'% - 2px)';
+      pwrPct.textContent=Math.round(p)+'%';
+      pwrPct.style.color=shootPower>0.7?'#e74c3c':shootPower>0.4?'#f0d060':'#2ecc71';
+    }
+    function setPwrFromY(clientY){
+      if(!pwrBar)return;
+      const r=pwrBar.getBoundingClientRect();
+      shootPower=Math.max(0,Math.min(1,1-(clientY-r.top)/r.height));
+      updatePwrUI();
+    }
+    if(pwrBar){
+      pwrBar.addEventListener('mousedown',e=>{draggingPwr=true;setPwrFromY(e.clientY);e.preventDefault();});
+      document.addEventListener('mousemove',e=>{if(draggingPwr)setPwrFromY(e.clientY);});
+      document.addEventListener('mouseup',()=>{draggingPwr=false;});
+      pwrBar.addEventListener('touchstart',e=>{e.preventDefault();draggingPwr=true;setPwrFromY(e.touches[0].clientY);},{passive:false});
+      pwrBar.addEventListener('touchmove',e=>{e.preventDefault();setPwrFromY(e.touches[0].clientY);},{passive:false});
+      pwrBar.addEventListener('touchend',e=>{e.preventDefault();draggingPwr=false;},{passive:false});
+      updatePwrUI();
+    }
+  }
+
+  // — Controls —
+  function startPool(){
+    betAmt=Math.max(5,Math.min(500,parseInt(document.getElementById('pl-bet-in').value)||25));
+    if(balance<betAmt){setStatus('Insufficient balance!');return;}
+    balance-=betAmt;saveBalance();updateBalanceDisplay();
+    document.getElementById('pl-bet-area').style.display='none';
+    document.getElementById('pl-again-btn').style.display='none';
+    document.getElementById('pl-result').innerHTML='';
+    pType=null;hType=null;assigned=false;isPlayerTurn=true;sunkThisTurn=[];sinkingBalls=[];
+    ballInHand=false;mousePos=null;
+    rackBalls();aimDx=1;aimDy=0;
+    updateTypePanels();setStatus('Set power on the right bar, aim with mouse, click to shoot!');
+    setHint('Aim with mouse • Set power on bar • Click to shoot');
+    state='AIMING';if(animId)cancelAnimationFrame(animId);animId=requestAnimationFrame(gameLoop);
+  }
+  function resetPool(){
+    state='BET';sinkingBalls=[];ballInHand=false;mousePos=null;
+    document.getElementById('pl-bet-area').style.display='flex';
+    document.getElementById('pl-again-btn').style.display='none';
+    document.getElementById('pl-result').innerHTML='';
+    const pe=document.getElementById('pl-p-type'),ae=document.getElementById('pl-ai-type');
+    pe.textContent='—';pe.style.color='#aaa';ae.textContent='—';ae.style.color='#aaa';
+    setStatus("Place your bet and rack 'em!");setHint('');
+    if(animId){cancelAnimationFrame(animId);animId=null;}
+    rackBalls();draw();
+  }
+  function endGame(won,msg){
+    state='OVER';if(animId){cancelAnimationFrame(animId);animId=null;}draw();
+    if(won){balance+=betAmt*2;saveBalance();updateBalanceDisplay();document.getElementById('pl-result').innerHTML=`<div class="result-msg result-win">${msg} +$${betAmt}</div>`;}
+    else document.getElementById('pl-result').innerHTML=`<div class="result-msg result-lose">${msg} -$${betAmt}</div>`;
+    document.getElementById('pl-again-btn').style.display='inline-block';
+  }
+
+  rackBalls();draw();
+}
+
+// ===== INIT =====
+renderLobby();
+updateBalanceDisplay();
+
+// Close modal on Escape
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') closeModal();
+});
+
+// Scroll modal overlay to top on open
+const observer = new MutationObserver(()=>{
+  const overlay = document.getElementById('modal-overlay');
+  if(overlay.style.display==='block') overlay.scrollTop=0;
+});
+observer.observe(document.getElementById('modal-overlay'),{attributes:true,attributeFilter:['style']});
+</script>
+</body>
+</html>

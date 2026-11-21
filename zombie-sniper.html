@@ -30,7 +30,13 @@
      Aim: <b style="color:#fff">Mouse</b> &nbsp; Fire: <b style="color:#fff">Click</b> &nbsp;
      Reload: <b style="color:#fff">R</b> &nbsp; Zoom: <b style="color:#fff">Right-click / Z</b><br>
      <b style="color:#ff7b7b">Headshots</b> (the small circle) are one-shot kills and worth more.
-     You have limited ammo per mag — make them count. Protect the door's HP.</p>
+     You have limited ammo per mag — make them count. Protect the door's HP.<br>
+     Watch for armored <b style="color:#4f7fae">tank</b> <b style="color:#8a4fae">zombies</b>
+     <b style="color:#e6e6ee">at</b> <b style="color:#d8c84a">higher waves</b> — they soak many body shots (a headshot still drops them), so aim for the head.<br>
+     Spend score to deploy <b style="color:#8aa0c0">auto-turrets</b> that flank the door and shred the horde for you:
+     press <b style="color:#fff">1</b> (or <b style="color:#fff">T</b>) — <span style="color:#ffd24a">150 pts</span> each.
+     Then <b style="color:#fff">2</b> (or <b style="color:#fff">U</b>) to <b style="color:#ffd24a">upgrade</b> all turrets (more damage + faster fire, up to Lv5).
+     Turrets <b style="color:#ff6a3b">overheat</b> under sustained fire and briefly shut down to cool — watch the heat bar.</p>
   <button id="start">TAKE THE SHOT</button>
 </div>
 <script>
@@ -48,13 +54,32 @@ C.addEventListener('contextmenu',e=>e.preventDefault());
 C.addEventListener('touchstart',e=>{mpos(e.touches[0]);e.preventDefault();},{passive:false});
 C.addEventListener('touchmove',e=>{mpos(e.touches[0]);e.preventDefault();},{passive:false});
 C.addEventListener('touchend',e=>{shoot();e.preventDefault();},{passive:false});
-addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='r')reload();if(k==='z')zoom=!zoom;});
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='r')reload();if(k==='z')zoom=!zoom;if(k==='1'||k==='t')buyTurret();if(k==='2'||k==='u')upgradeTurrets();});
 
-let door,zombies,particles,casings,ammo,mag,reserve,reloading,score,combo,comboT,wave,spawnQueue,spawnT,headshots,kills,paused,dead,started=false,shake=0,flash=0;
+let door,zombies,particles,casings,turrets,tbullets,turretLvl,ammo,mag,reserve,reloading,score,combo,comboT,wave,spawnQueue,spawnT,headshots,kills,paused,dead,started=false,shake=0,flash=0;
+// auto-turret mounts flanking the door (deploy with score)
+const TURRET_SLOTS=[{x:W/2-200,y:H-86},{x:W/2+200,y:H-86},{x:W/2-340,y:H-86},{x:W/2+340,y:H-86},{x:W/2-95,y:H-92},{x:W/2+95,y:H-92}];
+const TURRET_COST=150, TURRET_MAX_LVL=5, TURRET_UPCOST=200;
+function turretStats(lvl){return {dmg:lvl, rate:Math.max(6,22-(lvl-1)*4)};} // higher lvl = more dmg + faster
+function upgradeCost(){return TURRET_UPCOST*turretLvl;} // 200, 400, 600, 800
+function buyTurret(){
+  if(paused||dead||!started)return;
+  if(turrets.length>=TURRET_SLOTS.length||score<TURRET_COST)return;
+  score-=TURRET_COST;
+  const s=TURRET_SLOTS[turrets.length], st=turretStats(turretLvl);
+  turrets.push({x:s.x,y:s.y,cd:0,rate:st.rate,dmg:st.dmg,target:null,heat:0,overheated:false});
+}
+function upgradeTurrets(){
+  if(paused||dead||!started)return;
+  if(turrets.length===0||turretLvl>=TURRET_MAX_LVL||score<upgradeCost())return;
+  score-=upgradeCost(); turretLvl++;
+  const st=turretStats(turretLvl);
+  for(const t of turrets){t.dmg=st.dmg;t.rate=st.rate;} // upgrade applies to all turrets
+}
 
 function reset(){
   door={hp:100,maxhp:100};
-  zombies=[];particles=[];casings=[];
+  zombies=[];particles=[];casings=[];turrets=[];tbullets=[];turretLvl=1;
   mag=8;ammo=mag;reserve=64;reloading=0;
   score=0;combo=0;comboT=0;wave=0;headshots=0;kills=0;
   paused=false;dead=false;shake=0;flash=0;
@@ -62,15 +87,27 @@ function reset(){
 }
 function nextWave(){wave++;spawnQueue=5+wave*2;spawnT=40;reserve+=20;}
 function spawnZombie(){
-  let t='walker';const roll=Math.random();
-  if(wave>=2&&roll<0.2)t='runner';
-  if(wave>=4&&roll>0.9)t='brute';
-  const base={walker:{hp:1,spd:0.30,r:16,col:'#6a9e4f',dmg:14,pts:10},
-              runner:{hp:1,spd:0.55,r:13,col:'#c7d24a',dmg:10,pts:16},
-              brute:{hp:4,spd:0.20,r:24,col:'#9e4f4f',dmg:30,pts:30}}[t];
-  // body shots needed = hp (brute armored). head always 1-shot.
-  zombies.push({x:rand(60,W-60),y:-30,t,r:base.r,bodyHp:base.hp,col:base.col,dmg:base.dmg,pts:base.pts,
-    spd:base.spd*(1+wave*0.03),sway:rand(0,6.28),swaySp:rand(0.02,0.05),hit:0,dead:false});
+  const roll=Math.random();
+  let t='walker';
+  // disjoint roll bands; tank zombies unlock & intensify with wave number
+  if(wave>=2&&roll<0.18)t='runner';
+  else if(wave>=11&&roll>0.985)t='tank_yellow';
+  else if(wave>=9&&roll>0.965)t='tank_white';
+  else if(wave>=7&&roll>0.94)t='tank_purple';
+  else if(wave>=5&&roll>0.91)t='tank_blue';
+  else if(wave>=4&&roll>0.88)t='brute';
+  const base={
+    walker:{hp:1,spd:0.30,r:16,col:'#6a9e4f',dmg:14,pts:10},
+    runner:{hp:1,spd:0.55,r:13,col:'#c7d24a',dmg:10,pts:16},
+    brute:{hp:4,spd:0.20,r:24,col:'#9e4f4f',dmg:30,pts:30},
+    // tanks — many body shots to drop (head still one-shots), slow, heavy door damage
+    tank_blue:{hp:6,spd:0.17,r:22,col:'#4f7fae',dmg:26,pts:40},
+    tank_purple:{hp:8,spd:0.15,r:25,col:'#8a4fae',dmg:34,pts:55},
+    tank_white:{hp:11,spd:0.13,r:27,col:'#e6e6ee',dmg:42,pts:75},
+    tank_yellow:{hp:15,spd:0.11,r:30,col:'#d8c84a',dmg:55,pts:110},
+  }[t];
+  zombies.push({x:rand(60,W-60),y:-30,t,r:base.r,bodyHp:base.hp,maxBody:base.hp,col:base.col,dmg:base.dmg,pts:base.pts,
+    tank:t.startsWith('tank'),spd:base.spd*(1+wave*0.03),sway:rand(0,6.28),swaySp:rand(0.02,0.05),hit:0,dead:false});
 }
 function reload(){if(reloading>0||ammo===mag||reserve<=0)return;reloading=70;}
 function shoot(){
@@ -96,9 +133,11 @@ function shoot(){
     for(let i=0;i<4;i++)particles.push({x:mouse.x,y:mouse.y,vx:rand(-2,2),vy:rand(-2,2),life:rand(6,12),col:'#888',r:2});
   }
 }
-function killZ(z,head){
-  z.dead=true;kills++;combo++;comboT=120;
-  let pts=z.pts*(head?2:1)*Math.max(1,Math.floor(combo/3)+1);
+function killZ(z,head,src){
+  z.dead=true;kills++;
+  if(src!=='turret'){combo++;comboT=120;} // turret kills don't build the player's headshot combo
+  const mult=src==='turret'?1:Math.max(1,Math.floor(combo/3)+1);
+  let pts=z.pts*(head?2:1)*mult;
   if(head){headshots++;pts=Math.round(pts*1.5);}
   score+=pts;
   for(let i=0;i<(head?18:12);i++)particles.push({x:z.x,y:z.y-(head?z.r*0.7:0),vx:rand(-4,4),vy:rand(-4,4),life:rand(12,26),col:head?'#ff3b3b':z.col,r:rand(2,4)});
@@ -121,6 +160,29 @@ function update(){
       if(door.hp<=0){door.hp=0;dead=true;gameOver();}
     }
   }
+  zombies=zombies.filter(z=>!z.dead);
+  // auto-turrets: target nearest zombie, fire projectiles (laser sight drawn in draw())
+  for(const t of turrets){
+    if(t.cd>0)t.cd--;
+    if(t.heat>0)t.heat=Math.max(0,t.heat-0.7); // passive cooling
+    if(t.overheated){ // locked out until cooled below 35; vents smoke
+      if(t.heat<35)t.overheated=false;
+      else if(Math.random()<0.25)particles.push({x:t.x+rand(-4,4),y:t.y-14,vx:rand(-0.5,0.5),vy:-rand(0.5,1.6),life:rand(14,26),col:'#888',r:2});
+    }
+    let tgt=null,bd=1e9;
+    for(const z of zombies){if(z.dead)continue;const d=dist(t.x,t.y,z.x,z.y);if(d<bd){bd=d;tgt=z;}}
+    t.target=tgt;
+    if(tgt&&t.cd<=0&&!t.overheated){t.cd=t.rate;
+      t.heat+=20; if(t.heat>=100){t.heat=100;t.overheated=true;} // sustained fire overheats
+      const a=Math.atan2(tgt.y-(t.y-12),tgt.x-t.x);
+      tbullets.push({x:t.x,y:t.y-12,vx:Math.cos(a)*9,vy:Math.sin(a)*9,dmg:t.dmg,life:120});}
+  }
+  for(const b of tbullets){b.x+=b.vx;b.y+=b.vy;b.life--;
+    for(const z of zombies){if(z.dead)continue;
+      if(dist(b.x,b.y,z.x,z.y)<z.r){z.bodyHp-=b.dmg;z.hit=5;b.life=0;
+        for(let i=0;i<4;i++)particles.push({x:b.x,y:b.y,vx:rand(-2,2),vy:rand(-2,2),life:rand(6,12),col:'#8af',r:2});
+        if(z.bodyHp<=0)killZ(z,false,'turret');break;}}}
+  tbullets=tbullets.filter(b=>b.life>0&&b.x>-20&&b.x<W+20&&b.y>-20&&b.y<H+20);
   zombies=zombies.filter(z=>!z.dead);
   for(const p of particles){p.x+=p.vx;p.y+=p.vy;if(!p.txt){p.vx*=0.93;p.vy*=0.93;}p.life--;}
   particles=particles.filter(p=>p.life>0);
@@ -145,13 +207,44 @@ function draw(){
   X.fillStyle=dpct<0.3?'#ff3b3b':'#5a4a3a';X.fillRect(W/2-50,H-58,100,52);
   X.fillStyle='#000';X.font='12px monospace';X.textAlign='center';X.fillText('SURVIVORS',W/2,H-30);
   X.fillStyle='#000';X.fillRect(W/2-60,H-74,120,5);X.fillStyle=dpct<0.3?'#ff3b3b':'#00ff41';X.fillRect(W/2-60,H-74,120*dpct,5);
+  // auto-turrets (+ laser sight to target) and their bullets
+  for(const t of turrets){
+    const over=t.overheated, hot=t.heat>60;
+    if(t.target&&!t.target.dead&&!over){ // laser offline while overheated
+      X.strokeStyle='rgba(255,40,40,.5)';X.lineWidth=1.2;
+      X.beginPath();X.moveTo(t.x,t.y-12);X.lineTo(t.target.x,t.target.y);X.stroke();
+      X.fillStyle='rgba(255,60,60,.9)';X.beginPath();X.arc(t.x,t.y-12,2.5,0,6.28);X.fill();
+    }
+    X.fillStyle='#3a4250';X.fillRect(t.x-9,t.y-10,18,20);
+    const a=t.target&&!t.target.dead?Math.atan2(t.target.y-(t.y-12),t.target.x-t.x):-Math.PI/2;
+    // barrel: grey when overheated, red-hot when hot, else level color
+    X.save();X.translate(t.x,t.y-12);X.rotate(a);
+    X.fillStyle=over?'#555':(hot?'#ff6a3b':(turretLvl>=TURRET_MAX_LVL?'#ffd24a':(turretLvl>=3?'#bfe0a0':'#8aa0c0')));
+    X.fillRect(0,-3,18,6);X.restore();
+    // heat bar
+    X.fillStyle='#000';X.fillRect(t.x-9,t.y-22,18,3);
+    X.fillStyle=over?'#ff3b3b':(hot?'#ffae3b':'#4fae4f');X.fillRect(t.x-9,t.y-22,18*(t.heat/100),3);
+    // level pips
+    X.fillStyle='#ffd24a';for(let i=0;i<turretLvl;i++)X.fillRect(t.x-9+i*5,t.y-16,3,3);
+    if(over){X.fillStyle='#ff3b3b';X.font='bold 8px monospace';X.textAlign='center';X.fillText('HOT',t.x,t.y+18);}
+  }
+  for(const b of tbullets){X.fillStyle='#8af';X.fillRect(b.x-2,b.y-2,4,4);}
   // zombies
   for(const z of zombies){
     X.fillStyle=z.hit>0?'#fff':z.col;
     X.fillRect(z.x-z.r*0.7,z.y-z.r*0.2,z.r*1.4,z.r*1.4); // body
+    if(z.tank){ // armor plating outline + rivets so tanks read as heavily armored
+      X.strokeStyle='#0a0a0a';X.lineWidth=2;X.strokeRect(z.x-z.r*0.7,z.y-z.r*0.2,z.r*1.4,z.r*1.4);
+      X.fillStyle='rgba(0,0,0,.35)';X.fillRect(z.x-z.r*0.7,z.y-z.r*0.2,z.r*1.4,4);
+      X.fillStyle='#0a0a0a';X.fillRect(z.x-z.r*0.5,z.y+z.r*0.2,2,2);X.fillRect(z.x+z.r*0.4,z.y+z.r*0.2,2,2);
+    }
+    X.fillStyle=z.hit>0?'#fff':z.col;
     X.beginPath();X.arc(z.x,z.y-z.r*0.7,z.r*0.42,0,6.28);X.fill(); // head
     X.fillStyle='#300';X.fillRect(z.x-z.r*0.2,z.y-z.r*0.8,3,3);X.fillRect(z.x+z.r*0.05,z.y-z.r*0.8,3,3);
-    if(z.bodyHp>1){X.fillStyle='#000';X.fillRect(z.x-z.r*0.7,z.y-z.r*0.5,z.r*1.4,3);}
+    if(z.maxBody>1){ // proportional armor/HP bar
+      X.fillStyle='#000';X.fillRect(z.x-z.r*0.7,z.y-z.r*0.55,z.r*1.4,3);
+      X.fillStyle='#ffae3b';X.fillRect(z.x-z.r*0.7,z.y-z.r*0.55,z.r*1.4*(z.bodyHp/z.maxBody),3);
+    }
   }
   for(const p of particles){if(p.txt){X.globalAlpha=clamp(p.life/50,0,1);X.fillStyle=p.col;X.font='bold 13px monospace';X.textAlign='center';X.fillText(p.txt,p.x,p.y);}
     else{X.globalAlpha=clamp(p.life/24,0,1);X.fillStyle=p.col;X.fillRect(p.x-p.r,p.y-p.r,p.r*2,p.r*2);}}
@@ -185,7 +278,9 @@ function drawHUD(){
    `<span style="color:${combo>2?'#ffd24a':'#00ff41'}">COMBO x${Math.max(1,Math.floor(combo/3)+1)}</span><br>`+
    `AMMO <b style="color:${ammo===0?'#ff3b3b':'#fff'}">${reloading>0?'RELOADING…':ammo+'/'+mag}</b> &nbsp; RESERVE <b>${reserve}</b> &nbsp; `+
    `DOOR <b style="color:${door.hp<30?'#ff3b3b':'#00ff41'}">${Math.round(door.hp)}</b><br>`+
-   `<span style="color:#9fffb0">headshots ${headshots} · kills ${kills} · ${zoom?'ZOOMED':'right-click to zoom'}</span>`;
+   `<span style="color:#9fffb0">headshots ${headshots} · kills ${kills} · [1] Turret ${TURRET_COST}pts (${turrets.length}/${TURRET_SLOTS.length})`+
+   ` · [2] Upgrade ${turrets.length===0?'(build first)':(turretLvl>=TURRET_MAX_LVL?'Lv'+turretLvl+' MAX':'Lv'+turretLvl+'→'+upgradeCost()+'pts')}`+
+   ` · ${zoom?'ZOOMED':'right-click zoom'}</span>`;
 }
 function gameOver(){dead=true;msg.classList.remove('hide');
   msg.innerHTML=`<h1>DOOR BREACHED</h1>

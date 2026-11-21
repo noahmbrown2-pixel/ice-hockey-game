@@ -1,0 +1,65 @@
+{
+  "name": "run-zte",
+  "description": "Execute Zero Touch Execution (ZTE) workflow for any GitHub issue with comprehensive validation and deployment",
+  "parameters": [
+    {
+      "name": "issue",
+      "description": "GitHub issue number to execute ZTE on",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "mode",
+      "description": "Execution mode: production, development, or test",
+      "required": false,
+      "type": "string",
+      "default": "production"
+    },
+    {
+      "name": "max-retries",
+      "description": "Maximum test retries until 100% success",
+      "required": false,
+      "type": "number",
+      "default": 5
+    },
+    {
+      "name": "coverage-target",
+      "description": "Coverage target percentage",
+      "required": false,
+      "type": "number",
+      "default": 95
+    },
+    {
+      "name": "no-pr",
+      "description": "Skip PR creation",
+      "required": false,
+      "type": "boolean",
+      "default": false
+    },
+    {
+      "name": "no-deploy",
+      "description": "Skip deployment",
+      "required": false,
+      "type": "boolean",
+      "default": false
+    },
+    {
+      "name": "dry-run",
+      "description": "Show what would be done without executing",
+      "required": false,
+      "type": "boolean",
+      "default": false
+    },
+    {
+      "name": "verbose",
+      "description": "Enable verbose output",
+      "required": false,
+      "type": "boolean",
+      "default": false
+    }
+  ],
+  "script": {
+    "type": "python",
+    "content": "#!/usr/bin/env python3\nimport asyncio\nimport sys\nimport os\nfrom pathlib import Path\n\n# Add scripts directory to path\nscripts_dir = Path.cwd() / 'scripts'\nsys.path.insert(0, str(scripts_dir))\n\nfrom zte_full_execution import ZTEFullExecutionOrchestrator, ZTEExecutionConfig\n\nasync def run_zte_command(issue, mode='production', max_retries=5, coverage_target=95, no_pr=False, no_deploy=False, dry_run=False, verbose=False):\n    \"\"\"Execute ZTE command with parameters.\"\"\"\n    \n    # Validate issue number\n    if not issue:\n        print(\"❌ Error: Issue number is required\")\n        print(\"Usage: /run-zte --issue 123\")\n        return False\n    \n    # Create configuration\n    config = ZTEExecutionConfig(\n        issue_number=str(issue),\n        project_root=str(Path.cwd()),\n        mode=mode,\n        max_retries=int(max_retries),\n        coverage_target=float(coverage_target),\n        create_pr=not no_pr,\n        deploy=not no_deploy,\n        dry_run=dry_run,\n        verbose=verbose\n    )\n    \n    print(f\"🚀 Starting ZTE execution for Issue #{issue}\")\n    print(f\"⚙️ Mode: {mode}, Retries: {max_retries}, Coverage: {coverage_target}%\")\n    print(f\"📝 PR: {'No' if no_pr else 'Yes'}, Deploy: {'No' if no_deploy else 'Yes'}\")\n    \n    if dry_run:\n        print(\"🔍 DRY RUN MODE - No changes will be made\")\n    \n    # Execute ZTE workflow\n    orchestrator = ZTEFullExecutionOrchestrator(config)\n    result = await orchestrator.execute_full_zte_workflow()\n    \n    # Display final status\n    if result.success:\n        print(f\"\\n🎉 ZTE execution completed successfully!\")\n        print(f\"📊 Final test success: {result.test_results[-1].success_rate if result.test_results else 0}%\")\n        if result.repository_url:\n            print(f\"📦 Repository: {result.repository_url}\")\n        if result.execution_report_url:\n            print(f\"📄 Report: {result.execution_report_url}\")\n        if result.next_phase_script:\n            print(f\"📋 Next phase ready: {result.next_phase_script}\")\n    else:\n        print(f\"\\n❌ ZTE execution failed: {result.error_message}\")\n        print(\"🔧 Check logs for detailed error information\")\n    \n    return result.success\n\n# Parse arguments from command line\nif __name__ == '__main__':\n    import argparse\n    \n    parser = argparse.ArgumentParser(description='ZTE Command Execution')\n    parser.add_argument('--issue', required=True, help='GitHub issue number')\n    parser.add_argument('--mode', default='production', help='Execution mode')\n    parser.add_argument('--max-retries', type=int, default=5, help='Max retries')\n    parser.add_argument('--coverage-target', type=float, default=95, help='Coverage target')\n    parser.add_argument('--no-pr', action='store_true', help='Skip PR creation')\n    parser.add_argument('--no-deploy', action='store_true', help='Skip deployment')\n    parser.add_argument('--dry-run', action='store_true', help='Dry run mode')\n    parser.add_argument('--verbose', action='store_true', help='Verbose output')\n    \n    args = parser.parse_args()\n    \n    success = asyncio.run(run_zte_command(\n        issue=args.issue,\n        mode=args.mode,\n        max_retries=args.max_retries,\n        coverage_target=args.coverage_target,\n        no_pr=args.no_pr,\n        no_deploy=args.no_deploy,\n        dry_run=args.dry_run,\n        verbose=args.verbose\n    ))\n    \n    sys.exit(0 if success else 1)"
+  }
+}

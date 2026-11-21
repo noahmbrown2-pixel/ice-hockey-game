@@ -1,0 +1,604 @@
+#!/usr/bin/env python3
+"""
+Memory V4 Archiver - Research and Decision Archiving for TB Approval Workflow
+==============================================================================
+
+@REQ-006: Archive ALL research results to V4 memory | BLP: Durability (BLP-3)
+@BLP: Durability (BLP-3) - Long-lasting continuous operation
+@COMPUTE-ADVANTAGE: ↓ Effort (pattern learning), ↑ Self-Improvement
+
+Archives research results, approval decisions, and learned patterns to the
+V4 memory system for durability and future retrieval.
+
+Standard I/O Protocol (REQ-007):
+- All exceptions print full traceback before raising
+- All successful operations print JSON result before return
+"""
+
+import json
+import sys
+import traceback
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional, Any, Tuple
+from dataclasses import dataclass, field, asdict
+from uuid import uuid4
+from collections import defaultdict
+
+# Import V4 memory types
+# Add unified-communication to path for proper module loading
+unified_comm_path = '/home/craigmbrown/Project/unified-communication'
+if unified_comm_path not in sys.path:
+    sys.path.insert(0, unified_comm_path)
+
+# Import as package modules
+from v4.memory.memory_types_v4 import (
+    MemoryStatement,
+    MemoryTypeV4,
+    RetentionPriority,
+    MemoryConfidence,
+    create_memory_statement
+)
+from v4.memory.memory_reference_tracker_v4 import MemoryReferenceTracker, ReferenceType
+from v4.memory.rag_memory_loader_v4 import RAGMemoryLoader, MemoryContext
+
+
+@dataclass
+class ApprovalPattern:
+    """
+    Pattern learned from approval/rejection decisions.
+
+    @REQ-006: Pattern learning for approval optimization
+    @BLP: Self-Improvement - Learning from past decisions
+    """
+    pattern_type: str  # "approval" or "rejection"
+    keywords: List[str]
+    confidence_score: float  # 0.0-1.0
+    occurrences: int
+    last_seen: datetime
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+class MemoryV4Archiver:
+    """
+    Archives TB approval workflow data to V4 memory system.
+
+    @REQ-006: Memory V4 Integration | BLP: Durability (BLP-3)
+    @COMPUTE-ADVANTAGE:
+        - ↓ Effort: Automated pattern learning reduces manual review
+        - ↑ Self-Improvement: Learns from past decisions
+        - ↑ Durability: Persistent storage with cross-references
+    """
+
+    def __init__(
+        self,
+        db_path: Optional[Path] = None,
+        enable_pattern_learning: bool = True
+    ):
+        """
+        Initialize Memory V4 Archiver.
+
+        @REQ-006: Initialize V4 memory components
+        @BLP: Alignment - Proper initialization of memory systems
+
+        Args:
+            db_path: Path to V4 memory database (default: V4 default location)
+            enable_pattern_learning: Enable automatic pattern learning
+        """
+        try:
+            # Initialize V4 memory components
+            if db_path is None:
+                db_path = Path("/home/craigmbrown/Project/unified-communication/v4/memory/tb_approval_workflow.db")
+
+            self.db_path = db_path
+            self.tracker = MemoryReferenceTracker(db_path)
+            self.loader = RAGMemoryLoader(self.tracker)
+
+            # Pattern learning
+            self.enable_pattern_learning = enable_pattern_learning
+            self.approval_patterns: Dict[str, ApprovalPattern] = {}
+            self.rejection_patterns: Dict[str, ApprovalPattern] = {}
+
+            # Load existing patterns
+            if enable_pattern_learning:
+                self._load_patterns()
+
+            # Statistics
+            self.stats = {
+                'total_archived': 0,
+                'research_archived': 0,
+                'decisions_archived': 0,
+                'patterns_learned': 0,
+                'cross_references': 0
+            }
+
+            # SUCCESS: Print initialization success
+            success_data = {
+                'status': 'initialized',
+                'db_path': str(db_path),
+                'pattern_learning': enable_pattern_learning,
+                'existing_memories': len(self.tracker.graph.nodes),
+                'existing_patterns': len(self.approval_patterns) + len(self.rejection_patterns)
+            }
+            print(f"[SUCCESS] MemoryV4Archiver initialized: {json.dumps(success_data)}")
+
+        except Exception as e:
+            error_msg = f"[ERROR] MemoryV4Archiver initialization failed: {e}"
+            print(error_msg, file=sys.stderr)
+            print(f"[ERROR] Full traceback:\n{traceback.format_exc()}", file=sys.stderr)
+            raise
+
+    def _load_memories(self) -> None:
+        """
+        Load existing memories from JSON file
+
+        @REQ-006: Memory persistence | BLP: [Durability]
+        """
+        try:
+            if self.memory_file.exists():
+                with open(self.memory_file, 'r') as f:
+                    data = json.load(f)
+                    self.memories = [MemoryEntry(**entry) for entry in data.get('memories', [])]
+                    print(f"[SUCCESS] Loaded {len(self.memories)} existing memories", file=sys.stderr)
+            else:
+                self.memories = []
+                print("[SUCCESS] Initialized empty memory store", file=sys.stderr)
+
+        except Exception as e:
+            error_msg = f"[ERROR] Failed to load memories: {e}"
+            print(error_msg, file=sys.stderr)
+            print(f"[ERROR] Full traceback:\n{traceback.format_exc()}", file=sys.stderr)
+            self.memories = []
+
+    def _save_memories(self) -> None:
+        """
+        Save memories to JSON file
+
+        @REQ-006: Memory persistence | BLP: [Durability]
+        """
+        try:
+            data = {
+                'memories': [entry.to_dict() for entry in self.memories],
+                'total_count': len(self.memories),
+                'last_updated': datetime.now().isoformat()
+            }
+
+            with open(self.memory_file, 'w') as f:
+                json.dump(data, f, indent=2)
+
+            print(f"[SUCCESS] Saved {len(self.memories)} memories to {self.memory_file}", file=sys.stderr)
+
+        except Exception as e:
+            error_msg = f"[ERROR] Failed to save memories: {e}"
+            print(error_msg, file=sys.stderr)
+            print(f"[ERROR] Full traceback:\n{traceback.format_exc()}", file=sys.stderr)
+            raise
+
+    def _load_patterns(self) -> Dict[str, Any]:
+        """
+        Load approval patterns for learning
+
+        @REQ-006: Pattern learning | BLP: [Self-Improvement]
+        """
+        try:
+            patterns_file = self.memory_file.parent / "tb_workflow_patterns.json"
+            if patterns_file.exists():
+                with open(patterns_file, 'r') as f:
+                    patterns = json.load(f)
+                    print(f"[SUCCESS] Loaded {len(patterns)} approval patterns", file=sys.stderr)
+                    return patterns
+            else:
+                print("[SUCCESS] Initialized empty approval patterns", file=sys.stderr)
+                return {}
+
+        except Exception as e:
+            error_msg = f"[ERROR] Failed to load patterns: {e}"
+            print(error_msg, file=sys.stderr)
+            print(f"[ERROR] Full traceback:\n{traceback.format_exc()}", file=sys.stderr)
+            return {}
+
+    def _save_patterns(self) -> None:
+        """
+        Save approval patterns
+
+        @REQ-006: Pattern persistence | BLP: [Self-Improvement]
+        """
+        try:
+            patterns_file = self.memory_file.parent / "tb_workflow_patterns.json"
+            with open(patterns_file, 'w') as f:
+                json.dump(self.approval_patterns, f, indent=2)
+
+            print(f"[SUCCESS] Saved approval patterns to {patterns_file}", file=sys.stderr)
+
+        except Exception as e:
+            error_msg = f"[ERROR] Failed to save patterns: {e}"
+            print(error_msg, file=sys.stderr)
+            print(f"[ERROR] Full traceback:\n{traceback.format_exc()}", file=sys.stderr)
+
+    def archive_research(self, request_id: str, research_result: Dict[str, Any]) -> bool:
+        """
+        Archive research result to memory
+
+        @REQ-006: Research archival | BLP: [Durability]
+        @COMPUTE-ADVANTAGE: ↓ Time (automated storage), ↑ Autonomy (no manual intervention)
+
+        Args:
+            request_id: TB request ID
+            research_result: Complete research result dictionary
+
+        Returns:
+            bool: True if successful
+        """
+        try:
+            # Extract tags from research content
+            tags = ["research", request_id]
+            if "topic" in research_result:
+                tags.append(research_result["topic"])
+            if "sources" in research_result:
+                tags.append(f"sources:{len(research_result['sources'])}")
+
+            # Create memory entry
+            entry = MemoryEntry(
+                type="research",
+                request_id=request_id,
+                content=research_result,
+                tags=tags,
+                confidence=0.9,
+                retention_priority="HIGH"
+            )
+
+            # Add to memories
+            self.memories.append(entry)
+
+            # Save to disk
+            self._save_memories()
+
+            # SUCCESS print before return
+            success_data = {
+                "operation": "archive_research",
+                "request_id": request_id,
+                "memory_id": entry.id,
+                "tags": tags,
+                "timestamp": entry.timestamp
+            }
+            print(json.dumps(success_data, indent=2))
+
+            return True
+
+        except Exception as e:
+            error_msg = f"[ERROR] archive_research failed for request_id={request_id}: {e}"
+            print(error_msg, file=sys.stderr)
+            print(f"[ERROR] Full traceback:\n{traceback.format_exc()}", file=sys.stderr)
+            raise
+
+    def archive_decision(self, request_id: str, decision: str, context: Dict[str, Any]) -> bool:
+        """
+        Archive approval decision to memory
+
+        @REQ-006: Decision archival | BLP: [Durability]
+        @COMPUTE-ADVANTAGE: ↓ Effort (pattern learning), ↓ Time (historical lookup)
+
+        Args:
+            request_id: TB request ID
+            decision: Approval decision (approved/rejected)
+            context: Decision context including reasoning
+
+        Returns:
+            bool: True if successful
+        """
+        try:
+            # Extract tags
+            tags = ["decision", request_id, decision]
+            if "reason" in context:
+                tags.append("with_reason")
+
+            # Create memory entry
+            entry = MemoryEntry(
+                type="decision",
+                request_id=request_id,
+                content={
+                    "decision": decision,
+                    "context": context,
+                    "timestamp": datetime.now().isoformat()
+                },
+                tags=tags,
+                confidence=1.0,  # Decisions are always certain
+                retention_priority="CRITICAL"
+            )
+
+            # Add to memories
+            self.memories.append(entry)
+
+            # Update approval patterns
+            pattern_key = f"{request_id}_pattern"
+            self.approval_patterns[pattern_key] = {
+                "decision": decision,
+                "context": context,
+                "timestamp": entry.timestamp,
+                "memory_id": entry.id
+            }
+            self._save_patterns()
+
+            # Create cross-reference to research if exists
+            research_memories = [m for m in self.memories if m.type == "research" and m.request_id == request_id]
+            if research_memories:
+                entry.references.append(research_memories[0].id)
+
+            # Save to disk
+            self._save_memories()
+
+            # SUCCESS print before return
+            success_data = {
+                "operation": "archive_decision",
+                "request_id": request_id,
+                "decision": decision,
+                "memory_id": entry.id,
+                "references": entry.references,
+                "timestamp": entry.timestamp
+            }
+            print(json.dumps(success_data, indent=2))
+
+            return True
+
+        except Exception as e:
+            error_msg = f"[ERROR] archive_decision failed for request_id={request_id}: {e}"
+            print(error_msg, file=sys.stderr)
+            print(f"[ERROR] Full traceback:\n{traceback.format_exc()}", file=sys.stderr)
+            raise
+
+    def archive_log(self, log_type: str, content: Dict[str, Any]) -> bool:
+        """
+        Archive log entry to memory
+
+        @REQ-006: Log archival | BLP: [Durability]
+
+        Args:
+            log_type: Type of log (error, info, debug)
+            content: Log content
+
+        Returns:
+            bool: True if successful
+        """
+        try:
+            # Extract tags
+            tags = ["log", log_type]
+            if "request_id" in content:
+                tags.append(content["request_id"])
+
+            # Create memory entry
+            entry = MemoryEntry(
+                type="log",
+                content=content,
+                tags=tags,
+                confidence=0.7,
+                retention_priority="LOW"
+            )
+
+            # Add to memories
+            self.memories.append(entry)
+
+            # Save to disk
+            self._save_memories()
+
+            # SUCCESS print before return
+            success_data = {
+                "operation": "archive_log",
+                "log_type": log_type,
+                "memory_id": entry.id,
+                "timestamp": entry.timestamp
+            }
+            print(json.dumps(success_data, indent=2))
+
+            return True
+
+        except Exception as e:
+            error_msg = f"[ERROR] archive_log failed for log_type={log_type}: {e}"
+            print(error_msg, file=sys.stderr)
+            print(f"[ERROR] Full traceback:\n{traceback.format_exc()}", file=sys.stderr)
+            raise
+
+    def query_memory(self, query: str, limit: int = 5) -> List[MemoryEntry]:
+        """
+        Query memory by text search
+
+        @REQ-006: Memory retrieval | BLP: [Autonomy]
+        @COMPUTE-ADVANTAGE: ↓ Time (fast search), ↑ Autonomy (self-service lookup)
+
+        Args:
+            query: Search query
+            limit: Maximum number of results
+
+        Returns:
+            List[MemoryEntry]: Matching memory entries
+        """
+        try:
+            results = []
+            query_lower = query.lower()
+
+            for entry in reversed(self.memories):  # Most recent first
+                # Search in tags
+                if any(query_lower in tag.lower() for tag in entry.tags):
+                    results.append(entry)
+                    if len(results) >= limit:
+                        break
+
+                # Search in content
+                content_str = json.dumps(entry.content).lower()
+                if query_lower in content_str:
+                    if entry not in results:
+                        results.append(entry)
+                        if len(results) >= limit:
+                            break
+
+            # SUCCESS print before return
+            success_data = {
+                "operation": "query_memory",
+                "query": query,
+                "results_count": len(results),
+                "results": [
+                    {
+                        "id": r.id,
+                        "type": r.type,
+                        "tags": r.tags,
+                        "timestamp": r.timestamp
+                    }
+                    for r in results
+                ]
+            }
+            print(json.dumps(success_data, indent=2))
+
+            return results
+
+        except Exception as e:
+            error_msg = f"[ERROR] query_memory failed for query='{query}': {e}"
+            print(error_msg, file=sys.stderr)
+            print(f"[ERROR] Full traceback:\n{traceback.format_exc()}", file=sys.stderr)
+            raise
+
+    def cross_reference(self, request_id: str) -> List[str]:
+        """
+        Get cross-referenced memory IDs for a request
+
+        @REQ-006: Cross-referencing | BLP: [Autonomy]
+        @COMPUTE-ADVANTAGE: ↓ Effort (automated linkage), ↑ Compute Scaling (graph traversal)
+
+        Args:
+            request_id: TB request ID
+
+        Returns:
+            List[str]: List of related memory IDs
+        """
+        try:
+            related_ids = []
+
+            # Find all memories for this request
+            request_memories = [m for m in self.memories if m.request_id == request_id]
+
+            for memory in request_memories:
+                # Add direct references
+                related_ids.extend(memory.references)
+
+            # Remove duplicates
+            related_ids = list(set(related_ids))
+
+            # SUCCESS print before return
+            success_data = {
+                "operation": "cross_reference",
+                "request_id": request_id,
+                "related_count": len(related_ids),
+                "related_ids": related_ids
+            }
+            print(json.dumps(success_data, indent=2))
+
+            return related_ids
+
+        except Exception as e:
+            error_msg = f"[ERROR] cross_reference failed for request_id={request_id}: {e}"
+            print(error_msg, file=sys.stderr)
+            print(f"[ERROR] Full traceback:\n{traceback.format_exc()}", file=sys.stderr)
+            raise
+
+    def get_approval_patterns(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Get recent approval patterns for learning
+
+        @REQ-006: Pattern learning | BLP: [Self-Improvement]
+        @COMPUTE-ADVANTAGE: ↓ Time (learned patterns), ↓ Cost (fewer errors)
+
+        Args:
+            limit: Maximum number of patterns to return
+
+        Returns:
+            List[Dict]: Recent approval patterns
+        """
+        try:
+            # Sort patterns by timestamp (most recent first)
+            sorted_patterns = sorted(
+                self.approval_patterns.items(),
+                key=lambda x: x[1].get('timestamp', ''),
+                reverse=True
+            )
+
+            patterns = [
+                {
+                    "pattern_key": key,
+                    **value
+                }
+                for key, value in sorted_patterns[:limit]
+            ]
+
+            # SUCCESS print before return
+            success_data = {
+                "operation": "get_approval_patterns",
+                "patterns_count": len(patterns),
+                "patterns": patterns
+            }
+            print(json.dumps(success_data, indent=2))
+
+            return patterns
+
+        except Exception as e:
+            error_msg = f"[ERROR] get_approval_patterns failed: {e}"
+            print(error_msg, file=sys.stderr)
+            print(f"[ERROR] Full traceback:\n{traceback.format_exc()}", file=sys.stderr)
+            raise
+
+
+if __name__ == "__main__":
+    """
+    Test Memory V4 Archiver
+
+    @REQ-006: Testing | BLP: [Durability]
+    """
+    print("Testing Memory V4 Archiver...")
+
+    try:
+        # Initialize archiver
+        archiver = MemoryV4Archiver()
+
+        # Test 1: Archive research
+        print("\n=== Test 1: Archive Research ===")
+        research_result = {
+            "topic": "Bitcoin Lightning Network",
+            "sources": ["source1", "source2"],
+            "summary": "Research on Lightning Network scalability"
+        }
+        archiver.archive_research("REQ-001", research_result)
+
+        # Test 2: Archive decision
+        print("\n=== Test 2: Archive Decision ===")
+        decision_context = {
+            "reason": "Research validated, proceeding with approval",
+            "reviewer": "system"
+        }
+        archiver.archive_decision("REQ-001", "approved", decision_context)
+
+        # Test 3: Archive log
+        print("\n=== Test 3: Archive Log ===")
+        log_content = {
+            "request_id": "REQ-001",
+            "message": "Processing completed successfully"
+        }
+        archiver.archive_log("info", log_content)
+
+        # Test 4: Query memory
+        print("\n=== Test 4: Query Memory ===")
+        results = archiver.query_memory("Lightning Network", limit=5)
+        print(f"Found {len(results)} results")
+
+        # Test 5: Cross-reference
+        print("\n=== Test 5: Cross-Reference ===")
+        related_ids = archiver.cross_reference("REQ-001")
+        print(f"Found {len(related_ids)} related memory IDs")
+
+        # Test 6: Get approval patterns
+        print("\n=== Test 6: Get Approval Patterns ===")
+        patterns = archiver.get_approval_patterns(limit=10)
+        print(f"Retrieved {len(patterns)} approval patterns")
+
+        print("\n[SUCCESS] All Memory V4 Archiver tests completed!")
+
+    except Exception as e:
+        print(f"\n[ERROR] Memory V4 Archiver test failed: {e}", file=sys.stderr)
+        print(f"[ERROR] Full traceback:\n{traceback.format_exc()}", file=sys.stderr)
+        sys.exit(1)

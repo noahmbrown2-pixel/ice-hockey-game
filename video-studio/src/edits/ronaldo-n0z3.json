@@ -1,0 +1,211 @@
+{
+  "title": "CR7 (N0z) v3",
+  "sources": {
+    "M": "C:/Users/noahm/Downloads/ronaldo_2008-10/mHqU2-tcum0.mp4",
+    "G": "C:/Users/noahm/Downloads/ronaldo_2008-10/gN5fBtLBdsM.mp4",
+    "Z": "C:/Users/noahm/Downloads/ronaldo_2008-10/dkzZJ9wri2E.mp4"
+  },
+  "sizes": {
+    "M": [
+      1282,
+      1510
+    ],
+    "G": [
+      1164,
+      1474
+    ],
+    "Z": [
+      1282,
+      1722
+    ]
+  },
+  "clipDir": "clips/ronaldo-n0z3",
+  "music": "audio/phonk-placeholder.wav",
+  "scribbleText": "N0Z",
+  "darken": 0.15,
+  "notes": "Only the user's three N0z CR7 Shorts: M mHqU2-tcum0, G gN5fBtLBdsM, Z dkzZJ9wri2E. Celebrations before the drop (frame 168), goals after.",
+  "shots": [
+    {
+      "id": "face",
+      "src": "G",
+      "at": 1.0,
+      "frames": 42,
+      "rate": 0.6,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "fadeIn": 14
+    },
+    {
+      "id": "armsout",
+      "src": "M",
+      "at": 6.5,
+      "frames": 42,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "point",
+      "src": "Z",
+      "at": 6.8,
+      "frames": 42,
+      "rate": 0.55,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "scream",
+      "src": "M",
+      "at": 16.5,
+      "frames": 42,
+      "rate": 0.45,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "punch": true
+    },
+    {
+      "id": "volley",
+      "src": "Z",
+      "at": 5.62,
+      "frames": 42,
+      "rate": 0.55,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "impactAt": 24
+    },
+    {
+      "id": "replay",
+      "src": "G",
+      "at": 10.3,
+      "frames": 42,
+      "rate": 0.28,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "impactAt": 26
+    },
+    {
+      "id": "boxstrike",
+      "src": "G",
+      "at": 9.86,
+      "frames": 42,
+      "rate": 0.6,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "impactAt": 12
+    },
+    {
+      "id": "fksetup",
+      "src": "M",
+      "at": 10.42,
+      "frames": 42,
+      "rate": 0.6,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "nearpost",
+      "src": "M",
+      "at": 11.1,
+      "frames": 42,
+      "rate": 0.55,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 6
+    },
+    {
+      "id": "strike",
+      "src": "M",
+      "at": 12.7,
+      "frames": 21,
+      "rate": 0.6,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 8
+    },
+    {
+      "id": "g1",
+      "src": "Z",
+      "at": 5.9,
+      "frames": 10,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "g2",
+      "src": "G",
+      "at": 10.05,
+      "frames": 11,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "g3",
+      "src": "Z",
+      "at": 6.0,
+      "frames": 10,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "g4",
+      "src": "M",
+      "at": 11.3,
+      "frames": 11,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "shirtless",
+      "src": "M",
+      "at": 18.06,
+      "frames": 42,
+      "rate": 0.45,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "headback",
+      "src": "Z",
+      "at": 9.5,
+      "frames": 42,
+      "rate": 0.55,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "scribble": true,
+      "scribbleAt": {
+        "x": 180,
+        "y": 420,
+        "scale": 1.4
+      }
+    },
+    {
+      "id": "clap",
+      "src": "G",
+      "at": 18.6,
+      "frames": 42,
+      "rate": 0.55,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "trophy",
+      "src": "Z",
+      "at": 19.45,
+      "frames": 63,
+      "rate": 0.45,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "push": 0.06,
+      "fadeOut": 24
+    }
+  ],
+  "scribbleClip": "overlays/n0z-scribble-alpha.webm"
+}

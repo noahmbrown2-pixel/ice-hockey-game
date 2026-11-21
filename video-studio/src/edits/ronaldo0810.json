@@ -1,0 +1,243 @@
+{
+  "title": "Ronaldo Man Utd 2007-09",
+  "sources": {
+    "A": "C:/Users/noahm/Downloads/ronaldo_2008-10/1NiB2KeLdy0.mp4",
+    "B": "C:/Users/noahm/Downloads/ronaldo_2008-10/7PcGjLpqX4k.mp4",
+    "C": "C:/Users/noahm/Downloads/ronaldo_2008-10/E43Xk7f8LVg.mp4",
+    "K": "C:/Users/noahm/Downloads/ronaldo_2008-10/zCVhhA1sfvY.mp4",
+    "Q": "C:/Users/noahm/Downloads/ronaldo_2008-10/Yq7Yy8H5J-8.mp4"
+  },
+  "clipDir": "clips/ronaldo0810",
+  "music": "audio/phonk-placeholder.wav",
+  "scribbleText": "N0Z",
+  "darken": 0.15,
+  "notes": "Man United only. Sources (Downloads/ronaldo_2008-10): A free-kick scenepack, B celebrations scenepack, C free clips, K TeoCRi 2008/09 skills, Q TeoCRi 2007/08 skills. Beat drop (frame 168) = skills.",
+  "shots": [
+    {
+      "id": "stare",
+      "src": "A",
+      "at": 1.0,
+      "frames": 63,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "push": 0.08,
+      "fadeIn": 18
+    },
+    {
+      "id": "stare2",
+      "src": "C",
+      "at": 39.8,
+      "frames": 42,
+      "rate": 0.7,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "back7",
+      "src": "Q",
+      "at": 238.5,
+      "frames": 42,
+      "rate": 0.7,
+      "fx": 0.55,
+      "zoom": 1.0
+    },
+    {
+      "id": "scream",
+      "src": "B",
+      "at": 26.0,
+      "frames": 21,
+      "rate": 1,
+      "fx": 0.45,
+      "zoom": 1.0,
+      "punch": true
+    },
+    {
+      "id": "stepovers",
+      "src": "K",
+      "at": 413.5,
+      "frames": 63,
+      "rate": 0.75,
+      "fx": 0.55,
+      "zoom": 1.0,
+      "impactAt": 40
+    },
+    {
+      "id": "skill2",
+      "src": "Q",
+      "at": 50.0,
+      "frames": 42,
+      "rate": 0.75,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 6
+    },
+    {
+      "id": "skill3",
+      "src": "Q",
+      "at": 640.5,
+      "frames": 42,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 6
+    },
+    {
+      "id": "skill4",
+      "src": "K",
+      "at": 101.8,
+      "frames": 42,
+      "rate": 0.7,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 6
+    },
+    {
+      "id": "r1",
+      "src": "Q",
+      "at": 40.0,
+      "frames": 10,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "r2",
+      "src": "B",
+      "at": 40.0,
+      "frames": 11,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "r3",
+      "src": "B",
+      "at": 46.0,
+      "frames": 10,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "r4",
+      "src": "C",
+      "at": 47.0,
+      "frames": 11,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "r5",
+      "src": "B",
+      "at": 2.5,
+      "frames": 10,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "r6",
+      "src": "C",
+      "at": 7.5,
+      "frames": 11,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "r7",
+      "src": "Q",
+      "at": 52.0,
+      "frames": 10,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "r8",
+      "src": "C",
+      "at": 19.0,
+      "frames": 11,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "r9",
+      "src": "C",
+      "at": 1.0,
+      "frames": 10,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "r10",
+      "src": "B",
+      "at": 13.0,
+      "frames": 11,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "roar",
+      "src": "B",
+      "at": 66.0,
+      "frames": 42,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 4
+    },
+    {
+      "id": "headback",
+      "src": "A",
+      "at": 35.0,
+      "frames": 42,
+      "rate": 0.6,
+      "fx": 0.55,
+      "zoom": 1.0,
+      "scribble": true,
+      "scribbleAt": {
+        "x": 180,
+        "y": 420,
+        "scale": 1.4
+      }
+    },
+    {
+      "id": "sky",
+      "src": "C",
+      "at": 60.0,
+      "frames": 42,
+      "rate": 0.6,
+      "fx": 0.45,
+      "zoom": 1.0,
+      "push": 0.06
+    },
+    {
+      "id": "smile",
+      "src": "C",
+      "at": 74.5,
+      "frames": 42,
+      "rate": 0.35,
+      "fx": 0.4,
+      "zoom": 1.0,
+      "push": 0.08,
+      "fadeOut": 20
+    }
+  ],
+  "scribbleClip": "overlays/n0z-scribble-alpha.webm"
+}

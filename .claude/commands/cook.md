@@ -1,4 +1,6 @@
-Run these 7 sub agent tasks simultaneously in parallel:
+Run these 7 sub agent tasks simultaneously in parallel.
+
+**MANDATORY - Domain Filter Injection (@REQ-DFS-002):** When spawning web-search agents, APPEND domain filter injection to each task prompt. For crypto agents append `allowed_domains: ["coindesk.com","cointelegraph.com","theblock.co","decrypt.co","defillama.com","coingecko.com","coinmarketcap.com","messari.io","dune.com","glassnode.com","kaiko.com","tradingview.com"]`. For llm-research append `allowed_domains: ["arxiv.org","huggingface.co","openai.com","anthropic.com","deepmind.google","ai.meta.com","github.com","paperswithcode.com","distill.pub","lilianweng.github.io"]`. Use `scripts/domain_filter_injector.py --agent NAME` for exact injection text.
 
 1. crypto-coin-analyzer: Analyze DOGE with full technical and sentiment analysis
 2. crypto-market-agent: Get current market data for all major cryptocurrencies

@@ -1,0 +1,47 @@
+[Unit]
+Description=Workflow Scheduler Daemon - Cron-based Workflow Execution Engine
+Documentation=file:///home/craigmbrown/Project/.claude/skills/workflow-scheduler/SKILL.md
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=craigmbrown
+Group=craigmbrown
+WorkingDirectory=/home/craigmbrown/Project/.claude/skills/workflow-scheduler
+
+# Environment
+Environment="PATH=/home/craigmbrown/Project/.claude/skills/workflow-scheduler/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/home/craigmbrown/Project/.claude/skills/workflow-scheduler"
+Environment="HOME=/home/craigmbrown"
+
+# Main execution - use venv python
+ExecStart=/home/craigmbrown/Project/.claude/skills/workflow-scheduler/.venv/bin/python3 workflow_scheduler_daemon.py start --no-whatsapp
+ExecStop=/bin/kill -SIGTERM $MAINPID
+ExecReload=/bin/kill -SIGHUP $MAINPID
+
+# Restart policy - BLP-021: Durability through automatic restart
+Restart=on-failure
+RestartSec=30
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# Security hardening - relaxed ProtectHome for write access
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/home/craigmbrown/Project/.claude/skills/workflow-scheduler/data
+ReadWritePaths=/home/craigmbrown/Project/.claude/skills/workflow-scheduler/logs
+ReadWritePaths=/home/craigmbrown/Project/html-output
+ReadWritePaths=/home/craigmbrown/Project/logs
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=50%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=workflow-scheduler
+
+[Install]
+WantedBy=multi-user.target

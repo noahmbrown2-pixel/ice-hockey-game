@@ -1,0 +1,71 @@
+{
+  "name": "legal",
+  "version": "1.0.0",
+  "description": "Contract review, policy drafting, and legal compliance tools",
+  "author": "Anthropic (adapted for ETAC)",
+  "license": "Apache-2.0",
+  "namespace": "legal",
+  "commands": [
+    {
+      "name": "review-contract",
+      "file": "commands/review-contract.md",
+      "description": "Review contracts and identify key terms, risks, and issues"
+    },
+    {
+      "name": "draft-policy",
+      "file": "commands/draft-policy.md",
+      "description": "Draft internal policies and procedures"
+    },
+    {
+      "name": "compliance-check",
+      "file": "commands/compliance-check.md",
+      "description": "Check compliance with regulations and standards"
+    },
+    {
+      "name": "summarize-terms",
+      "file": "commands/summarize-terms.md",
+      "description": "Summarize legal documents in plain language"
+    },
+    {
+      "name": "clause-library",
+      "file": "commands/clause-library.md",
+      "description": "Access and manage standard contract clauses"
+    }
+  ],
+  "skills": [
+    {
+      "name": "contract-analysis",
+      "file": "skills/contract-analysis.md",
+      "triggers": ["contract", "agreement", "terms", "clause", "provision"]
+    },
+    {
+      "name": "risk-identification",
+      "file": "skills/risk-identification.md",
+      "triggers": ["risk", "liability", "indemnity", "limitation", "exposure"]
+    },
+    {
+      "name": "regulatory-framework",
+      "file": "skills/regulatory-framework.md",
+      "triggers": ["regulation", "GDPR", "CCPA", "compliance", "law"]
+    },
+    {
+      "name": "negotiation-strategy",
+      "file": "skills/negotiation-strategy.md",
+      "triggers": ["negotiate", "redline", "counter", "fallback", "position"]
+    },
+    {
+      "name": "ip-protection",
+      "file": "skills/ip-protection.md",
+      "triggers": ["IP", "intellectual property", "patent", "trademark", "copyright"]
+    },
+    {
+      "name": "employment-law",
+      "file": "skills/employment-law.md",
+      "triggers": ["employment", "HR", "termination", "discrimination", "workplace"]
+    }
+  ],
+  "connectors": {
+    "required": ["notionApi"],
+    "optional": ["pocket-pick", "exa"]
+  }
+}

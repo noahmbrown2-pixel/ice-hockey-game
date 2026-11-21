@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "description": "Knowledge Work Plugins Registry - ETAC Multi-Agent System Integration",
+  "updated": "2026-02-04",
+  "plugins": {
+    "productivity": {
+      "name": "Productivity",
+      "version": "1.0.0",
+      "enabled": true,
+      "namespace": "productivity",
+      "description": "Daily workflow optimization and task management",
+      "commands": ["start", "update"],
+      "skills": ["memory-management", "task-management"],
+      "connectors": {
+        "required": ["notionApi"],
+        "optional": ["pocket-pick"]
+      },
+      "status": "active"
+    },
+    "data": {
+      "name": "Data Analytics",
+      "version": "1.0.0",
+      "enabled": true,
+      "namespace": "data",
+      "description": "Data analysis, visualization, and dashboard creation",
+      "commands": ["analyze", "explore-data", "write-query", "create-viz", "build-dashboard", "validate"],
+      "skills": ["sql-queries", "data-exploration", "data-visualization", "statistical-analysis", "data-validation", "interactive-dashboard-builder"],
+      "connectors": {
+        "required": ["quick-data"],
+        "optional": ["notionApi"]
+      },
+      "status": "active"
+    },
+    "enterprise-search": {
+      "name": "Enterprise Search",
+      "version": "1.0.0",
+      "enabled": true,
+      "namespace": "enterprise-search",
+      "description": "Unified search across all connected sources",
+      "commands": ["search", "digest"],
+      "skills": ["search-strategy", "source-management", "knowledge-synthesis"],
+      "connectors": {
+        "required": ["notionApi", "exa"],
+        "optional": ["pocket-pick", "xai-research"]
+      },
+      "status": "active"
+    },
+    "product-management": {
+      "name": "Product Management",
+      "version": "1.0.0",
+      "enabled": true,
+      "namespace": "pm",
+      "description": "PRD writing, prioritization, and roadmap management",
+      "commands": ["write-prd", "prioritize", "roadmap", "competitor", "user-story", "metrics"],
+      "skills": ["prd-templates", "prioritization-frameworks", "roadmap-visualization", "market-analysis", "user-research", "okr-tracking"],
+      "connectors": {
+        "required": ["notionApi"],
+        "optional": ["exa", "pocket-pick"]
+      },
+      "status": "active"
+    },
+    "sales": {
+      "name": "Sales",
+      "version": "1.0.0",
+      "enabled": true,
+      "namespace": "sales",
+      "description": "Call preparation, account research, and sales enablement",
+      "commands": ["call-prep", "account-research", "objection-handler"],
+      "skills": ["company-research", "stakeholder-mapping", "competitor-positioning", "value-proposition", "sales-methodology", "follow-up-templates"],
+      "connectors": {
+        "required": ["exa"],
+        "optional": ["notionApi", "xai-research", "pocket-pick"]
+      },
+      "status": "active"
+    },
+    "customer-support": {
+      "name": "Customer Support",
+      "version": "1.0.0",
+      "enabled": true,
+      "namespace": "support",
+      "description": "Ticket triage, response drafting, and knowledge management",
+      "commands": ["triage", "draft-response", "escalate", "kb-search", "sentiment"],
+      "skills": ["empathy-patterns", "troubleshooting-trees", "ticket-classification", "kb-article-writing", "csat-improvement"],
+      "connectors": {
+        "required": ["notionApi"],
+        "optional": ["whatsapp", "pocket-pick"]
+      },
+      "status": "active"
+    },
+    "marketing": {
+      "name": "Marketing",
+      "version": "1.0.0",
+      "enabled": true,
+      "namespace": "marketing",
+      "description": "Content creation, campaign planning, and analytics",
+      "commands": ["write-copy", "campaign-plan", "social-post", "email-sequence", "seo-optimize", "analyze-performance", "persona-create"],
+      "skills": ["copywriting-formulas", "channel-optimization", "content-calendar", "ab-testing", "analytics-interpretation"],
+      "connectors": {
+        "required": ["exa"],
+        "optional": ["notionApi", "xai-research", "pocket-pick"]
+      },
+      "status": "active"
+    },
+    "finance": {
+      "name": "Finance",
+      "version": "1.0.0",
+      "enabled": true,
+      "namespace": "finance",
+      "description": "Financial analysis, budgeting, and reporting",
+      "commands": ["analyze-statement", "budget-create", "forecast", "expense-categorize", "report-generate"],
+      "skills": ["financial-ratios", "variance-analysis", "cash-flow-analysis", "financial-modeling", "compliance-checks", "tax-optimization"],
+      "connectors": {
+        "required": ["quick-data"],
+        "optional": ["notionApi", "pocket-pick"]
+      },
+      "status": "active"
+    },
+    "legal": {
+      "name": "Legal",
+      "version": "1.0.0",
+      "enabled": true,
+      "namespace": "legal",
+      "description": "Contract review, policy drafting, and compliance",
+      "commands": ["review-contract", "draft-policy", "compliance-check", "summarize-terms", "clause-library"],
+      "skills": ["contract-analysis", "risk-identification", "regulatory-framework", "negotiation-strategy", "ip-protection", "employment-law"],
+      "connectors": {
+        "required": ["notionApi"],
+        "optional": ["pocket-pick", "exa"]
+      },
+      "status": "active"
+    }
+  },
+  "connectors": {
+    "notionApi": {
+      "available": true,
+      "type": "mcp",
+      "description": "Notion API for knowledge bases and databases"
+    },
+    "whatsapp": {
+      "available": true,
+      "type": "mcp",
+      "description": "WhatsApp messaging for notifications"
+    },
+    "quick-data": {
+      "available": true,
+      "type": "mcp",
+      "description": "Data analytics and query execution"
+    },
+    "exa": {
+      "available": true,
+      "type": "mcp",
+      "description": "Web search and research capabilities"
+    },
+    "elevenlabs": {
+      "available": true,
+      "type": "mcp",
+      "description": "Text-to-speech and voice content"
+    },
+    "pocket-pick": {
+      "available": true,
+      "type": "mcp",
+      "description": "Key-value storage for quick data retrieval"
+    },
+    "xai-research": {
+      "available": true,
+      "type": "mcp",
+      "description": "X/Twitter research and Grokopedia"
+    }
+  },
+  "metadata": {
+    "total_plugins": 9,
+    "total_commands": 41,
+    "total_skills": 45,
+    "source": "https://github.com/anthropics/knowledge-work-plugins",
+    "integration_date": "2026-02-04",
+    "skipped_phases": ["Phase 5: Bio-Research and Plugin Management"]
+  }
+}
