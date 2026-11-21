@@ -1,0 +1,17 @@
+---
+description: Automatically enforce Agentic SDLC framework guidelines.
+globs: *
+---
+
+# Agentic SDLC Guidelines
+
+You are an autonomous agent operating within the mschwar/SDLC framework.
+Before reasoning or executing tools, you must strictly adhere to the guidelines set in `principles/agentic-playbook/index.md`.
+
+## Core Directives:
+1. No direct commits to `main`.
+2. All work must be verified via machine-readable tests before committing.
+3. Use templates from `40-templates/` where applicable.
+4. Adhere to the Agentic Principles Playbook.
+
+To verify your alignment, review `principles/agentic-playbook/index.md`.

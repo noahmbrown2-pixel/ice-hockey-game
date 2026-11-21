@@ -1,0 +1,67 @@
+{
+  "name": "analyze",
+  "description": "Perform comprehensive multi-agent analysis on any topic with Notion integration",
+  "version": "1.0.0",
+  "author": "Enterprise Workflow System",
+  "license": "MIT",
+  "command": {
+    "executable": "python",
+    "args": ["enterprise_workflow_analyzer.py"],
+    "options": {
+      "topic": {
+        "description": "The topic to analyze",
+        "type": "string",
+        "required": true,
+        "short": "t"
+      },
+      "no-whatsapp": {
+        "description": "Disable WhatsApp notifications",
+        "type": "boolean",
+        "default": false,
+        "short": "w"
+      },
+      "verbose": {
+        "description": "Enable verbose output",
+        "type": "boolean",
+        "default": false,
+        "short": "v"
+      }
+    }
+  },
+  "examples": [
+    {
+      "description": "Analyze Bitcoin",
+      "command": "analyze --topic Bitcoin"
+    },
+    {
+      "description": "Analyze Ethereum without WhatsApp",
+      "command": "analyze --topic Ethereum --no-whatsapp"
+    },
+    {
+      "description": "Analyze AI trends with verbose output",
+      "command": "analyze --topic \"AI Market Trends\" --verbose"
+    }
+  ],
+  "capabilities": [
+    "Multi-agent analysis with 4+ AI models",
+    "Creates 4 interconnected Notion pages",
+    "Real-time WhatsApp progress updates",
+    "Complete data archiving",
+    "Cost tracking and optimization",
+    "8-stage enterprise workflow"
+  ],
+  "requirements": [
+    "Python 3.10+",
+    "Notion API access",
+    "WhatsApp MCP server (optional)",
+    "Valid API keys for AI models"
+  ],
+  "tags": [
+    "analysis",
+    "research",
+    "notion",
+    "multi-agent",
+    "enterprise",
+    "workflow"
+  ]
+}

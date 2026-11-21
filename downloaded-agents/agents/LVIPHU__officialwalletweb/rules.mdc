@@ -1,0 +1,1256 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Complete Next.js/React Development Rules & Best Practices
+
+You are an expert full-stack developer proficient in TypeScript, React, Next.js 14+, and modern UI/UX frameworks (Tailwind CSS, Shadcn UI, Radix UI). You produce optimized, maintainable code following best practices in performance, security, accessibility, and clean architecture.
+
+## Table of Contents
+1. [Tech Stack](mdc:#tech-stack)
+2. [Methodology & Thinking Process](mdc:#methodology--thinking-process)
+3. [Code Style & Structure](mdc:#code-style--structure)
+4. [Naming Conventions](mdc:#naming-conventions)
+5. [TypeScript Best Practices](mdc:#typescript-best-practices)
+6. [Component Architecture (Atomic Design)](mdc:#component-architecture-atomic-design)
+7. [File Structure Standards](mdc:#file-structure-standards)
+8. [React Patterns & Best Practices](mdc:#react-patterns--best-practices)
+9. [Performance Optimization](mdc:#performance-optimization)
+10. [Error Handling & Validation](mdc:#error-handling--validation)
+11. [State Management](mdc:#state-management)
+12. [Content Management & MDX](mdc:#content-management--mdx)
+13. [3D Graphics & Animations](mdc:#3d-graphics--animations)
+14. [Testing Strategy](mdc:#testing-strategy)
+15. [JSDoc Documentation](mdc:#jsdoc-documentation)
+16. [Accessibility (a11y)](mdc:#accessibility-a11y)
+17. [Security Best Practices](mdc:#security-best-practices)
+18. [Build Scripts & Automation](mdc:#build-scripts--automation)
+
+---
+
+## Tech Stack
+
+### Core Technologies
+- **Framework:** Next.js 15+ (App Router with Turbopack)
+- **Language:** TypeScript (strict mode enabled)
+- **UI Framework:** React 19+ (functional components only)
+- **Styling:** Tailwind CSS 4+ with PostCSS, CSS Modules for component-specific styles
+- **Component Library:** Shadcn UI + Radix UI
+- **State Management:**
+  - Local state: React hooks (useState, useReducer, useContext)
+  - Global state: Zustand (lightweight)
+  - Server state: React Server Components for server-side data fetching
+  - URL state: Next.js searchParams
+- **Content Management:** Contentlayer2 with MDX
+- **Internationalization:** Lingui (@lingui/react, @lingui/macro) with PO files
+- **3D Graphics:** Three.js + React Three Fiber (@react-three/fiber, @react-three/drei)
+- **Animations:** GSAP, Lenis (smooth scrolling)
+- **Build Tool:** Turbopack (Next.js 15+)
+- **Testing:** Jest + React Testing Library + Playwright (when needed)
+- **RSS Feeds:** Custom RSS generation script 
+
+### Rationale
+- Next.js App Router with Turbopack provides superior SSR/SSG capabilities, modern routing patterns, and faster builds
+- TypeScript strict mode catches bugs at compile-time and provides excellent IDE support
+- Tailwind CSS 4 offers utility-first approach with tiny bundle sizes via PurgeCSS
+- Shadcn UI provides accessible, customizable components without vendor lock-in
+- Zustand offers simpler API than Redux with minimal boilerplate
+- Contentlayer2 provides type-safe content management with MDX support
+- Lingui offers powerful i18n with compile-time message extraction and PO file support
+- React Three Fiber enables declarative 3D graphics with Three.js
+- GSAP and Lenis provide smooth, performant animations and scrolling
+
+---
+
+## Methodology & Thinking Process
+
+### System 2 Thinking Approach
+
+#### 1. Deep Dive Analysis
+Before writing code, conduct thorough analysis:
+- Understand full scope, context, and business requirements
+- Identify all technical constraints and dependencies
+- Consider security implications (authentication, authorization, data sanitization)
+- Evaluate performance requirements (load times, bundle size, rendering strategy)
+- Assess accessibility needs (WCAG compliance, keyboard navigation, screen readers)
+- Review existing codebase patterns and architectural decisions
+
+#### 2. Tree of Thoughts Evaluation
+Generate and evaluate multiple solution paths:
+- List at least 3 different implementation approaches
+- Evaluate pros and cons of each approach
+- Consider trade-offs: development speed vs maintainability vs performance
+- Assess scalability and extensibility of each solution
+- Factor in team expertise and learning curve
+- Choose optimal path based on weighted criteria
+
+#### 3. Structured Planning Process
+Use this template for planning:
+
+**Objective:** Clear, one-sentence statement of what needs to be built
+
+**Requirements Analysis:**
+- Functional requirements (what the feature must do)
+- Non-functional requirements (performance targets, accessibility standards)
+- Edge cases to handle (empty states, error states, loading states)
+- Integration points with existing systems
+
+**Architecture Decision:**
+- Component structure (atomic design level)
+- State management strategy (local vs global vs server)
+- Data flow pattern (unidirectional, prop drilling depth)
+- API integration approach (REST, GraphQL, server actions)
+
+**Implementation Steps:**
+1. Break down into small, testable increments
+2. Define clear acceptance criteria for each step
+3. Identify dependencies and order of implementation
+4. Plan testing strategy for each component
+
+**Security Review:**
+- Input validation requirements
+- Authentication/authorization checks needed
+- Data sanitization points
+- CSRF protection measures
+- XSS prevention strategies
+- Rate limiting considerations
+
+**Performance Considerations:**
+- Expected bundle size impact
+- Rendering strategy (SSR, CSR, SSG, ISR)
+- Caching strategy (SWR, stale-while-revalidate)
+- Code splitting opportunities
+- Image optimization needs
+- Database query optimization
+
+#### 4. Iterative Implementation
+- Build in small, testable increments
+- Commit after each working feature
+- Review code quality continuously
+- Refactor as patterns emerge
+- Document non-obvious decisions
+
+#### 5. Code Review Protocol
+Before finalizing, review:
+- Type safety completeness
+- Error handling coverage
+- Performance bottlenecks
+- Security vulnerabilities
+- Accessibility compliance
+- Test coverage adequacy
+- Documentation clarity
+
+### Decision-Making Framework
+
+**When to ask for clarification:**
+- Multiple valid approaches with significant trade-offs
+- Requirements are ambiguous or contradictory
+- Security or performance implications require domain knowledge
+- Existing patterns conflict with stated requirements
+- User experience decisions need product input
+
+**When to suggest alternatives:**
+- Requested approach has known performance issues
+- Better pattern exists for the specific use case
+- Security vulnerabilities would be introduced
+- Maintainability would be severely compromised
+- Accessibility would be negatively impacted
+
+---
+
+## Code Style & Structure
+
+### General Principles
+- Write concise, technical TypeScript code with accurate examples
+- Use functional and declarative programming patterns exclusively
+- Avoid classes unless integrating with class-based libraries (Three.js, etc.)
+- Favor composition over inheritance
+- Keep functions small and focused (single responsibility principle)
+- Use descriptive variable names with auxiliary verbs
+- Prioritize code readability over cleverness
+- Apply DRY principle judiciously (don't over-abstract)
+- Use early returns to reduce nesting depth
+- Limit function parameters to 3 (use object destructuring for more)
+- Add copyright headers to all source files (use `npm run copyright`)
+
+### Code Organization
+- Group related functionality together
+- Order imports: external → internal → types → contentlayer/generated
+- Place types near their usage point
+- Extract magic numbers to named constants
+- Keep files under 300 lines (split when larger)
+- One component per file (except tightly coupled sub-components)
+- Use index.tsx for component exports
+
+### Syntax Preferences
+- Omit semicolons (follow Standard.js)
+- Use single quotes for strings
+- Prefer template literals for string concatenation
+- Use arrow functions for callbacks
+- Use function keyword for top-level functions
+- Destructure props and state immediately
+- Use optional chaining and nullish coalescing
+- Prefer const over let, never use var
+- Use 'use client' directive at top of client components
+- Use 'server-only' for server-only modules
+
+---
+
+## Naming Conventions
+
+### Directory and File Names
+- **Directories:** kebab-case (e.g., `user-profile`, `auth-wizard`)
+- **Component files:** kebab-case with .tsx extension (e.g., `user-card.tsx`)
+- **Hook files:** kebab-case with use- prefix (e.g., `use-auth.ts`)
+- **Utility files:** kebab-case (e.g., `format-date.ts`)
+- **Type files:** kebab-case with .types.ts (e.g., `user.types.ts`)
+- **Test files:** same name with .test.tsx (e.g., `user-card.test.tsx`)
+- **Config files:** kebab-case with .config.ts (e.g., `api.config.ts`)
+
+### Code Names
+- **Components:** PascalCase (e.g., `UserProfile`, `AuthProvider`)
+- **Interfaces/Types:** PascalCase (e.g., `UserProfile`, `AuthState`)
+- **Variables:** camelCase (e.g., `userName`, `totalCount`)
+- **Functions:** camelCase (e.g., `calculateTotal`, `getUserById`)
+- **Constants:** UPPERCASE_SNAKE_CASE (e.g., `API_BASE_URL`, `MAX_RETRY_COUNT`)
+- **Environment variables:** UPPERCASE_SNAKE_CASE (e.g., `NEXT_PUBLIC_API_URL`)
+- **Custom hooks:** camelCase with use- prefix (e.g., `useAuth`, `useDebounce`)
+- **Event handlers:** camelCase with handle- prefix (e.g., `handleClick`, `handleSubmit`)
+- **Boolean variables:** camelCase with auxiliary verb (e.g., `isLoading`, `hasError`, `canEdit`)
+- **Private functions:** camelCase with underscore prefix (e.g., `_helperFunction`)
+
+### Specific Patterns
+- **Props interfaces:** ComponentName + Props (e.g., `ButtonProps`)
+- **State types:** Feature + State (e.g., `AuthState`, `UserState`)
+- **Query keys:** Nested arrays (e.g., `['users', 'list', filters]`)
+- **Zustand stores:** use + Feature + Store (e.g., `useAuthStore`, `useCartStore`)
+- **Context:** Feature + Context (e.g., `ThemeContext`, `AuthContext`)
+- **Enum alternatives:** Const objects with 'as const' assertion
+
+---
+
+## TypeScript Best Practices
+
+### Configuration
+- Enable all strict mode options in tsconfig.json
+- Enable noUncheckedIndexedAccess to catch undefined array access
+- Enable noImplicitReturns for explicit return statements
+- Enable noFallthroughCasesInSwitch for switch safety
+- Use moduleResolution: bundler for modern module resolution
+- Include contentlayer/generated in paths for type imports
+- Use baseUrl: "." with paths: { "@/*": ["./src/*"] }
+
+### Type Definitions
+- Prefer interfaces over types for object shapes (better error messages)
+- Use type for unions, intersections, and mapped types
+- Avoid enums entirely, use const objects with type extraction
+- Export types alongside implementation when public API
+- Use branded types for nominal typing when needed
+- Leverage template literal types for string unions
+
+### Type Safety Patterns
+- Never use 'any' type, use 'unknown' for truly unknown values
+- Avoid type assertions (as, !) unless absolutely necessary
+- Use type guards for runtime type checking
+- Implement discriminated unions for complex state machines
+- Use generic constraints to enforce type relationships
+- Apply utility types (Partial, Required, Pick, Omit, Record) liberally
+
+### Advanced Patterns
+- Use mapped types for transforming existing types
+- Implement conditional types for type-level logic
+- Leverage infer keyword for type extraction
+- Create custom utility types for domain-specific needs
+- Use const assertions for literal type inference
+- Implement function overloads for better type inference
+
+---
+
+## Component Architecture (Atomic Design)
+
+### Design System Hierarchy
+
+**Atoms (Basic Building Blocks):**
+- Single-purpose, highly reusable components
+- No business logic, only presentation
+- Examples: Button, Input, Label, Icon, Badge
+- Should be fully controlled components
+- Accept all native HTML props via rest spread
+
+**Molecules (Simple Combinations):**
+- Combine 2-3 atoms into functional units
+- Minimal business logic, mostly composition
+- Examples: FormField (Label + Input + Error), SearchBox (Input + Button)
+- Accept composition via children or render props
+- Handle internal coordination between atoms
+
+**Organisms (Complex Components):**
+- Combine molecules and atoms into feature sections
+- Contains business logic and state management
+- Examples: Header, Sidebar, UserProfileCard, DataTable
+- May fetch data or connect to global state
+- Encapsulate feature-specific behavior
+
+**Templates (Page Layouts):**
+- Combine organisms into page structures
+- Define content layout and spacing
+- Examples: DashboardLayout, AuthLayout, MarketingLayout
+- No business logic, only structural composition
+- Accept children for content areas
+
+**Pages (Route Components):**
+- Actual route handlers in Next.js app directory
+- Fetch data and pass to templates
+- Handle page-level concerns (metadata, loading, errors)
+- Thin layer that composes templates with data
+
+### Component Composition Principles
+- Components should be open for extension via children
+- Use render props for customizable behavior
+- Prefer composition over configuration
+- Keep prop APIs minimal and focused
+- Use compound components for related UI elements
+- Avoid prop drilling beyond 2 levels (use context instead)
+
+### Component Responsibility Guidelines
+- Each component should do one thing well
+- Extract reusable logic into custom hooks
+- Keep components pure when possible (same props = same output)
+- Separate concerns: presentation vs logic vs data fetching
+- Avoid mixing server and client component concerns
+
+---
+
+## File Structure Standards
+
+### Project Organization
+```
+src/
+├── app/                          # Next.js App Router
+│   ├── [lang]/                 # Language-based routing
+│   │   ├── [...rest]/          # Dynamic catch-all routes
+│   │   ├── layout.tsx          # Language-specific layout
+│   │   ├── page.tsx            # Home page
+│   │   ├── not-found.tsx       # 404 page
+│   │   └── support/            # Support routes
+│   ├── robots.ts               # Robots.txt generator
+│   ├── sitemap.ts              # Sitemap generator
+│   └── manifest.json           # PWA manifest
+│
+├── components/
+│   ├── atoms/                   # Basic building blocks
+│   ├── molecules/               # Composite components
+│   ├── organisms/               # Complex components
+│   ├── templates/               # Page layouts
+│   └── ui/                      # Shadcn UI components
+│
+├── content/                     # MDX content files
+│   ├── {locale}/                # Content organized by locale
+│   │   ├── features/           # Feature documentation
+│   │   └── about/              # About pages
+│
+├── hooks/                       # Custom React hooks
+├── lib/                         # Utility functions
+│   └── utils/                   # Organized utility modules
+├── i18n/                        # Internationalization
+│   ├── locales/                # Translation files (PO format)
+│   ├── i18n.ts                 # I18n setup
+│   └── initLingui.tsx          # Lingui initialization
+├── providers/                   # React context providers
+├── layouts/                     # Layout components
+├── types/                       # TypeScript type definitions
+├── constants/                   # Application constants
+├── styles/                      # Global styles and CSS modules
+└── middleware.ts                # Next.js middleware
+
+scripts/                         # Build and utility scripts
+├── generate-rss.ts             # RSS feed generator
+└── copyright.js                # Copyright header injector
+
+public/                          # Static assets
+├── feeds/                      # Generated RSS feeds
+├── assets/                     # Images and media
+└── models/                     # 3D models (GLTF, GLB, etc.)
+```
+
+### Component File Structure
+Within each component directory:
+```
+component-name/
+├── component-name.tsx           # Main component
+├── component-name.test.tsx      # Tests
+├── component-name.stories.tsx   # Storybook stories (optional)
+├── sub-component.tsx            # Tightly coupled sub-components
+├── hooks.ts                     # Component-specific hooks
+├── utils.ts                     # Component-specific utilities
+└── index.ts                     # Public API exports
+```
+
+### File Content Order
+Every component file should follow this structure:
+1. Imports (external → internal → types)
+2. Type definitions and interfaces
+3. Constants (component-specific)
+4. Helper functions (small, pure functions)
+5. Main component function
+6. Sub-components (if tightly coupled)
+7. Display name assignment
+8. Exports (named exports preferred)
+
+---
+
+## React Patterns & Best Practices
+
+### Server vs Client Components
+
+**Default to Server Components:**
+- Fetch data directly in server components
+- No need for useEffect or loading states
+- Better performance (less JavaScript to browser)
+- Automatic request deduplication
+- Can access backend resources directly
+- Use for content rendering (MDX, static content)
+
+**Use Client Components only for:**
+- Event listeners (onClick, onChange, onSubmit)
+- Browser APIs (localStorage, window, document)
+- React hooks (useState, useEffect, useContext)
+- Third-party libraries requiring browser environment (Three.js, GSAP, Lenis)
+- Interactive animations and transitions
+- 3D graphics and WebGL
+- Smooth scrolling implementations
+
+**Best Practices:**
+- Keep client components small and focused
+- Pass data from server to client components via props
+- Use 'use client' directive at top of file
+- Don't import server components into client components
+- Create client wrappers when necessary
+- Use dynamic imports with `ssr: false` for heavy client-only components (Three.js, animations)
+
+### Custom Hooks Patterns
+
+**When to create custom hooks:**
+- Reusable stateful logic across components
+- Complex state management that clutters components
+- Side effects that need to be shared
+- Integration with external libraries
+- Browser API abstractions
+
+**Hook design principles:**
+- Single responsibility per hook
+- Return tuple or object (prefer object for multiple values)
+- Use TypeScript generics for flexibility
+- Document parameters and return values with JSDoc
+- Handle cleanup in useEffect return function
+- Make hooks composable (hooks can use other hooks)
+
+**Common hook patterns:**
+- Data fetching hooks (useUser, useProducts)
+- Form management hooks (useForm, useValidation)
+- UI state hooks (useToggle, useModal, useDisclosure)
+- Browser API hooks (useLocalStorage, useMediaQuery, useDebounce)
+- Animation hooks (useAnimation, useScrollPosition)
+
+### Component Patterns
+
+**Controlled vs Uncontrolled:**
+- Prefer controlled components for forms
+- Use uncontrolled for performance-critical inputs
+- Always provide onChange when using value prop
+- Use defaultValue for uncontrolled components
+
+**Composition Patterns:**
+- Use children prop for flexible content
+- Implement compound components for related UI
+- Use render props for customizable behavior
+- Apply slots pattern for multiple insertion points
+
+**Error Boundaries:**
+- Implement error.tsx in app directory for route-level boundaries
+- Create reusable ErrorBoundary component for component-level
+- Always provide fallback UI
+- Log errors to monitoring service
+- Allow retry functionality where appropriate
+
+---
+
+## Performance Optimization
+
+### React Performance
+
+**Memoization Strategy:**
+- Use React.memo for expensive pure components
+- Apply useMemo for expensive computations only
+- Use useCallback to stabilize function references
+- Don't over-optimize - measure first
+- Memoize when passing callbacks to optimized children
+
+**When to use React.memo:**
+- Component renders frequently with same props
+- Component has expensive rendering logic
+- Component is in a list with many items
+- Parent re-renders often but props rarely change
+- 3D components and WebGL scenes
+
+**When to use useMemo:**
+- Computationally expensive calculations
+- Creating objects/arrays passed as props
+- Filtering or transforming large datasets
+- Creating derived state from props
+- Three.js scene setup and geometry calculations
+
+**When to use useCallback:**
+- Functions passed to memoized child components
+- Functions used as dependencies in other hooks
+- Event handlers passed to optimized children
+- Callbacks in dependency arrays
+- Animation callbacks and scroll handlers
+
+**Dynamic Imports:**
+- Use `dynamic()` with `ssr: false` for client-only components
+- Lazy load heavy libraries (Three.js, GSAP)
+- Split 3D components and animations into separate chunks
+- Load interactive features on demand
+
+### Next.js Optimization
+
+**Image Optimization:**
+- Always use next/image for all images
+- Specify width and height to prevent layout shift
+- Use priority prop for above-fold images
+- Implement lazy loading for below-fold images
+- Use appropriate formats (WebP, AVIF)
+- Optimize quality setting (75-80 is usually sufficient)
+- Handle 3D model preview images appropriately
+
+**Code Splitting:**
+- Use dynamic imports for heavy components
+- Implement route-based code splitting
+- Split vendor bundles strategically
+- Lazy load modals, dialogs, and drawer content
+- Load third-party scripts asynchronously
+- Use `dynamic()` with `ssr: false` for Three.js and animation libraries
+
+**Data Fetching Optimization:**
+- Parallel data fetching where possible
+- Use React Suspense for progressive loading
+- Implement proper caching strategies
+- Prefetch data on link hover
+- Use ISR for semi-static content
+- Generate static paths for all content at build time
+- Cache Contentlayer generated data
+
+**Bundle Size Optimization:**
+- Use bundle analyzer (`npm run analyze`) to identify large dependencies
+- Import only needed functions from libraries
+- Replace heavy libraries with lighter alternatives
+- Remove unused CSS with PurgeCSS
+- Enable tree shaking
+- Minimize polyfills for modern browsers
+- Consider code splitting for Three.js and GSAP
+
+**Turbopack Benefits:**
+- Faster development builds with Turbopack
+- Improved HMR (Hot Module Replacement)
+- Better incremental compilation
+- Use `--turbopack` flag for dev and build commands
+
+### Rendering Strategies
+
+**Static Generation (SSG):**
+- Use for content that doesn't change often
+- Build pages at build time
+- Best performance and SEO
+- Can revalidate with ISR
+
+**Server-Side Rendering (SSR):**
+- Use for personalized content
+- Renders on each request
+- Good for dynamic data
+- Supports streaming
+
+**Incremental Static Regeneration (ISR):**
+- Best of both SSG and SSR
+- Static pages that update periodically
+- Use revalidate option
+- Ideal for content that changes occasionally
+
+**Client-Side Rendering (CSR):**
+- Use sparingly, only when necessary
+- Good for highly interactive features
+- Implement proper loading states
+- Consider SEO implications
+
+---
+
+## Error Handling & Validation
+
+### Error Handling Patterns
+
+**Early Returns Strategy:**
+- Handle error conditions at function start
+- Return early for invalid inputs
+- Avoid deeply nested if statements
+- Place happy path last for readability
+
+**Guard Clauses:**
+- Validate preconditions immediately
+- Check for null/undefined early
+- Verify permissions upfront
+- Fail fast principle
+- Validate locale and route parameters
+
+**Error Boundaries:**
+- Implement at route level (error.tsx, not-found.tsx)
+- Create reusable component-level boundaries
+- Provide meaningful fallback UI
+- Log errors to monitoring service
+- Allow graceful recovery where possible
+- Handle missing content gracefully (404)
+
+**Content Error Handling:**
+- Handle missing content with `notFound()`
+- Validate locale before content lookup
+- Provide fallback content for missing translations
+- Handle Contentlayer generation errors gracefully
+- Validate content structure and metadata
+
+### Content Validation
+
+**Contentlayer Validation:**
+- Define required fields in document type schemas
+- Use computed fields for validation
+- Validate content structure at build time
+- Handle missing or invalid frontmatter
+- Filter out draft content in production
+
+**Route Validation:**
+- Validate locale in middleware
+- Check content existence before rendering
+- Handle invalid route segments gracefully
+- Redirect to default locale if needed
+- Provide 404 for non-existent content
+
+---
+
+## State Management
+
+### State Classification
+
+**Local State (useState/useReducer):**
+- UI state (toggles, inputs, modals)
+- Component-specific state
+- Temporary state that doesn't need persistence
+- Animation state
+- Scroll position tracking
+
+**Global Client State (Zustand):**
+- Theme preferences
+- UI state shared across routes
+- Debug mode state
+- Global animation settings
+- 3D scene state (if needed)
+
+**Server State (React Server Components):**
+- Content from Contentlayer (MDX files)
+- Static data fetched at build time
+- Server-rendered data
+- Metadata and SEO information
+
+**URL State (Next.js searchParams):**
+- Language/locale selection (via [lang] route)
+- Dynamic route parameters
+- Query parameters for filtering
+- Any state that should be shareable via URL
+
+### Zustand Best Practices
+
+**Store Organization:**
+- Create separate stores by domain
+- Keep stores focused and minimal
+- Use slices for large stores
+- Avoid deeply nested state
+- Normalize data structures
+
+**Store Patterns:**
+- Use selectors to prevent unnecessary re-renders
+- Implement middleware for persistence
+- Add devtools for debugging
+- Create typed hooks for store access
+- Use immer middleware for immutable updates
+
+### Contentlayer2 Best Practices
+
+**Content Organization:**
+- Organize content by locale in `src/content/{locale}/`
+- Use MDX for rich content with React components
+- Define document types in `contentlayer.config.ts`
+- Leverage computed fields for metadata (slug, path, TOC, reading time)
+- Use frontmatter for content metadata
+
+**Content Patterns:**
+- Import generated types from `contentlayer/generated`
+- Use `allFeatures`, `allAbouts` for content queries
+- Filter content by locale and category
+- Generate static paths at build time
+- Use MDX components for custom rendering
+
+**MDX Components:**
+- Create reusable MDX components in `components/molecules/mdx-components/`
+- Customize heading rendering with anchor links
+- Style code blocks and tables appropriately
+- Handle images with Next.js Image component
+- Support external links with proper attributes
+
+---
+
+## Content Management & MDX
+
+### Contentlayer2 Integration
+
+**Content Setup:**
+- Define document types in `contentlayer.config.ts`
+- Use computed fields for derived data (slug, path, TOC)
+- Organize content by locale: `src/content/{locale}/{category}/`
+- Use MDX for rich content with React components
+- Generate types automatically via Contentlayer
+
+**MDX Best Practices:**
+- Use frontmatter for metadata (title, description, date, category)
+- Create custom MDX components for consistent styling
+- Support code syntax highlighting
+- Handle images with Next.js Image optimization
+- Generate table of contents from headings
+- Calculate reading time automatically
+
+**Content Patterns:**
+- Filter content by locale and category
+- Generate static paths at build time
+- Use `allFeatures` and `allAbouts` for content queries
+- Implement proper 404 handling for missing content
+- Support draft content in development
+
+### Internationalization with Lingui
+
+**Lingui Setup:**
+- Use `@lingui/react/macro` for compile-time message extraction
+- Store translations in PO files: `src/i18n/locales/{locale}/messages.po`
+- Initialize Lingui in middleware and providers
+- Use `<Trans>` component for translations
+- Extract messages with `lingui extract`
+
+**Translation Patterns:**
+- Use macro functions for type-safe translations
+- Support pluralization and formatting
+- Handle locale switching via [lang] route
+- Provide fallback to default locale (en)
+- Use server-only i18n setup for SSR
+
+---
+
+## 3D Graphics & Animations
+
+### Three.js & React Three Fiber
+
+**Setup and Configuration:**
+- Use `@react-three/fiber` for declarative 3D scenes
+- Use `@react-three/drei` for helpers and utilities
+- Load 3D models (GLTF, GLB) from `public/models/`
+- Use dynamic imports with `ssr: false` for 3D components
+- Optimize models before including in project
+
+**Best Practices:**
+- Create separate WebGL components in `components/atoms/webgl/`
+- Use `useFrame` hook for animations and updates
+- Implement proper cleanup in useEffect
+- Use `useMemo` for expensive geometry calculations
+- Lazy load 3D scenes to reduce initial bundle size
+- Handle WebGL context loss gracefully
+- Provide fallback UI for devices without WebGL support
+
+**Performance Optimization:**
+- Use `React.memo` for 3D components
+- Limit polygon count in models
+- Use texture compression
+- Implement level-of-detail (LOD) for complex scenes
+- Use instancing for repeated objects
+- Monitor FPS and optimize accordingly
+
+### GSAP Animations
+
+**Setup:**
+- Use GSAP for complex animations and timelines
+- Import only needed GSAP modules
+- Use dynamic imports for animation-heavy components
+
+**Best Practices:**
+- Create reusable animation utilities
+- Use GSAP ScrollTrigger for scroll-based animations
+- Clean up animations in useEffect cleanup
+- Use `useRef` to store GSAP instances
+- Prefer CSS transforms over layout properties
+- Respect `prefers-reduced-motion` media query
+
+### Lenis Smooth Scrolling
+
+**Setup:**
+- Initialize Lenis in client components
+- Use `useEffect` for setup and cleanup
+- Integrate with GSAP ScrollTrigger if needed
+
+**Best Practices:**
+- Initialize once per page/app
+- Clean up on unmount
+- Configure options for performance (duration, easing)
+- Handle scroll events efficiently
+- Disable on mobile if performance is an issue
+
+---
+
+## Testing Strategy
+
+### Testing Philosophy
+- Write tests that verify user behavior, not implementation
+- Test user interactions, not internal state
+- Prioritize integration tests over unit tests
+- Write tests that give confidence in deployments
+- Keep tests maintainable and readable
+
+### Unit Testing
+
+**What to test:**
+- Utility functions and helpers
+- Custom hooks logic
+- Data transformations
+- Validation functions
+- Business logic calculations
+
+**Tools and setup:**
+- Jest for test runner
+- React Testing Library for component testing
+- Mock Service Worker (MSW) for API mocking
+- Testing Library User Event for interactions
+
+**Best practices:**
+- Follow AAA pattern (Arrange, Act, Assert)
+- Test one behavior per test
+- Use descriptive test names
+- Avoid testing implementation details
+- Mock external dependencies
+- Clean up after each test
+
+### Integration Testing
+
+**What to test:**
+- User workflows (login, checkout, etc.)
+- Component interactions
+- Form submissions
+- Navigation flows
+- Data fetching and display
+
+**Patterns:**
+- Test from user's perspective
+- Use realistic test data
+- Test happy paths and error cases
+- Verify loading and error states
+- Test accessibility features
+
+### E2E Testing with Playwright
+
+**What to test:**
+- Critical user journeys
+- Cross-browser compatibility
+- Mobile responsiveness
+- Performance metrics
+- Visual regression
+
+**Best practices:**
+- Keep tests independent
+- Use page object model
+- Implement proper waits
+- Test in parallel
+- Run in CI/CD pipeline
+
+### Test Organization
+
+**File structure:**
+- Colocate tests with components
+- Create test utilities in __tests__ directory
+- Share fixtures and mocks
+- Organize by feature/domain
+
+**Coverage goals:**
+- Aim for 70-80% coverage
+- 100% for critical paths
+- Don't chase 100% everywhere
+- Focus on meaningful tests
+
+---
+
+## JSDoc Documentation
+
+### When to Write JSDoc
+
+**Always document:**
+- Public APIs and exported functions
+- Complex algorithms or business logic
+- Functions with non-obvious behavior
+- Custom hooks
+- Utility functions
+- Type definitions with special meaning
+
+**Skip documentation for:**
+- Self-explanatory code
+- Private internal functions
+- Generated code
+- Obvious getters/setters
+- Simple components with clear props
+
+### JSDoc Format Standards
+
+**Function documentation template:**
+```typescript
+/**
+ * Brief one-line description of what the function does
+ * 
+ * Optional longer description with additional context,
+ * explaining the why and how, not just the what.
+ * 
+ * @param paramName - Description of parameter
+ * @param optionalParam - Description with default behavior
+ * @returns Description of return value
+ * @throws {ErrorType} When error occurs
+ * 
+ * @example
+ * ```typescript
+ * // Example usage showing typical case
+ * const result = functionName(arg1, arg2)
+ * ```
+ * 
+ * @example
+ * ```typescript
+ * // Example showing edge case
+ * const result = functionName(null, undefined)
+ * ```
+ * 
+ * @see RelatedFunction - For related functionality
+ * @deprecated Use newFunction instead since v2.0
+ */
+```
+
+**Component documentation template:**
+```typescript
+/**
+ * ComponentName - Brief description of component purpose
+ * 
+ * Longer description explaining when to use this component,
+ * any important behavioral notes, or design decisions.
+ * 
+ * @example
+ * ```tsx
+ * <ComponentName
+ *   requiredProp="value"
+ *   optionalProp={123}
+ * />
+ * ```
+ */
+```
+
+**Custom hook documentation template:**
+```typescript
+/**
+ * Custom hook description explaining what problem it solves
+ * 
+ * @param param1 - Description of first parameter
+ * @returns Object containing { value, setValue, isValid }
+ * 
+ * @example
+ * ```tsx
+ * function MyComponent() {
+ *   const { value, setValue, isValid } = useCustomHook('initial')
+ *   return <div>{value}</div>
+ * }
+ * ```
+ */
+```
+
+### Documentation Best Practices
+
+**Content guidelines:**
+- Write in present tense
+- Be concise but complete
+- Explain why, not just what
+- Include edge cases in examples
+- Document gotchas and limitations
+- Link to related documentation
+
+**Parameter documentation:**
+- Describe purpose and expected values
+- Note any constraints or validation
+- Specify optional with default values
+- Document object shapes inline
+- Use @param {Type} syntax for types
+
+**Return value documentation:**
+- Describe what is returned
+- Document all possible return types
+- Explain null/undefined returns
+- Document async return promises
+- Note side effects if any
+
+**Example guidelines:**
+- Show typical usage first
+- Include edge cases
+- Use realistic data
+- Keep examples short
+- Show multiple patterns when relevant
+
+---
+
+## Accessibility (a11y)
+
+### Core Principles
+
+**Semantic HTML:**
+- Use appropriate HTML elements for their purpose
+- Prefer button over div for clickable elements
+- Use form elements inside form tags
+- Implement proper heading hierarchy (h1-h6)
+- Use nav, main, article, aside appropriately
+- Ensure proper language attributes (lang prop) for i18n
+
+**Keyboard Navigation:**
+- All interactive elements must be keyboard accessible
+- Implement logical tab order
+- Provide visible focus indicators
+- Support standard keyboard shortcuts
+- Trap focus in modals and dialogs
+- Ensure 3D scenes and animations don't trap keyboard focus
+
+**Screen Reader Support:**
+- Add descriptive ARIA labels
+- Use aria-describedby for additional context
+- Implement aria-live regions for dynamic content
+- Use aria-hidden to hide decorative elements (3D scenes, animations)
+- Provide alternative text for images
+- Use Lingui's Trans component for accessible translations
+
+### ARIA Best Practices
+
+**When to use ARIA:**
+- When semantic HTML is insufficient
+- For custom interactive widgets
+- To provide additional context
+- For dynamic content updates
+- To indicate current state
+
+**ARIA patterns:**
+- Use role attribute for custom widgets
+- Implement aria-expanded for collapsible content
+- Add aria-selected for tab interfaces
+- Use aria-checked for custom checkboxes
+- Implement aria-pressed for toggle buttons
+
+### Color and Contrast
+
+**WCAG Guidelines:**
+- Maintain 4.5:1 contrast for normal text
+- Maintain 3:1 contrast for large text
+- Ensure 3:1 contrast for UI components
+- Don't rely on color alone to convey information
+- Provide text labels in addition to color coding
+
+### Testing Accessibility
+
+**Automated testing:**
+- Use jest-axe for unit tests
+- Run Lighthouse accessibility audits
+- Use eslint-plugin-jsx-a11y
+- Test with axe DevTools browser extension
+
+**Manual testing:**
+- Navigate entire app with keyboard only
+- Test with screen readers (NVDA, JAWS, VoiceOver)
+- Verify zoom up to 200%
+- Test with reduced motion preferences
+- Validate form errors are announced
+
+---
+
+## Security Best Practices
+
+### Input Validation and Sanitization
+
+**Never trust user input:**
+- Validate all inputs on server-side
+- Sanitize data before storage
+- Use parameterized queries for database
+- Validate file uploads (type, size, content)
+- Implement rate limiting on endpoints
+- Validate locale parameters in middleware
+
+**XSS Prevention:**
+- Never use dangerouslySetInnerHTML with user content
+- Sanitize HTML with DOMPurify if necessary
+- Use CSP headers to restrict inline scripts
+- Encode output based on context
+- Validate and sanitize all user-generated content
+- Sanitize MDX content before rendering
+- Validate Contentlayer frontmatter
+
+**Content Security:**
+- Validate locale in middleware before processing
+- Sanitize route parameters
+- Filter out draft content in production
+- Validate content structure from Contentlayer
+- Escape HTML in RSS feed generation
+
+### Authentication and Authorization
+
+**Authentication best practices:**
+- Use established libraries (NextAuth, Auth0)
+- Implement secure password hashing (bcrypt, argon2)
+- Use HTTP-only cookies for session tokens
+- Implement CSRF protection
+- Support MFA for sensitive accounts
+
+**Authorization patterns:**
+- Verify permissions on every request
+- Implement role-based access control
+- Use middleware for route protection
+- Check authorization server-side always
+- Follow principle of least privilege
+
+### Data Protection
+
+**Sensitive data handling:**
+- Store secrets in environment variables
+- Never commit secrets to version control
+- Use .env.local for local development
+- Rotate API keys periodically
+- Encrypt sensitive data at rest
+
+**API Security:**
+- Use HTTPS everywhere
+- Implement request signing where appropriate
+- Rate limit all public endpoints
+- Validate content-type headers
+- Implement proper CORS policies
+
+### Dependency Security
+
+**Dependency management:**
+- Audit dependencies regularly (npm audit)
+- Keep dependencies updated
+- Review dependency licenses
+- Minimize dependency count
+- Use lock files for reproducible builds
+
+**Supply chain security:**
+- Verify package signatures
+- Use tools like Snyk or Dependabot
+- Review dependency changes before updating
+- Pin critical dependencies to specific versions
+- Monitor for security advisories
+
+---
+
+## Build Scripts & Automation
+
+### Build Process
+
+**Pre-build Steps:**
+- Contentlayer generates content types: `npm run contentlayer:build`
+- RSS feeds are generated: `npm run rss:generate`
+- Copyright headers are added: `npm run copyright` (optional, manual)
+
+**Build Commands:**
+- Development: `npm run dev` (uses Turbopack)
+- Production build: `npm run build` (uses Turbopack)
+- Contentlayer dev: `npm run contentlayer:dev` (watch mode)
+
+### RSS Feed Generation
+
+**Setup:**
+- RSS feeds are generated via `scripts/generate-rss.ts`
+- Outputs to `public/feeds/` directory
+- Generates feeds per locale
+- Includes content from Contentlayer
+
+**Best Practices:**
+- Run RSS generation before build (`prebuild` script)
+- Escape HTML content properly
+- Include proper metadata (title, description, date)
+- Filter out draft content
+- Generate feeds for all supported locales
+
+### Copyright Headers
+
+**Usage:**
+- Run `npm run copyright` to add copyright headers to all source files
+- Headers are automatically generated with NEXSOFT copyright
+- Applied to TypeScript, JavaScript, TSX, JSX files
+- Excludes node_modules, .next, and other build directories
+
+**Format:**
+```typescript
+/**
+ * Copyright (c) 2025 NEXSOFT. All rights reserved.
+ *
+ * This source code is proprietary and confidential.
+ * Unauthorized copying, distribution, or modification of this file,
+ * in whole or in part, is strictly prohibited without prior written consent
+ * from NEXSOFT.
+ */
+```
+
+### Lingui Workflow
+
+**Message Extraction:**
+- Run `npm run lingui:extract` to extract translatable strings
+- Updates PO files in `src/i18n/locales/{locale}/messages.po`
+- Use `--clean --overwrite` flags for clean extraction
+
+**Message Compilation:**
+- Run `npm run lingui:compile` to compile PO files to JS
+- Generates compiled messages for runtime
+- Required before building for production
+
+---
+
+## Final Checklist
+
+### Before Committing
+- [ ] TypeScript compiles without errors
+- [ ] All tests pass (if applicable)
+- [ ] No console.logs or debugger statements
+- [ ] Code follows naming conventions
+- [ ] Copyright headers added (run `npm run copyright`)
+- [ ] JSDoc added for public APIs
+- [ ] Accessibility requirements met
+- [ ] Error handling implemented
+- [ ] Loading states provided
+- [ ] Responsive design tested
+- [ ] Images optimized
+- [ ] Contentlayer builds successfully
+- [ ] Lingui messages extracted and compiled
+- [ ] No linting errors
+
+### Before Deployment
+- [ ] Environment variables configured
+- [ ] Build succeeds with Turbopack
+- [ ] Contentlayer generates all content types
+- [ ] RSS feeds generated (`npm run rss:generate`)
+- [ ] All locales have translations
+- [ ] Lighthouse scores acceptable
+- [ ] Security audit passed
+- [ ] Performance metrics within targets
+- [ ] SEO metadata complete (sitemap, robots.txt)
+- [ ] Analytics integrated
+- [ ] Error monitoring setup
+- [ ] 3D models optimized and loaded correctly
+- [ ] Animations performant on target devices
+- [ ] Backup strategy in place
+- [ ] Rollback plan documented

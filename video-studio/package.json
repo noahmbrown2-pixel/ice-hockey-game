@@ -1,0 +1,51 @@
+{
+  "name": "video-studio",
+  "version": "1.0.0",
+  "description": "Reusable motion-design studio (Remotion)",
+  "repository": {},
+  "license": "UNLICENSED",
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24"
+  },
+  "private": true,
+  "dependencies": {
+    "@remotion/cli": "4.0.536",
+    "@remotion/google-fonts": "^4.0.536",
+    "@remotion/transitions": "^4.0.536",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.536"
+  },
+  "devDependencies": {
+    "@remotion/bundler": "^4.0.536",
+    "@remotion/eslint-config-flat": "4.0.536",
+    "@remotion/renderer": "^4.0.536",
+    "@types/react": "19.2.7",
+    "@types/web": "0.0.166",
+    "eslint": "10.12.0",
+    "playwright": "^1.64.1",
+    "prettier": "3.8.1",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion bundle",
+    "upgrade": "remotion upgrade",
+    "lint": "eslint src && tsc",
+    "capture": "node scripts/capture-gameplay.mjs",
+    "audio": "node scripts/make-audio.mjs",
+    "sheet": "node scripts/contact-sheet.mjs",
+    "render:promo": "remotion render AgentPromo-16x9 out/agent-promo-16x9.mp4 && remotion render AgentPromo-9x16 out/agent-promo-9x16.mp4 && remotion still AgentPromo-16x9 out/agent-promo-thumb.png --frame=760",
+    "render:trailer": "remotion render MonsterHunterTrailer-16x9 out/monster-hunter-trailer-16x9.mp4 && remotion render MonsterHunterTrailer-9x16 out/monster-hunter-trailer-9x16.mp4 && remotion still MonsterHunterTrailer-16x9 out/monster-hunter-trailer-thumb.png --frame=860",
+    "render:otters": "remotion render OtterClash-9x16 out/otter-clash-9x16.mp4 --concurrency=2 && remotion still OtterClash-9x16 out/otter-clash-thumb.png --frame=300",
+    "render:all": "npm run render:promo && npm run render:trailer && npm run render:otters",
+    "render:ronaldo": "node scripts/cut-clips.mjs src/edits/ronaldo.json && remotion render RonaldoEdit out/ronaldo-edit.mp4 --concurrency=2",
+    "render:ronaldo0810": "node scripts/cut-clips.mjs src/edits/ronaldo0810.json && remotion render Ronaldo0810Edit out/ronaldo-2008-10-edit.mp4 --concurrency=2",
+    "render:ronaldo-n0z": "node scripts/cut-clips.mjs src/edits/ronaldo-n0z.json && remotion render RonaldoN0zEdit out/ronaldo-n0z-edit.mp4 --concurrency=2",
+    "render:ronaldo-n0z3": "node scripts/cut-clips.mjs src/edits/ronaldo-n0z3.json && remotion render RonaldoN0z3Edit out/ronaldo-n0z-v3.mp4 --concurrency=2",
+    "render:ronaldo-ref1030": "node scripts/cut-clips.mjs src/edits/ronaldo-ref1030.json && remotion render RonaldoRef1030Edit out/ronaldo-ref1030.mp4 --concurrency=2"
+  },
+  "allowScripts": {
+    "esbuild": false
+  }
+}

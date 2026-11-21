@@ -1,0 +1,235 @@
+{
+  "title": "CR7 (N0z)",
+  "sources": {
+    "S": "C:/Users/noahm/Downloads/ronaldo_2008-10/dkzZJ9wri2E.mp4",
+    "K": "C:/Users/noahm/Downloads/ronaldo_2008-10/zCVhhA1sfvY.mp4",
+    "Q": "C:/Users/noahm/Downloads/ronaldo_2008-10/Yq7Yy8H5J-8.mp4"
+  },
+  "sizes": {
+    "S": [
+      1282,
+      1722
+    ]
+  },
+  "clipDir": "clips/ronaldo-n0z",
+  "music": "audio/phonk-placeholder.wav",
+  "scribbleText": "N0Z",
+  "darken": 0.15,
+  "notes": "S = the user's own N0z CR7 Short (dkzZJ9wri2E). Beat drop (frame 168) keeps the Man Utd skill clips (K 2008/09, Q 2007/08 TeoCRi).",
+  "shots": [
+    {
+      "id": "meme",
+      "src": "S",
+      "at": 0.5,
+      "frames": 84,
+      "rate": 0.95,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "fadeIn": 8
+    },
+    {
+      "id": "fingersmile",
+      "src": "S",
+      "at": 7.5,
+      "frames": 42,
+      "rate": 0.55,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "back7",
+      "src": "S",
+      "at": 18.45,
+      "frames": 42,
+      "rate": 0.55,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "stepovers",
+      "src": "K",
+      "at": 413.5,
+      "frames": 63,
+      "rate": 0.75,
+      "fx": 0.55,
+      "zoom": 1.0,
+      "impactAt": 40
+    },
+    {
+      "id": "skill2",
+      "src": "Q",
+      "at": 50.0,
+      "frames": 42,
+      "rate": 0.75,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 6
+    },
+    {
+      "id": "skill3",
+      "src": "Q",
+      "at": 640.5,
+      "frames": 42,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 6
+    },
+    {
+      "id": "skill4",
+      "src": "K",
+      "at": 101.8,
+      "frames": 42,
+      "rate": 0.7,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 6
+    },
+    {
+      "id": "kneeslide",
+      "src": "S",
+      "at": 4.8,
+      "frames": 10,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "action",
+      "src": "S",
+      "at": 5.65,
+      "frames": 11,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "point",
+      "src": "S",
+      "at": 6.8,
+      "frames": 10,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "armup",
+      "src": "S",
+      "at": 8.6,
+      "frames": 11,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "run",
+      "src": "S",
+      "at": 10.6,
+      "frames": 10,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "jump",
+      "src": "S",
+      "at": 12.6,
+      "frames": 11,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "hug",
+      "src": "S",
+      "at": 13.95,
+      "frames": 10,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "crowd",
+      "src": "S",
+      "at": 14.6,
+      "frames": 11,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "chelsea",
+      "src": "S",
+      "at": 16.5,
+      "frames": 10,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "goalarms",
+      "src": "S",
+      "at": 17.3,
+      "frames": 11,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "scream",
+      "src": "S",
+      "at": 9.5,
+      "frames": 42,
+      "rate": 0.55,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "scribble": true,
+      "scribbleAt": {
+        "x": 180,
+        "y": 420,
+        "scale": 1.4
+      }
+    },
+    {
+      "id": "vodascream",
+      "src": "S",
+      "at": 15.5,
+      "frames": 42,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "trophy",
+      "src": "S",
+      "at": 19.45,
+      "frames": 42,
+      "rate": 0.55,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "push": 0.06
+    },
+    {
+      "id": "walkout",
+      "src": "S",
+      "at": 20.5,
+      "frames": 42,
+      "rate": 0.75,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "push": 0.06,
+      "fadeOut": 20
+    }
+  ],
+  "scribbleClip": "overlays/n0z-scribble-alpha.webm"
+}

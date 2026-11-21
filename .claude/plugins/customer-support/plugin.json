@@ -1,0 +1,66 @@
+{
+  "name": "customer-support",
+  "version": "1.0.0",
+  "description": "Ticket triage, response drafting, and knowledge base management",
+  "author": "Anthropic (adapted for ETAC)",
+  "license": "Apache-2.0",
+  "namespace": "support",
+  "commands": [
+    {
+      "name": "triage",
+      "file": "commands/triage.md",
+      "description": "Categorize and prioritize support tickets"
+    },
+    {
+      "name": "draft-response",
+      "file": "commands/draft-response.md",
+      "description": "Generate empathetic, solution-focused responses"
+    },
+    {
+      "name": "escalate",
+      "file": "commands/escalate.md",
+      "description": "Prepare escalation briefs for complex issues"
+    },
+    {
+      "name": "kb-search",
+      "file": "commands/kb-search.md",
+      "description": "Search knowledge base for relevant articles"
+    },
+    {
+      "name": "sentiment",
+      "file": "commands/sentiment.md",
+      "description": "Analyze customer sentiment and frustration level"
+    }
+  ],
+  "skills": [
+    {
+      "name": "empathy-patterns",
+      "file": "skills/empathy-patterns.md",
+      "triggers": ["frustrated customer", "angry", "upset", "empathy", "tone"]
+    },
+    {
+      "name": "troubleshooting-trees",
+      "file": "skills/troubleshooting-trees.md",
+      "triggers": ["troubleshoot", "debug", "diagnose", "steps to fix"]
+    },
+    {
+      "name": "ticket-classification",
+      "file": "skills/ticket-classification.md",
+      "triggers": ["categorize", "classify", "ticket type", "priority"]
+    },
+    {
+      "name": "kb-article-writing",
+      "file": "skills/kb-article-writing.md",
+      "triggers": ["write article", "knowledge base", "documentation", "help article"]
+    },
+    {
+      "name": "csat-improvement",
+      "file": "skills/csat-improvement.md",
+      "triggers": ["CSAT", "satisfaction", "improve rating", "customer happiness"]
+    }
+  ],
+  "connectors": {
+    "required": ["notionApi"],
+    "optional": ["whatsapp", "pocket-pick"]
+  }
+}

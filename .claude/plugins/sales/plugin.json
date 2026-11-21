@@ -1,0 +1,61 @@
+{
+  "name": "sales",
+  "version": "1.0.0",
+  "description": "Call preparation, account research, and sales enablement tools",
+  "author": "Anthropic (adapted for ETAC)",
+  "license": "Apache-2.0",
+  "namespace": "sales",
+  "commands": [
+    {
+      "name": "call-prep",
+      "file": "commands/call-prep.md",
+      "description": "Prepare comprehensive briefings for sales calls"
+    },
+    {
+      "name": "account-research",
+      "file": "commands/account-research.md",
+      "description": "Research company and key stakeholders"
+    },
+    {
+      "name": "objection-handler",
+      "file": "commands/objection-handler.md",
+      "description": "Generate responses to common objections"
+    }
+  ],
+  "skills": [
+    {
+      "name": "company-research",
+      "file": "skills/company-research.md",
+      "triggers": ["research company", "company background", "about this company"]
+    },
+    {
+      "name": "stakeholder-mapping",
+      "file": "skills/stakeholder-mapping.md",
+      "triggers": ["decision makers", "stakeholders", "who to contact", "org chart"]
+    },
+    {
+      "name": "competitor-positioning",
+      "file": "skills/competitor-positioning.md",
+      "triggers": ["vs competitor", "differentiation", "why us", "competitive"]
+    },
+    {
+      "name": "value-proposition",
+      "file": "skills/value-proposition.md",
+      "triggers": ["value prop", "benefits", "ROI", "business case"]
+    },
+    {
+      "name": "sales-methodology",
+      "file": "skills/sales-methodology.md",
+      "triggers": ["MEDDIC", "BANT", "sales process", "qualification"]
+    },
+    {
+      "name": "follow-up-templates",
+      "file": "skills/follow-up-templates.md",
+      "triggers": ["follow up email", "next steps", "recap email", "thank you"]
+    }
+  ],
+  "connectors": {
+    "required": ["exa"],
+    "optional": ["notionApi", "xai-research", "pocket-pick"]
+  }
+}

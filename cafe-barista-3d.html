@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Cafe Barista 3D</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#1a0f09;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+#scene{position:fixed;top:0;left:0;width:100%;height:100%;}
+#scene canvas{display:block;}
+#ui{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;color:#f3e2c7;}
+.overlay{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(15,8,4,0.86);pointer-events:auto;z-index:50;}
+.card{background:#3d2418;border:3px solid #d9a054;border-radius:14px;padding:28px 34px;max-width:560px;width:90%;max-height:88vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,0,0,0.6);}
+.card h1{color:#d9a054;font-size:1.8rem;margin-bottom:10px;text-align:center;letter-spacing:1px;}
+.card h2{color:#f3e2c7;font-size:1.3rem;margin:10px 0;text-align:center;}
+.card p, .card li{color:#e6d3b3;font-size:0.92rem;line-height:1.5;}
+.card ul{margin:10px 0 16px 20px;}
+.equipList{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 16px 0;justify-content:center;}
+.equipList span{background:#2b1710;border:1px solid #6b4a2f;border-radius:6px;padding:3px 8px;font-size:0.8rem;color:#e6d3b3;}
+.bigBtn{display:block;margin:14px auto 4px auto;background:#d9a054;color:#2b1710;border:none;border-radius:8px;padding:12px 26px;font-size:1.05rem;font-weight:bold;cursor:pointer;letter-spacing:0.5px;}
+.bigBtn:hover{background:#eeb968;}
+.statRow{display:flex;justify-content:space-between;margin:4px 0;font-size:0.95rem;color:#f3e2c7;}
+.statRow b{color:#d9a054;}
+#topBar{position:fixed;top:0;left:0;width:100%;display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:rgba(0,0,0,0.4);font-size:0.9rem;pointer-events:none;}
+#topBar div span{color:#d9a054;font-weight:bold;}
+#repWrap{width:110px;height:10px;background:rgba(0,0,0,0.5);border:1px solid #6b4a2f;border-radius:5px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px;}
+#repFill{height:100%;background:#5fbf5f;width:100%;transition:width .3s;}
+#timerWrap{position:fixed;top:44px;left:50%;transform:translateX(-50%);width:320px;text-align:center;pointer-events:none;}
+#timerBarBg{width:100%;height:16px;background:rgba(0,0,0,0.5);border:1px solid #6b4a2f;border-radius:8px;overflow:hidden;}
+#timerFill{height:100%;width:100%;background:#5fbf5f;transition:width .15s linear,background .3s;}
+#timerText{font-size:0.85rem;margin-top:3px;color:#f3e2c7;text-shadow:1px 1px 2px #000;}
+#ticketPanel{position:fixed;top:90px;left:12px;width:250px;max-height:56vh;overflow-y:auto;background:#150b06;border:2px solid #6b4a2f;border-radius:10px;padding:10px;pointer-events:auto;}
+#ticketPanel h3{font-size:0.85rem;color:#d9a054;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;}
+.ticketItem{border:1px solid #4a3122;border-radius:6px;padding:6px 8px;margin-bottom:6px;background:rgba(0,0,0,0.25);}
+.ticketItem.done{opacity:0.45;text-decoration:line-through;}
+.ticketItem.active{border-color:#d9a054;background:rgba(217,160,84,0.12);}
+.tiIcon{margin-right:6px;}
+.tiName{font-size:0.85rem;}
+.stepsRow{margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;}
+.step{font-size:0.72rem;background:#2b1710;border:1px solid #6b4a2f;border-radius:4px;padding:2px 5px;}
+.step.stepdone{background:#33562f;border-color:#5fbf5f;}
+.step.stepactive{background:#6b4a2f;border-color:#d9a054;animation:pulseStep 1s infinite;}
+@keyframes pulseStep{0%,100%{box-shadow:0 0 0 rgba(217,160,84,0.6);}50%{box-shadow:0 0 6px rgba(217,160,84,0.9);}}
+#crosshair{position:fixed;top:50%;left:50%;width:8px;height:8px;transform:translate(-50%,-50%);pointer-events:none;z-index:5;}
+#crosshair::before,#crosshair::after{content:'';position:absolute;background:rgba(243,226,199,0.85);box-shadow:0 0 2px rgba(0,0,0,0.8);}
+#crosshair::before{left:50%;top:0;width:2px;height:100%;transform:translateX(-50%);}
+#crosshair::after{top:50%;left:0;height:2px;width:100%;transform:translateY(-50%);}
+#guideWrap{position:fixed;bottom:120px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;z-index:6;}
+#guideArrow{font-size:2.2rem;color:#ffcc55;text-shadow:0 0 8px rgba(255,204,85,0.9),0 0 2px #000;transition:transform .12s linear;}
+#guideLabel{margin-top:2px;font-size:0.82rem;color:#f3e2c7;background:rgba(20,10,5,0.65);padding:3px 10px;border-radius:6px;display:inline-block;}
+#controlsHint{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:0.72rem;color:#a98860;pointer-events:none;}
+#choicePanel{position:fixed;bottom:230px;left:50%;transform:translateX(-50%);display:none;flex-direction:column;align-items:center;background:rgba(20,10,5,0.92);border:2px solid #d9a054;border-radius:10px;padding:12px 16px;pointer-events:auto;z-index:20;}
+#choiceLabel{font-size:0.9rem;color:#d9a054;margin-bottom:8px;}
+#choiceOptions{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:360px;}
+.choiceBtn{background:#d9a054;color:#2b1710;border:none;border-radius:6px;padding:8px 12px;font-size:0.82rem;font-weight:bold;cursor:pointer;}
+.choiceBtn:hover{background:#eeb968;}
+#toast{position:fixed;top:74px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.75);color:#f3e2c7;padding:8px 16px;border-radius:8px;font-size:0.9rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:30;}
+#toast.show{opacity:1;}
+#pauseOverlay{display:none;}
+#pauseOverlay .card{text-align:center;}
+.hint{font-size:0.72rem;color:#a98860;text-align:center;margin-top:6px;}
+</style>
+</head>
+<body>
+<div id="scene"></div>
+<div id="ui">
+  <div id="topBar" style="display:none;">
+    <div>Day <span id="dayNum">1</span>/7</div>
+    <div>Tips: <span id="tipsNum">$0.00</span></div>
+    <div>Customers: <span id="custNum">0/6</span></div>
+    <div>Rep: <span id="repNum">100</span>%<span id="repWrap"><span id="repFill"></span></span></div>
+  </div>
+  <div id="timerWrap" style="display:none;">
+    <div id="timerBarBg"><div id="timerFill"></div></div>
+    <div id="timerText">--</div>
+  </div>
+  <div id="ticketPanel" style="display:none;">
+    <h3>Order Ticket</h3>
+    <div id="ticketItems"></div>
+  </div>
+  <div id="choicePanel">
+    <div id="choiceLabel"></div>
+    <div id="choiceOptions"></div>
+  </div>
+  <div id="toast"></div>
+  <div id="crosshair" style="display:none;"></div>
+  <div id="guideWrap" style="display:none;">
+    <div id="guideArrow">▲</div>
+    <div id="guideLabel"></div>
+  </div>
+  <div id="controlsHint" style="display:none;">WASD move &middot; Mouse look &middot; Click to use equipment &middot; Esc to release mouse</div>
+
+  <div id="startScreen" class="overlay">
+    <div class="card">
+      <h1>Cafe Barista 3D</h1>
+      <p>You're behind the counter, first-person. Customers walk up with an order. Each item needs the right equipment used in the right order before the clock runs out. Bigger orders mean more steps <b>and</b> more time &mdash; but the margin gets tighter every day.</p>
+      <h2>How to Play</h2>
+      <ul>
+        <li><b>WASD</b> to walk, <b>mouse</b> to look around. Click to lock the mouse for looking, and click again to use whatever equipment is under your crosshair.</li>
+        <li>A glowing gold beacon shoots up from the equipment you need next, and a chain of floor arrows plus an on-screen compass arrow point straight at it.</li>
+        <li>Some steps ask you to pick an ingredient &mdash; match the milk / syrup / toast called out in the item name.</li>
+        <li>Wrong equipment costs you seconds. Running out loses the customer and hurts your reputation.</li>
+        <li>Survive 7 days as Cafe Legend. Reputation hits 0 and the cafe closes for good.</li>
+        <li>Press <b>Esc</b> to release the mouse and pause mid-order.</li>
+      </ul>
+      <div class="equipList">
+        <span>⚙️ Grinders</span><span>☕ Espresso Machine</span><span>🫗 Batch Brewer</span>
+        <span>💧 Pour-Over Bar</span><span>🧊 Cold Brew Tap</span><span>🥛 Milk Fridge</span>
+        <span>🫖 Kettle</span><span>🍵 Tea Station</span><span>🍯 Syrup Rack</span>
+        <span>🥐 Pastry Case</span><span>🔥 Toaster/Oven</span><span>🥪 Panini Press</span>
+        <span>🍽️ Cups &amp; Plates</span><span>🍦 Whip &amp; Ice</span>
+      </div>
+      <p class="hint">Best day total: <span id="bestDisplay">$0.00</span></p>
+      <button class="bigBtn" id="openCafeBtn">Open the Cafe ☕</button>
+    </div>
+  </div>
+
+  <div id="dayEndScreen" class="overlay" style="display:none;">
+    <div class="card">
+      <h1 id="deTitle">Day Complete!</h1>
+      <div class="statRow">Tips today: <b id="deTips">$0.00</b></div>
+      <div class="statRow">Total tips: <b id="deTotal">$0.00</b></div>
+      <div class="statRow">Reputation: <b id="deRep">100%</b></div>
+      <button class="bigBtn" id="nextDayBtn">Next Day ▶</button>
+    </div>
+  </div>
+
+  <div id="gameOverScreen" class="overlay" style="display:none;">
+    <div class="card">
+      <h1>The Cafe Has Closed</h1>
+      <p style="text-align:center;">Reputation hit zero &mdash; regulars stopped coming in.</p>
+      <div class="statRow">Days survived: <b id="goDays">1</b></div>
+      <div class="statRow">Total tips: <b id="goTips">$0.00</b></div>
+      <div class="statRow">Best ever: <b id="goBest">$0.00</b></div>
+      <button class="bigBtn" id="tryAgainBtn">Try Again</button>
+    </div>
+  </div>
+
+  <div id="pauseOverlay" class="overlay" style="display:none;">
+    <div class="card">
+      <h1>Paused</h1>
+      <p style="text-align:center;">The mouse has been released.</p>
+      <button class="bigBtn" id="resumeBtn">Click to Resume</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ---------- helpers ---------- */
+function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+function randomFrom(arr){ return arr[randInt(0,arr.length-1)]; }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function easeOutCubic(t){ return 1-Math.pow(1-t,3); }
+function easeInCubic(t){ return t*t*t; }
+
+/* ---------- menu definitions ---------- */
+function S(id){ return {kind:'station', station:id}; }
+function SA(ids){ return {kind:'stationAny', stations:ids}; }
+function C(group,station,options){ return {kind:'choice', group:group, station:station, options:options}; }
+
+var MILK = ['Whole','Oat','Almond','Soy','Coconut'];
+var SYRUP = ['Vanilla','Caramel','Hazelnut'];
+var TOAST = ['Toasted','Plain'];
+
+var STATIONS = [
+  {id:'grinder1', name:'Grinder A', emoji:'⚙️', color:0x4a4a4a},
+  {id:'grinder2', name:'Grinder B', emoji:'⚙️', color:0x5a5a5a},
+  {id:'espresso', name:'Espresso Machine', emoji:'☕', color:0x7a1f1f},
+  {id:'batch', name:'Batch Brewer', emoji:'🫗', color:0x5c3a21},
+  {id:'pourover', name:'Pour-Over Bar', emoji:'💧', color:0xc9a06a},
+  {id:'coldbrew', name:'Cold Brew Tap', emoji:'🧊', color:0x2e3b3e},
+  {id:'milk', name:'Milk Fridge', emoji:'🥛', color:0xe8e8e8},
+  {id:'kettle', name:'Kettle', emoji:'🫖', color:0x8c8c8c},
+  {id:'tea', name:'Tea Station', emoji:'🍵', color:0x3d6b35},
+  {id:'syrup', name:'Syrup Rack', emoji:'🍯', color:0xb5651d},
+  {id:'pastry', name:'Pastry Case', emoji:'🥐', color:0xead9b8},
+  {id:'toaster', name:'Toaster/Oven', emoji:'🔥', color:0x333333},
+  {id:'panini', name:'Panini Press', emoji:'🥪', color:0x2b2b2b},
+  {id:'cup', name:'Cups & Plates', emoji:'🍽️', color:0xffffff},
+  {id:'topping', name:'Whip & Ice', emoji:'🍦', color:0xffe4c4}
+];
+
+var DRINKS = [
+  {baseName:'Espresso', emoji:'☕', price:3.00, steps:[SA(['grinder1','grinder2']), S('espresso'), S('cup')]},
+  {baseName:'Americano', emoji:'☕', price:3.50, steps:[SA(['grinder1','grinder2']), S('espresso'), S('kettle'), S('cup')]},
+  {baseName:'Latte', emoji:'🥛', price:4.50, steps:[SA(['grinder1','grinder2']), S('espresso'), C('milk','milk',MILK), S('cup')], nameFn:function(c){ return c.milk+' Latte'; }},
+  {baseName:'Cappuccino', emoji:'🥛', price:4.75, steps:[SA(['grinder1','grinder2']), S('espresso'), C('milk','milk',MILK), S('cup')], nameFn:function(c){ return c.milk+' Cappuccino'; }},
+  {baseName:'Flavored Latte', emoji:'🍮', price:5.25, steps:[SA(['grinder1','grinder2']), S('espresso'), C('milk','milk',MILK), C('syrup','syrup',SYRUP), S('cup')], nameFn:function(c){ return c.milk+' '+c.syrup+' Latte'; }},
+  {baseName:'Mocha', emoji:'🍫', price:5.00, steps:[SA(['grinder1','grinder2']), S('espresso'), C('syrup','syrup',['Mocha']), C('milk','milk',MILK), S('topping'), S('cup')], nameFn:function(c){ return c.milk+' Mocha'; }},
+  {baseName:'Drip Coffee', emoji:'🫗', price:2.50, steps:[S('batch'), S('cup')]},
+  {baseName:'Pour-Over', emoji:'💧', price:5.50, steps:[S('kettle'), S('pourover'), S('cup')]},
+  {baseName:'Cold Brew', emoji:'🧊', price:4.00, steps:[S('coldbrew'), S('topping'), S('cup')]},
+  {baseName:'Cold Brew Latte', emoji:'🧊', price:4.75, steps:[S('coldbrew'), C('milk','milk',MILK), S('topping'), S('cup')], nameFn:function(c){ return c.milk+' Cold Brew Latte'; }},
+  {baseName:'Tea', emoji:'🍵', price:3.00, steps:[S('kettle'), S('tea'), S('cup')]},
+  {baseName:'Chai Latte', emoji:'🍵', price:4.50, steps:[S('tea'), C('milk','milk',MILK), S('cup')], nameFn:function(c){ return c.milk+' Chai Latte'; }},
+  {baseName:'Matcha Latte', emoji:'🍵', price:5.00, steps:[S('tea'), C('milk','milk',MILK), S('cup')], nameFn:function(c){ return c.milk+' Matcha Latte'; }}
+];
+
+var FOODS = [
+  {baseName:'Croissant', emoji:'🥐', price:3.50, steps:[S('pastry'), S('cup')]},
+  {baseName:'Muffin', emoji:'🧁', price:3.00, steps:[S('pastry'), S('cup')]},
+  {baseName:'Cookie', emoji:'🍪', price:2.00, steps:[S('pastry'), S('cup')]},
+  {baseName:'Brownie', emoji:'🍫', price:3.25, steps:[S('pastry'), S('cup')]},
+  {baseName:'Cake Slice', emoji:'🍰', price:4.50, steps:[S('pastry'), S('cup')]},
+  {baseName:'Bagel', emoji:'🥯', price:3.50, steps:[S('pastry'), C('toast','toaster',TOAST), S('cup')], nameFn:function(c){ return c.toast+' Bagel'; }},
+  {baseName:'Sandwich', emoji:'🥪', price:6.50, steps:[S('pastry'), S('panini'), S('cup')]}
+];
+
+var ALL_MENU = DRINKS.concat(FOODS);
+var CUSTOMERS_PER_DAY = 6;
+var MAX_DAY = 7;
+var PENALTY = 2.5;
+
+function stationById(id){ for(var i=0;i<STATIONS.length;i++){ if(STATIONS[i].id===id) return STATIONS[i]; } return null; }
+
+function instantiateItem(entry){
+  var steps = entry.steps.map(function(s){
+    if(s.kind==='choice'){
+      var val = randomFrom(s.options);
+      return {kind:'choice', group:s.group, station:s.station, options:s.options, correct:val};
+    }
+    return {kind:s.kind, station:s.station, stations:s.stations};
+  });
+  var choices = {};
+  steps.forEach(function(s){ if(s.kind==='choice') choices[s.group]=s.correct; });
+  var name = entry.nameFn ? entry.nameFn(choices) : entry.baseName;
+  return {name:name, emoji:entry.emoji, price:entry.price, steps:steps, done:false};
+}
+
+function generateOrder(day){
+  var range;
+  if(day<=1) range=[1,2]; else if(day<=3) range=[2,3]; else if(day<=5) range=[2,4]; else range=[3,4];
+  var n = randInt(range[0],range[1]);
+  var items=[];
+  for(var i=0;i<n;i++){ items.push(instantiateItem(randomFrom(ALL_MENU))); }
+  var totalSteps = items.reduce(function(a,it){ return a+it.steps.length; },0);
+  var diff = Math.max(0.75, 1.15-(day-1)*0.07);
+  var timeLimit = Math.round((6+totalSteps*4.5)*diff);
+  return {items:items, timeLimit:timeLimit};
+}
+
+/* ---------- DOM refs ---------- */
+var el = {};
+['topBar','dayNum','tipsNum','custNum','repNum','repFill','timerWrap','timerFill','timerText',
+ 'ticketPanel','ticketItems','choicePanel','choiceLabel','choiceOptions','toast',
+ 'crosshair','guideWrap','guideArrow','guideLabel','controlsHint',
+ 'startScreen','openCafeBtn','bestDisplay','dayEndScreen','deTitle','deTips','deTotal','deRep','nextDayBtn',
+ 'gameOverScreen','goDays','goTips','goBest','tryAgainBtn','pauseOverlay','resumeBtn'
+].forEach(function(id){ el[id]=document.getElementById(id); });
+
+function hide(node){ node.style.display='none'; }
+
+/* ---------- game state ---------- */
+var gameState = 'start'; // start, playing, transition, dayend, gameover
+var paused = false;
+var currentDay = 1;
+var totalTips = 0, dayTips = 0, reputation = 100, customersServedToday = 0;
+var currentOrderItems = null, itemIndex=0, stepIndex=0, timeLimitCurrent=0, timeRemaining=0;
+
+/* ---------- first-person player ---------- */
+var EYE_HEIGHT = 1.65;
+var MOVE_SPEED = 3.2;
+var STATION_X = -5.4;
+var PLAYER_BOUNDS = {xMin:-4.5, xMax:-1.9, zMin:-7.4, zMax:7.4};
+var player = {x:-3.1, z:0, yaw:Math.PI/2, pitch:0};
+var pointerLocked = false;
+var choiceActive = false;
+var keys = {};
+
+function updateTopBar(){
+  el.dayNum.textContent = currentDay;
+  el.tipsNum.textContent = '$'+totalTips.toFixed(2);
+  el.custNum.textContent = customersServedToday+'/'+CUSTOMERS_PER_DAY;
+  el.repNum.textContent = Math.round(reputation);
+  el.repFill.style.width = reputation+'%';
+  el.repFill.style.background = reputation>50?'#5fbf5f':reputation>25?'#e0c341':'#e0503f';
+}
+
+function getCurrentStep(){
+  if(!currentOrderItems) return null;
+  var item = currentOrderItems[itemIndex];
+  if(!item) return null;
+  return item.steps[stepIndex] || null;
+}
+
+/* ---------- toast ---------- */
+var toastTimer=null;
+function showToast(msg){
+  el.toast.textContent = msg;
+  el.toast.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.toast.classList.remove('show'); }, 1500);
+}
+
+/* ---------- audio ---------- */
+var audioCtx=null;
+function resumeAudio(){
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+  }catch(e){}
+}
+function playTone(type){
+  if(!audioCtx) return;
+  try{
+    var o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    var now=audioCtx.currentTime;
+    if(type==='good'){ o.frequency.setValueAtTime(660,now); o.frequency.exponentialRampToValueAtTime(990,now+0.12); }
+    else if(type==='bad'){ o.frequency.setValueAtTime(300,now); o.frequency.exponentialRampToValueAtTime(140,now+0.25); }
+    else { o.frequency.setValueAtTime(523,now); o.frequency.setValueAtTime(659,now+0.1); o.frequency.setValueAtTime(784,now+0.2); }
+    g.gain.setValueAtTime(0.15,now);
+    g.gain.exponentialRampToValueAtTime(0.001, now+0.3);
+    o.start(now); o.stop(now+0.32);
+  }catch(e){}
+}
+
+/* ---------- three.js scene ---------- */
+var scene, camera, renderer, raycaster;
+var clickableMeshes = [];
+var stationMeta = {}; // id -> {mesh, isActive, flashColor, flashUntil}
+var customerMesh=null, customerState=null;
+
+var SB_GREEN = 0x0a5c3e;
+var SB_CREAM = 0xe8dcc4;
+var SB_WOOD_DARK = 0x3e2723;
+var SB_WOOD_FLOOR = 0x5c3a21;
+
+function initScene(){
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xcabb98);
+  scene.fog = new THREE.Fog(0xcabb98, 18, 36);
+
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 100);
+  camera.position.set(player.x, EYE_HEIGHT, player.z);
+  camera.rotation.order = 'YXZ';
+
+  renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.getElementById('scene').appendChild(renderer.domElement);
+
+  scene.add(new THREE.AmbientLight(0xfff1d6, 0.85));
+  var dl = new THREE.DirectionalLight(0xfff2d9, 0.45);
+  dl.position.set(5,10,6);
+  scene.add(dl);
+
+  // Pendant lamps over the espresso bar (Starbucks-style hanging fixtures)
+  [-4.5,-1.5,1.5,4.5].forEach(function(pz){
+    var lampY = 3.0, cordTop = 5.5;
+    var cord = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,cordTop-lampY,6), new THREE.MeshStandardMaterial({color:0x1a1a1a}));
+    cord.position.set(-2.6, (cordTop+lampY)/2, pz);
+    scene.add(cord);
+    var shade = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.22,0.3,14), new THREE.MeshStandardMaterial({color:SB_WOOD_DARK}));
+    shade.position.set(-2.6, lampY, pz);
+    scene.add(shade);
+    var bulb = new THREE.PointLight(0xffd9a0, 0.55, 9);
+    bulb.position.set(-2.6, lampY-0.1, pz);
+    scene.add(bulb);
+  });
+
+  var floor = new THREE.Mesh(new THREE.PlaneGeometry(40,40), new THREE.MeshStandardMaterial({color:SB_WOOD_FLOOR}));
+  floor.rotation.x = -Math.PI/2;
+  scene.add(floor);
+
+  var ceiling = new THREE.Mesh(new THREE.PlaneGeometry(40,40), new THREE.MeshStandardMaterial({color:SB_CREAM, side:THREE.DoubleSide}));
+  ceiling.rotation.x = Math.PI/2;
+  ceiling.position.y = 5.6;
+  scene.add(ceiling);
+
+  var wall = new THREE.Mesh(new THREE.PlaneGeometry(20,5.6), new THREE.MeshStandardMaterial({color:SB_CREAM}));
+  wall.position.set(-6.4,2.8,0);
+  wall.rotation.y = Math.PI/2;
+  scene.add(wall);
+
+  var wainscot = new THREE.Mesh(new THREE.PlaneGeometry(20,1.1), new THREE.MeshStandardMaterial({color:SB_GREEN}));
+  wainscot.position.set(-6.38,0.55,0);
+  wainscot.rotation.y = Math.PI/2;
+  scene.add(wainscot);
+
+  var menuBoard = new THREE.Mesh(new THREE.PlaneGeometry(2.2,0.6), new THREE.MeshBasicMaterial({map:makeMenuBoardTexture()}));
+  menuBoard.position.set(-6.35,4.3,0);
+  menuBoard.rotation.y = Math.PI/2;
+  scene.add(menuBoard);
+
+  // End walls + storefront wall enclose the shop
+  [-9.5,9.5].forEach(function(ez){
+    var endWall = new THREE.Mesh(new THREE.PlaneGeometry(20,5.6), new THREE.MeshStandardMaterial({color:SB_CREAM, side:THREE.DoubleSide}));
+    endWall.position.set(-1,2.8,ez);
+    scene.add(endWall);
+  });
+  var frontWall = new THREE.Mesh(new THREE.PlaneGeometry(19,5.6), new THREE.MeshStandardMaterial({color:SB_CREAM, side:THREE.DoubleSide}));
+  frontWall.position.set(10,2.8,0);
+  frontWall.rotation.y = Math.PI/2;
+  scene.add(frontWall);
+  var storefrontGlass = new THREE.Mesh(new THREE.PlaneGeometry(19,1.8), new THREE.MeshStandardMaterial({color:0xbfe3e8, transparent:true, opacity:0.35, side:THREE.DoubleSide}));
+  storefrontGlass.position.set(9.95,3.2,0);
+  storefrontGlass.rotation.y = Math.PI/2;
+  scene.add(storefrontGlass);
+
+  var counter = new THREE.Mesh(new THREE.BoxGeometry(1.6,1,20), new THREE.MeshStandardMaterial({color:SB_WOOD_DARK}));
+  counter.position.set(-0.8,0.5,0);
+  scene.add(counter);
+
+  var counterTrim = new THREE.Mesh(new THREE.BoxGeometry(1.62,0.25,20), new THREE.MeshStandardMaterial({color:SB_GREEN}));
+  counterTrim.position.set(-0.8,0.15,0);
+  scene.add(counterTrim);
+
+  STATIONS.forEach(function(st, idx){
+    var z = (idx - (STATIONS.length-1)/2) * 1.0;
+    st.posX = STATION_X; st.posZ = z;
+    var group = new THREE.Group();
+    var baseMat = new THREE.MeshStandardMaterial({color:st.color, emissive:0x000000, emissiveIntensity:0});
+    var base = new THREE.Mesh(new THREE.BoxGeometry(0.85,1.0,0.85), baseMat);
+    base.position.y = 1.1;
+    base.userData.stationId = st.id;
+    var topMat = new THREE.MeshStandardMaterial({color:0x2b1710, emissive:0x000000, emissiveIntensity:0});
+    var top = new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.32,0.4,10), topMat);
+    top.position.y = 1.8;
+    top.userData.stationId = st.id;
+    group.add(base, top);
+    addStationDetails(group, st);
+    group.position.set(STATION_X, 0, z);
+    scene.add(group);
+    clickableMeshes.push(base, top);
+
+    var beaconMat = new THREE.MeshBasicMaterial({color:0xff9500, transparent:true, opacity:0, depthTest:false, depthWrite:false, side:THREE.DoubleSide});
+    var beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,6,8,1,true), beaconMat);
+    beacon.position.set(STATION_X, 3, z);
+    beacon.renderOrder = 999;
+    beacon.visible = false;
+    scene.add(beacon);
+
+    stationMeta[st.id] = {baseMat:baseMat, topMat:topMat, beacon:beacon, beaconMat:beaconMat, isActive:false, flashColor:0, flashUntil:0};
+
+    var label = makeTextSprite(st.emoji+' '+st.name);
+    label.position.set(STATION_X, 2.5, z);
+    scene.add(label);
+  });
+
+  buildChevronPool();
+
+  raycaster = new THREE.Raycaster();
+  renderer.domElement.addEventListener('click', onCanvasClick);
+  document.addEventListener('pointerlockchange', onPointerLockChange);
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('keydown', function(e){
+    keys[e.key.toLowerCase()]=true;
+    if(e.key==='Escape' && pointerLocked && document.exitPointerLock){ document.exitPointerLock(); }
+  });
+  document.addEventListener('keyup', function(e){ keys[e.key.toLowerCase()]=false; });
+  window.addEventListener('blur', function(){ keys = {}; });
+  window.addEventListener('resize', onResize);
+}
+
+function makeTextSprite(text){
+  var canvas = document.createElement('canvas');
+  canvas.width = 256; canvas.height = 64;
+  var ctx = canvas.getContext('2d');
+  ctx.font = '22px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(10,92,62,0.88)';
+  roundRect(ctx, 4, 10, canvas.width-8, canvas.height-20, 12);
+  ctx.fill();
+  ctx.fillStyle = '#f3e2c7';
+  ctx.fillText(text, canvas.width/2, canvas.height/2+8);
+  var tex = new THREE.CanvasTexture(canvas);
+  var mat = new THREE.SpriteMaterial({map:tex, transparent:true, sizeAttenuation:true});
+  var sprite = new THREE.Sprite(mat);
+  sprite.scale.set(1.3,0.33,1);
+  return sprite;
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function makeMenuBoardTexture(){
+  var canvas = document.createElement('canvas');
+  canvas.width = 512; canvas.height = 140;
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#0a5c3e';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle = '#e8dcc4';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(6,6,canvas.width-12,canvas.height-12);
+  ctx.fillStyle = '#e8dcc4';
+  ctx.font = 'bold 46px Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText("Today's Menu", canvas.width/2, canvas.height/2);
+  return new THREE.CanvasTexture(canvas);
+}
+
+/* ---------- decorative per-station detail geometry (non-interactive) ---------- */
+var DETAIL_DARK = 0x1a1a1a;
+var DETAIL_METAL = 0xc0c0c0;
+var DETAIL_GLASS = 0xbfe3e8;
+var DETAIL_WOOD = 0x3a2a1a;
+
+function addDetailMesh(group, geo, color, x, y, z, rx, ry, rz, opacity){
+  var mat = opacity!==undefined
+    ? new THREE.MeshStandardMaterial({color:color, transparent:true, opacity:opacity})
+    : new THREE.MeshStandardMaterial({color:color});
+  var mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x,y,z);
+  if(rx) mesh.rotation.x = rx;
+  if(ry) mesh.rotation.y = ry;
+  if(rz) mesh.rotation.z = rz;
+  group.add(mesh);
+  return mesh;
+}
+
+function addStationDetails(group, st){
+  switch(st.id){
+    case 'grinder1':
+    case 'grinder2':
+      addDetailMesh(group, new THREE.ConeGeometry(0.2,0.3,10), 0x2b1710, 0,2.05,0);
+      addDetailMesh(group, new THREE.BoxGeometry(0.12,0.12,0.1), DETAIL_DARK, 0.42,0.65,0);
+      break;
+    case 'espresso':
+      addDetailMesh(group, new THREE.BoxGeometry(0.1,0.12,0.12), DETAIL_DARK, 0.42,1.25,-0.18);
+      addDetailMesh(group, new THREE.BoxGeometry(0.1,0.12,0.12), DETAIL_DARK, 0.42,1.25,0.18);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.025,0.02,0.14,8), DETAIL_DARK, 0.46,1.1,-0.18);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.025,0.02,0.14,8), DETAIL_DARK, 0.46,1.1,0.18);
+      addDetailMesh(group, new THREE.BoxGeometry(0.05,0.05,0.02), 0xdddddd, 0.44,1.55,-0.08, 0,0,Math.PI/2);
+      addDetailMesh(group, new THREE.BoxGeometry(0.05,0.05,0.02), 0xdddddd, 0.44,1.55,0.08, 0,0,Math.PI/2);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.02,0.02,0.35,8), DETAIL_METAL, 0.4,1.4,0.4, 0,0,0.6);
+      break;
+    case 'batch':
+      addDetailMesh(group, new THREE.CylinderGeometry(0.14,0.11,0.4,12), 0x8a5a2b, 0.4,0.35,0, 0,0,0, 0.55);
+      addDetailMesh(group, new THREE.BoxGeometry(0.26,0.04,0.26), DETAIL_DARK, 0.4,0.13,0);
+      break;
+    case 'pourover':
+      addDetailMesh(group, new THREE.ConeGeometry(0.16,0.22,10), st.color, 0,2.05,0, Math.PI,0,0);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.13,0.1,0.35,12), 0xcbe8ec, 0.38,0.3,0, 0,0,0, 0.4);
+      break;
+    case 'coldbrew':
+      addDetailMesh(group, new THREE.BoxGeometry(0.08,0.06,0.15), DETAIL_METAL, 0.42,0.75,0);
+      addDetailMesh(group, new THREE.TorusGeometry(0.05,0.015,6,12), 0x333333, 0.5,0.75,0, 0,Math.PI/2,0);
+      break;
+    case 'milk':
+      addDetailMesh(group, new THREE.BoxGeometry(0.55,0.85,0.04), DETAIL_GLASS, 0.44,1.1,0, 0,0,0, 0.45);
+      addDetailMesh(group, new THREE.BoxGeometry(0.03,0.4,0.03), 0x888888, 0.47,1.1,0.35);
+      break;
+    case 'kettle':
+      addDetailMesh(group, new THREE.SphereGeometry(0.05,10,8), DETAIL_DARK, 0,2.05,0);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.03,0.05,0.22,8), st.color, 0.35,1.85,0, 0,0,-0.9);
+      addDetailMesh(group, new THREE.TorusGeometry(0.12,0.02,8,14,Math.PI), DETAIL_DARK, -0.3,1.85,0, 0,0,Math.PI/2);
+      break;
+    case 'tea':
+      addDetailMesh(group, new THREE.BoxGeometry(0.7,0.04,0.4), DETAIL_WOOD, 0,1.95,0);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.07,0.07,0.22,10), 0x2e7d32, -0.2,2.08,0);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.07,0.07,0.22,10), 0x8d6e63, 0,2.08,0);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.07,0.07,0.22,10), 0xc0392b, 0.2,2.08,0);
+      break;
+    case 'syrup':
+      addDetailMesh(group, new THREE.CylinderGeometry(0.045,0.055,0.28,8), 0xb5651d, -0.3,1.75,0.15);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.045,0.055,0.28,8), 0xf0e2c0, -0.1,1.75,0.15);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.045,0.055,0.28,8), 0x4a2c17, 0.1,1.75,0.15);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.045,0.055,0.28,8), 0xc68e5a, 0.3,1.75,0.15);
+      break;
+    case 'pastry':
+      addDetailMesh(group, new THREE.BoxGeometry(0.8,0.5,0.06), DETAIL_GLASS, 0.44,1.3,0, 0,0,0, 0.35);
+      addDetailMesh(group, new THREE.TorusGeometry(0.08,0.03,8,12,Math.PI*1.5), 0xd8a860, -0.2,1.35,0.2);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.07,0.09,0.09,10), 0x8d5a2b, 0,1.32,0.2);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.06,0.06,0.02,10), 0xa9713a, 0.2,1.3,0.2);
+      break;
+    case 'toaster':
+      addDetailMesh(group, new THREE.BoxGeometry(0.4,0.3,0.04), 0x111111, 0.44,1.15,0);
+      addDetailMesh(group, new THREE.BoxGeometry(0.2,0.12,0.02), 0x552200, 0.46,1.15,0);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.035,0.035,0.04,10), 0xcccccc, 0.45,0.9,0.3, 0,0,Math.PI/2);
+      break;
+    case 'panini':
+      addDetailMesh(group, new THREE.BoxGeometry(0.7,0.06,0.5), DETAIL_DARK, 0,1.63,0);
+      addDetailMesh(group, new THREE.BoxGeometry(0.65,0.05,0.45), DETAIL_DARK, 0,2.0,-0.15, -0.35,0,0);
+      addDetailMesh(group, new THREE.BoxGeometry(0.15,0.03,0.05), 0x333333, 0,2.05,0.2);
+      break;
+    case 'cup':
+      addDetailMesh(group, new THREE.BoxGeometry(0.75,0.04,0.4), 0xffffff, 0,1.65,0);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.06,0.05,0.12,10), 0xffffff, -0.15,1.75,0);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.06,0.05,0.12,10), 0xffffff, 0.05,1.75,0);
+      addDetailMesh(group, new THREE.CylinderGeometry(0.18,0.18,0.02,16), 0xffffff, 0.3,1.66,0.1);
+      break;
+    case 'topping':
+      addDetailMesh(group, new THREE.CylinderGeometry(0.1,0.11,0.35,10), 0xd8d8d8, -0.2,1.85,0);
+      addDetailMesh(group, new THREE.ConeGeometry(0.04,0.08,8), 0xaaaaaa, -0.2,2.07,0);
+      addDetailMesh(group, new THREE.BoxGeometry(0.35,0.2,0.3), 0xdff2f5, 0.25,1.7,0);
+      break;
+  }
+}
+
+function onResize(){
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+var CENTER_NDC = {x:0, y:0};
+function onCanvasClick(){
+  if(gameState!=='playing') return;
+  if(!pointerLocked){ renderer.domElement.requestPointerLock(); return; }
+  raycaster.setFromCamera(CENTER_NDC, camera);
+  var hits = raycaster.intersectObjects(clickableMeshes);
+  if(hits.length){
+    var id = hits[0].object.userData.stationId;
+    if(id) attemptStation(id);
+  }
+}
+
+function onPointerLockChange(){
+  pointerLocked = document.pointerLockElement===renderer.domElement;
+  if(gameState==='playing'){
+    if(pointerLocked){ paused=false; el.pauseOverlay.style.display='none'; }
+    else if(!choiceActive){ paused=true; el.pauseOverlay.style.display='flex'; keys={}; }
+  }
+}
+
+function onMouseMove(e){
+  if(!pointerLocked) return;
+  player.yaw -= e.movementX*0.0022;
+  player.pitch -= e.movementY*0.0022;
+  player.pitch = clamp(player.pitch, -Math.PI/2+0.02, Math.PI/2-0.02);
+}
+
+function updatePlayerMovement(dt){
+  var forward = {x:-Math.sin(player.yaw), z:-Math.cos(player.yaw)};
+  var right = {x:Math.cos(player.yaw), z:-Math.sin(player.yaw)};
+  var mx=0, mz=0;
+  if(keys['w']||keys['arrowup']){ mx+=forward.x; mz+=forward.z; }
+  if(keys['s']||keys['arrowdown']){ mx-=forward.x; mz-=forward.z; }
+  if(keys['a']||keys['arrowleft']){ mx-=right.x; mz-=right.z; }
+  if(keys['d']||keys['arrowright']){ mx+=right.x; mz-=right.z; }
+  var len = Math.sqrt(mx*mx+mz*mz);
+  if(len>0.0001){
+    mx/=len; mz/=len;
+    player.x = clamp(player.x+mx*MOVE_SPEED*dt, PLAYER_BOUNDS.xMin, PLAYER_BOUNDS.xMax);
+    player.z = clamp(player.z+mz*MOVE_SPEED*dt, PLAYER_BOUNDS.zMin, PLAYER_BOUNDS.zMax);
+  }
+  camera.position.set(player.x, EYE_HEIGHT, player.z);
+  camera.rotation.y = player.yaw;
+  camera.rotation.x = player.pitch;
+  camera.rotation.z = 0;
+}
+
+/* ---------- guidance: beacon / compass arrow / floor chevrons ---------- */
+function stationTargetIdForStep(step){
+  if(!step) return null;
+  if(step.kind==='choice' || step.kind==='station') return step.station;
+  if(step.kind==='stationAny'){
+    var bestId = step.stations[0], bestD = Infinity;
+    step.stations.forEach(function(id){
+      var st = stationById(id);
+      var d = Math.abs(st.posZ-player.z);
+      if(d<bestD){ bestD=d; bestId=id; }
+    });
+    return bestId;
+  }
+  return null;
+}
+
+var camDir = new THREE.Vector3();
+function updateGuidance(){
+  var step = getCurrentStep();
+  var id = stationTargetIdForStep(step);
+  var st = id ? stationById(id) : null;
+  if(!st){
+    el.guideWrap.style.display = 'none';
+    return;
+  }
+  var dx = st.posX-player.x, dz = st.posZ-player.z;
+  var dist = Math.sqrt(dx*dx+dz*dz);
+  camera.getWorldDirection(camDir);
+  var flen = Math.sqrt(camDir.x*camDir.x+camDir.z*camDir.z)||1;
+  var fx=camDir.x/flen, fz=camDir.z/flen;
+  var tlen = dist||0.0001;
+  var tx=dx/tlen, tz=dz/tlen;
+  var cross = fz*tx - fx*tz;
+  var dot = fx*tx+fz*tz;
+  var signedAngle = Math.atan2(cross, dot);
+  var arrowDeg = -signedAngle*180/Math.PI;
+  el.guideArrow.style.transform = 'rotate('+arrowDeg.toFixed(1)+'deg)';
+  el.guideLabel.textContent = st.emoji+' '+st.name+' — '+Math.max(0,Math.round(dist))+'m';
+  el.guideWrap.style.display = 'block';
+}
+
+var CHEVRON_COUNT = 10;
+var CHEVRON_SPACING = 0.85;
+var chevrons = [];
+function buildChevronPool(){
+  var tex = makeChevronTexture();
+  var geo = new THREE.PlaneGeometry(0.4,0.5);
+  for(var i=0;i<CHEVRON_COUNT;i++){
+    var mat = new THREE.MeshBasicMaterial({map:tex, transparent:true, opacity:0, depthWrite:false, side:THREE.DoubleSide});
+    var mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.order = 'YXZ';
+    mesh.rotation.x = -Math.PI/2;
+    mesh.visible = false;
+    scene.add(mesh);
+    chevrons.push({mesh:mesh, mat:mat});
+  }
+}
+
+function makeChevronTexture(){
+  var canvas = document.createElement('canvas');
+  canvas.width = 64; canvas.height = 64;
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffcc55';
+  ctx.beginPath();
+  ctx.moveTo(32,4); ctx.lineTo(58,34); ctx.lineTo(40,34); ctx.lineTo(40,60);
+  ctx.lineTo(24,60); ctx.lineTo(24,34); ctx.lineTo(6,34);
+  ctx.closePath();
+  ctx.fill();
+  return new THREE.CanvasTexture(canvas);
+}
+
+function updateChevrons(){
+  var step = getCurrentStep();
+  var id = stationTargetIdForStep(step);
+  var st = id ? stationById(id) : null;
+  if(!st){
+    chevrons.forEach(function(c){ c.mesh.visible=false; });
+    return;
+  }
+  var dx = st.posX-player.x, dz = st.posZ-player.z;
+  var dist = Math.sqrt(dx*dx+dz*dz);
+  if(dist<1.3){
+    chevrons.forEach(function(c){ c.mesh.visible=false; });
+    return;
+  }
+  var ndx=dx/dist, ndz=dz/dist;
+  var yaw = Math.atan2(-dx,-dz);
+  var count = Math.min(CHEVRON_COUNT, Math.floor(dist/CHEVRON_SPACING));
+  var now = performance.now()*0.001;
+  for(var i=0;i<CHEVRON_COUNT;i++){
+    var c = chevrons[i];
+    if(i<count){
+      var t = CHEVRON_SPACING*(i+1);
+      c.mesh.position.set(player.x+ndx*t, 0.05, player.z+ndz*t);
+      c.mesh.rotation.y = yaw;
+      c.mat.opacity = Math.max(0.15, 0.35+0.35*Math.sin(now*3-i*0.6));
+      c.mesh.visible = true;
+    } else {
+      c.mesh.visible = false;
+    }
+  }
+}
+
+var PASTEL = [0xf2b5a0,0xa0d2f2,0xc7f2a0,0xf2e0a0,0xd8a0f2,0xa0f2d6];
+var SKIN = [0xf0c8a0,0xd7a878,0xa8703f,0x8a5232,0xf5d9b0];
+
+function spawnCustomerMesh(){
+  if(customerMesh){ scene.remove(customerMesh); customerMesh=null; }
+  var group = new THREE.Group();
+  var body = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.4,1.2,12), new THREE.MeshStandardMaterial({color:randomFrom(PASTEL)}));
+  body.position.y = 0.6;
+  var head = new THREE.Mesh(new THREE.SphereGeometry(0.28,12,12), new THREE.MeshStandardMaterial({color:randomFrom(SKIN)}));
+  head.position.y = 1.35;
+  group.add(body, head);
+  group.position.set(7, 0, 0);
+  scene.add(group);
+  customerMesh = group;
+  customerState = {phase:'arriving', t:0};
+}
+
+function startCustomerLeave(){
+  if(customerMesh){ customerState = {phase:'leaving', t:0}; }
+}
+
+function animateCustomer(dt){
+  if(!customerMesh || !customerState) return;
+  if(customerState.phase==='arriving'){
+    customerState.t += dt/1.0;
+    var p = Math.min(1, customerState.t);
+    customerMesh.position.x = lerp(7, 2.2, easeOutCubic(p));
+    if(p>=1) customerState.phase='waiting';
+  } else if(customerState.phase==='leaving'){
+    customerState.t += dt/1.0;
+    var p2 = Math.min(1, customerState.t);
+    customerMesh.position.x = lerp(2.2, 7, easeInCubic(p2));
+    if(p2>=1){ scene.remove(customerMesh); customerMesh=null; customerState=null; }
+  } else {
+    customerMesh.position.y = Math.sin(performance.now()*0.002)*0.04;
+  }
+}
+
+function flashStation(id, kind){
+  var meta = stationMeta[id];
+  if(!meta) return;
+  meta.flashColor = kind==='good' ? 0x55ff77 : 0xff5555;
+  meta.flashUntil = performance.now()+350;
+}
+
+function updateActiveStationHighlights(){
+  var activeIds = {};
+  var step = getCurrentStep();
+  if(step){
+    if(step.kind==='station') activeIds[step.station]=true;
+    else if(step.kind==='stationAny') step.stations.forEach(function(s){ activeIds[s]=true; });
+    else if(step.kind==='choice') activeIds[step.station]=true;
+  }
+  STATIONS.forEach(function(st){
+    var meta = stationMeta[st.id];
+    meta.isActive = !!activeIds[st.id];
+  });
+}
+
+function animateStations(){
+  var now = performance.now();
+  STATIONS.forEach(function(st){
+    var meta = stationMeta[st.id];
+    if(now < meta.flashUntil){
+      var remain = (meta.flashUntil-now)/350;
+      meta.baseMat.emissive.setHex(meta.flashColor);
+      meta.baseMat.emissiveIntensity = remain;
+      meta.topMat.emissive.setHex(meta.flashColor);
+      meta.topMat.emissiveIntensity = remain;
+    } else if(meta.isActive){
+      var pulse = 0.4+0.3*Math.sin(now*0.006);
+      meta.baseMat.emissive.setHex(0xffcc55);
+      meta.baseMat.emissiveIntensity = pulse;
+      meta.topMat.emissive.setHex(0xffcc55);
+      meta.topMat.emissiveIntensity = pulse;
+    } else {
+      meta.baseMat.emissiveIntensity = 0;
+      meta.topMat.emissiveIntensity = 0;
+    }
+    if(meta.isActive){
+      meta.beacon.visible = true;
+      meta.beaconMat.opacity = 0.5+0.3*Math.sin(now*0.012);
+    } else {
+      meta.beacon.visible = false;
+    }
+  });
+}
+
+/* ---------- ticket rendering ---------- */
+function groupQuestion(g){
+  return g==='milk' ? 'Pick milk type:' : g==='syrup' ? 'Pick syrup flavor:' : g==='toast' ? 'Toast the bagel?' : 'Choose:';
+}
+function stepLabel(s){
+  if(s.kind==='choice'){
+    return s.group==='milk' ? '🥛?' : s.group==='syrup' ? '🍯?' : s.group==='toast' ? '🔥?' : '?';
+  }
+  var ids = s.stations || [s.station];
+  return ids.map(function(id){ var st=stationById(id); return st?st.emoji:'?'; }).join('/');
+}
+
+function renderTicket(){
+  if(!currentOrderItems){ el.ticketItems.innerHTML=''; return; }
+  el.ticketItems.innerHTML = currentOrderItems.map(function(it, i){
+    var status = i<itemIndex ? 'done' : i===itemIndex ? 'active' : 'pending';
+    var stepsHtml = '';
+    if(i===itemIndex){
+      stepsHtml = '<div class="stepsRow">'+it.steps.map(function(s, si){
+        var cls = si<stepIndex ? 'stepdone' : si===stepIndex ? 'stepactive' : 'steppending';
+        return '<span class="step '+cls+'">'+stepLabel(s)+'</span>';
+      }).join('')+'</div>';
+    }
+    return '<div class="ticketItem '+status+'"><span class="tiIcon">'+it.emoji+'</span><span class="tiName">'+it.name+'</span>'+stepsHtml+'</div>';
+  }).join('');
+}
+
+function showChoicePanel(step){
+  choiceActive = true;
+  el.choiceLabel.textContent = groupQuestion(step.group);
+  el.choiceOptions.innerHTML = '';
+  step.options.forEach(function(opt){
+    var b = document.createElement('button');
+    b.className = 'choiceBtn';
+    b.textContent = opt;
+    b.onclick = function(){ attemptChoice(step.group, opt); };
+    el.choiceOptions.appendChild(b);
+  });
+  el.choicePanel.style.display = 'flex';
+  // Pointer lock captures all clicks for the canvas, so the choice buttons are
+  // unreachable while locked. Release it here; hideChoicePanel() re-locks.
+  if(document.exitPointerLock) document.exitPointerLock();
+}
+function hideChoicePanel(){
+  var wasActive = choiceActive;
+  choiceActive = false;
+  el.choicePanel.style.display='none';
+  if(wasActive && gameState==='playing'){ renderer.domElement.requestPointerLock(); }
+}
+
+/* ---------- gameplay actions ---------- */
+function attemptStation(id){
+  if(gameState!=='playing') return;
+  var step = getCurrentStep();
+  if(!step) return;
+  if(step.kind==='choice'){
+    if(step.station===id) return; // informational only
+    penalty();
+    flashStation(id,'bad');
+    return;
+  }
+  if(step.kind==='station' && step.station===id){ success(id); return; }
+  if(step.kind==='stationAny' && step.stations.indexOf(id)!==-1){ success(id); return; }
+  penalty();
+  flashStation(id,'bad');
+}
+
+function attemptChoice(group, value){
+  if(gameState!=='playing') return;
+  var step = getCurrentStep();
+  if(!step || step.kind!=='choice' || step.group!==group) return;
+  if(value===step.correct){ success(step.station); }
+  else { penalty(); }
+}
+
+function penalty(){
+  timeRemaining = Math.max(0, timeRemaining-PENALTY);
+  reputation = clamp(reputation-1, 0, 100);
+  updateTopBar();
+  playTone('bad');
+  showToast('❌ Wrong equipment!');
+}
+
+function success(id){
+  flashStation(id,'good');
+  playTone('good');
+  stepIndex++;
+  var item = currentOrderItems[itemIndex];
+  if(stepIndex>=item.steps.length){
+    item.done = true;
+    itemIndex++;
+    stepIndex = 0;
+    if(itemIndex>=currentOrderItems.length){ completeOrder(); return; }
+  }
+  var next = getCurrentStep();
+  if(next && next.kind==='choice') showChoicePanel(next); else hideChoicePanel();
+  renderTicket();
+  updateActiveStationHighlights();
+}
+
+function completeOrder(){
+  gameState='transition';
+  hideChoicePanel();
+  var totalPrice = currentOrderItems.reduce(function(a,it){ return a+it.price; },0);
+  var frac = timeLimitCurrent>0 ? Math.max(0, timeRemaining/timeLimitCurrent) : 0;
+  var tip = totalPrice*(1+0.8*frac);
+  dayTips += tip; totalTips += tip;
+  reputation = clamp(reputation+2, 0, 100);
+  updateTopBar();
+  showToast('✅ Order complete! +$'+tip.toFixed(2));
+  playTone('complete');
+  scheduleNext();
+}
+
+function failOrder(){
+  gameState='transition';
+  hideChoicePanel();
+  reputation = clamp(reputation-8, 0, 100);
+  updateTopBar();
+  showToast('⌛ Time is up — customer left unhappy!');
+  playTone('bad');
+  scheduleNext();
+}
+
+function scheduleNext(){
+  customersServedToday++;
+  updateTopBar();
+  startCustomerLeave();
+  setTimeout(function(){
+    if(reputation<=0){ gameOver(); return; }
+    if(customersServedToday>=CUSTOMERS_PER_DAY){ dayEnd(); }
+    else { spawnCustomerAndOrder(); }
+  }, 1600);
+}
+
+function spawnCustomerAndOrder(){
+  var order = generateOrder(currentDay);
+  currentOrderItems = order.items;
+  itemIndex = 0; stepIndex = 0;
+  timeLimitCurrent = order.timeLimit;
+  timeRemaining = order.timeLimit;
+  spawnCustomerMesh();
+  renderTicket();
+  updateActiveStationHighlights();
+  var first = getCurrentStep();
+  if(first && first.kind==='choice') showChoicePanel(first); else hideChoicePanel();
+  updateTopBar();
+  gameState = 'playing';
+}
+
+function updateTimerBar(){
+  var frac = timeLimitCurrent>0 ? clamp(timeRemaining/timeLimitCurrent,0,1) : 0;
+  el.timerFill.style.width = (frac*100)+'%';
+  el.timerFill.style.background = frac>0.5 ? '#5fbf5f' : frac>0.25 ? '#e0c341' : '#e0503f';
+  el.timerText.textContent = Math.ceil(timeRemaining)+'s';
+}
+
+/* ---------- day / game flow ---------- */
+function dayEnd(){
+  gameState = 'dayend';
+  hideChoicePanel();
+  var legend = currentDay>=MAX_DAY;
+  el.deTitle.textContent = legend ? 'Cafe Legend! ☕👑' : 'Day '+currentDay+' Complete!';
+  el.deTips.textContent = '$'+dayTips.toFixed(2);
+  el.deTotal.textContent = '$'+totalTips.toFixed(2);
+  el.deRep.textContent = Math.round(reputation)+'%';
+  el.nextDayBtn.textContent = legend ? 'Play Again' : 'Next Day ▶';
+  hide(el.topBar); hide(el.timerWrap); hide(el.ticketPanel); hide(el.crosshair); hide(el.guideWrap); hide(el.controlsHint);
+  el.dayEndScreen.style.display = 'flex';
+  if(document.exitPointerLock) document.exitPointerLock();
+}
+
+function saveBestScore(){
+  var best = Math.max(totalTips, parseFloat(localStorage.getItem('cafe3d_best')||'0'));
+  localStorage.setItem('cafe3d_best', best.toFixed(2));
+  return best;
+}
+
+function onNextDay(){
+  var legend = currentDay>=MAX_DAY;
+  el.dayEndScreen.style.display = 'none';
+  if(legend){
+    saveBestScore();
+    fullReset(); el.startScreen.style.display='flex'; updateBestDisplay(); return;
+  }
+  currentDay++;
+  customersServedToday = 0;
+  dayTips = 0;
+  el.topBar.style.display='flex'; el.timerWrap.style.display='block';
+  el.ticketPanel.style.display='block'; el.crosshair.style.display='block';
+  el.guideWrap.style.display='block'; el.controlsHint.style.display='block';
+  spawnCustomerAndOrder();
+  renderer.domElement.requestPointerLock();
+}
+
+function gameOver(){
+  gameState = 'gameover';
+  hideChoicePanel();
+  var best = saveBestScore();
+  el.goDays.textContent = currentDay;
+  el.goTips.textContent = '$'+totalTips.toFixed(2);
+  el.goBest.textContent = '$'+best.toFixed(2);
+  hide(el.topBar); hide(el.timerWrap); hide(el.ticketPanel); hide(el.crosshair); hide(el.guideWrap); hide(el.controlsHint);
+  el.gameOverScreen.style.display = 'flex';
+  if(document.exitPointerLock) document.exitPointerLock();
+}
+
+function onTryAgain(){
+  el.gameOverScreen.style.display = 'none';
+  fullReset();
+  el.topBar.style.display='flex'; el.timerWrap.style.display='block';
+  el.ticketPanel.style.display='block'; el.crosshair.style.display='block';
+  el.guideWrap.style.display='block'; el.controlsHint.style.display='block';
+  spawnCustomerAndOrder();
+  renderer.domElement.requestPointerLock();
+}
+
+function fullReset(){
+  currentDay = 1; totalTips = 0; dayTips = 0; reputation = 100; customersServedToday = 0;
+  updateTopBar();
+}
+
+function updateBestDisplay(){
+  var best = parseFloat(localStorage.getItem('cafe3d_best')||'0');
+  el.bestDisplay.textContent = '$'+best.toFixed(2);
+}
+
+/* ---------- wiring ---------- */
+el.openCafeBtn.onclick = function(){
+  resumeAudio();
+  el.startScreen.style.display = 'none';
+  fullReset();
+  el.topBar.style.display='flex'; el.timerWrap.style.display='block';
+  el.ticketPanel.style.display='block'; el.crosshair.style.display='block';
+  el.guideWrap.style.display='block'; el.controlsHint.style.display='block';
+  spawnCustomerAndOrder();
+  renderer.domElement.requestPointerLock();
+};
+el.nextDayBtn.onclick = onNextDay;
+el.tryAgainBtn.onclick = onTryAgain;
+el.resumeBtn.onclick = function(){ renderer.domElement.requestPointerLock(); };
+
+/* ---------- main loop ---------- */
+var clock;
+function animate(){
+  requestAnimationFrame(animate);
+  var dt = clock.getDelta();
+  if(gameState==='playing' && !paused){
+    timeRemaining -= dt;
+    if(timeRemaining<=0){ timeRemaining=0; gameState='transition'; failOrder(); }
+    updateTimerBar();
+    updatePlayerMovement(dt);
+    updateGuidance();
+    updateChevrons();
+  }
+  animateStations();
+  animateCustomer(dt);
+  renderer.render(scene, camera);
+}
+
+function init(){
+  initScene();
+  clock = new THREE.Clock();
+  updateBestDisplay();
+  updateTopBar();
+  animate();
+}
+init();
+
+})();
+</script>
+</body>
+</html>

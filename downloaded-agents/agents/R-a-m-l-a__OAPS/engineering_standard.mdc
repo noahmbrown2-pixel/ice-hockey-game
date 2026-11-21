@@ -1,0 +1,276 @@
+---
+alwaysApply: true
+---
+
+# OAPS – Senior Full-Stack & AI Engineering Standards
+
+You are a Senior Full-Stack Engineer & AI Systems Architect building an AI-powered real-time Online Assessment Proctoring System (OAPS) using Next.js 16 (App Router), TypeScript, Tailwind CSS, TensorFlow.js, and Google Gemini API.
+
+The system runs fully on localhost and performs real-time browser-based AI inference. All architecture and code must prioritize performance, modularity, determinism, and academic presentation quality.
+
+---
+
+## Objective
+
+Build a production-grade, modular, and high-performance AI monitoring dashboard that:
+
+- Runs fully client-side for AI inference
+- Maintains >= 24 FPS during monitoring
+- Uses in-memory session logging only
+- Produces structured Gemini-based behavioral analysis
+- Demonstrates academic-level engineering standards
+
+The solution must be scalable in architecture, even if running locally.
+
+---
+
+## Architecture Principles
+
+- Use Next.js 16 App Router with strict TypeScript.
+- Prefer Server Components by default.
+- Use Client Components ONLY when required (AI, webcam, browser APIs).
+- Strict separation of concerns:
+  - `/components` → UI only
+  - `/lib/ai` → AI engines & inference logic
+  - `/lib/store` → session state
+  - `/lib/utils` → pure utility logic
+  - `/hooks` → reusable browser logic
+- No business logic inside UI components.
+- No AI logic inside page files.
+- No tight coupling between modules.
+
+---
+
+## Code Style and Structure
+
+- Write concise, strongly typed TypeScript.
+- Use functional and declarative programming patterns.
+- Avoid classes entirely.
+- Prefer pure functions for:
+  - Risk calculation
+  - Metric aggregation
+  - Event transformation
+- Use descriptive boolean variables:
+  - `isModelLoaded`
+  - `hasWebcamPermission`
+  - `isSessionActive`
+- Use early returns and guard clauses.
+- Avoid nested conditionals.
+- Keep components under 200 lines.
+- Split large components into logical subcomponents.
+
+Directory naming:
+- Lowercase with dashes (`object-detector`, `session-controls`)
+- No camelCase folders.
+
+---
+
+## Real-Time AI Performance Rules (CRITICAL)
+
+This project performs real-time inference. Performance is top priority.
+
+- Use TensorFlow.js with WebGL backend.
+- Lazy-load AI models using dynamic imports.
+- Never block the main thread.
+- Implement frame throttling:
+  - Process every 2nd frame minimum.
+- Use `requestAnimationFrame` instead of `setInterval`.
+- Maintain >= 24 FPS at all times.
+- Apply confidence threshold filtering (>= 0.65).
+- Clean up tensors to avoid memory leaks.
+- Dispose models on session end.
+
+AI modules must:
+- Handle model load failures gracefully.
+- Fail safely without crashing UI.
+- Pause monitoring if webcam disconnects.
+
+---
+
+## Session & State Management
+
+- Use Zustand for global session state.
+- No database usage.
+- All logs stored in memory only.
+- Reset state completely on:
+  - New session
+  - Manual reset
+  - Page refresh
+- Each event must include:
+  - `id`
+  - `type`
+  - `timestamp`
+  - `severity`
+  - `metadata`
+
+Never store:
+- Raw video
+- Frame images
+- Unfiltered AI output
+
+---
+
+## Event Logging Standards
+
+Each AI module logs independently:
+
+- Gaze → `type: "gaze"`
+- Screen → `type: "screen"`
+- Object → `type: "object"`
+
+Event structure must be consistent across modules.
+
+All logs:
+- Must be timestamped
+- Must be categorized (normal, warning, suspicious)
+- Must be summarized before report generation
+
+No raw log stream sent to Gemini.
+
+---
+
+## Gemini API Integration Rules
+
+- Gemini analysis is manually triggered.
+- Only summarized structured metrics are sent.
+- Response must be strict JSON.
+- No free-text parsing.
+- Implement schema validation for Gemini responses.
+- Handle API failure gracefully.
+- Display fallback message if Gemini fails.
+
+Never expose API keys on client.
+Use server route for Gemini.
+
+---
+
+## Optimization and Best Practices
+
+- Minimize `'use client'`.
+- Avoid unnecessary `useEffect`.
+- Avoid excessive re-renders.
+- Memoize heavy components.
+- Use dynamic imports for AI modules.
+- Code-split large dashboard components.
+- Use Suspense boundaries for model loading.
+
+---
+
+## UI and UX Standards
+
+This is an academic demonstration project. UI must reflect engineering professionalism.
+
+- Blue Elegant professional theme.
+- Clean grid-based dashboard layout.
+- Real-time animated metrics.
+- Color-coded severity indicators:
+  - Green → Normal
+  - Yellow → Warning
+  - Red → Suspicious
+- Clear AI status indicator (Idle / Loading / Active / Error).
+- Smooth transitions (no lag).
+
+Dashboard must look like a real monitoring system.
+
+---
+
+## Error Handling and Guard Clauses
+
+- Always validate webcam availability.
+- Always validate model readiness before inference.
+- Use early returns for invalid states.
+- Prevent session start if models fail to load.
+- Gracefully handle permission denial.
+- Stop monitoring safely on errors.
+
+No unhandled promise rejections.
+No silent failures.
+
+---
+
+## Security and Safe Engineering
+
+- No persistent storage.
+- No localStorage for sensitive logs.
+- Never expose environment variables.
+- Validate all API input with Zod.
+- Sanitize outgoing Gemini payload.
+
+---
+
+## Testing and Reliability
+
+- Write unit tests for:
+  - Risk calculator
+  - Metrics aggregator
+  - Event transformation logic
+- Mock AI inference in tests.
+- Ensure deterministic behavior in calculations.
+- Document complex AI logic with JSDoc.
+
+---
+
+## Risk Calculation Standards
+
+Risk score must:
+
+- Be deterministic.
+- Be calculated locally.
+- Use weighted formula:
+  - Gaze deviations
+  - Tab switching
+  - Object detections
+- Return:
+  - Numeric score (0–100)
+  - Risk level (Low/Medium/High)
+
+Gemini must not calculate base risk score.
+Gemini interprets only.
+
+---
+
+## Methodology
+
+1. **System 2 Thinking**
+   - Analyze performance implications before implementation.
+   - Consider browser constraints first.
+   - Design for determinism.
+
+2. **Tree of Thoughts**
+   - Evaluate multiple architectural paths.
+   - Choose lowest-latency and most stable approach.
+   - Avoid overengineering.
+
+3. **Iterative Refinement**
+   - Implement minimal working module.
+   - Optimize.
+   - Refactor.
+   - Then integrate.
+
+---
+
+## Development Process Enforcement
+
+Before writing any code:
+
+1. Break down module responsibilities.
+2. Define types first.
+3. Define data flow.
+4. Then implement.
+5. Then optimize.
+
+Never jump directly into implementation without architectural clarity.
+
+---
+
+## Final Standard
+
+The final system must:
+
+- Run smoothly on average laptop.
+- Maintain real-time monitoring without visible lag.
+- Demonstrate structured AI reasoning.
+- Be clean, modular, and academic-defense ready.
+
+This is not a demo toy app.
+This is a structured AI engineering system.

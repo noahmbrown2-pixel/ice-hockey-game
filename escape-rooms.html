@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>SECTOR // Infinite Escape Rooms (3D)</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:none}
+  html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Courier New',monospace;color:#cfe}
+  canvas{position:absolute;inset:0;width:100%;height:100%;background:#000}
+  #crt{position:fixed;inset:0;pointer-events:none;z-index:5;
+    background:radial-gradient(ellipse at center, rgba(0,0,0,0) 58%, rgba(0,0,0,0.6) 100%),
+      repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,0.10) 3px);
+    mix-blend-mode:multiply}
+  #hud{position:fixed;inset:0;pointer-events:none;z-index:8;font-size:13px}
+  #topbar{position:absolute;top:8px;left:10px;text-shadow:0 0 6px #0f8,0 0 2px #000;line-height:1.5}
+  #topbar .room{font-size:18px;font-weight:bold;letter-spacing:2px;color:#7fffd4}
+  #topbar .obj{color:#9fd;opacity:.85;font-size:12px}
+  #codebox{display:none} /* hidden — the code can only be read from inside the vault */
+  #codebox .lbl{font-size:11px;opacity:.7}
+  #codebox .val{font-size:26px;letter-spacing:8px;color:#3ff;font-weight:bold}
+  #prompt{position:absolute;left:50%;bottom:36%;transform:translateX(-50%);padding:6px 14px;
+    border:1px solid #0fa6;border-radius:4px;background:rgba(0,20,15,.55);color:#9fffe0;
+    text-shadow:0 0 6px #0f8;font-size:14px;display:none;white-space:nowrap}
+  #crosshair{position:absolute;left:50%;top:50%;width:14px;height:14px;transform:translate(-50%,-50%);
+    border:1px solid rgba(180,255,230,.5);border-radius:50%;box-shadow:0 0 5px rgba(0,255,170,.4)}
+  #crosshair::after{content:'';position:absolute;left:50%;top:50%;width:2px;height:2px;background:#aff;transform:translate(-50%,-50%);border-radius:50%}
+  #toast{position:absolute;left:50%;bottom:46%;transform:translateX(-50%);max-width:80%;text-align:center;
+    color:#ffe;font-size:16px;text-shadow:0 0 8px #f0a,0 0 3px #000;opacity:0;transition:opacity .3s}
+  #fps{position:absolute;bottom:6px;left:10px;font-size:10px;color:#5fa;opacity:.5}
+  #ctl{position:fixed;inset:0;z-index:9}
+  #joy{position:absolute;left:18px;bottom:24px;width:130px;height:130px;border-radius:50%;
+    background:radial-gradient(circle,rgba(0,40,30,.35),rgba(0,20,15,.2));border:2px solid rgba(0,255,170,.3)}
+  #knob{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#0fb,#063);border:2px solid rgba(180,255,230,.6);box-shadow:0 0 12px rgba(0,255,170,.5)}
+  .btn{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:bold;letter-spacing:1px;color:#bff;text-shadow:0 0 5px #000;
+    border:2px solid rgba(0,255,200,.45);background:radial-gradient(circle at 35% 30%,rgba(0,80,60,.6),rgba(0,25,20,.7));
+    box-shadow:0 0 10px rgba(0,255,170,.25)}
+  .btn:active{background:radial-gradient(circle at 35% 30%,rgba(0,160,120,.9),rgba(0,60,45,.9));transform:scale(.94)}
+  .btn.on{background:radial-gradient(circle at 35% 30%,rgba(255,120,0,.9),rgba(90,30,0,.9));border-color:#fb6;color:#fff}
+  #bJump{right:24px;bottom:118px;width:78px;height:78px}
+  #bCrawl{right:116px;bottom:50px;width:70px;height:70px}
+  #bFlash{right:200px;bottom:55px;width:66px;height:66px;font-size:11px}
+  #bClimb{right:120px;bottom:140px;width:70px;height:70px;display:none}
+  #bEnter{right:24px;bottom:30px;width:84px;height:84px;font-size:16px;font-weight:bold;color:#fff;border-color:#ffd24a;
+    background:radial-gradient(circle at 35% 30%,rgba(190,140,0,.9),rgba(70,45,0,.9));box-shadow:0 0 18px rgba(255,200,60,.5);display:none}
+  #pad{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.78)}
+  #padbox{width:280px;max-width:88vw;padding:18px;border:2px solid #0ff;border-radius:10px;
+    background:linear-gradient(160deg,#031,#010);box-shadow:0 0 40px rgba(0,255,200,.4)}
+  #padbox h3{text-align:center;color:#7fffd4;letter-spacing:3px;margin-bottom:6px;font-size:15px}
+  #padDisp{height:54px;margin:8px 0 14px;border:1px solid #0fa8;border-radius:6px;background:#000a07;
+    display:flex;align-items:center;justify-content:center;font-size:34px;letter-spacing:10px;color:#3ff;
+    text-shadow:0 0 12px #0ff;font-weight:bold}
+  #padDisp.bad{color:#f55;text-shadow:0 0 12px #f00;animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+  #padgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .key{padding:14px 0;text-align:center;font-size:22px;font-weight:bold;color:#cff;border:1px solid rgba(0,255,200,.4);border-radius:6px;background:rgba(0,60,50,.5)}
+  .key:active{background:rgba(0,150,120,.8)}
+  .key.fn{font-size:14px;color:#ffb}
+  /* 16-piece sliding puzzle (puzzle rooms) */
+  #puzzle{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.82)}
+  #puzbox{width:330px;max-width:92vw;padding:18px;border:2px solid #0ff;border-radius:10px;background:linear-gradient(160deg,#031,#010);box-shadow:0 0 40px rgba(0,255,200,.4)}
+  #puzbox h3{text-align:center;color:#7fffd4;letter-spacing:2px;margin-bottom:10px;font-size:14px}
+  #puzgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .ptile{display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold;color:#001;
+    border-radius:6px;cursor:pointer;aspect-ratio:1/1;background:linear-gradient(150deg,#0fd,#0a7);
+    box-shadow:inset 0 0 8px rgba(0,80,60,.6)}
+  .ptile:active{transform:scale(.94)}
+  .ptile.blank{background:transparent;box-shadow:none;cursor:default}
+  .ptile.done{background:linear-gradient(150deg,#7fffd4,#0fd)}
+  #puzmsg{text-align:center;color:#9fd;font-size:11px;margin-top:10px;opacity:.85;letter-spacing:1px}
+  #start{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:safe center;
+    text-align:center;background:radial-gradient(ellipse at center,#021410,#000);padding:24px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  #start h1{font-size:34px;letter-spacing:6px;color:#0fc;text-shadow:0 0 20px #0f8;margin-bottom:4px}
+  #start .sub{color:#6fd;letter-spacing:3px;opacity:.8;margin-bottom:20px;font-size:13px}
+  #start p{max-width:500px;color:#9fd;font-size:13px;line-height:1.7;opacity:.9;margin-bottom:8px}
+  #start .keys{color:#7fb;font-size:12px;opacity:.7;margin-top:14px;line-height:1.8}
+  #startBtn{margin-top:24px;padding:16px 44px;font-size:18px;letter-spacing:3px;font-weight:bold;color:#001;
+    background:linear-gradient(#0fd,#0a8);border:none;border-radius:8px;box-shadow:0 0 30px rgba(0,255,200,.6);cursor:pointer}
+  #startBtn:active{transform:scale(.96)}
+  #fade{position:fixed;inset:0;z-index:25;background:#000;opacity:0;pointer-events:none;
+    transition:opacity .45s ease;display:flex;align-items:center;justify-content:center;
+    color:#0fc;font-size:26px;letter-spacing:6px;text-shadow:0 0 20px #0f8}
+  .hide{display:none!important}
+  /* keep touch controls fully on-screen + tappable at any window size */
+  @media (max-width:600px),(max-height:540px){
+    #joy{width:104px;height:104px;left:12px;bottom:16px}
+    #knob{width:46px;height:46px;margin:-23px 0 0 -23px}
+    #bJump{right:14px;bottom:92px;width:62px;height:62px}
+    #bCrawl{right:88px;bottom:38px;width:56px;height:56px}
+    #bFlash{right:152px;bottom:40px;width:52px;height:52px;font-size:9px}
+    #bClimb{right:92px;bottom:106px;width:56px;height:56px}
+    #bEnter{right:14px;bottom:22px;width:66px;height:66px;font-size:14px}
+    body.lefty #joy{right:12px;left:auto}
+    body.lefty #bJump{left:14px;right:auto} body.lefty #bCrawl{left:88px;right:auto}
+    body.lefty #bFlash{left:152px;right:auto} body.lefty #bClimb{left:92px;right:auto}
+    body.lefty #bEnter{left:14px;right:auto}
+  }
+  /* settings gear + modal */
+  #bGear{position:absolute;top:10px;right:12px;width:42px;height:42px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    font-size:21px;color:#bff;border:1px solid rgba(0,255,200,.4);background:rgba(0,40,32,.6);box-shadow:0 0 8px rgba(0,255,170,.25);z-index:11}
+  #bGear:active{transform:scale(.93)}
+  #settings{position:fixed;inset:0;z-index:22;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.82)}
+  #setbox{width:320px;max-width:92vw;max-height:90vh;overflow-y:auto;padding:18px;border:2px solid #0ff;border-radius:10px;
+    background:linear-gradient(160deg,#031,#010);box-shadow:0 0 40px rgba(0,255,200,.4)}
+  #setbox h3{text-align:center;color:#7fffd4;letter-spacing:3px;margin-bottom:14px;font-size:15px}
+  .setrow{display:flex;align-items:center;justify-content:space-between;padding:9px 4px;border-bottom:1px solid rgba(0,255,200,.12);color:#cfe;font-size:13px}
+  .setrow input{width:20px;height:20px;accent-color:#0fd}
+  .setcol{display:flex;flex-direction:column;gap:6px;padding:10px 4px;border-bottom:1px solid rgba(0,255,200,.12);color:#cfe;font-size:13px}
+  .setcol b{color:#3ff;font-weight:bold}
+  .setcol input[type=range]{width:100%;accent-color:#0fd}
+  .setkeys{color:#7fb;font-size:10px;line-height:1.6;opacity:.75;margin:12px 0}
+  #setClose{width:100%;padding:12px;font-size:15px;letter-spacing:2px;font-weight:bold;color:#001;background:linear-gradient(#0fd,#0a8);border:none;border-radius:8px;box-shadow:0 0 18px rgba(0,255,200,.5)}
+  #setClose:active{transform:scale(.97)}
+  /* left-handed mirror: joystick → right, action buttons + gear → left */
+  body.lefty #joy{left:auto;right:18px}
+  body.lefty #bJump{right:auto;left:24px}
+  body.lefty #bCrawl{right:auto;left:116px}
+  body.lefty #bFlash{right:auto;left:200px}
+  body.lefty #bClimb{right:auto;left:120px}
+  body.lefty #bEnter{right:auto;left:24px}
+  body.lefty #bGear{right:auto;left:12px}
+  /* keep the START screen fully visible (button was dropping below the fold on phones) */
+  @media (max-height:780px){
+    #start{padding:14px}
+    #start h1{font-size:26px;margin-bottom:2px}
+    #start .sub{margin-bottom:10px;font-size:11px}
+    #start p{font-size:11.5px;line-height:1.45;margin-bottom:6px}
+    #start .keys{font-size:10px;margin-top:8px;line-height:1.5}
+    #startBtn{margin-top:14px;padding:12px 34px;font-size:16px}
+  }
+  @media (max-height:660px){
+    #start h1{font-size:22px}
+    #start p{font-size:11px;line-height:1.4;margin-bottom:5px}
+    #start .keys{margin-top:6px}
+    #startBtn{margin-top:10px;padding:10px 30px;font-size:15px}
+  }
+  @media (max-width:380px),(max-height:430px){
+    #joy{width:88px;height:88px;left:8px;bottom:10px}
+    #knob{width:38px;height:38px;margin:-19px 0 0 -19px}
+    #bJump{right:10px;bottom:78px;width:54px;height:54px}
+    #bCrawl{right:74px;bottom:30px;width:48px;height:48px;font-size:11px}
+    #bFlash{right:128px;bottom:32px;width:46px;height:46px;font-size:8px}
+    #bClimb{right:78px;bottom:90px;width:48px;height:48px;font-size:11px}
+    #bEnter{right:10px;bottom:18px;width:58px;height:58px;font-size:12px}
+  }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="crt"></div>
+<div id="hud">
+  <div id="topbar"><div class="room" id="roomLbl">ROOM 01</div><div class="obj" id="objLbl">// 2 numbers downstairs · 2 upstairs (climb the ladder) · KEY · HAMMER → vault → door code</div></div>
+  <div id="codebox"><div class="lbl">ACCESS CODE</div><div class="val" id="codeVal">_ _ _ _</div></div>
+  <div id="crosshair"></div>
+  <div id="prompt"></div>
+  <div id="toast"></div>
+  <div id="fps"></div>
+</div>
+<div id="ctl">
+  <div id="joy"><div id="knob"></div></div>
+  <div class="btn" id="bClimb">CLIMB</div>
+  <div class="btn" id="bJump">JUMP</div>
+  <div class="btn on" id="bFlash">🔦<br>FLASH</div>
+  <div class="btn" id="bCrawl">CRAWL</div>
+  <div class="btn" id="bEnter">CLAIM</div>
+  <div id="bGear">⚙</div>
+</div>
+<div id="settings"><div id="setbox"><h3>// SETTINGS</h3>
+  <label class="setrow"><span>Left-handed controls</span><input type="checkbox" id="setLefty"></label>
+  <label class="setrow"><span>Sound</span><input type="checkbox" id="setSound"></label>
+  <label class="setrow"><span>Vault beacon</span><input type="checkbox" id="setBeacon"></label>
+  <div class="setcol"><span>Look sensitivity <b id="setSensV"></b></span><input type="range" id="setSens" min="0.3" max="2.5" step="0.1"></div>
+  <div class="setcol"><span>Flashlight range <b id="setFlashV"></b></span><input type="range" id="setFlash" min="0.5" max="4" step="0.25"></div>
+  <div class="setcol"><span>Field of view <b id="setFovV"></b></span><input type="range" id="setFov" min="0.7" max="1.4" step="0.05"></div>
+  <div class="setkeys">WASD move · MOUSE / drag look · SPACE jump · C crawl · F flash · E interact · ladder: stand + SPACE</div>
+  <button id="setClose">RESUME</button>
+</div></div>
+<div id="pad"><div id="padbox"><h3>// DOOR LOCK</h3><div id="padDisp">____</div>
+  <div id="padgrid">
+    <div class="key" data-k="1">1</div><div class="key" data-k="2">2</div><div class="key" data-k="3">3</div>
+    <div class="key" data-k="4">4</div><div class="key" data-k="5">5</div><div class="key" data-k="6">6</div>
+    <div class="key" data-k="7">7</div><div class="key" data-k="8">8</div><div class="key" data-k="9">9</div>
+    <div class="key fn" data-k="C">CLR</div><div class="key" data-k="0">0</div><div class="key fn" data-k="E">ENT</div>
+  </div></div></div>
+<div id="puzzle"><div id="puzbox"><h3>// SECURITY GRID — ORDER 1‑15</h3>
+  <div id="puzgrid"></div>
+  <div id="puzmsg">tap a tile next to the gap to slide it · blank goes bottom‑right</div>
+</div></div>
+<div id="fade"></div>
+<div id="start">
+  <h1>SECTOR</h1><div class="sub">INFINITE ESCAPE PROTOCOL · 3D</div>
+  <p>You wake in a <b>pitch-black</b> sector cell with only a <b>flashlight</b>. The exit door is <b>boarded shut with planks</b>, and a heavy <b>metal vault</b> sits in the dead centre — it will only show the <b>full escape code</b> once you've collected all four code numbers. There is <b>no code readout on screen</b>: the vault is the only place to see it.</p>
+  <p>It's a two-storey home split into <b>bedrooms, living rooms and kitchens</b>. Hidden in the furniture are <b>4 code numbers</b> — <b>2 on the ground floor and 2 upstairs</b> — plus a <b>🔑 KEY</b> and a <b>🔨 HAMMER</b>. The <b>only way upstairs is the ladder</b> at the stairwell (stand on it and hold SPACE / CLIMB, then step off onto the upper floor). Drawers slide open as you look at them; nothing is grabbed automatically — aim at an item and press <b>E</b> (or tap PICK UP). Use the key to open the vault and read the assembled code, smash the door planks with the hammer, then <b>press E at the door and type the code</b> to escape. You can't squeeze under the furniture — go around. <b>Some sectors swap the code for a sliding 4×4 grid puzzle</b> at the door — just find the hammer, smash the planks, and solve the grid to escape. The only way up is a <b>tight shaft</b> at the ladder.</p>
+  <div class="keys">
+    DESKTOP&nbsp; WASD move · MOUSE look (click to connect) · SPACE jump · C crawl · F flashlight · E pick up / use door · ladder: stand + SPACE<br>
+    MOBILE&nbsp;&nbsp; left stick move · drag right to look · JUMP / CRAWL / FLASH / CLIMB · PICK UP / DOOR button · drawers open on their own
+  </div>
+  <button id="startBtn">ENTER THE SECTOR</button>
+</div>
+
+<script>
+"use strict";
+//==================================================================
+// SECTOR 3D — polygon engine, openable furniture, printed code digits
+//==================================================================
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d',{alpha:false});
+let RW=0,RH=0,HALF=0,HALFY=0,FOCAL=0;
+let FOV=80*Math.PI/180; const ZNEAR=0.06;                       // FOV adjustable via settings
+let FLASH_RANGE=CS_AHEAD(); const FLASH_CONE=0.33, FLASH_POWER=2.4, AMBIENT=0.15; // dark room + flashlight (range adjustable)
+function CS_AHEAD(){return 3.4*5.4;} // ~18m flashlight reach (default)
+const CS=3.4;             // cell size (m)
+const FH=3.2;             // per-storey height
+const TOP_H=FH*2;         // total interior height (two floors)
+const ROOM_H=FH;          // ground-storey height (door / planks / exterior wall base)
+function resize(){
+  const w=window.innerWidth,h=window.innerHeight;
+  const scale=(w*h>900000)?0.6:0.82;
+  RW=Math.round(w*scale);RH=Math.round(h*scale);
+  cv.width=RW;cv.height=RH;HALF=RW/2;HALFY=RH/2;FOCAL=(RW/2)/Math.tan(FOV/2);
+}
+window.addEventListener('resize',resize);resize();
+
+//---------------- util
+const clamp=(v,a,b)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t;
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hsl2rgb(h,s,l){h=((h%360)+360)%360/360;let r,g,b;if(s===0){r=g=b=l;}else{const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q;const f=(t)=>{t<0&&(t+=1);t>1&&(t-=1);if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};r=f(h+1/3);g=f(h);b=f(h-1/3);}return [r*255|0,g*255|0,b*255|0];}
+function jit(c,r,n){return [clamp(c[0]+(r()*2-1)*n,0,255),clamp(c[1]+(r()*2-1)*n,0,255),clamp(c[2]+(r()*2-1)*n,0,255)];}
+
+//---------------- player settings (persisted in localStorage) ----------------
+const SET={lefty:false,sens:1.0,flash:1.0,fov:1.0,sound:true,beacon:true};
+(function(){try{const s=JSON.parse(localStorage.getItem('sector_settings'));if(s)Object.assign(SET,s);}catch(e){}})();
+function applySettings(){
+  FOV=clamp(80*SET.fov,55,115)*Math.PI/180;
+  FLASH_RANGE=CS_AHEAD()*SET.flash;
+  document.body.classList.toggle('lefty',!!SET.lefty);
+  resize();
+  try{localStorage.setItem('sector_settings',JSON.stringify(SET));}catch(e){}
+}
+function d2(c){return [clamp(c[0]-30,0,255),clamp(c[1]-30,0,255),clamp(c[2]-30,0,255)];}
+
+//---------------- catalog: footprint (m), height (m), openable kind, hosts-digit
+const CAT={
+  closet:{fw:1.5,fh:0.85,h:3.0,open:'doors2',name:'closet'},
+  locker:{fw:1.15,fh:0.8,h:2.7,open:'door1',name:'locker'},
+  shelf:{fw:1.7,fh:0.6,h:2.85,open:0,name:'shelf'},
+  fridge:{fw:1.15,fh:1.0,h:2.5,open:'door1',name:'refrigerator'},
+  dresser:{fw:1.7,fh:0.8,h:1.5,open:'drawers3',name:'dresser'},
+  bed:{fw:2.5,fh:1.8,h:0.75,open:0,name:'bed'},
+  table:{fw:1.9,fh:1.2,h:1.05,open:0,name:'table'},
+  crate:{fw:1.25,fh:1.25,h:1.25,open:'lid',name:'crate'},
+  barrel:{fw:1.0,fh:1.0,h:1.45,open:0,name:'barrel'},
+  tv:{fw:1.8,fh:0.6,h:1.7,open:0,name:'TV unit'},
+  terminal:{fw:1.5,fh:0.9,h:1.55,open:0,name:'terminal'},
+  toilet:{fw:0.85,fh:1.1,h:1.0,open:0,name:'toilet'},
+  sink:{fw:1.2,fh:0.65,h:1.4,open:'door1',name:'sink cabinet'},
+  ladder:{fw:0.9,fh:0.45,h:4.0,open:0,name:'ladder',solid:0},
+  vault:{fw:1.7,fh:1.3,h:2.2,open:'door1',name:'metal vault'},
+};
+
+//---------------- quad / box builders (local space). part = index into parts[]
+function pushQuad(out,pts,col,nhint,kind,emis,part){
+  let cx=0,cy=0,cz=0;for(const q of pts){cx+=q[0];cy+=q[1];cz+=q[2];}cx/=4;cy/=4;cz/=4;
+  const ax=pts[1][0]-pts[0][0],ay=pts[1][1]-pts[0][1],az=pts[1][2]-pts[0][2];
+  const bx=pts[2][0]-pts[0][0],by=pts[2][1]-pts[0][1],bz=pts[2][2]-pts[0][2];
+  let nx=ay*bz-az*by,ny=az*bx-ax*bz,nz=ax*by-ay*bx;const ln=Math.hypot(nx,ny,nz)||1;nx/=ln;ny/=ln;nz/=ln;
+  if(nx*nhint[0]+ny*nhint[1]+nz*nhint[2]<0){nx=-nx;ny=-ny;nz=-nz;pts=[pts[0],pts[3],pts[2],pts[1]];}
+  out.push({p:pts,col,n:[nx,ny,nz],c:[cx,cy,cz],kind:kind||'furn',emis:emis||0,part:part==null?-1:part});
+}
+function bx(out,x0,y0,z0,x1,y1,z1,col,r,kind,part){
+  const t=(p)=>[clamp(p[0]+18,0,255),clamp(p[1]+18,0,255),clamp(p[2]+18,0,255)];
+  const cc=()=>r?jit(col,r,8):col;
+  pushQuad(out,[[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]],t(cc()),[0,0,1],kind,0,part);
+  pushQuad(out,[[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0]],d2(cc()),[0,0,-1],kind,0,part);
+  pushQuad(out,[[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1]],cc(),[1,0,0],kind,0,part);
+  pushQuad(out,[[x0,y0,z0],[x0,y1,z0],[x0,y1,z1],[x0,y0,z1]],cc(),[-1,0,0],kind,0,part);
+  pushQuad(out,[[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],cc(),[0,1,0],kind,0,part);
+  pushQuad(out,[[x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1]],cc(),[0,-1,0],kind,0,part);
+}
+function prismMesh(out,cx,cy,r0,z0,z1,sides,col,rng){
+  const top=[],bot=[];
+  for(let i=0;i<sides;i++){const a=i/sides*6.2832;top.push([cx+Math.cos(a)*r0,cy+Math.sin(a)*r0,z1]);bot.push([cx+Math.cos(a)*r0,cy+Math.sin(a)*r0,z0]);}
+  for(let i=1;i<sides-1;i++)pushQuad(out,[top[0],top[i],top[i+1],top[0]],[clamp(col[0]+20,0,255),clamp(col[1]+20,0,255),clamp(col[2]+20,0,255)],[0,0,1],'furn');
+  for(let i=0;i<sides;i++){const j=(i+1)%sides;pushQuad(out,[bot[i],bot[j],top[j],top[i]],rng?jit(col,rng,10):col,[Math.cos((i+.5)/sides*6.2832),Math.sin((i+.5)/sides*6.2832),0],'furn');}
+}
+
+//---------------- furniture: returns {quads, parts, mounts}
+// parts[i] = {slide:[lx,ly,lz], dist, band:[z0,z1], openAmt:0, target:0}
+// mounts[i] = {part:idx|-1, panel:[TL,TR,BR,BL local], faint:bool, where:'low'|'high'|'mid'}
+function meshFurn(type,pal,r){
+  const out=[],parts=[],mounts=[];const D=CAT[type];
+  const bh=pal.accHue+(r()*120-60);
+  const main=hsl2rgb(bh,.45+r()*.3,.34+r()*.16), wood=hsl2rgb(28+r()*16,.5,.32);
+  const metal=pal.metal, white=[210,214,220], acc=pal.accent;
+  const hx=D.fw/2,hy=D.fh/2,H=D.h;
+  // small digit panel on +Y (front) face at z-center cz, half-size s
+  const frontPanel=(cz,s,faint,where)=>{const y=hy+0.012;mounts.push({part:-1,faint:faint,where:where||'mid',
+    panel:[[-s,y,cz+s],[s,y,cz+s],[s,y,cz-s],[-s,y,cz-s]]});};
+  const sidePanel=(cz,s,faint,where)=>{const x=hx+0.012;mounts.push({part:-1,faint:faint,where:where||'mid',
+    panel:[[x,-s,cz+s],[x,s,cz+s],[x,s,cz-s],[x,-s,cz-s]]});};
+  const underPanel=(s)=>{const z=0.02;mounts.push({part:-1,faint:true,where:'low',
+    panel:[[-s,-s,z],[s,-s,z],[s,s,z],[-s,s,z]]});}; // faces down-ish (drawn anyway)
+  const topPanel=(s)=>{const z=H+0.012;mounts.push({part:-1,faint:false,where:'high',
+    panel:[[-s,-s,z],[s,-s,z],[s,s,z],[-s,s,z]]});};
+
+  switch(type){
+    case 'closet':{
+      bx(out,-hx,-hy,0,hx,hy,H,main,r);
+      const p=parts.length;parts.push({slide:[-1,0,0],dist:hx*0.42,band:[0,H],openAmt:0,target:0}); // left door
+      const p2=parts.length;parts.push({slide:[1,0,0],dist:hx*0.42,band:[0,H],openAmt:0,target:0}); // right door
+      bx(out,-hx+.04,hy-.04,.06,-.01,hy+.02,H-.06,hsl2rgb(bh,.45,.27),r,'furn',p);
+      bx(out,.01,hy-.04,.06,hx-.04,hy+.02,H-.06,hsl2rgb(bh,.45,.30),r,'furn',p2);
+      bx(out,-.12,hy,H*.5-.12,-.07,hy+.06,H*.5+.12,metal,null,'furn',p);
+      bx(out,.07,hy,H*.5-.12,.12,hy+.06,H*.5+.12,metal,null,'furn',p2);
+      // digit inside (revealed when doors open) — panel just behind doors
+      mounts.push({part:p,faint:false,where:'mid',panel:[[-.3,hy-.06,H*.55+.18],[.3,hy-.06,H*.55+.18],[.3,hy-.06,H*.55-.18],[-.3,hy-.06,H*.55-.18]]});
+      break;}
+    case 'locker':{
+      bx(out,-hx,-hy,0,hx,hy,H,hsl2rgb(bh,.3,.4),r);
+      const p=parts.length;parts.push({slide:[1,0,0],dist:hx*0.85,band:[0,H],openAmt:0,target:0});
+      bx(out,-hx+.04,hy-.03,.05,hx-.04,hy+.02,H-.05,hsl2rgb(bh,.32,.34),r,'furn',p);
+      for(let i=0;i<7;i++)bx(out,-hx+.1,hy+.005,.3+i*((H-.6)/7),hx-.1,hy+.025,.32+i*((H-.6)/7),[20,24,26],null,'furn',p);
+      mounts.push({part:p,faint:false,where:'mid',panel:[[-.22,hy-.06,H*.55+.16],[.22,hy-.06,H*.55+.16],[.22,hy-.06,H*.55-.16],[-.22,hy-.06,H*.55-.16]]});
+      break;}
+    case 'shelf':{
+      bx(out,-hx,-hy,0,hx,hy,H,[28,26,30],r);
+      const lv=5;for(let i=0;i<=lv;i++){const z=i*(H-.06)/lv;bx(out,-hx+.03,-hy+.03,z,hx-.03,hy,z+.05,main);}
+      for(let i=0;i<14;i++){const sh=.18+r()*.45,lvl=(r()*lv)|0,z=lvl*(H-.06)/lv+.05;const ix=-hx+.12+r()*(D.fw-.34),iy=-hy+.1+r()*(D.fh-.25);bx(out,ix,iy,z,ix+.14+r()*.14,iy+.14,z+sh,hsl2rgb(r()*360,.6,.45));}
+      topPanel(.13); break;}
+    case 'fridge':{
+      bx(out,-hx,-hy,0,hx,hy,H,hsl2rgb(bh,.12,.7),r);
+      const p=parts.length;parts.push({slide:[1,0,0],dist:hx*0.8,band:[0,H*.6],openAmt:0,target:0});
+      const p2=parts.length;parts.push({slide:[1,0,0],dist:hx*0.8,band:[H*.6,H],openAmt:0,target:0});
+      bx(out,-hx+.03,hy-.03,.05,hx-.03,hy+.02,H*.6-.02,hsl2rgb(bh,.1,.66),r,'furn',p);
+      bx(out,-hx+.03,hy-.03,H*.6+.02,hx-.03,hy+.02,H-.05,hsl2rgb(bh,.1,.68),r,'furn',p2);
+      bx(out,hx-.12,hy,H*.2,hx-.08,hy+.06,H*.5,metal,null,'furn',p);
+      bx(out,hx-.12,hy,H*.7,hx-.08,hy+.06,H*.85,metal,null,'furn',p2);
+      mounts.push({part:p,faint:false,where:'low',panel:[[-.2,hy-.06,H*.3+.14],[.2,hy-.06,H*.3+.14],[.2,hy-.06,H*.3-.14],[-.2,hy-.06,H*.3-.14]]});
+      break;}
+    case 'dresser':{
+      bx(out,-hx,-hy,0,hx,hy,H,main,r);
+      for(let i=0;i<3;i++){const z0=.06+i*(H-.1)/3,z1=z0+(H-.18)/3;
+        const p=parts.length;parts.push({slide:[0,1,0],dist:0.55,band:[z0,z1],openAmt:0,target:0});
+        bx(out,-hx+.05,hy-.06,z0,hx-.05,hy+.02,z1,hsl2rgb(bh,.45,.26),r,'furn',p);
+        bx(out,-.1,hy+.02,(z0+z1)/2-.02,.1,hy+.07,(z0+z1)/2+.02,metal,null,'furn',p);
+        // each drawer can hold a digit (revealed when that drawer opens)
+        mounts.push({part:p,faint:false,where:'mid',drawer:i,panel:[[-.13,hy-.30,(z0+z1)/2+.10],[.13,hy-.30,(z0+z1)/2+.10],[.13,hy-.30,(z0+z1)/2-.10],[-.13,hy-.30,(z0+z1)/2-.10]]});
+      }
+      break;}
+    case 'bed':{
+      bx(out,-hx,-hy,0,hx,hy,H*.45,wood,r);
+      bx(out,-hx+.07,-hy+.07,H*.45,hx-.07,hy-.07,H,hsl2rgb(bh,.5,.45),r);
+      bx(out,-hx+.12,-hy+.14,H,-hx+.85,hy-.14,H+.14,hsl2rgb(bh+30,.5,.6));
+      bx(out,-hx,-hy,0,-hx+.1,-hy+.1,H*.45,d2(wood));bx(out,hx-.1,-hy,0,hx,-hy+.1,H*.45,d2(wood));
+      underPanel(.12); break;} // digit taped under the bed — crawl to see
+    case 'table':{
+      bx(out,-hx,-hy,H-.09,hx,hy,H,main,r);
+      bx(out,-hx+.06,-hy+.06,0,-hx+.16,-hy+.16,H-.09,wood);bx(out,hx-.16,-hy+.06,0,hx-.06,-hy+.16,H-.09,wood);
+      bx(out,-hx+.06,hy-.16,0,-hx+.16,hy-.06,H-.09,wood);bx(out,hx-.16,hy-.16,0,hx-.06,hy-.06,H-.09,wood);
+      for(let i=0;i<4;i++){const ix=-hx+.4+r()*(D.fw-.8);bx(out,ix,-.12,H,ix+.16,.12,H+.12+r()*.22,hsl2rgb(r()*360,.6,.5));}
+      underPanel(.11); break;}
+    case 'crate':{
+      bx(out,-hx,-hy,0,hx,hy,H,pal.rust,r);
+      const p=parts.length;parts.push({slide:[0,0,1],dist:0.4,band:[0,H],openAmt:0,target:0});
+      bx(out,-hx,-hy,H-.06,hx,hy,H,d2(pal.rust),null,'furn',p); // lid lifts
+      bx(out,-hx+.05,hy,H*.45,hx-.05,hy+.02,H*.6,acc);
+      mounts.push({part:p,faint:false,where:'mid',panel:[[-.16,-.0,H-.2],[.16,0,H-.2],[.16,0,H-.4],[-.16,0,H-.4]]});
+      break;}
+    case 'barrel':{
+      prismMesh(out,0,0,hx*.92,0,H,8,hsl2rgb(bh,.6,.4),r);
+      prismMesh(out,0,0,hx*.94,H*.25,H*.3,8,[20,20,20]);prismMesh(out,0,0,hx*.94,H*.7,H*.75,8,[20,20,20]);
+      sidePanel(H*.5,.12,true,'mid'); break;}
+    case 'tv':{
+      bx(out,-hx*.5,-hy,0,hx*.5,hy,H*.42,[28,28,32],r);
+      bx(out,-hx,-hy,H*.42,hx,hy*.6,H,[12,12,14]);
+      pushQuad(out,[[-hx+.05,hy*.6,H*.42+.05],[hx-.05,hy*.6,H*.42+.05],[hx-.05,hy*.6,H-.05],[-hx+.05,hy*.6,H-.05]],pal.glow,[0,1,0],'furn',1);
+      sidePanel(H*.2,.1,true,'low'); break;}
+    case 'terminal':{
+      bx(out,-hx,-hy,0,hx,hy,H*.5,[30,30,36],r);
+      bx(out,-hx*.6,-hy*.4,H*.5,hx*.6,hy*.2,H,[10,12,14]);
+      pushQuad(out,[[-hx*.55,hy*.2,H*.55],[hx*.55,hy*.2,H*.55],[hx*.55,hy*.2,H-.05],[-hx*.55,hy*.2,H-.05]],[40,255,160],[0,1,0],'furn',1);
+      frontPanel(H*.25,.1,true,'low'); break;}
+    case 'toilet':{
+      bx(out,-hx,hy-.28,0,hx,hy,H,white,r);bx(out,-hx*.7,-hy,0,hx*.7,hy-.28,H*.55,white);
+      bx(out,-hx*.6,-hy+.05,H*.55,hx*.6,hy-.32,H*.62,[180,184,190]);
+      sidePanel(H*.3,.09,true,'low'); break;}
+    case 'sink':{
+      bx(out,-hx,-hy,H*.4,hx,hy,H*.55,white,r);
+      bx(out,-hx*.45,-hy+.05,H*.4-.2,hx*.45,hy-.05,H*.4,[170,174,180]);
+      const p=parts.length;parts.push({slide:[1,0,0],dist:hx*0.7,band:[0,H*.4],openAmt:0,target:0});
+      bx(out,-hx+.04,hy-.02,.05,hx-.04,hy+.02,H*.4-.05,hsl2rgb(bh,.2,.45),r,'furn',p); // cabinet door
+      bx(out,-hx*.7,hy-.04,H*.62,hx*.7,hy,H,hsl2rgb(200,.2,.5));
+      pushQuad(out,[[-hx*.65,hy-.03,H*.66],[hx*.65,hy-.03,H*.66],[hx*.65,hy-.03,H-.04],[-hx*.65,hy-.03,H-.04]],[120,150,160],[0,1,0],'furn',1);
+      mounts.push({part:p,faint:false,where:'low',panel:[[-.13,hy-.06,H*.2+.1],[.13,hy-.06,H*.2+.1],[.13,hy-.06,H*.2-.1],[-.13,hy-.06,H*.2-.1]]});
+      break;}
+    case 'vault':{
+      // heavy metal body
+      bx(out,-hx,-hy,0,hx,hy,H,[72,76,84],r);
+      bx(out,-hx+.09,hy-.02,.12,hx-.09,hy+.05,H-.12,[44,47,52],r); // recessed frame
+      const p=parts.length;parts.push({slide:[1,0,0],dist:hx*1.08,band:[0,H],openAmt:0,target:0}); // sliding door slab
+      bx(out,-hx+.11,hy-.01,.16,hx-.11,hy+.08,H-.16,[98,103,113],r,'furn',p); // door
+      // spoke wheel handle (moves with door)
+      bx(out,-.05,hy+.08,H*.5-.30,.05,hy+.18,H*.5+.30,[150,156,168],null,'furn',p);
+      bx(out,-.30,hy+.08,H*.5-.05,.30,hy+.18,H*.5+.05,[150,156,168],null,'furn',p);
+      bx(out,-.09,hy+.08,H*.5-.09,.09,hy+.2,H*.5+.09,[185,190,200],null,'furn',p); // hub
+      // rivets on the door
+      for(let i=0;i<4;i++){const aa=i/4*6.2832,rx2=Math.cos(aa)*.62,rz2=Math.sin(aa)*.62;
+        bx(out,rx2-.04,hy+.06,H*.5+rz2-.04,rx2+.04,hy+.11,H*.5+rz2+.04,[200,205,215],null,'furn',p);}
+      // glowing "VAULT" status strip — emissive so it self-lights as a beacon in the dark
+      pushQuad(out,[[-hx+.2,hy+.06,H-.28],[hx-.2,hy+.06,H-.28],[hx-.2,hy+.06,H-.16],[-hx+.2,hy+.06,H-.16]],[255,80,46],[0,1,0],'furn',1);
+      // interior CODE panel — only seen once the door slides open
+      mounts.push({part:p,faint:false,where:'mid',isCode:true,fixed:true,
+        panel:[[-.55,hy-.10,H*.6+.34],[.55,hy-.10,H*.6+.34],[.55,hy-.10,H*.6-.34],[-.55,hy-.10,H*.6-.34]]});
+      break;}
+    case 'ladder':{
+      bx(out,-hx*.55,-hy,0,-hx*.55+.06,hy,H,metal);bx(out,hx*.55-.06,-hy,0,hx*.55,hy,H,metal);
+      for(let i=0;i<11;i++){const z=.2+i*(H-.4)/10;bx(out,-hx*.55,-.04,z,hx*.55,.04,z+.05,hsl2rgb(bh,.3,.45));}
+      break;}
+    default: bx(out,-hx,-hy,0,hx,hy,H,main,r);
+  }
+  return {quads:out,parts,mounts};
+}
+
+//---------------- palette
+function newPalette(seed){
+  const r=mulberry(seed),base=r()*360,scheme=(r()*4)|0;let wH,fH,aH;
+  if(scheme===0){wH=base;fH=base+15;aH=base+150;}else if(scheme===1){wH=base;fH=base+180;aH=base+90;}
+  else if(scheme===2){wH=base;fH=base+30;aH=base+200;}else{wH=base;fH=base-40;aH=base+120;}
+  return {r,wallHue:wH,accHue:aH,floorHue:fH,
+    wall:hsl2rgb(wH,.28,.30),wallDk:hsl2rgb(wH,.3,.18),wall2:hsl2rgb(wH+20,.3,.26),
+    floorA:hsl2rgb(fH,.32,.20),floorB:hsl2rgb(fH,.36,.13),
+    ceil:hsl2rgb(wH,.2,.12),ceilLight:hsl2rgb(aH,.5,.6),
+    accent:hsl2rgb(aH,.85,.55),accent2:hsl2rgb(aH+40,.8,.6),
+    metal:hsl2rgb(wH+10,.1,.5),rust:hsl2rgb(28+r()*14,.55,.35),glow:hsl2rgb(aH,1,.6)};
+}
+
+//---------------- build room
+let G,started=false;
+function rotV(v,c,s){return [v[0]*c-v[1]*s, v[0]*s+v[1]*c, v[2]];}
+// upper slab for the ladder cell: build it as a FRAME around a tight tunnel mouth + a short collar
+function slabFrame(out,ax,ay,bx2,by2,t,floorCol,ceilCol,litU){
+  const strips=[[ax,ay,t.x0,by2],[t.x1,ay,bx2,by2],[t.x0,ay,t.x1,t.y0],[t.x0,t.y1,t.x1,by2]];
+  for(const s of strips){const sx0=s[0],sy0=s[1],sx1=s[2],sy1=s[3];if(sx1-sx0<0.01||sy1-sy0<0.01)continue;
+    pushQuad(out,[[sx0,sy0,FH],[sx1,sy0,FH],[sx1,sy1,FH],[sx0,sy1,FH]],floorCol,[0,0,1],'floor');
+    pushQuad(out,[[sx0,sy0,FH],[sx1,sy0,FH],[sx1,sy1,FH],[sx0,sy1,FH]],ceilCol,[0,0,-1],'ceil',litU);}
+  // shaft collar — a short vertical rim so the tight tunnel reads as a hole you squeeze through
+  const col=[80,84,92],h0=FH-0.24,h1=FH+0.24;
+  const rim=(x0,y0,x1,y1,nx,ny)=>pushQuad(out,[[x0,y0,h0],[x1,y1,h0],[x1,y1,h1],[x0,y0,h1]],col,[nx,ny,0],'furn');
+  rim(t.x0,t.y0,t.x1,t.y0,0,-1);rim(t.x0,t.y1,t.x1,t.y1,0,1);
+  rim(t.x0,t.y0,t.x0,t.y1,-1,0);rim(t.x1,t.y0,t.x1,t.y1,1,0);
+}
+function buildRoom(level){
+  const seed=((level*2654435761)>>>0)^((Math.random()*1e9)|0);
+  const pal=newPalette(seed),R=mulberry(seed^0x9e37);
+  const mode=(level>=2 && level%2===0)?'puzzle':'code'; // even rooms (2,4,6…) are 16-piece puzzle rooms
+  const N=22;                                             // 22x22 cell grid (~75m square)
+  const x0=CS,y0=CS,x1=(N-1)*CS,y1=(N-1)*CS,cxC=(x0+x1)/2,cyC=(y0+y1)/2;
+  const mid=(i)=>(i+0.5)*CS;
+  // exit door on the GROUND floor, on a random exterior wall
+  const side=(R()*4)|0, idx=2+((R()*(N-4))|0);
+  let door;
+  if(side===0)door={x:mid(idx),y:y0,nx:0,ny:1};else if(side===1)door={x:mid(idx),y:y1,nx:0,ny:-1};
+  else if(side===2)door={x:x0,y:mid(idx),nx:1,ny:0};else door={x:x1,y:mid(idx),nx:-1,ny:0};
+
+  const furn=[],walls=[],scene=[];
+  const cmX=(cxC/CS)|0, cmY=(cyC/CS)|0;                    // centre cell (vault, ground floor)
+
+  // ---- stairwell — the ONLY route upstairs is the ladder, through a TIGHT shaft ----
+  const cornerCells=[[2,2],[N-4,2],[2,N-4],[N-4,N-4]];
+  let hc=cornerCells[(R()*4)|0];
+  for(const c of cornerCells){if(Math.hypot((c[0]+1)*CS-door.x,(c[1]+1)*CS-door.y)>CS*2.4){hc=c;break;}}
+  const hcx=hc[0],hcy=hc[1];
+  // 2x2 of ground clearance to stand & climb; upstairs is now FULL-SIZE except this tight shaft
+  const hole={x0:hcx*CS,y0:hcy*CS,x1:(hcx+2)*CS,y1:(hcy+2)*CS};
+  const inStairwell=(cx,cy)=>cx>=hcx&&cx<hcx+2&&cy>=hcy&&cy<hcy+2;
+  // the actual hole you squeeze through, centred on the ladder — tight but passable (player r=0.42)
+  const ladCX=(hcx+0.5)*CS, ladCY=(hcy+0.5)*CS, TUN=0.85;
+  const tunnel={x0:ladCX-TUN,y0:ladCY-TUN,x1:ladCX+TUN,y1:ladCY+TUN};
+
+  const spawn={x:mid(1),y:mid(1),a:0};
+  spawn.a=Math.atan2(cyC-spawn.y,cxC-spawn.x);
+
+  // ---- place a furniture instance at storey height floorZ ----
+  function place(type,cell,floorZ){
+    floorZ=floorZ||0;
+    const k=(R()*4|0),rot=k*Math.PI/2,c=Math.cos(rot),s=Math.sin(rot);
+    const m=meshFurn(type,pal,R);
+    const f={type,x:cell.wx,y:cell.wy,cx:cell.cx,cy:cell.cy,h:CAT[type].h,solid:CAT[type].solid!==0,
+      parts:m.parts,mounts:[],quads:[],rotc:c,rots:s,openAll:CAT[type].open==='doors2',
+      frontN:rotV([0,1,0],c,s),floorZ};
+    let ex=CAT[type].fw/2,ey=CAT[type].fh/2;if(Math.abs(s)>0.5){const t=ex;ex=ey;ey=t;}f.ex=ex;f.ey=ey;
+    for(const p of f.parts){const sv=rotV(p.slide,c,s);p.ws=[sv[0]*p.dist,sv[1]*p.dist,sv[2]*p.dist];p.openAmt=0;p.target=0;p.band=[p.band[0]+floorZ,p.band[1]+floorZ];}
+    for(const q of m.quads){
+      const wp=q.p.map(pt=>[cell.wx+pt[0]*c-pt[1]*s, cell.wy+pt[0]*s+pt[1]*c, pt[2]+floorZ]);
+      let acx=0,acy=0,acz=0;for(const pp of wp){acx+=pp[0];acy+=pp[1];acz+=pp[2];}
+      const nn=rotV(q.n,c,s);
+      f.quads.push({p:wp,col:q.col,n:nn,c:[acx/4,acy/4,acz/4],kind:q.kind,emis:q.emis,part:q.part,fref:f});
+    }
+    for(const mo of m.mounts){
+      const panel=mo.panel.map(pt=>[cell.wx+pt[0]*c-pt[1]*s, cell.wy+pt[0]*s+pt[1]*c, pt[2]+floorZ]);
+      f.mounts.push({...mo,part:mo.part,faint:mo.faint,where:mo.where||'mid',panel, fref:f});
+    }
+    const fc=rotV([0,CAT[type].fh/2,0],c,s);f.frontC=[cell.wx+fc[0],cell.wy+fc[1]];
+    furn.push(f);return f;}
+
+  // ====== EXTERIOR SHELL (two storeys) ======
+  for(let gx=1;gx<N-1;gx++)for(let gy=1;gy<N-1;gy++){
+    const ax=gx*CS,ay=gy*CS,bx2=(gx+1)*CS,by2=(gy+1)*CS;
+    const checker=((gx+gy)&1)?pal.floorA:pal.floorB;
+    pushQuad(scene,[[ax,ay,0],[bx2,ay,0],[bx2,by2,0],[ax,by2,0]],jit(checker,R,6),[0,0,1],'floor'); // ground floor
+    // upper slab: walking surface (up) + ground ceiling (down) — FULL floor, tight shaft only at the ladder
+    {const c2=((gx+gy)&1)?pal.floorB:pal.floorA, slabCol=jit(c2,R,6), litU=(R()<0.06), ceilCol=litU?pal.ceilLight:pal.ceil;
+     if(gx===hcx&&gy===hcy){
+       slabFrame(scene,ax,ay,bx2,by2,tunnel,slabCol,ceilCol,litU?1:0);
+     }else{
+       pushQuad(scene,[[ax,ay,FH],[bx2,ay,FH],[bx2,by2,FH],[ax,by2,FH]],slabCol,[0,0,1],'floor');
+       pushQuad(scene,[[ax,ay,FH],[bx2,ay,FH],[bx2,by2,FH],[ax,by2,FH]],ceilCol,[0,0,-1],'ceil',litU?1:0);
+     }}
+    const litT=(R()<0.06);
+    pushQuad(scene,[[ax,ay,TOP_H],[bx2,ay,TOP_H],[bx2,by2,TOP_H],[ax,by2,TOP_H]],litT?pal.ceilLight:pal.ceil,[0,0,-1],'ceil',litT?1:0);
+  }
+  function extWall(ax,ay,bx2,by2,isDoor){
+    const col=isDoor?pal.wallDk:jit(pal.wall,R,8);
+    pushQuad(scene,[[ax,ay,0],[bx2,by2,0],[bx2,by2,TOP_H],[ax,ay,TOP_H]],col,[cxC-(ax+bx2)/2,cyC-(ay+by2)/2,0],'wall');
+  }
+  for(let i=1;i<N-1;i++){const a=i*CS,b=(i+1)*CS;
+    extWall(a,y0,b,y0,side===0&&i===idx);extWall(a,y1,b,y1,side===1&&i===idx);
+    extWall(x0,a,x0,b,side===2&&i===idx);extWall(x1,a,x1,b,side===3&&i===idx);}
+  buildDoorMesh(scene,door,pal,cxC,cyC);
+  buildPlanks(scene,door,R);
+
+  // ====== INTERIOR PARTITIONS → rooms (bedrooms / living / kitchen / bath) ======
+  const occ0={},occ1={};
+  occ0[cmX+','+cmY]=1; occ1[cmX+','+cmY]=1; occ0[((spawn.x/CS)|0)+','+((spawn.y/CS)|0)]=1;  // vault is upstairs-centre
+  for(let cx=hcx;cx<hcx+2;cx++)for(let cy=hcy;cy<hcy+2;cy++){occ0[cx+','+cy]=1;occ1[cx+','+cy]=1;}
+  const skipWall=(cx,cy,fz)=>{
+    if(inStairwell(cx,cy))return true;
+    if(Math.abs(cx-cmX)<=1&&Math.abs(cy-cmY)<=1)return true;                // keep an aisle round the (upstairs) vault, both floors
+    const wx=(cx+0.5)*CS,wy=(cy+0.5)*CS;
+    if(fz===0&&Math.hypot(wx-door.x,wy-door.y)<CS*1.5)return true;
+    if(fz===0&&Math.hypot(wx-spawn.x,wy-spawn.y)<CS*1.0)return true;
+    return false;
+  };
+  function buildRooms(fz){
+    const th=0.22;
+    let cA=4+((R()*3)|0), cB=N-5-((R()*3)|0); if(cB<=cA+1)cB=cA+2;
+    let rA=4+((R()*3)|0), rB=N-5-((R()*3)|0); if(rB<=rA+1)rB=rA+2;
+    const cols=[1,cA,cB,N-1], rows=[1,rA,rB,N-1];
+    const addSeg=(ax,ay,bx2,by2,cx,cy)=>{ if(skipWall(cx,cy,fz))return;
+      walls.push({x0:Math.min(ax,bx2),x1:Math.max(ax,bx2),y0:Math.min(ay,by2),y1:Math.max(ay,by2),zb:fz});
+      bx(scene,Math.min(ax,bx2),Math.min(ay,by2),fz,Math.max(ax,bx2),Math.max(ay,by2),fz+FH-0.05,jit(pal.wall2,R,8),R,'wall');
+    };
+    for(const cx of [cA,cB]){const gap=2+((R()*(N-4))|0);
+      for(let cy=1;cy<N-1;cy++){if(cy===gap||cy===gap+1)continue;addSeg(cx*CS-th/2,cy*CS,cx*CS+th/2,(cy+1)*CS,cx,cy);}}
+    for(const cy of [rA,rB]){const gap=2+((R()*(N-4))|0);
+      for(let cx=1;cx<N-1;cx++){if(cx===gap||cx===gap+1)continue;addSeg(cx*CS,cy*CS-th/2,(cx+1)*CS,cy*CS+th/2,cx,cy);}}
+    const themes=['bedroom','living','kitchen','bath'];
+    const rooms=[];
+    for(let i=0;i<3;i++)for(let j=0;j<3;j++)
+      rooms.push({cx0:cols[i],cy0:rows[j],cx1:cols[i+1],cy1:rows[j+1],type:themes[(R()*4)|0],fz});
+    return rooms;
+  }
+  const rooms0=buildRooms(0), rooms1=buildRooms(FH);
+
+  // ====== FURNITURE per themed room ======
+  const THEME={bedroom:['bed','dresser','closet','barrel'],living:['tv','table','shelf','terminal','locker'],
+    kitchen:['fridge','sink','table','crate'],bath:['toilet','sink','locker']};
+  const OPEN={bedroom:['dresser','closet'],living:['locker','crate'],kitchen:['fridge','sink','crate'],bath:['sink','locker']};
+  function roomCell(room,occ){
+    const rcx=room.cx1-room.cx0,rcy=room.cy1-room.cy0;if(rcx<1||rcy<1)return null;
+    for(let k=0;k<40;k++){const cx=room.cx0+((R()*rcx)|0),cy=room.cy0+((R()*rcy)|0);
+      if(cx<1||cy<1||cx>N-2||cy>N-2)continue;const key=cx+','+cy;if(occ[key])continue;
+      occ[key]=1;return {wx:(cx+0.5)*CS,wy:(cy+0.5)*CS,cx,cy};}
+    return null;}
+  function furnish(rooms,occ,fz){
+    const placed=[];
+    for(const room of rooms){const n=2+((R()*2)|0);
+      for(let i=0;i<n;i++){const cell=roomCell(room,occ);if(!cell)break;
+        const type=(i===0)?OPEN[room.type][(R()*OPEN[room.type].length)|0]:THEME[room.type][(R()*THEME[room.type].length)|0];
+        placed.push(place(type,cell,fz));}}
+    return placed;}
+  const vault=(mode==='code')?place('vault',{wx:(cmX+0.5)*CS,wy:(cmY+0.5)*CS,cx:cmX,cy:cmY},FH):null; // vault sits upstairs, dead centre
+  place('ladder',{wx:(hcx+0.5)*CS,wy:(hcy+0.5)*CS,cx:hcx,cy:hcy},0); // ground→upper ladder in the stairwell
+  const placedGround=furnish(rooms0,occ0,0);
+  const placedUpper=furnish(rooms1,occ1,FH);
+
+  // collect every openable mount (where an item can hide)
+  const groundMounts=[],upperMounts=[];
+  for(const f of placedGround)for(const mo of f.mounts)if(mo.part>=0)groundMounts.push(mo);
+  for(const f of placedUpper)for(const mo of f.mounts)if(mo.part>=0)upperMounts.push(mo);
+  const shuf=(a)=>{for(let i=a.length-1;i>0;i--){const j=(R()*(i+1))|0;const t=a[i];a[i]=a[j];a[j]=t;}};
+  shuf(groundMounts);shuf(upperMounts);
+
+  // ---- GUARANTEE enough hiding spots: 4 digits + KEY + HAMMER (code) / 1 HAMMER (puzzle) ----
+  const needMounts=(mode==='code')?6:1;
+  function freeCell(occ){for(let k=0;k<80;k++){const cx=2+((R()*(N-4))|0),cy=2+((R()*(N-4))|0);
+    if(cx<1||cy<1||cx>N-2||cy>N-2||inStairwell(cx,cy))continue;
+    if(Math.abs(cx-cmX)<=1&&Math.abs(cy-cmY)<=1)continue;
+    const key=cx+','+cy;if(occ[key])continue;occ[key]=1;return {wx:(cx+0.5)*CS,wy:(cy+0.5)*CS,cx,cy};}return null;}
+  let guard=0;
+  while(groundMounts.length+upperMounts.length<needMounts && guard++<24){
+    const onUpper=upperMounts.length<=groundMounts.length, cell=freeCell(onUpper?occ1:occ0);if(!cell)break;
+    const f=place('locker',cell,onUpper?FH:0);
+    for(const mo of f.mounts)if(mo.part>=0)(onUpper?upperMounts:groundMounts).push(mo);
+  }
+
+  let code='',codeMount=null,keyMount=null,hammerMount=null;const digitMounts=[];let pickups=[];
+  if(mode==='code'){
+    // ====== CODE ROOM: 2 numbers DOWNSTAIRS, 2 UPSTAIRS, + KEY + HAMMER (all guaranteed present) ======
+    code=''+(1000+((R()*9000)|0));
+    codeMount=vault.mounts.find(m=>m.isCode)||vault.mounts[0];
+    const assignDigit=(mo,sNum,where)=>{mo.isDigit=true;mo.char=code[sNum];mo.slot=sNum;mo.found=false;mo.where2=where;digitMounts.push(mo);};
+    const take=(pref,other)=>pref.length?pref.pop():(other.length?other.pop():null);
+    const plan=[['ground',groundMounts,upperMounts],['ground',groundMounts,upperMounts],['upstairs',upperMounts,groundMounts],['upstairs',upperMounts,groundMounts]];
+    for(let sNum=0;sNum<4;sNum++){const mo=take(plan[sNum][1],plan[sNum][2]);if(mo)assignDigit(mo,sNum,plan[sNum][0]);}  // all 4 always placeable
+    keyMount=take(groundMounts,upperMounts);if(keyMount)keyMount.isKey=true;
+    hammerMount=take(upperMounts,groundMounts);if(hammerMount)hammerMount.isHammer=true;
+    pickups=digitMounts.concat(keyMount?[keyMount]:[],hammerMount?[hammerMount]:[]);
+  }else{
+    // ====== PUZZLE ROOM: no code, no key — find the HAMMER, smash the planks, solve the 4x4 grid ======
+    const pool=groundMounts.concat(upperMounts);shuf(pool);
+    hammerMount=pool.length?pool.pop():null;
+    if(hammerMount)hammerMount.isHammer=true;
+    pickups=hammerMount?[hammerMount]:[];
+  }
+
+  return {level,N,x0,y0,x1,y1,door,pal,furn,scene,sceneGrid:buildSceneGrid(scene),walls,code,mode,slots:[null,null,null,null],
+    vault,codeMount,keyMount,hammerMount,digitMounts,pickups,hole,tunnel,
+    hasKey:false,hasHammer:false,foundCount:0,planksOn:true,codeSeen:false,
+    px:spawn.x,py:spawn.y,pa:spawn.a};
+}
+function addWallShelves(scene,pal,R,N,x0,y0,x1,y1){
+  const n=2+((R()*2)|0);
+  for(let i=0;i<n;i++){
+    const side=(R()*4)|0, z=2.4+R()*1.0, len=CS*(1+((R()*2)|0)), d=0.45;
+    const along=1+((R()*(N-3))|0)*0+1+R()*(N-3);
+    let ax,ay,bx2,by2;
+    const startPos=(1+R()*(N-3))*CS;
+    if(side===0){ay=y0+0.02;by2=y0+d;ax=startPos;bx2=Math.min(startPos+len,x1);}
+    else if(side===1){ay=y1-d;by2=y1-0.02;ax=startPos;bx2=Math.min(startPos+len,x1);}
+    else if(side===2){ax=x0+0.02;bx2=x0+d;ay=startPos;by2=Math.min(startPos+len,y1);}
+    else{ax=x1-d;bx2=x1-0.02;ay=startPos;by2=Math.min(startPos+len,y1);}
+    bx(scene,Math.min(ax,bx2),Math.min(ay,by2),z,Math.max(ax,bx2),Math.max(ay,by2),z+.07,hsl2rgb(pal.accHue,.3,.4),R,'furn');
+    // brackets + items
+    for(let k=0;k<4;k++){const ix=lerp(Math.min(ax,bx2),Math.max(ax,bx2),(k+.5)/4),iy=(Math.min(ay,by2)+Math.max(ay,by2))/2;
+      const sh=.15+R()*.4;bx(scene,ix-.08,iy-.08,z+.07,ix+.08,iy+.08,z+.07+sh,hsl2rgb(R()*360,.6,.45));}
+  }
+}
+function buildPlanks(scene,door,R){
+  const w=CS*0.46, tx=-door.ny, ty=door.nx, ox=door.nx*0.14, oy=door.ny*0.14;
+  const board=(z0,z1,sk)=>{
+    const sx0=sk*0.0, sx1=sk*0.0; // (kept simple — straight boards)
+    const ax=door.x - tx*w + ox, ay=door.y - ty*w + oy;
+    const bx2=door.x + tx*w + ox, by2=door.y + ty*w + oy;
+    const wood=jit([124,82,46],R,16);
+    pushQuad(scene,[[ax,ay,z0],[bx2,by2,z0],[bx2,by2,z1],[ax,ay,z1]],wood,[door.nx,door.ny,0],'plank');
+  };
+  // 5 horizontal boards up the doorway
+  for(let i=0;i<5;i++){const z=0.35+i*0.62;board(z,z+0.26,0);}
+  // 2 diagonal cross-braces (drawn as wide boards at angles, approximated by tall thin ones)
+  const ax=door.x - tx*w*0.7 + ox, ay=door.y - ty*w*0.7 + oy;
+  const bx2=door.x + tx*w*0.7 + ox, by2=door.y + ty*w*0.7 + oy;
+  pushQuad(scene,[[ax,ay,0.4],[bx2,by2,2.7],[bx2+tx*0.18,by2+ty*0.18,2.7],[ax+tx*0.18,ay+ty*0.18,0.4]],jit([110,72,40],R,12),[door.nx,door.ny,0],'plank');
+  pushQuad(scene,[[bx2,by2,0.4],[ax,ay,2.7],[ax+tx*0.18,ay+ty*0.18,2.7],[bx2+tx*0.18,by2+ty*0.18,0.4]],jit([110,72,40],R,12),[door.nx,door.ny,0],'plank');
+}
+function buildDoorMesh(scene,door,pal,cxC,cyC){
+  const inn=[door.nx,door.ny,0],w=CS*0.36,t=0.08;
+  const ax=door.x,ay=door.y,tx=-door.ny,ty=door.nx,inX=door.nx*t,inY=door.ny*t;
+  const q4=(p0,p1,p2,p3,col,emis)=>pushQuad(scene,[p0,p1,p2,p3],col,inn,'door',emis);
+  const z0=0.05,z1=ROOM_H*0.82;
+  const lx=ax+tx*w+inX,rx=ax-tx*w+inX,ly=ay+ty*w+inY,ry=ay-ty*w+inY;
+  q4([lx,ly,z0],[rx,ry,z0],[rx,ry,z1],[lx,ly,z1],pal.metal,0);
+  q4([lx,ly,z1-0.5],[rx,ry,z1-0.5],[rx,ry,z1-0.34],[lx,ly,z1-0.34],pal.accent2,0);
+  q4([lx,ly,z0+0.25],[rx,ry,z0+0.25],[rx,ry,z0+0.41],[lx,ly,z0+0.41],pal.accent2,0);
+  const kx=ax-tx*(w*0.55)+door.nx*(t+0.02),ky=ay-ty*(w*0.55)+door.ny*(t+0.02),kw=0.2;
+  q4([kx+tx*kw,ky+ty*kw,1.35],[kx-tx*kw,ky-ty*kw,1.35],[kx-tx*kw,ky-ty*kw,1.8],[kx+tx*kw,ky+ty*kw,1.8],pal.glow,1);
+}
+
+//---------------- player / input
+const player={x:0,y:0,z:0,vz:0,a:0,pitch:0,baseH:1.6,camZ:1.6,crawl:false,nearLadder:false};
+const input={fwd:0,strafe:0,look:0,lookUp:0,jump:false,climbHold:false};
+let keys={};
+let foundFlash=0;
+let flashOn=true; // flashlight equipped/on by default — toggle with the FLASH button or F
+let escapeFX=null; // active escape sequence (light flood + rumble + rising sparks)
+
+function loadRoom(level){
+  G=buildRoom(level);
+  player.x=G.px;player.y=G.py;player.z=0;player.vz=0;player.a=G.pa;player.pitch=0;player.crawl=false;player.baseH=1.6;player.camZ=1.6;
+  document.getElementById('roomLbl').textContent='ROOM '+String(level).padStart(2,'0');
+  document.getElementById('objLbl').textContent = G.mode==='puzzle'
+    ? '// 🧩 PUZZLE ROOM · find the 🔨 HAMMER · smash the door planks · solve the 4×4 grid to escape'
+    : '// 4 numbers (2 down · 2 up) · KEY · HAMMER · vault is UPSTAIRS-centre (climb the ladder) → smash door → code';
+  puz=null; // fresh puzzle per room
+  setSlots();setCrawlBtn(false);
+  if(started)toast(G.mode==='puzzle'?'🧩 PUZZLE ROOM — find the hammer, then solve the 4×4 grid at the door':'Find the key, 4 numbers & hammer — read the code in the vault',2600);
+}
+function setSlots(){document.getElementById('codeVal').textContent=G.slots.map(s=>s==null?'_':s).join(' ');}
+
+//---------------- collision
+function overHole(x,y){const h=G&&G.tunnel;return !!h&&x>h.x0&&x<h.x1&&y>h.y0&&y<h.y1;}
+function blocked(nx,ny){
+  const r=0.42, z=player.z;
+  if(nx<G.x0+r||nx>G.x1-r||ny<G.y0+r||ny>G.y1-r)return true;
+  for(const w of G.walls){const zb=w.zb||0;if(z>=zb-0.1&&z<zb+FH-0.1&&nx>w.x0-r&&nx<w.x1+r&&ny>w.y0-r&&ny<w.y1+r)return true;}
+  for(const f of G.furn){if(!f.solid)continue;const fz=f.floorZ||0;if(z>=fz-0.3&&z<fz+FH-0.2&&Math.abs(nx-f.x)<f.ex+r&&Math.abs(ny-f.y)<f.ey+r)return true;}
+  return false;
+}
+function moveP(dx,dy){if(!blocked(player.x+dx,player.y))player.x+=dx;if(!blocked(player.x,player.y+dy))player.y+=dy;}
+
+//---------------- update
+function update(dt){
+  if(escapeFX){                                                   // play the escape flash; freeze player control
+    escapeFX.t+=dt;
+    for(const p of escapeFX.parts){p.y-=p.vy*dt;p.x+=p.drift*dt;if(p.y<-0.05)p.y=1.05;}
+    if(escapeFX.t>=0.8&&!escapeFX.loaded){escapeFX.loaded=true;loadRoom(escapeFX.nextLevel);} // swap room while screen is white-hot
+    if(escapeFX.t>=escapeFX.dur)escapeFX=null;
+    updateBeacon(0);
+    return;
+  }
+  if(keys['arrowleft'])player.a+=2.2*dt;if(keys['arrowright'])player.a-=2.2*dt;
+  if(keys['arrowup'])player.pitch=clamp(player.pitch+1.2*dt,-1.3,1.3);if(keys['arrowdown'])player.pitch=clamp(player.pitch-1.2*dt,-1.3,1.3);
+  player.a+=input.look*SET.sens;input.look=0;player.pitch=clamp(player.pitch+input.lookUp*SET.sens,-1.35,1.35);input.lookUp=0;
+
+  let mf=0,ms=0;if(keys['w'])mf+=1;if(keys['s'])mf-=1;if(keys['a'])ms-=1;if(keys['d'])ms+=1;
+  mf+=input.fwd;ms+=input.strafe;
+  const spd=(player.crawl?1.8:(player.climb>0.3?1.5:3.6))*dt;
+  if(mf||ms){const l=Math.hypot(mf,ms)||1;mf/=l;ms/=l;
+    const dx=(Math.cos(player.a)*mf+Math.cos(player.a-Math.PI/2)*ms)*spd;
+    const dy=(Math.sin(player.a)*mf+Math.sin(player.a-Math.PI/2)*ms)*spd;moveP(dx,dy);}
+
+  player.nearLadder=false;
+  for(const f of G.furn){if(f.type==='ladder'&&Math.hypot(player.x-f.x,player.y-f.y)<CS*1.0){player.nearLadder=true;break;}}
+  document.getElementById('bClimb').style.display=player.nearLadder?'flex':'none';
+  // ---- two-floor vertical movement (the ladder is the only way up) ----
+  const climbing=player.nearLadder&&(input.climbHold||keys[' ']);
+  if(climbing){
+    player.z=clamp(player.z+2.7*dt,0,FH+0.9);player.vz=0;          // climb up the ladder
+  }else{
+    const supNow=(!overHole(player.x,player.y)&&player.z>=FH-0.05)?FH:0;
+    const grounded=Math.abs(player.z-supNow)<0.03;
+    if((input.jump||keys[' '])&&grounded&&!player.crawl)player.vz=4.6; // jump
+    player.vz-=12*dt;player.z+=player.vz*dt;                          // gravity
+    const sup=(!overHole(player.x,player.y)&&player.z>=FH-0.05)?FH:0; // land on slab (FH) or ground (0)
+    if(player.z<=sup){player.z=sup;player.vz=0;}
+  }
+  input.jump=false;
+  player.baseH=player.crawl?0.62:1.6;
+  player.camZ=clamp(player.z+player.baseH,0.4,TOP_H-0.3);
+
+  // ---- auto open drawers/doors you're looking at ----
+  for(const f of G.furn)for(const p of f.parts)p.target=0;
+  const look=aimedFurniture();
+  if(look){const {f,partIdx}=look;
+    if(f.type==='vault'&&!G.hasKey){/* vault stays locked until the key is found */}
+    else if(f.openAll||partIdx<0){for(const p of f.parts)p.target=1;}
+    else f.parts[partIdx].target=1;}
+  for(const f of G.furn)for(const p of f.parts){const sp=(p.target>p.openAmt)?2.6:2.2;p.openAmt=clamp(p.openAmt+(p.target-p.openAmt)*sp*dt,0,1);}
+
+  // ---- vault shows the FULL code only after all 4 numbers are collected (code rooms only) ----
+  if(G.mode==='code' && G.vault){
+    const vp=G.vault.parts[0];
+    if(vp.openAmt>0.5 && G.foundCount>=4 && !G.codeSeen){
+      G.codeSeen=true;foundFlash=1.0;sweep([659,784,988,1319],90,0.22,0.24);
+      toast('VAULT CODE: '+G.code+' — enter it at the door to escape!',3600);
+    }
+  }
+  // ---- audio beacon: tone rises as you near the vault (code rooms, before code is read) ----
+  if(actx){let prox=0;
+    if(SET.beacon&&G.mode==='code'&&G.vault&&!G.codeSeen){const d=Math.hypot(player.x-G.vault.x,player.y-G.vault.y);prox=clamp(1-d/(CS*7),0,1);}
+    updateBeacon(prox);}
+
+  updatePrompt();
+  if(foundFlash>0)foundFlash-=dt;
+  // context button: PICK UP an item, SMASH the planks, or open the door CODE pad
+  const be=document.getElementById('bEnter');
+  const pick=aimedPickup();
+  if(pick){be.style.display='flex';be.textContent='PICK UP';}
+  else if(nearDoor()){be.style.display='flex';be.textContent=G.planksOn?(G.hasHammer?'SMASH':'DOOR'):(G.mode==='puzzle'?'GRID':'CODE');}
+  else be.style.display='none';
+}
+
+// nearest openable furniture you're aiming at; returns {f,partIdx}
+function aimedFurniture(){
+  let best=null,bd=1e9;const fx=Math.cos(player.a),fy=Math.sin(player.a);
+  for(const f of G.furn){if(!f.parts.length)continue;
+    if(Math.abs(player.z-(f.floorZ||0))>FH*0.7)continue; // only furniture on your floor
+    const dx=f.x-player.x,dy=f.y-player.y,d=Math.hypot(dx,dy);if(d>CS*1.15)continue;
+    const dot=(dx*fx+dy*fy)/(d||1);if(dot<0.45)continue;
+    if(d<bd){bd=d;best=f;}}
+  if(!best)return null;
+  // which part: intersect aim ray with front plane, get z
+  const fX=Math.cos(player.a)*Math.cos(player.pitch),fY=Math.sin(player.a)*Math.cos(player.pitch),fZ=Math.sin(player.pitch);
+  const N=best.frontN;const denom=fX*N[0]+fY*N[1];let partIdx=-1;
+  if(Math.abs(denom)>1e-4){
+    const t=((best.frontC[0]-player.x)*N[0]+(best.frontC[1]-player.y)*N[1])/denom;
+    if(t>0){const hz=player.camZ+fZ*t;
+      let bestd=1e9;for(let i=0;i<best.parts.length;i++){const b=best.parts[i].band;const mid=(b[0]+b[1])/2;const dd=Math.abs(hz-mid);if(hz>=b[0]-0.15&&hz<=b[1]+0.15&&dd<bestd){bestd=dd;partIdx=i;}}
+      if(partIdx<0){let bd2=1e9;for(let i=0;i<best.parts.length;i++){const b=best.parts[i].band;const mid=(b[0]+b[1])/2;const dd=Math.abs(hz-mid);if(dd<bd2){bd2=dd;partIdx=i;}}}
+    }
+  }
+  if(best.parts.length===1)partIdx=0;
+  return {f:best,partIdx};
+}
+
+//---------------- interaction (door only)
+function nearDoor(){const dx=G.door.x-player.x,dy=G.door.y-player.y,d=Math.hypot(dx,dy);if(d>CS*1.15)return false;
+  const fx=Math.cos(player.a),fy=Math.sin(player.a);return (dx*fx+dy*fy)/(d||1)>-0.1;}
+function nearVault(){const f=G.vault;if(!f)return false;const dx=f.x-player.x,dy=f.y-player.y,d=Math.hypot(dx,dy);
+  if(d>CS*1.55)return false;const fx=Math.cos(player.a),fy=Math.sin(player.a);return (dx*fx+dy*fy)/(d||1)>-0.25;}
+// the item (key/number) you're currently looking at, revealed & close enough to grab — or null
+function aimedPickup(){
+  if(!G||!G.pickups)return null;
+  let best=null,bestDepth=1e9;
+  for(const mo of G.pickups){
+    if(mo.isKey&&G.hasKey)continue;
+    if(mo.isHammer&&G.hasHammer)continue;
+    if(mo.isDigit&&mo.found)continue;
+    if(Math.abs(player.z-((mo.fref&&mo.fref.floorZ)||0))>FH*0.7)continue; // only items on your floor
+    const pj=projectMount(mo);if(!pj||pj.depth>CS*1.7)continue;
+    const cx=(pj.sp[0][0]+pj.sp[1][0]+pj.sp[2][0]+pj.sp[3][0])/4;
+    const cy=(pj.sp[0][1]+pj.sp[1][1]+pj.sp[2][1]+pj.sp[3][1])/4;
+    if(Math.hypot(cx-HALF,cy-HALFY)>RW*0.14)continue; // must be roughly centred in view
+    if(pj.depth<bestDepth){bestDepth=pj.depth;best=mo;}
+  }
+  return best;
+}
+function pickUp(mo){
+  if(mo.isKey){G.hasKey=true;foundFlash=0.9;blip(620,0.16);blip(940,0.22);toast('🔑 KEY picked up — open the vault in the centre!',2300);}
+  else if(mo.isHammer){G.hasHammer=true;foundFlash=0.9;blip(300,0.12,'square',0.15);blip(200,0.18,'square',0.15);toast('🔨 HAMMER picked up — smash the planks off the door!',2400);}
+  else if(mo.isDigit){mo.found=true;G.slots[mo.slot]=mo.char;G.foundCount++;setSlots();foundFlash=0.9;
+    blip(640+G.foundCount*120,0.16,'triangle',0.2);
+    if(G.foundCount>=4)sweep([523,659,784,1047],90,0.2,0.22);   // ascending fanfare when all 4 found
+    toast('Number secured ('+G.foundCount+'/4) — read the full code in the vault',2200);}
+}
+function removePlanks(){G.planksOn=false;foundFlash=0.7;blip(150,0.22,'sawtooth',0.18);blip(90,0.28,'sawtooth',0.16);toast('🔨 planks smashed off — the door lock is exposed!',2200);}
+function pressE(){
+  if(!G||escapeFX)return;
+  const mo=aimedPickup();
+  if(mo){pickUp(mo);return;}
+  if(nearDoor()){
+    if(G.planksOn){
+      if(G.hasHammer)removePlanks();
+      else toast('🔒 the door is boarded shut — find a 🔨 hammer first',2000);
+    } else (G.mode==='puzzle'?openPuzzle():openPad());
+  }
+}
+function updatePrompt(){const pe=document.getElementById('prompt');
+  const pick=aimedPickup();
+  if(pick){pe.style.display='block';
+    pe.textContent = pick.isKey ? '🔑  press E / PICK UP to take the key'
+      : pick.isHammer ? '🔨  press E / PICK UP to take the hammer'
+      : '🔢  press E / PICK UP to take this number';return;}
+  const look=aimedFurniture();
+  const aimVault=look&&look.f.type==='vault';
+  if(nearDoor()){pe.style.display='block';
+    pe.textContent = G.planksOn ? (G.hasHammer?'🔨 press E to smash the planks off the door':'🔒 door is boarded shut — find a hammer')
+      : (G.mode==='puzzle'?'🧩 press E to open the 4×4 security grid':'⌨  press E to enter the escape code');return;}
+  if(aimVault&&!G.hasKey){pe.style.display='block';pe.textContent='🔒 VAULT LOCKED — find the KEY hidden in a utility';return;}
+  if(aimVault&&G.hasKey&&G.foundCount<4){pe.style.display='block';pe.textContent='🔓 vault open — code is BLANK: find all 4 numbers ('+G.foundCount+'/4)';return;}
+  if(aimVault&&G.hasKey&&G.foundCount>=4){pe.style.display='block';pe.textContent='👁  the vault shows the full code — memorise it for the door!';return;}
+  if(look){pe.style.display='block';pe.textContent='👁  searching '+CAT[look.f.type].name+(look.f.parts.length>1?' — aim at a drawer/door':'');return;}
+  pe.style.display='none';}
+
+//==================================================================
+// 3D RENDER
+//==================================================================
+const LIGHT=(()=>{const v=[0.35,0.25,0.90],l=Math.hypot(...v);return [v[0]/l,v[1]/l,v[2]/l];})();
+let camR=[1,0,0],camU=[0,0,1],camF=[0,1,0],camP=[0,0,0];
+function setupCam(){const a=player.a,p=player.pitch,cp=Math.cos(p);
+  camF=[cp*Math.cos(a),cp*Math.sin(a),Math.sin(p)];
+  let rx=camF[1],ry=-camF[0],rz=0;const rl=Math.hypot(rx,ry,rz)||1;camR=[rx/rl,ry/rl,0];
+  camU=[camR[1]*camF[2]-camR[2]*camF[1],camR[2]*camF[0]-camR[0]*camF[2],camR[0]*camF[1]-camR[1]*camF[0]];
+  camP=[player.x,player.y,player.camZ];}
+function toCam(p,off){let rx=p[0]-camP[0],ry=p[1]-camP[1],rz=p[2]-camP[2];
+  if(off){rx+=off[0];ry+=off[1];rz+=off[2];}
+  return [rx*camR[0]+ry*camR[1]+rz*camR[2], rx*camU[0]+ry*camU[1]+rz*camU[2], rx*camF[0]+ry*camF[1]+rz*camF[2]];}
+function clipNear(pts){const out=[],n=pts.length;
+  for(let i=0;i<n;i++){const a=pts[i],b=pts[(i+1)%n],ain=a[2]>=ZNEAR,bin=b[2]>=ZNEAR;
+    if(ain)out.push(a);if(ain!==bin){const t=(ZNEAR-a[2])/(b[2]-a[2]);out.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,ZNEAR]);}}return out;}
+const MAXVIEW=CS*8;
+const SCENE_CELL=CS*5;                 // spatial bucket size for render culling (giant rooms)
+function buildSceneGrid(scene){const g=new Map();for(const q of scene){const gx=Math.floor(q.c[0]/SCENE_CELL),gy=Math.floor(q.c[1]/SCENE_CELL);const k=gx*100003+gy;let a=g.get(k);if(!a){a=[];g.set(k,a);}a.push(q);}return g;}
+function shadeFill(q,avg,off){
+  let R8,Gg,B8;
+  if(q.emis){R8=q.col[0];Gg=q.col[1];B8=q.col[2];}
+  else{
+    // single light source = the player's flashlight at the camera
+    const qx=q.c[0]+(off?off[0]:0),qy=q.c[1]+(off?off[1]:0),qz=q.c[2]+(off?off[2]:0);
+    let lx=camP[0]-qx,ly=camP[1]-qy,lz=camP[2]-qz;const dist=Math.hypot(lx,ly,lz)||1;lx/=dist;ly/=dist;lz/=dist;
+    const ndl=Math.max(0.12,q.n[0]*lx+q.n[1]*ly+q.n[2]*lz);           // surface facing the beam
+    const ca=-(lx*camF[0]+ly*camF[1]+lz*camF[2]);                    // how centred in the beam cone
+    let cone=clamp((ca-FLASH_CONE)/(1-FLASH_CONE),0,1);cone*=cone;
+    const atten=clamp(1-dist/FLASH_RANGE,0,1);
+    let flash=0,glow=0;
+    if(flashOn){flash=cone*atten*(0.4+0.6*ndl)*FLASH_POWER;
+      glow=clamp(1-dist/(CS*2.0),0,1)*0.22;}                         // pool of light right around you
+    const li=AMBIENT+flash+glow;
+    R8=q.col[0]*li;Gg=q.col[1]*li;B8=q.col[2]*li;
+  }
+  let ft=clamp((avg-2)/MAXVIEW,0,0.92);if(q.emis)ft*=0.5;
+  R8=lerp(R8,3,ft);Gg=lerp(Gg,4,ft);B8=lerp(B8,6,ft);              // distance fades to near-black
+  return [R8|0,Gg|0,B8|0];
+}
+function projectQuad(q,off){
+  const vx=camP[0]-q.c[0]-(off?off[0]:0),vy=camP[1]-q.c[1]-(off?off[1]:0),vz=camP[2]-q.c[2]-(off?off[2]:0);
+  if(q.n[0]*vx+q.n[1]*vy+q.n[2]*vz<=0)return null;
+  if(vx*vx+vy*vy+vz*vz>MAXVIEW*MAXVIEW*1.7)return null;
+  const cp=[toCam(q.p[0],off),toCam(q.p[1],off),toCam(q.p[2],off),toCam(q.p[3],off)];
+  if(cp[0][2]<ZNEAR&&cp[1][2]<ZNEAR&&cp[2][2]<ZNEAR&&cp[3][2]<ZNEAR)return null;
+  const poly=clipNear(cp);if(poly.length<3)return null;
+  let avg=0,sx=[],sy=[],minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;
+  for(const c of poly){const x=HALF+c[0]*FOCAL/c[2],y=HALFY-c[1]*FOCAL/c[2];sx.push(x);sy.push(y);avg+=c[2];
+    if(x<minx)minx=x;if(x>maxx)maxx=x;if(y<miny)miny=y;if(y>maxy)maxy=y;}
+  avg/=poly.length;if(maxx<0||minx>RW||maxy<0||miny>RH)return null;
+  return {avg,sx,sy,n:poly.length};
+}
+function render(){
+  setupCam();ctx.fillStyle='#05080a';ctx.fillRect(0,0,RW,RH);
+  const list=[];
+  // room shell — only iterate spatial buckets near the player (giant rooms have ~240k quads)
+  const SR=Math.ceil(Math.sqrt(MAXVIEW*MAXVIEW*1.7)/SCENE_CELL)+1;
+  const pgx=Math.floor(player.x/SCENE_CELL),pgy=Math.floor(player.y/SCENE_CELL);
+  const grid=G.sceneGrid;
+  for(let gx=pgx-SR;gx<=pgx+SR;gx++)for(let gy=pgy-SR;gy<=pgy+SR;gy++){
+    const bucket=grid?grid.get(gx*100003+gy):null;if(!bucket)continue;
+    for(const q of bucket){if(q.kind==='plank'&&!G.planksOn)continue; const pr=projectQuad(q,null);if(!pr)continue;const c=shadeFill(q,pr.avg,null);
+      list.push({...pr,fill:'rgb('+c[0]+','+c[1]+','+c[2]+')',edge:(q.kind==='furn'||q.kind==='door')?'rgba('+((c[0]*.45)|0)+','+((c[1]*.45)|0)+','+((c[2]*.45)|0)+',.9)':null});}
+  }
+  // furniture (with part offsets)
+  for(const f of G.furn)for(const q of f.quads){
+    const off=q.part>=0?[f.parts[q.part].ws[0]*f.parts[q.part].openAmt,f.parts[q.part].ws[1]*f.parts[q.part].openAmt,f.parts[q.part].ws[2]*f.parts[q.part].openAmt]:null;
+    const pr=projectQuad(q,off);if(!pr)continue;const c=shadeFill(q,pr.avg,off);
+    list.push({...pr,fill:'rgb('+c[0]+','+c[1]+','+c[2]+')',edge:'rgba('+((c[0]*.45)|0)+','+((c[1]*.45)|0)+','+((c[2]*.45)|0)+',.9)'});}
+  list.sort((a,b)=>b.avg-a.avg);
+  for(const f of list){ctx.beginPath();ctx.moveTo(f.sx[0],f.sy[0]);for(let i=1;i<f.n;i++)ctx.lineTo(f.sx[i],f.sy[i]);ctx.closePath();
+    ctx.fillStyle=f.fill;ctx.fill();if(f.edge){ctx.lineWidth=1;ctx.strokeStyle=f.edge;ctx.stroke();}}
+  // ---- flashlight vignette: dark edges, bright beam centre ----
+  if(flashOn){
+    const vg=ctx.createRadialGradient(HALF,HALFY,RH*0.10,HALF,HALFY,RH*0.75);
+    vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.7,'rgba(0,0,0,0.22)');vg.addColorStop(1,'rgba(0,0,0,0.78)');
+    ctx.fillStyle=vg;ctx.fillRect(0,0,RW,RH);
+  }else{ // flashlight off — heavy uniform darkness
+    ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,RW,RH);
+  }
+  // ---- vault waypoint beacon (code rooms, until the code is read) — guides nav in the dark ----
+  if(SET.beacon&&G.mode==='code'&&G.vault&&!G.codeSeen)drawVaultBeacon();
+  // ---- hidden key + vault code (drawn last, on top) ----
+  drawDigits();
+  if(foundFlash>0){ctx.fillStyle='rgba(0,255,150,'+(foundFlash*0.22)+')';ctx.fillRect(0,0,RW,RH);}
+  if(escapeFX)drawEscape();
+}
+function drawEscape(){
+  const t=escapeFX.t,dur=escapeFX.dur;
+  let a; if(t<0.5)a=t/0.5; else if(t<0.9)a=1; else a=clamp(1-(t-0.9)/(dur-0.9),0,1); // ramp up, hold, fade
+  // warm radial light flooding from the doorway/centre
+  const cx=HALF,cy=HALFY*0.92,rad=Math.max(RW,RH)*0.8;
+  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,rad);
+  g.addColorStop(0,'rgba(255,251,238,'+a+')');g.addColorStop(0.55,'rgba(255,240,214,'+(a*0.94)+')');g.addColorStop(1,'rgba(255,228,196,'+(a*0.7)+')');
+  ctx.fillStyle=g;ctx.fillRect(0,0,RW,RH);
+  // rising golden sparks
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const p of escapeFX.parts){const pa=clamp(p.a*(1-t/dur),0,1);if(pa<=0)continue;
+    ctx.fillStyle='rgba(255,'+(210+((p.sz*8)|0))+',140,'+pa+')';ctx.beginPath();ctx.arc(p.x*RW,p.y*RH,p.sz,0,6.2832);ctx.fill();}
+  ctx.restore();
+  // next-room label punched into the light
+  if(a>0.3){ctx.fillStyle='rgba(70,46,12,'+clamp(a,0,0.92)+')';ctx.font='bold 30px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('ROOM '+String(escapeFX.nextLevel).padStart(2,'0'),HALF,HALFY);ctx.textBaseline='alphabetic';ctx.textAlign='left';}
+}
+function drawVaultBeacon(){
+  const v=G.vault;const cc=toCam([v.x,v.y,(v.floorZ||0)+1.7],null);
+  if(cc[2]<=ZNEAR)return;                                  // behind camera
+  const sx=HALF+cc[0]*FOCAL/cc[2],sy=HALFY-cc[1]*FOCAL/cc[2];
+  if(sx<-80||sx>RW+80||sy<-80||sy>RH+80)return;            // off-screen
+  const dist=cc[2],r=clamp(1300/dist,9,80),pulse=0.55+0.45*Math.sin(performance.now()/350);
+  const g=ctx.createRadialGradient(sx,sy,0,sx,sy,r);
+  g.addColorStop(0,'rgba(255,120,70,'+(0.30*pulse)+')');g.addColorStop(0.5,'rgba(255,80,46,'+(0.12*pulse)+')');g.addColorStop(1,'rgba(255,70,46,0)');
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle=g;ctx.fillRect(sx-r,sy-r,r*2,r*2);ctx.restore();
+  if(dist>CS*4){ctx.fillStyle='rgba(255,160,120,'+(0.55*pulse)+')';ctx.font='bold 11px monospace';ctx.textAlign='center';ctx.fillText('VAULT · '+(dist|0)+'m',sx,sy-r-5);ctx.textAlign='left';}
+}
+// project a mount panel to screen; returns {sp, depth} or null if not visible
+function projectMount(mo){
+  const f=mo.fref;let off=null;
+  if(mo.part>=0){const p=f.parts[mo.part];if(p.openAmt<0.5)return null;
+    if(!mo.fixed)off=[p.ws[0]*p.openAmt,p.ws[1]*p.openAmt,p.ws[2]*p.openAmt];} // key rides the drawer; code stays put
+  const cc=mo.panel.map(pt=>toCam(pt,off));
+  if(cc[0][2]<ZNEAR||cc[1][2]<ZNEAR||cc[2][2]<ZNEAR||cc[3][2]<ZNEAR)return null;
+  const sp=cc.map(c=>[HALF+c[0]*FOCAL/c[2],HALFY-c[1]*FOCAL/c[2]]);
+  const depth=(cc[0][2]+cc[1][2]+cc[2][2]+cc[3][2])/4;
+  return {sp,depth};
+}
+function drawDigits(){
+  // ---- draw revealed, not-yet-collected items (key + code numbers) ----
+  for(const mo of G.pickups){
+    if(mo.isKey&&G.hasKey)continue;
+    if(mo.isDigit&&mo.found)continue;
+    const pj=projectMount(mo);if(!pj||pj.depth>CS*2.6)continue;
+    const a=clamp(1.15-pj.depth/(CS*2.6),0.3,0.98);
+    const aimed=(mo===aimedPickup());
+    if(mo.isKey){
+      drawGlyph(pj.sp[0],pj.sp[1],pj.sp[3],'🔑',aimed?'rgba(255,235,120,1)':'rgba(255,205,60,'+a+')');
+    }else if(mo.isHammer){
+      drawGlyph(pj.sp[0],pj.sp[1],pj.sp[3],'🔨',aimed?'rgba(255,225,180,1)':'rgba(230,180,120,'+a+')');
+    }else{
+      drawGlyph(pj.sp[0],pj.sp[1],pj.sp[3],mo.char,aimed?'rgba(170,245,255,1)':'rgba(110,225,255,'+a+')');
+    }
+  }
+  // ---- vault interior display: full code only after all 4 numbers found ----
+  if(G.codeMount){
+    const pj=projectMount(G.codeMount); // returns null until the door has slid open
+    if(pj){
+      if(G.foundCount>=4) drawGlyph(pj.sp[0],pj.sp[1],pj.sp[3],G.code,'rgba(60,255,200,0.96)');
+      else drawGlyph(pj.sp[0],pj.sp[1],pj.sp[3],'????','rgba(255,90,90,0.7)'); // blank — numbers missing
+    }
+  }
+}
+function drawGlyph(p0,p1,p3,char,style){
+  const ex=[(p1[0]-p0[0])/10,(p1[1]-p0[1])/10],ey=[(p3[0]-p0[0])/10,(p3[1]-p0[1])/10];
+  ctx.save();ctx.setTransform(ex[0],ex[1],ey[0],ey[1],p0[0],p0[1]);
+  ctx.fillStyle=style;ctx.font='bold 7px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(char,5,5);ctx.restore();ctx.setTransform(1,0,0,1,0,0);
+}
+
+//---------------- loop
+let last=performance.now(),fAcc=0,fCnt=0;
+function frame(now){let dt=(now-last)/1000;last=now;if(dt>0.05)dt=0.05;
+  if(started){update(dt);render();fAcc+=dt;fCnt++;if(fAcc>0.5){document.getElementById('fps').textContent=(fCnt/fAcc|0)+' fps';fAcc=0;fCnt=0;}}
+  requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+
+//==================================================================
+// INPUT
+//==================================================================
+window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;
+  if(k==='c')toggleCrawl();if(k==='f')toggleFlash();if(k==='e')pressE();if(k===' ')e.preventDefault();});
+window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
+// mouse: click to connect (pointer lock); also drag-look fallback
+let mouseDown=false,mLX=0,mLY=0;
+cv.addEventListener('mousedown',e=>{mouseDown=true;mLX=e.clientX;mLY=e.clientY;if(started&&cv.requestPointerLock)cv.requestPointerLock();});
+window.addEventListener('mouseup',()=>{mouseDown=false;});
+document.addEventListener('mousemove',e=>{
+  if(document.pointerLockElement===cv){player.a-=e.movementX*0.0022*SET.sens;player.pitch=clamp(player.pitch-e.movementY*0.0022*SET.sens,-1.35,1.35);}
+  else if(mouseDown&&joyId!=='m'){player.a-=(e.clientX-mLX)*0.004*SET.sens;player.pitch=clamp(player.pitch-(e.clientY-mLY)*0.004*SET.sens,-1.35,1.35);mLX=e.clientX;mLY=e.clientY;}});
+
+let lookId=null,lLX=0,lLY=0;
+function isCtl(t){return t.closest&&t.closest('#joy, .btn, #pad, #start');}
+window.addEventListener('touchstart',e=>{for(const t of e.changedTouches){if(isCtl(t.target))continue;if(lookId===null){lookId=t.identifier;lLX=t.clientX;lLY=t.clientY;}}},{passive:false});
+window.addEventListener('touchmove',e=>{for(const t of e.changedTouches){if(t.identifier===lookId){input.look+=-(t.clientX-lLX)*0.005;input.lookUp+=-(t.clientY-lLY)*0.005;lLX=t.clientX;lLY=t.clientY;e.preventDefault();}}},{passive:false});
+window.addEventListener('touchend',e=>{for(const t of e.changedTouches){if(t.identifier===lookId)lookId=null;}});
+
+const joy=document.getElementById('joy'),knob=document.getElementById('knob');
+let joyId=null,jCX=0,jCY=0;
+function joyStart(x,y,id){const r=joy.getBoundingClientRect();jCX=r.left+r.width/2;jCY=r.top+r.height/2;joyId=id;joyMove(x,y);}
+function joyMove(x,y){let dx=x-jCX,dy=y-jCY;const m=55,d=Math.hypot(dx,dy);if(d>m){dx*=m/d;dy*=m/d;}
+  knob.style.left=(50+dx/m*42)+'%';knob.style.top=(50+dy/m*42)+'%';
+  let fx=dx/m,fy=dy/m,mag=Math.hypot(fx,fy);const dz=0.18;          // deadzone kills jitter near centre
+  if(mag<dz){input.fwd=0;input.strafe=0;}
+  else{const s=((mag-dz)/(1-dz))/mag;input.fwd=-fy*s;input.strafe=fx*s;}}
+function joyEnd(){joyId=null;knob.style.left='50%';knob.style.top='50%';input.fwd=0;input.strafe=0;}
+joy.addEventListener('touchstart',e=>{e.preventDefault();const t=e.changedTouches[0];joyStart(t.clientX,t.clientY,t.identifier);},{passive:false});
+joy.addEventListener('touchmove',e=>{for(const t of e.changedTouches)if(t.identifier===joyId){joyMove(t.clientX,t.clientY);e.preventDefault();}},{passive:false});
+joy.addEventListener('touchend',e=>{for(const t of e.changedTouches)if(t.identifier===joyId)joyEnd();},{passive:false});
+joy.addEventListener('mousedown',e=>{e.stopPropagation();joyStart(e.clientX,e.clientY,'m');});
+window.addEventListener('mousemove',e=>{if(joyId==='m')joyMove(e.clientX,e.clientY);});
+window.addEventListener('mouseup',()=>{if(joyId==='m')joyEnd();});
+
+function bindBtn(id,dn,up){const el=document.getElementById(id);
+  const a=e=>{e.preventDefault();dn&&dn();},b=e=>{e.preventDefault();up&&up();};
+  el.addEventListener('touchstart',a,{passive:false});el.addEventListener('touchend',b,{passive:false});
+  el.addEventListener('mousedown',a);el.addEventListener('mouseup',b);}
+bindBtn('bJump',()=>input.jump=true);
+bindBtn('bClimb',()=>input.climbHold=true,()=>input.climbHold=false);
+bindBtn('bEnter',()=>{pressE();});
+document.getElementById('bCrawl').addEventListener('touchstart',e=>{e.preventDefault();toggleCrawl();},{passive:false});
+document.getElementById('bCrawl').addEventListener('mousedown',e=>{e.preventDefault();toggleCrawl();});
+function toggleCrawl(){player.crawl=!player.crawl;setCrawlBtn(player.crawl);}
+function setCrawlBtn(on){document.getElementById('bCrawl').classList.toggle('on',on);}
+function toggleFlash(){flashOn=!flashOn;document.getElementById('bFlash').classList.toggle('on',flashOn);
+  if(started)toast(flashOn?'🔦 flashlight ON':'🔦 flashlight OFF',1100);}
+document.getElementById('bFlash').addEventListener('touchstart',e=>{e.preventDefault();toggleFlash();},{passive:false});
+document.getElementById('bFlash').addEventListener('mousedown',e=>{e.preventDefault();toggleFlash();});
+
+let toastT=null;function toast(m,ms){const el=document.getElementById('toast');el.textContent=m;el.style.opacity='1';clearTimeout(toastT);toastT=setTimeout(()=>el.style.opacity='0',ms||2000);}
+
+//---------------- audio (Web Audio — created on first user gesture) ----------------
+let actx=null,beaconOsc=null,beaconGain=null,beaconOn=false;
+function initAudio(){if(actx)return;try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){actx=null;}}
+function blip(freq,dur,type,vol){if(!actx||!SET.sound)return;const o=actx.createOscillator(),g=actx.createGain();o.type=type||'sine';o.frequency.value=freq;o.connect(g);g.connect(actx.destination);const t=actx.currentTime;g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol||0.18,t+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t+(dur||0.18));o.start(t);o.stop(t+(dur||0.18)+0.03);}
+function sweep(freqs,step,dur,vol){freqs.forEach((f,i)=>setTimeout(()=>blip(f,dur||0.16,'triangle',vol||0.2),i*(step||80)));}
+function updateBeacon(prox){ // prox 0..1; a soft tone that rises in pitch+volume toward the vault
+  if(!actx||!SET.sound||prox<=0){if(beaconOn&&beaconGain)beaconGain.gain.setTargetAtTime(0,actx?actx.currentTime:0,0.15);return;}
+  if(!beaconOsc){beaconOsc=actx.createOscillator();beaconGain=actx.createGain();beaconOsc.type='sine';beaconGain.gain.value=0;beaconOsc.connect(beaconGain);beaconGain.connect(actx.destination);beaconOsc.start();beaconOn=true;}
+  const t=actx.currentTime;beaconGain.gain.setTargetAtTime(0.012+prox*0.05,t,0.12);beaconOsc.frequency.setTargetAtTime(170+prox*520,t,0.12);}
+function rumble(){if(!actx||!SET.sound)return;const t=actx.currentTime;   // deep falling bass for the escape
+  [60,42].forEach(f=>{const o=actx.createOscillator(),g=actx.createGain();o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*0.42,t+1.3);
+    g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(0.22,t+0.15);g.gain.exponentialRampToValueAtTime(0.0001,t+1.5);
+    o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+1.6);});}
+// ---- escape sequence: blinding warm light floods in, room swaps under the flash, sparks rise ----
+function startEscape(nextLevel){
+  if(escapeFX)return;
+  initAudio();rumble();
+  const parts=[];for(let i=0;i<54;i++)parts.push({x:Math.random(),y:0.7+Math.random()*0.5,vy:0.18+Math.random()*0.45,drift:(Math.random()*2-1)*0.06,sz:1.5+Math.random()*4.5,a:0.5+Math.random()*0.5});
+  escapeFX={t:0,dur:1.6,loaded:false,nextLevel,parts};}
+
+let padVal='';
+function openPad(){padVal='';updatePad();document.getElementById('pad').style.display='flex';if(document.pointerLockElement)document.exitPointerLock();}
+function closePad(){document.getElementById('pad').style.display='none';}
+function updatePad(bad){const d=document.getElementById('padDisp');d.textContent=(padVal+'____').slice(0,4);d.classList.toggle('bad',!!bad);}
+document.getElementById('padgrid').addEventListener('click',e=>{const k=e.target.getAttribute('data-k');if(!k)return;
+  if(k==='C'){padVal='';updatePad();}else if(k==='E')submitPad();else if(padVal.length<4){padVal+=k;updatePad();}});
+document.getElementById('pad').addEventListener('click',e=>{if(e.target.id==='pad')closePad();});
+function gotoRoom(level){const fd=document.getElementById('fade');fd.textContent='';fd.style.opacity='1';
+  setTimeout(()=>{loadRoom(level);fd.textContent='ROOM '+String(level).padStart(2,'0');
+    setTimeout(()=>{fd.style.opacity='0';},650);},480);}
+function submitPad(){if(padVal===G.code){closePad();sweep([784,1047,1319],70,0.18,0.22);toast('ACCESS GRANTED // descending...',1500);startEscape(G.level+1);}else{blip(140,0.22,'square',0.16);updatePad(true);setTimeout(()=>{padVal='';updatePad();},450);}}
+window.addEventListener('keydown',e=>{if(document.getElementById('pad').style.display!=='flex')return;
+  if(/[0-9]/.test(e.key)){if(padVal.length<4){padVal+=e.key;updatePad();}}else if(e.key==='Enter')submitPad();
+  else if(e.key==='Backspace'||e.key==='Escape'){if(e.key==='Escape')closePad();padVal=padVal.slice(0,-1);updatePad();}});
+
+//---------------- 16-piece sliding puzzle (puzzle rooms) ----------------
+let puz=null;
+function puzMoves(b){const r=(b>>2),c=(b&3),m=[];if(r>0)m.push(b-4);if(r<3)m.push(b+4);if(c>0)m.push(b-1);if(c<3)m.push(b+1);return m;}
+function newPuzzle(){const t=[];for(let i=0;i<15;i++)t.push(i+1);t.push(0);let b=15; // start solved, then shuffle with legal moves → always solvable
+  for(let i=0;i<300;i++){const m=puzMoves(b),nb=m[(Math.random()*m.length)|0];t[b]=t[nb];t[nb]=0;b=nb;}
+  // guard against the (rare) already-solved shuffle
+  let solved=true;for(let k=0;k<15;k++)if(t[k]!==k+1)solved=false;
+  if(solved){t[14]=0;t[15]=15;b=14;}
+  return {t,blank:b,solved:false};}
+function openPuzzle(){if(!puz||puz.solved)puz=newPuzzle();
+  document.getElementById('puzmsg').textContent='tap a tile next to the gap to slide it · blank goes bottom‑right';
+  document.getElementById('puzzle').style.display='flex';if(document.pointerLockElement)document.exitPointerLock();renderPuzzle();}
+function closePuzzle(){document.getElementById('puzzle').style.display='none';}
+function renderPuzzle(){const g=document.getElementById('puzgrid');g.innerHTML='';
+  for(let i=0;i<16;i++){const v=puz.t[i],d=document.createElement('div');
+    if(v===0){d.className='ptile blank';}
+    else{d.className='ptile'+(v===i+1?' done':'');d.textContent=v;d.addEventListener('click',()=>puzSlide(i));}
+    g.appendChild(d);}}
+function puzSlide(i){if(!puz||puz.solved)return;const b=puz.blank;if(!puzMoves(b).includes(i))return;
+  puz.t[b]=puz.t[i];puz.t[i]=0;puz.blank=i;renderPuzzle();
+  for(let k=0;k<15;k++)if(puz.t[k]!==k+1)return; // not solved yet
+  puz.solved=true;document.getElementById('puzmsg').textContent='GRID SOLVED ✓';sweep([784,1047,1319],70,0.18,0.22);
+  setTimeout(()=>{closePuzzle();toast('GRID SOLVED // door released...',1500);startEscape(G.level+1);},520);}
+document.getElementById('puzzle').addEventListener('click',e=>{if(e.target.id==='puzzle')closePuzzle();});
+
+//---------------- settings panel ----------------
+const _fmtSens=v=>v.toFixed(1)+'×',_fmtFlash=v=>v.toFixed(2)+'×',_fmtFov=v=>Math.round(80*v)+'°';
+function openSettings(){const s=document.getElementById('settings');
+  document.getElementById('setLefty').checked=SET.lefty;
+  document.getElementById('setSound').checked=SET.sound;
+  document.getElementById('setBeacon').checked=SET.beacon;
+  document.getElementById('setSens').value=SET.sens;document.getElementById('setSensV').textContent=_fmtSens(SET.sens);
+  document.getElementById('setFlash').value=SET.flash;document.getElementById('setFlashV').textContent=_fmtFlash(SET.flash);
+  document.getElementById('setFov').value=SET.fov;document.getElementById('setFovV').textContent=_fmtFov(SET.fov);
+  s.style.display='flex';if(document.pointerLockElement)document.exitPointerLock();}
+function closeSettings(){document.getElementById('settings').style.display='none';}
+document.getElementById('bGear').addEventListener('click',e=>{e.stopPropagation();openSettings();});
+document.getElementById('setClose').addEventListener('click',closeSettings);
+document.getElementById('settings').addEventListener('click',e=>{if(e.target.id==='settings')closeSettings();});
+function bindSet(id,key,isCheck,fmt,vid){const el=document.getElementById(id);
+  el.addEventListener('input',()=>{SET[key]=isCheck?el.checked:parseFloat(el.value);if(vid)document.getElementById(vid).textContent=fmt(SET[key]);applySettings();if(SET.sound)initAudio();});}
+bindSet('setLefty','lefty',true);bindSet('setSound','sound',true);bindSet('setBeacon','beacon',true);
+bindSet('setSens','sens',false,_fmtSens,'setSensV');
+bindSet('setFlash','flash',false,_fmtFlash,'setFlashV');
+bindSet('setFov','fov',false,_fmtFov,'setFovV');
+
+document.getElementById('startBtn').addEventListener('click',()=>{document.getElementById('start').classList.add('hide');started=true;last=performance.now();
+  initAudio();applySettings();loadRoom(1);
+  toast('Four digits hidden around the room. Open drawers, crawl, climb. ⚙ top-right for settings.',3200);});
+applySettings(); // apply persisted settings (lefty class, FOV, flash range) on load
+loadRoom(1);
+</script>
+</body>
+</html>

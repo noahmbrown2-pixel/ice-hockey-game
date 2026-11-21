@@ -1,0 +1,267 @@
+<!doctype html>
+<!-- Copyright (c) 2025 Craig M. Brown. All rights reserved. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Outbreak Escape — Stealth Maze</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:'Courier New',monospace;color:#00ff41}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  canvas{background:#050608;display:block;max-width:100%;max-height:100%;touch-action:none}
+  #hud{position:fixed;top:8px;left:8px;font-size:14px;text-shadow:0 0 4px #000;pointer-events:none;line-height:1.6}
+  #hud b{color:#fff}
+  #msg{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+       text-align:center;background:rgba(0,0,0,.88);z-index:5}
+  #msg h1{font-size:32px;margin:.2em;color:#ff3b3b;text-shadow:0 0 10px #ff0000}
+  #msg p{max-width:560px;font-size:15px;line-height:1.6;color:#9fffb0}
+  #msg button{margin-top:14px;background:#00ff41;color:#000;border:0;padding:12px 26px;font-size:16px;
+       font-family:inherit;font-weight:bold;border-radius:6px;cursor:pointer}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c" width="900" height="640"></canvas></div>
+<div id="hud"></div>
+<div id="msg">
+  <h1 style="color:#00ff41;text-shadow:0 0 10px #00ff41">OUTBREAK ESCAPE</h1>
+  <p><b style="color:#fff">Stealth maze survival.</b> You're trapped in an infected building with a flashlight.<br>
+     Move: <b style="color:#fff">WASD / Arrows</b> &nbsp; Sprint: <b style="color:#fff">Shift</b> (drains stamina)<br>
+     Find all <span style="color:#ffd24a">keycards</span> ⬡, then reach the green <span style="color:#00ff41">EXIT</span>.<br>
+     Zombies wander blindly — but <b style="color:#ff7b7b">sprinting is loud</b> and wakes them.
+     They chase what they hear &amp; see in your light. Don't get cornered.</p>
+  <button id="start">ENTER THE BUILDING</button>
+</div>
+<script>
+const C=document.getElementById('c'),X=C.getContext('2d');
+const W=C.width,H=C.height;
+const hud=document.getElementById('hud'),msg=document.getElementById('msg');
+const rand=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const dist=(ax,ay,bx,by)=>Math.hypot(ax-bx,ay-by);
+let keys={};
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(['arrowup','arrowdown','arrowleft','arrowright'].includes(e.key.toLowerCase()))e.preventDefault();});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+// touch dpad (simple): drag relative to start
+let touch=null;
+C.addEventListener('touchstart',e=>{const t=e.touches[0];const r=C.getBoundingClientRect();touch={ox:t.clientX-r.left,oy:t.clientY-r.top,x:t.clientX-r.left,y:t.clientY-r.top};e.preventDefault();},{passive:false});
+C.addEventListener('touchmove',e=>{if(touch){const t=e.touches[0];const r=C.getBoundingClientRect();touch.x=t.clientX-r.left;touch.y=t.clientY-r.top;}e.preventDefault();},{passive:false});
+C.addEventListener('touchend',()=>touch=null);
+
+const TILE=40, COLS=21, ROWS=15; // maze grid
+let grid,P,zombies,cards,exit,particles,started=false,dead=false,won=false,level,facing,score,time0;
+
+// recursive backtracker maze
+function genMaze(){
+  const g=[];for(let y=0;y<ROWS;y++){g.push([]);for(let x=0;x<COLS;x++)g[y].push(1);}
+  function carve(cx,cy){g[cy][cx]=0;
+    const dirs=[[0,-2],[0,2],[-2,0],[2,0]].sort(()=>Math.random()-0.5);
+    for(const[dx,dy]of dirs){const nx=cx+dx,ny=cy+dy;
+      if(nx>0&&nx<COLS-1&&ny>0&&ny<ROWS-1&&g[ny][nx]===1){g[cy+dy/2][cx+dx/2]=0;carve(nx,ny);}}}
+  carve(1,1);
+  // open a few random walls so it's not a perfect maze (more escape routes)
+  for(let i=0;i<14+level*2;i++){const x=Math.floor(rand(1,COLS-1)),y=Math.floor(rand(1,ROWS-1));g[y][x]=0;}
+  return g;
+}
+function isWall(px,py){const gx=Math.floor(px/TILE),gy=Math.floor(py/TILE);
+  if(gx<0||gy<0||gx>=COLS||gy>=ROWS)return true;return grid[gy][gx]===1;}
+function freeCell(){let x,y;do{x=Math.floor(rand(1,COLS-1));y=Math.floor(rand(1,ROWS-1));}while(grid[y][x]!==0);
+  return{x:x*TILE+TILE/2,y:y*TILE+TILE/2};}
+
+function reset(full){
+  if(full){level=1;score=0;}
+  grid=genMaze();
+  P={x:TILE*1.5,y:TILE*1.5,r:11,spd:1.9,sprint:3.3,stam:100,maxstam:100,noise:0};
+  facing={x:1,y:0};
+  zombies=[];const zc=4+level;
+  for(let i=0;i<zc;i++){const f=freeCell();
+    if(dist(f.x,f.y,P.x,P.y)<160){i--;continue;}
+    zombies.push({x:f.x,y:f.y,r:11,spd:1.0+level*0.06,state:'wander',
+      dirx:rand(-1,1),diry:rand(-1,1),retarget:0,alert:0,tx:f.x,ty:f.y,col:'#6a9e4f',wob:rand(0,6)});}
+  cards=[];const need=2+Math.min(level,4);
+  for(let i=0;i<need;i++){let f;do{f=freeCell();}while(dist(f.x,f.y,P.x,P.y)<120);cards.push({x:f.x,y:f.y,got:false});}
+  // exit far from start
+  let ex;do{ex=freeCell();}while(dist(ex.x,ex.y,P.x,P.y)<360);
+  exit={x:ex.x,y:ex.y};
+  particles=[];dead=false;won=false;time0=performance.now();
+}
+
+function moveEnt(e,nx,ny){
+  // axis-separated collision so we slide along walls
+  if(!isWall(nx,e.y) && !isWall(nx+ (nx>e.x?e.r:-e.r), e.y) && !isWall(nx,e.y-e.r) && !isWall(nx,e.y+e.r)) e.x=nx;
+  if(!isWall(e.x,ny) && !isWall(e.x, ny+(ny>e.y?e.r:-e.r)) && !isWall(e.x-e.r,ny) && !isWall(e.x+e.r,ny)) e.y=ny;
+}
+
+function update(){
+  if(dead||won)return;
+  let mx=(keys['d']||keys['arrowright']?1:0)-(keys['a']||keys['arrowleft']?1:0);
+  let my=(keys['s']||keys['arrowdown']?1:0)-(keys['w']||keys['arrowup']?1:0);
+  if(touch){const dx=touch.x-touch.ox,dy=touch.y-touch.oy;if(Math.hypot(dx,dy)>12){mx=clamp(dx/40,-1,1);my=clamp(dy/40,-1,1);}}
+  const ml=Math.hypot(mx,my);
+  let sprinting=false;
+  if(ml>0){
+    const nx=mx/ml,ny=my/ml;facing={x:nx,y:ny};
+    let sp=P.spd;
+    if((keys['shift']||(touch&&Math.hypot(touch.x-touch.ox,touch.y-touch.oy)>70))&&P.stam>0){sp=P.sprint;sprinting=true;P.stam-=0.9;}
+    moveEnt(P,P.x+nx*sp,P.y+ny*sp);
+  }
+  if(!sprinting&&P.stam<P.maxstam)P.stam+=0.35;
+  P.stam=clamp(P.stam,0,P.maxstam);
+  // noise: sprint = loud
+  P.noise = sprinting?170 : (ml>0?70:30);
+  // cards
+  for(const c of cards){if(!c.got&&dist(c.x,c.y,P.x,P.y)<P.r+10){c.got=true;score+=50;
+    for(let i=0;i<10;i++)particles.push({x:c.x,y:c.y,vx:rand(-3,3),vy:rand(-3,3),life:rand(12,24),col:'#ffd24a',r:2});}}
+  const allCards=cards.every(c=>c.got);
+  if(allCards&&dist(exit.x,exit.y,P.x,P.y)<P.r+16){
+    score+=Math.max(50,400-Math.round((performance.now()-time0)/100));
+    level++;nextLevel();return;
+  }
+  // zombies
+  for(const z of zombies){
+    z.wob+=0.2;
+    const dP=dist(z.x,z.y,P.x,P.y);
+    // hear noise within radius, or see if in flashlight cone
+    const seen=inLight(z.x,z.y);
+    if(dP<P.noise || seen){z.state='hunt';z.alert=Math.min(z.alert+2,120);z.tx=P.x;z.ty=P.y;}
+    else if(z.alert>0){z.alert--; if(z.alert<=0)z.state='wander';}
+    if(z.state==='hunt'){
+      const a=Math.atan2(z.ty-z.y,z.tx-z.x);
+      moveEnt(z,z.x+Math.cos(a)*z.spd*1.25,z.y+Math.sin(a)*z.spd*1.25);
+    } else {
+      z.retarget--;
+      if(z.retarget<=0||isWall(z.x+z.dirx*14,z.y+z.diry*14)){
+        const a=rand(0,6.28);z.dirx=Math.cos(a);z.diry=Math.sin(a);z.retarget=rand(40,90);}
+      moveEnt(z,z.x+z.dirx*z.spd*0.6,z.y+z.diry*z.spd*0.6);
+    }
+    if(dP<z.r+P.r-2){dead=true;gameOver();}
+  }
+  for(const p of particles){p.x+=p.vx;p.y+=p.vy;p.vx*=0.9;p.vy*=0.9;p.life--;}
+  particles=particles.filter(p=>p.life>0);
+}
+function inLight(x,y){
+  const d=dist(x,y,P.x,P.y);if(d>200)return false;
+  if(d<34)return true;
+  const a=Math.atan2(y-P.y,x-P.x);
+  const fa=Math.atan2(facing.y,facing.x);
+  let da=Math.abs(a-fa);if(da>Math.PI)da=2*Math.PI-da;
+  return da<0.6;
+}
+
+function draw(){
+  X.fillStyle='#050608';X.fillRect(0,0,W,H);
+  // walls (dim, only really visible in light — we draw faint then light overlay)
+  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
+    if(grid[y][x]===1){X.fillStyle='#14181f';X.fillRect(x*TILE,y*TILE,TILE,TILE);
+      X.fillStyle='#0c0f14';X.fillRect(x*TILE,y*TILE,TILE,3);}
+    else {X.fillStyle='#0a0c10';X.fillRect(x*TILE,y*TILE,TILE,TILE);}
+  }
+  // exit
+  const allCards=cards.every(c=>c.got);
+  X.save();X.globalAlpha=allCards?1:0.4;
+  X.fillStyle=allCards?'#00ff41':'#0a5a25';X.fillRect(exit.x-14,exit.y-14,28,28);
+  X.fillStyle='#000';X.font='bold 11px monospace';X.textAlign='center';X.fillText(allCards?'EXIT':'LOCK',exit.x,exit.y+4);
+  X.restore();
+  // cards
+  for(const c of cards){if(c.got)continue;X.fillStyle='#ffd24a';
+    X.beginPath();X.moveTo(c.x,c.y-9);X.lineTo(c.x+8,c.y-4);X.lineTo(c.x+8,c.y+5);X.lineTo(c.x,c.y+10);X.lineTo(c.x-8,c.y+5);X.lineTo(c.x-8,c.y-4);X.closePath();X.fill();
+    X.fillStyle='#7a5a00';X.fillRect(c.x-3,c.y-2,6,4);}
+  // zombies
+  for(const z of zombies){
+    const vis=inLight(z.x,z.y)||dist(z.x,z.y,P.x,P.y)<60;
+    X.globalAlpha=vis?1:0.18;
+    X.fillStyle=z.state==='hunt'?'#b5d24a':z.col;
+    X.beginPath();X.arc(z.x,z.y,z.r,0,6.28);X.fill();
+    if(vis){X.fillStyle='#300';X.fillRect(z.x-4,z.y-3,3,3);X.fillRect(z.x+2,z.y-3,3,3);
+      if(z.state==='hunt'){X.fillStyle='#ff3b3b';X.fillRect(z.x-2,z.y-z.r-6,4,4);}}
+    X.globalAlpha=1;
+  }
+  // particles
+  for(const p of particles){X.globalAlpha=clamp(p.life/24,0,1);X.fillStyle=p.col;X.fillRect(p.x-p.r,p.y-p.r,p.r*2,p.r*2);}
+  X.globalAlpha=1;
+  // player
+  X.fillStyle='#00ff41';X.beginPath();X.arc(P.x,P.y,P.r,0,6.28);X.fill();
+  // darkness overlay with flashlight cone punched out
+  X.save();
+  X.fillStyle='rgba(0,0,0,0.93)';
+  // build path: whole screen minus cone minus small radius
+  X.beginPath();X.rect(0,0,W,H);
+  // cone as triangle fan
+  const fa=Math.atan2(facing.y,facing.x);
+  X.moveTo(P.x,P.y);
+  for(let i=-1;i<=1;i+=2){}
+  // we instead use 'destination-out' with radial light for soft edges
+  X.restore();
+  // soft light using compositing
+  X.save();
+  X.globalCompositeOperation='destination-out';
+  // ambient small circle
+  let rg=X.createRadialGradient(P.x,P.y,0,P.x,P.y,46);
+  rg.addColorStop(0,'rgba(0,0,0,1)');rg.addColorStop(1,'rgba(0,0,0,0)');
+  // but we haven't drawn the dark layer yet with this approach; do layered instead
+  X.restore();
+}
+// Simpler robust lighting: draw scene, then overlay darkness, then clear cone via clip.
+function drawLighting(){
+  X.save();
+  X.fillStyle='rgba(2,3,5,0.92)';X.fillRect(0,0,W,H);
+  X.restore();
+}
+
+function gameOver(){
+  msg.classList.remove('hide');
+  msg.innerHTML=`<h1>CAUGHT</h1>
+   <p>A zombie got you on floor <b style="color:#fff">${level}</b>.<br>
+      Score: <b style="color:#ffd24a">${score}</b></p>
+   <button id="again">TRY AGAIN</button>`;
+  document.getElementById('again').onclick=()=>{msg.classList.add('hide');reset(true);};
+}
+function nextLevel(){
+  msg.classList.remove('hide');
+  msg.innerHTML=`<h1 style="color:#00ff41;text-shadow:0 0 10px #00ff41">FLOOR CLEARED</h1>
+   <p>You escaped floor <b style="color:#fff">${level-1}</b>! Score: <b style="color:#ffd24a">${score}</b><br>
+      The next floor has more of them. Keep moving.</p>
+   <button id="next">DESCEND ▶</button>`;
+  document.getElementById('next').onclick=()=>{msg.classList.add('hide');reset(false);};
+}
+
+// proper render: scene under darkness, with a real flashlight cut-out
+function render(){
+  // 1. draw full scene to canvas
+  draw();
+  // 2. overlay darkness but cut a flashlight cone + small aura using a clip mask
+  X.save();
+  const fa=Math.atan2(facing.y,facing.x);
+  // Build the darkness as a path with the cone subtracted via even-odd
+  X.beginPath();
+  X.rect(0,0,W,H);
+  // cone polygon
+  const cone=[];const reach=205,half=0.62,steps=10;
+  cone.push([P.x,P.y]);
+  for(let i=0;i<=steps;i++){const a=fa-half+(half*2)*(i/steps);cone.push([P.x+Math.cos(a)*reach,P.y+Math.sin(a)*reach]);}
+  X.moveTo(cone[0][0],cone[0][1]);for(let i=1;i<cone.length;i++)X.lineTo(cone[i][0],cone[i][1]);X.closePath();
+  // small aura circle
+  X.moveTo(P.x+44,P.y);X.arc(P.x,P.y,44,0,6.28,true);
+  X.fillStyle='rgba(2,3,5,0.94)';X.fill('evenodd');
+  X.restore();
+  // subtle light tint inside cone
+  X.save();
+  const lg=X.createRadialGradient(P.x,P.y,10,P.x,P.y,205);
+  lg.addColorStop(0,'rgba(255,250,210,0.10)');lg.addColorStop(1,'rgba(255,250,210,0)');
+  X.beginPath();X.moveTo(P.x,P.y);
+  for(let i=0;i<=10;i++){const a=fa-0.62+1.24*(i/10);X.lineTo(P.x+Math.cos(a)*205,P.y+Math.sin(a)*205);}X.closePath();
+  X.fillStyle=lg;X.fill();X.restore();
+}
+
+function drawHUD(){
+  const got=cards.filter(c=>c.got).length;
+  hud.innerHTML=
+   `FLOOR <b>${level}</b> &nbsp; SCORE <b>${score}</b> &nbsp; KEYCARDS <b style="color:#ffd24a">${got}/${cards.length}</b><br>`+
+   `STAMINA <b style="color:${P.stam<25?'#ff3b3b':'#00ff41'}">${Math.round(P.stam)}</b> &nbsp; `+
+   `<span style="color:#9fffb0">${cards.every(c=>c.got)?'EXIT UNLOCKED — reach the green door':'find all keycards'}</span>`;
+}
+function loop(){if(started){update();render();drawHUD();}requestAnimationFrame(loop);}
+document.getElementById('start').onclick=()=>{started=true;msg.classList.add('hide');reset(true);};
+loop();
+</script>
+</body>
+</html>

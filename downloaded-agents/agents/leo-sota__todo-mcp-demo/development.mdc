@@ -1,0 +1,36 @@
+### Chakra UI Components & MCP Rule
+
+- **Always consult the Chakra MCP server for components**:
+  - When introducing or modifying Chakra UI components (especially **overlays** like dialogs, drawers, modals, menus, and popovers), use the **Chakra UI MCP server for this project** to:
+    - Discover the correct component names and APIs for the current Chakra version used in this repo.
+    - Generate up‑to‑date import statements from `@chakra-ui/react`.
+    - See the recommended JSX structure and props for the component family you are working with.
+  - Do **not** rely on older Chakra v1/v2 examples from memory or internet snippets without checking them against the MCP output.
+
+- **Dialogs & drawers specifically**:
+  - Before changing or adding any `Dialog`, `Drawer`, or related overlay components, query the Chakra MCP server for:
+    - The **current** dialog/drawer primitives, their composition model, and recommended usage patterns.
+    - Any newer primitives that may have replaced older `Modal`/`Drawer` patterns.
+  - Align implementations in `DialogProvider`, `DrawerProvider`, and any new overlay components to the structure and prop names returned by the MCP server.
+
+- **Styling & theming**:
+  - Continue to follow the main **Components & Styling Guide** for tokens, recipes, and semantic colors.
+  - When the MCP server suggests examples with raw colors or non‑themed styles, adapt them to use this repo’s tokens and recipes instead of copying styles verbatim.
+
+### Imports & Paths Rule
+
+- **Absolute imports only**:
+  - Always prefer **absolute imports** from the app root or configured aliases (for example `@/components/...`, `@/services/...`, `@/styles/...`).
+  - Avoid `"../"`-style **relative imports** between feature modules, pages, and shared components unless you are importing within the same small folder for very local utilities.
+  - When moving files, update imports to stay absolute instead of increasing relative path depth.
+
+- **Consistency**:
+  - When adding new files, match existing absolute-import patterns used in nearby modules.
+  - If you see relative imports in existing code during a refactor, prefer to migrate them to absolute imports as you touch those files (do not start a large, repo‑wide churn unless explicitly requested).
+
+### Plan Files Rule
+
+- **Always store and update plans in the repo**:
+  - When creating or updating plan files (for example under `.cursor/plans/**`), **save them in the project repository**, not in a user‑scoped/private location.
+  - Prefer updating an existing plan file for a feature/area rather than creating ad‑hoc, user‑local notes so that plan history can be tracked in git.
+  - Use clear, descriptive plan filenames and keep them close to the related code or feature so it’s easy to discover and maintain.

@@ -1,0 +1,184 @@
+---
+description: "CLAPS test runner — execute browser tests from YAML/JSON files. Trigger by saying: claps <file> [path] [--params key=value]"
+globs:
+  - "**/*.yaml"
+  - "**/*.yml"
+  - "**/*.json"
+---
+
+# CLAPS — Claude Laughs At Playwright & Selenium
+
+Execute automated browser tests defined in YAML or JSON files using the Chrome MCP server.
+
+When the user says "claps" followed by a file path, you are the test runner. Parse their message to extract the file path, optional path name, and optional --params overrides.
+
+## Examples
+
+```
+claps tests/login.yaml
+claps tests/login.yaml login_happy_path
+claps tests/login.yaml --params user=admin password=secret
+```
+
+## Execution Instructions
+
+Follow these steps **exactly and consistently**:
+
+### Step 1: Parse the User Message
+
+Extract from the user's message:
+- **File path**: The YAML/JSON test file
+- **Path name** (optional): Specific test path to run (if not prefixed with `--`)
+- **Parameter overrides** (optional): `--params key=value` pairs
+
+### Step 2: Load and Validate Test Suite
+
+1. Read the test file
+2. Parse it as YAML or JSON (detect from extension)
+3. Validate the structure:
+   - Must have `name`, `baseUrl`, and `paths` array
+   - Each path must have `name` and `steps` array
+   - Each step must have an `action` field
+
+If validation fails, report the specific error and stop.
+
+### Step 3: Resolve Parameters
+
+1. Start with suite-level `parameters`
+2. Merge path-level `parameters` (overrides suite-level)
+3. Merge CLI `--params` overrides (highest priority)
+4. Replace all `{{paramName}}` placeholders in string values throughout the suite
+5. If any placeholder references an undefined parameter, report the error and stop
+
+### Step 4: Determine Which Paths to Run
+
+- If a specific path name was given, run only that path
+- If no path name given and `defaultPath` is set, run only the default path
+- If no path name and no default, run ALL paths in order
+- Report which path(s) will execute before starting
+
+### Step 5: Execute Each Path
+
+For each path, execute steps **sequentially in order**. For each step:
+
+#### Pre-Step Wait
+
+If the step has a `wait` configuration, execute it BEFORE the action:
+- `element`: Wait for the selector to appear on the page (poll every 500ms up to timeout)
+- `navigation`: Wait for the page to finish navigating
+- `network-idle`: Wait until no network requests are pending
+- `delay`: Wait the specified duration in milliseconds
+
+#### Resolve Element Selector
+
+For steps that target an element, try selectors in this **exact priority order** (stop at first match):
+
+1. `dataTestId` -> Take a browser snapshot, find element with `[data-testid="value"]`
+2. `dataTest` -> Find element with `[data-test="value"]`
+3. `id` -> Find element with `#value`
+4. `ariaRole` + `ariaText` -> Find element by ARIA role and accessible name in the snapshot
+5. `xpathRelative` -> Use browser JS execution to evaluate relative XPath via `document.evaluate()`
+6. `xpathAbsolute` -> Use browser JS execution to evaluate absolute XPath via `document.evaluate()`
+
+Use the Chrome MCP server's snapshot tool to get the page's accessibility tree, then locate the element's `uid` in the snapshot output. For XPath selectors, use the Chrome MCP's script execution tool to run `document.evaluate()` and return the element's text/attributes to confirm it exists, then use the snapshot to find and interact with it.
+
+If NO selector matches an element on the page, the step FAILS. Report which selectors were tried.
+
+#### Execute Action
+
+Execute the action using the Chrome MCP server tools:
+
+| Action | Chrome MCP Operation |
+|--------|---------------------|
+| `navigate` | Navigate to the `url` value using the Chrome MCP navigate tool |
+| `click` | Click the resolved element using its `uid` from snapshot |
+| `type` | If `clearBefore`, click to focus, press `Control+A` then type. Fill the `text` value into the element |
+| `keypress` | Press the specified `key` |
+| `hover` | Hover over the resolved element |
+| `select` | Fill the `value` on the select element |
+| `wait` | For `delay`: sleep the duration. For `element`: poll with snapshots. For `network-idle`: brief delay or wait_for |
+
+**Note on Chrome MCP tool names**: The exact tool names depend on your MCP configuration. Common patterns:
+- Claude Code: `mcp__chrome__take_snapshot`, `mcp__chrome__click`, `mcp__chrome__fill`, etc.
+- Cursor: `chrome_take_snapshot`, `chrome_click`, `chrome_fill`, etc. (depends on your `mcp.json` server name)
+
+Use whichever Chrome MCP tools are available in your environment. The operations are the same regardless of naming.
+
+#### Post-Step Assertion
+
+If the step has an `assertion`, evaluate it AFTER the action:
+
+- `element-exists`: Take a fresh browser snapshot, check if the selector resolves to an element. If `negate` is true, assert it does NOT exist.
+- `text-matches`: Take a fresh snapshot, find the element, get its text content. Then check against `text` using `mode`:
+  - `contains`: text includes the expected string
+  - `equals`: text exactly matches
+  - `regex`: text matches the regex pattern
+
+If an assertion has a `timeout`, retry the assertion every 500ms up to the timeout before declaring failure.
+
+If an assertion fails, the step FAILS. Report the expected vs actual values.
+
+### Step 6: Report Results
+
+After all paths complete, provide a summary:
+
+```
+Test Suite: [name]
+================================
+Path: [path-name]      [PASSED/FAILED]
+  Step 1: [description or action]  [OK/FAIL]
+  Step 2: [description or action]  [OK/FAIL]
+  ...
+================================
+Results: X passed, Y failed
+```
+
+## Critical Rules for Consistency
+
+1. **Always follow the exact step order** — never reorder, skip, or add steps
+2. **Always use the selector cascade** — try selectors in priority order, stop at first match
+3. **Always wait before acting** — respect pre-step waits, never skip them
+4. **Always assert after acting** — respect post-step assertions, never skip them
+5. **Never improvise** — only execute what the YAML defines, nothing more
+6. **Fail fast** — if a step fails, stop the current path and report the error
+7. **Be deterministic** — given the same YAML and page state, produce the same actions every time
+8. **Always take a fresh snapshot** before resolving selectors — never rely on stale snapshots
+
+## Test Schema Reference
+
+```yaml
+name: "Suite Name"
+baseUrl: "https://example.com"
+parameters:
+  username: "testuser"
+  password: "testpass"
+defaultPath: "happy_path"
+paths:
+  - name: "happy_path"
+    description: "Main success scenario"
+    tags: ["smoke", "happy-path"]
+    parameters:
+      extraParam: "value"
+    steps:
+      - action: navigate
+        url: "{{baseUrl}}/login"
+        description: "Go to login page"
+        wait:
+          type: network-idle
+          timeout: 5000
+      - action: type
+        selector:
+          dataTestId: "email-input"
+          id: "email"
+          xpathRelative: "//input[@name='email']"
+        text: "{{username}}"
+        clearBefore: true
+      - action: click
+        selector:
+          dataTestId: "submit-btn"
+        assertion:
+          type: element-exists
+          selector:
+            dataTestId: "dashboard"
+          timeout: 5000
+```

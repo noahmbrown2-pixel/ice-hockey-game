@@ -1,0 +1,187 @@
+{
+  "anchor_status": {
+    "anchored_at": "2026-05-23T02:19:33+00:00",
+    "available": true,
+    "record_count": 54,
+    "root_commitment": "a935d956d50f8da5",
+    "witnesses_confirmed": [
+      "nostr",
+      "base_sepolia",
+      "base_mainnet"
+    ]
+  },
+  "as_of": "2026-05-27T20:00:42Z",
+  "audit_status": {
+    "audit_hash": "e917437576be4bdd",
+    "available": true,
+    "completed_at": "2026-05-23T02:27:47+00:00",
+    "findings": 6,
+    "live_verified": true,
+    "report_id": "audit-1779503269",
+    "tier_counts": {
+      "A": 5,
+      "B": 3,
+      "C": 3
+    }
+  },
+  "budget_status": {
+    "agent_count": 0,
+    "available": true,
+    "over_75pct": [],
+    "over_95pct": [],
+    "schema": {
+      "cost_limit": "cost_limit",
+      "cost_used": "cost_used",
+      "token_limit": "<REDACTED>",
+      "tokens_used": "<REDACTED>"
+    }
+  },
+  "cost_status": {
+    "available": true,
+    "cost_by_provider_24h": {},
+    "daily_cost": 0.0,
+    "daily_count": 0,
+    "fallback_24h": 0,
+    "hourly_cost": 0.0,
+    "hourly_count": 0,
+    "records": 3
+  },
+  "health_summary": {
+    "available": true,
+    "counts": {
+      "unknown": 40
+    },
+    "failing": [],
+    "health_pct": null,
+    "service_count": 40
+  },
+  "pause_list": {
+    "available": true,
+    "paused_agents": [
+      "rq-200-implement",
+      "rq-222-implement"
+    ],
+    "paused_count": 2
+  },
+  "principles_digest": {
+    "digest_2kb": "# PRINCIPLES \u2014 Cross-Cutting Operating Knowledge\n\n**Canonical home for shared thinking framework, goals, output quality, error reduction, delegation, priority \u2014 read at runtime by every autonomous surface (SO daemon, BO marketplace agents, TB SFAs, peer-to-peer coms, DITD phases, every Claude Code session).**\n\n> **Loaders that read this file** (active runtime readers \u2014 verified by `scripts/principles_topology_check.py`):\n> - `.claude/hooks/session_start.py` \u2014 every Claude Code session\n> - `scripts/context_injector.py` \u2014 every DITD phase + decision_engine context build\n> - `super_orchestrator/state_aggregator.py` \u2014 `_summarize_principles()` puts digest into `world_state.json` each tick\n> - `super_orchestrator/daemon.py` \u2014 invokes `state_aggregator.refresh()` (transitive reader)\n> - `super_orchestrator/api_extensions.py` \u2014 exposes `GET /principles` on `:8081`\n> - `scripts/coms.py` \u2014 injected when `--include-principles` flag is passed to peer messages\n>\n> **Inheritance references** (mention this file for human readers \u2014 not validated by topology check):\n> - `chainlink-prediction-markets-mcp-enhanced/CLAUDE.md` (BO subproject inherit line)\n> - `TheBaby_Agents/CLAUDE.md` (TB subproject inherit line)\n\n**Amendment process:** edit this file \u2192 commit `principles(<section>): <delta>` \u2192 run `python3 scripts/principles_topology_check.py` \u2192 if change is binding (alters default behavior) notify operator via WhatsApp P0.\n\n---\n\n## Section 1 \u2014 Content & Voice Philosophy [HEADLINE]\n\nA calendar asks *\"what are we publishing?\"*\nA **content system** asks something deeper. Before any outbound content (blog / X / whitepaper / cold email / landing page / podcast / YouTube / social), answer the **six reflection questions**:\n\n1. **What are we LEARNING?** \u2014 what shifted in our understanding this week?\n2. **What are we NOTICING?** \u2014 what pattern keeps showing up across signals?\n3. **What does our audience keep ASKING?** \u2014 repeat questions are a thesis surface\n4. **What is CHANGING in the market?** \u2014 competitive / regulatory / capability shi",
+    "mtime": 1779228591.137987,
+    "path": "/home/craigmbrown/Project/.claude/PRINCIPLES.md",
+    "present": true,
+    "sections": [
+      "## Section 1 \u2014 Content & Voice Philosophy [HEADLINE]",
+      "## Section 2 \u2014 Goals & Priority (autonomous decision framing)",
+      "## Section 3 \u2014 Output Quality",
+      "## Section 4 \u2014 Error Reduction",
+      "## Section 5 \u2014 Resources & Delegation",
+      "## Section 6 \u2014 Inter-Agent Coms Hygiene",
+      "## Section 7 \u2014 Memory & Knowledge Discipline",
+      "## Section 8 \u2014 Pre-Send / Pre-Ship Verification",
+      "## Section 9 \u2014 When in doubt"
+    ],
+    "size_bytes": 11088
+  },
+  "proof_recent": {
+    "count": 54
+  },
+  "quality_status": {
+    "available": true,
+    "flagged": [],
+    "flagged_count": 0,
+    "total_tracked": 3
+  },
+  "queue_summary": {
+    "available": true,
+    "by_status": {
+      "APPROVED": 21,
+      "CANCELLED-STALE (DELIBERATION-R3-CLEANUP-2026-05-19)": 69,
+      "COMPLETED": 29,
+      "COMPLETED-NONCODE-2026-05-22-RQ234": 2,
+      "DEFERRED": 5,
+      "DEFERRED-NEXT-DITD": 1,
+      "DEFERRED-OPERATOR-GTM": 1,
+      "DROPPED-MISTAKENLY-CLASSIFIED-PERSONAL": 1,
+      "DROPPED-PERSONAL-TODO": 4,
+      "DROPPED-STALE-2026-05-22": 10,
+      "DROPPED-STALE-META-2026-05-26": 5,
+      "IN_PROGRESS": 1,
+      "PENDING_REVIEW": 2,
+      "QUEUED": 1,
+      "REJECTED": 12,
+      "RESEARCH_DONE": 1
+    },
+    "top_5_queued": [
+      {
+        "name": "RQ-CC-ADOPT-20260525",
+        "plan_id": "RQ-CC-ADOPT-20260525",
+        "score": null
+      }
+    ],
+    "total": 165
+  },
+  "schema_version": "1.1",
+  "source_hash": "d2889f1250c082d3b142279a3ab7e1d794d12aa52169a7c5880f53ccdba8d9b1",
+  "sources": {
+    "agent_pause_list": {
+      "available": true,
+      "error": null,
+      "mtime": 1779638509.2893693,
+      "path": "/home/craigmbrown/Project/data/agent_pause_list.json"
+    },
+    "agent_quality": {
+      "available": true,
+      "error": null,
+      "mtime": 1779638509.2893693,
+      "path": "/home/craigmbrown/Project/data/agent_quality_metrics.json"
+    },
+    "cost_monitor": {
+      "available": true,
+      "error": null,
+      "mtime": 1767027053.5041606,
+      "path": "/home/craigmbrown/Project/llm-router/logs/cost_monitor.json"
+    },
+    "delegation_proofs": {
+      "available": true,
+      "error": null,
+      "mtime": 1776539151.6878154,
+      "path": "/home/craigmbrown/Project/affairs-in-order/data/delegation_proofs.json"
+    },
+    "error_log": {
+      "available": true,
+      "error": null,
+      "mtime": 1779909146.6015465,
+      "path": "/home/craigmbrown/Project/CC-Monitor/state/error_log.json"
+    },
+    "fleet_health": {
+      "available": true,
+      "error": null,
+      "mtime": 1779912007.9743087,
+      "path": "/home/craigmbrown/Project/CC-Monitor/state/fleet_health.json"
+    },
+    "knowledge_base": {
+      "available": true,
+      "error": null,
+      "mtime": 1779912006.6263103,
+      "path": "/home/craigmbrown/Project/CC-Monitor/state/knowledge_base.json"
+    },
+    "maintenance_log": {
+      "available": true,
+      "error": null,
+      "mtime": 1779912004.8383121,
+      "path": "/home/craigmbrown/Project/data/maintenance_log.json"
+    },
+    "priority_queue": {
+      "available": true,
+      "error": null,
+      "mtime": 1779842045.6148586,
+      "path": "/home/craigmbrown/Project/plan_operationalization/priority_queue_state.json"
+    },
+    "router_budget_db": {
+      "available": true,
+      "error": null,
+      "mtime": 1767023448.3704786,
+      "path": "/home/craigmbrown/Project/llm-router/data/budget.db"
+    }
+  },
+  "top_3_concerns": []
+}

@@ -1,0 +1,76 @@
+{
+  "name": "product-management",
+  "version": "1.0.0",
+  "description": "PRD writing, feature prioritization, and roadmap management for product teams",
+  "author": "Anthropic (adapted for ETAC)",
+  "license": "Apache-2.0",
+  "namespace": "pm",
+  "commands": [
+    {
+      "name": "write-prd",
+      "file": "commands/write-prd.md",
+      "description": "Generate comprehensive Product Requirements Documents"
+    },
+    {
+      "name": "prioritize",
+      "file": "commands/prioritize.md",
+      "description": "Score and rank features using frameworks like RICE"
+    },
+    {
+      "name": "roadmap",
+      "file": "commands/roadmap.md",
+      "description": "Create and visualize product roadmaps"
+    },
+    {
+      "name": "competitor",
+      "file": "commands/competitor.md",
+      "description": "Analyze competitor products and positioning"
+    },
+    {
+      "name": "user-story",
+      "file": "commands/user-story.md",
+      "description": "Generate user stories from requirements"
+    },
+    {
+      "name": "metrics",
+      "file": "commands/metrics.md",
+      "description": "Define and track product metrics and KPIs"
+    }
+  ],
+  "skills": [
+    {
+      "name": "prd-templates",
+      "file": "skills/prd-templates.md",
+      "triggers": ["requirements", "PRD", "product spec", "feature spec"]
+    },
+    {
+      "name": "prioritization-frameworks",
+      "file": "skills/prioritization-frameworks.md",
+      "triggers": ["prioritize", "RICE", "MoSCoW", "ranking", "score features"]
+    },
+    {
+      "name": "roadmap-visualization",
+      "file": "skills/roadmap-visualization.md",
+      "triggers": ["roadmap", "timeline", "gantt", "release plan"]
+    },
+    {
+      "name": "market-analysis",
+      "file": "skills/market-analysis.md",
+      "triggers": ["market", "competitor", "positioning", "landscape"]
+    },
+    {
+      "name": "user-research",
+      "file": "skills/user-research.md",
+      "triggers": ["user feedback", "customer insights", "user needs"]
+    },
+    {
+      "name": "okr-tracking",
+      "file": "skills/okr-tracking.md",
+      "triggers": ["OKR", "objectives", "key results", "goals"]
+    }
+  ],
+  "connectors": {
+    "required": ["notionApi"],
+    "optional": ["exa", "pocket-pick"]
+  }
+}

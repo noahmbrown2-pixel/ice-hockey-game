@@ -1,0 +1,106 @@
+---
+description: Local chatbot with Ollama — flow, intents, and safety rules
+globs:
+  - "backend/src/chatbot/**/*.ts"
+  - "backend/src/recommendations/**/*.ts"
+  - "frontend/app/chatbot/**/*.tsx"
+  - "frontend/services/chatbot*.ts"
+alwaysApply: false
+---
+
+# Chatbot Rules — Local Ollama
+
+## Requirement
+
+- Chatbot is built **inside this project**
+- Use **local Ollama only** (`OLLAMA_BASE_URL`, `OLLAMA_MODEL` in `.env`)
+- **Forbidden:** OpenAI, Gemini, Claude, paid AI APIs, external chatbot SaaS
+
+## Current vs target
+
+| Aspect | Current | Target |
+|--------|---------|--------|
+| Response | Rule-based templates + DB queries; optional Ollama wrapping (`OLLAMA_ENABLED=true`) | Same flow + better prompt engineering |
+| History table | `chat_history` | `chat_sessions` + `chat_messages` (optional migration) |
+| Endpoints | `POST /api/chatbot/chat` (returns `{answer, engine}`), `GET /api/chatbot/history` | May add `POST /api/chatbot/ask` alias |
+
+When working on chatbot, **keep** intent detection and DB queries; Ollama only rewrites the final wording — never the source of facts.
+
+## Modules
+
+- `backend/src/chatbot/` — controller, service, history entity (rule-based + delegates to Ollama)
+- `backend/src/ollama/` — `OllamaService.generate({ prompt, system?, model?, timeoutMs? })`
+  - Reads env: `OLLAMA_ENABLED`, `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `OLLAMA_TIMEOUT_MS`
+  - Returns `null` on any failure → caller MUST have fallback (ChatbotService keeps the rule-based answer)
+
+## Backend flow (implemented today)
+
+1. Receive user message in `ChatbotController.chat()`
+2. `ChatbotService.chat()` lower-cases and routes message into one of the `handle*` methods
+3. The chosen `handle*` queries PostgreSQL (universities / majors / cutoff_scores / university_majors) and produces a Markdown answer string (= **DB context**)
+4. If `OLLAMA_ENABLED=true`:
+   - Build a prompt that contains the user's question + DB context + strict instructions ("không bịa, giữ nguyên số")
+   - Call `OllamaService.generate()` (POST `/api/generate`, `stream:false`, with timeout)
+   - If LLM returns text → use it; else fallback to the rule-based answer
+5. Persist `{question, answer}` into `chat_history`
+6. Return `{ answer, engine: 'rule' | 'ollama' }`
+
+## Backend flow (target, not done)
+
+- Step 2: persist user message **before** processing into `chat_sessions` + `chat_messages` schema
+- Step 3: replace keyword `contains()` matching with a richer intent classifier
+- Step 4: explicit entity extraction (score, subject group, major, location, tuition, university name, year)
+- Step 5: for `recommendation_*` intents call `RecommendationsService` first, then wrap with Ollama
+
+## Intent categories
+
+- `recommendation_by_score`
+- `search_university`
+- `search_major`
+- `ask_cutoff_score`
+- `ask_tuition_fee`
+- `compare_universities`
+- `general_advice`
+- `unknown`
+
+## Entity extraction (examples)
+
+User: `Em được 24 điểm khối A00 muốn học CNTT ở Hà Nội thì nên chọn trường nào?`
+
+Extract: `student_score=24`, `subject_group=A00`, `major_name=CNTT`, `location=Hà Nội`
+
+## Ollama usage
+
+- Ollama generates **natural language only**
+- Ollama is **not** the source of truth for scores, schools, or tuition
+- If context is insufficient, reply that more data is needed — do not hallucinate
+
+## System prompt template
+
+```text
+You are a university admission advisor for Vietnam.
+Answer only from the provided database context.
+If the context lacks information, say so clearly.
+Do not invent university names, cutoff scores, tuition fees, or admission methods.
+```
+
+## Recommendation rule
+
+For recommendation questions:
+
+1. Always run the internal recommendation service with structured input
+2. Pass top results as context to Ollama
+3. Never let the model compute or rank schools without DB-backed scores
+
+## Chat history (target schema)
+
+**chat_sessions:** `id`, `user_id`, `created_at`
+
+**chat_messages:** `session_id`, `sender` (`user` | `assistant`), `message`, `created_at`, optional `metadata` (intent, entities)
+
+Until migrated, append to `chat_history` with a string `session_id`.
+
+## Frontend
+
+- Chat UI in `frontend/app/chatbot/`
+- No direct browser calls to port 11434

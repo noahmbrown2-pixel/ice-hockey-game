@@ -1,0 +1,40 @@
+{
+  "name": "productivity",
+  "version": "1.0.0",
+  "description": "Task management, memory systems, and workflow automation for knowledge workers",
+  "author": "Anthropic (adapted for ETAC)",
+  "license": "Apache-2.0",
+  "namespace": "productivity",
+  "commands": [
+    {
+      "name": "start",
+      "file": "commands/start.md",
+      "description": "Initialize tasks and memory, open the dashboard"
+    },
+    {
+      "name": "update",
+      "file": "commands/update.md",
+      "description": "Triage stale items, check memory for gaps, sync from external tools"
+    }
+  ],
+  "skills": [
+    {
+      "name": "memory-management",
+      "file": "skills/memory-management.md",
+      "triggers": ["memory", "remember", "recall", "context", "what did we discuss"]
+    },
+    {
+      "name": "task-management",
+      "file": "skills/task-management.md",
+      "triggers": ["task", "todo", "action item", "assign", "deadline", "priority"]
+    }
+  ],
+  "connectors": {
+    "required": ["notionApi"],
+    "optional": ["pocket-pick"]
+  },
+  "integrations": {
+    "v4_memory": true,
+    "notion_sync": true
+  }
+}

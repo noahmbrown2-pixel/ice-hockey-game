@@ -1,0 +1,87 @@
+# Cursor Rule: 006_prompts.mdc
+# Title: Prompty Standards for Assistant Prompt Templates
+
+## Purpose:
+Ensure all assistant logic is powered by reusable, version-controlled Prompty templates. Prompts must follow a structured YAML format and support clean, debuggable, transparent behavior across all agents.
+
+---
+
+## Requirements
+
+### ✅ Prompty Files
+- All prompts MUST be stored as `.prompty` YAML files
+- Prompts MUST include:
+  - `name`
+  - `description`
+  - `model` section
+  - one or more `system`, `user`, or `assistant` roles
+
+### ✅ File & Folder Layout
+- Prompty files MUST live in one of these locations:
+  ```
+  src/<AssistantName>/Prompts/<PromptName>.prompty
+  src/<AssistantName>/Prompts/Library/<Category>/<PromptName>.prompty
+  ```
+- Library prompts MUST be organized into appropriate categories:
+  - `ContentCreation` - Content generation prompts
+  - `AgentDesign` - Prompts for designing and debugging agents
+  - `ProductMarketing` - Marketing-focused prompts
+  - `TechnicalDocs` - Documentation generation prompts
+  - Additional categories as needed, with clear purpose
+
+### ✅ Naming Convention
+- Prompt files MUST be named with PascalCase and end in descriptive terms (e.g., `BlogPostGenerator.prompty`)
+- Prompts in the Library structure should have descriptive, task-focused names
+- Prompt `name:` property inside file MUST match the filename
+
+### ✅ Prompt Usage in Code
+- Agents MUST use `kernel.CreateFunctionFromPromptyFile(...)` or equivalent loader
+- Inline prompts in code are NOT allowed
+- Prompt input parameters MUST use `{{$input}}` or well-typed keys
+
+---
+
+## Optional Enhancements
+
+- Prompts MAY use `{{$input}}`, `{{$goal}}`, `{{$task}}` etc. with parameter dictionaries
+- Prompts MAY include `examples:` section for test input/output
+- Prompts MAY include `metadata:` for usage classification
+- Library prompts SHOULD include example inputs and outputs
+
+---
+
+## Example Prompt Template
+
+```yaml
+---
+name: PlanningPrompt
+description: Breaks goals into dev tasks
+model:
+  api: chat
+---
+
+system:
+You are a helpful planning assistant that breaks down software goals.
+
+user:
+{{$input}}
+
+A:
+```
+
+---
+
+## Library Prompt Standards
+
+Library prompts in the `Prompts/Library` directory follow these additional standards:
+- Each prompt MUST have a clear, single-purpose focus
+- Inputs MUST use Handlebars syntax with appropriate conditionals
+- Examples MUST be provided in JSON format when applicable
+- Prompts MUST include step-by-step processing instructions
+- All prompts SHOULD include appropriate defaulting via conditionals: `{{#if variable}}...{{else}}...{{/if}}`
+
+---
+
+## Enforcement
+
+> Cursor agents enforcing this rule must ensure prompt files are external `.prompty` YAML files with valid schema, live in proper assistant folders, and are loaded via Core IO loaders. Prompts must be traceable, clean, and versioned. Library prompts must be properly categorized and follow the enhanced standards.

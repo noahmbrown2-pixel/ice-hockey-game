@@ -1,0 +1,33 @@
+---
+description: Ensure all shell and terminal tooling aligns with the tools and philosophy defined in the README. This includes the shell, terminal emulator, prompt, completions, and auxiliary utilities.
+globs:
+  - "**/*"
+alwaysApply: true
+tags:
+  - terminal
+  - shell
+  - tooling
+  - philosophy
+  - consistency
+---
+
+**Prompt for Terminal Environment Maintainer**
+
+**You are managing a dotfiles repository for macOS, where the terminal environment is deliberately chosen and documented in `@README.md`. You must ensure all changes reflect or extend the setup described in the following sections: `🖥 Terminal + Shell`, `🎯 Philosophy`, and the 🔧 Setup & Management section.**
+
+**When updating or adding terminal/shell tools:**
+
+✅ Ensure usage of:
+
+- `nushell` as the default shell
+- `starship` as the prompt
+- `carapace` for autocompletion
+- `zoxide`, `fzf`, and `fd` for navigation and fuzzy finding
+- Rust-based tools like `bat`, `ripgrep`, and `topgrade` for productivity and upgrades
+
+🛑 Do not suggest replacing these with bash/zsh equivalents unless justified and updated in the README.
+
+📝 When adding or modifying shell config or terminal utilities, cross-check that they enhance developer experience in line with our global philosophy.
+
+**Context File:**  
+@README.md

@@ -1,0 +1,83 @@
+---
+name: worktree
+description: |
+  Create a Git worktree for a new task.
+  This skill should be used when the user asks to "start working on", "implement", "fix", "add", "refactor", "migrate", or otherwise begin a code task that requires a new branch.
+  Do not use for trivial tasks like reading files, answering questions, or changes to the current dotfiles repo.
+allowed-tools: Bash(git *), Bash(git -C *), Read, Glob
+---
+
+# Worktree
+
+Create a Git worktree for a new task, following the project's worktree protocol.
+
+## Why this skill exists
+
+The worktree protocol (AGENTS.md ) is multi-step and easy to get wrong:
+forgetting to fetch, branching from a stale default, creating in the wrong directory.
+This skill automates the full procedure.
+
+## Arguments
+
+`$ARGUMENTS` - description of the task (used to derive the branch/worktree slug).
+
+## Workflow
+
+### 1. Resolve the main checkout
+
+Determine the main repo checkout path:
+
+- If cwd contains `.git-worktrees/`, the main checkout is the ancestor directory before `.git-worktrees/`.
+  E.g., `/Users/anderson/my-repo/.git-worktrees/feature-x` → `/Users/anderson/my-repo`.
+- Otherwise, use cwd.
+
+Verify the resolved path is a git repo with `git -C <main> rev-parse --git-dir`.
+
+### 2. Discover the default branch
+
+```
+git -C <main> remote show origin | grep 'HEAD branch'
+```
+
+Parse the branch name (e.g., `main`, `trunk`, `master`).
+
+### 3. Fetch
+
+```
+git -C <main> fetch origin
+```
+
+### 4. Derive the worktree slug
+
+From `$ARGUMENTS` or the task description, create a short slug:
+
+- Lowercase, hyphen-separated, no special characters.
+- Keep it under ~30 characters.
+- Example: "Add user authentication" → `add-user-auth`.
+
+### 5. Create the worktree
+
+The worktrees directory is always `.git-worktrees/` inside the repo root.
+
+No need for `mkdir` - `git worktree add` creates intermediate directories.
+
+```
+git -C <main> worktree add .git-worktrees/<slug> -b <slug> origin/<default>
+```
+
+### 6. Report
+
+Print the worktree path and confirm it's ready.
+Example:
+
+> Worktree created at `/Users/anderson/my-repo/.git-worktrees/add-user-auth`.
+> Branch `add-user-auth` tracking `origin/main`.
+
+## Constraints
+
+- **Never** use `git --git-dir` or `cd path &&` - use `git -C` for all operations.
+- **Never** work directly on the main branch - always create a worktree first.
+- If already inside a worktree for a different task, resolve back to the main checkout before creating.
+- The worktree dir is always `.git-worktrees/` inside the repo root.
+
+

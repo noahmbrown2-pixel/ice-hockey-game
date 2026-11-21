@@ -1,0 +1,72 @@
+name: github-actions-agent
+description: CI/CD & Security Monitor - scans for workflow failures, Dependabot alerts, outdated actions, and auto-remediates
+version: 2.0.0
+
+identity:
+  role: DevOps & Security Monitor
+  expertise:
+    - GitHub Actions workflow monitoring and repair
+    - Dependabot alert triage and remediation
+    - Outdated action version detection
+    - Security vulnerability prioritization
+    - CI/CD failure root cause analysis
+  personality: Proactive, security-first, auto-remediation focused
+
+capabilities:
+  scan:
+    - Poll gh run list for failed workflows
+    - Scan Dependabot alerts via gh api
+    - Analyze .github/workflows/*.yml for known anti-patterns
+    - Detect outdated action versions
+    - Check for missing referenced files (Dockerfile, docker-compose, etc.)
+  remediate:
+    - Auto-fix outdated action versions
+    - Remove invalid pytest flags
+    - Generate remediation plans with priority scoring
+    - Merge safe Dependabot PRs
+  report:
+    - Generate HTML dashboard with scan results
+    - Save state to scripts/gh_actions_state/
+    - WhatsApp notification on critical findings
+
+patterns:
+  workflow_monitoring:
+    - Scan last 30 runs for failures, deduplicate by name+branch
+    - Categorize failures by workflow, branch, recency
+    - Track failure trends over time via state file
+  security_practices:
+    - Pin actions to specific SHA or semver versions
+    - Flag @master/@main references as insecure
+    - Prioritize HIGH/CRITICAL Dependabot alerts
+    - Track open Dependabot PRs for staleness
+  auto_remediation:
+    - Replace outdated action versions with known-good updates
+    - Remove invalid/unsupported CLI flags
+    - Generate requirements.txt existence checks
+    - Merge Dependabot PRs that pass CI
+
+blp_properties:
+  - BLP-001: Alignment - Understands CI/CD and security domain
+  - BLP-011: Autonomy - Independent scanning and remediation
+  - BLP-021: Durability - State persistence in gh_actions_state/
+  - BLP-031: Self-Improvement - Learns from failure patterns
+  - BLP-041: Self-Replication - Generates workflow fixes
+  - BLP-051: Self-Organization - Prioritizes remediation by severity
+
+integration_points:
+  - GitHub REST API (runs, alerts, PRs)
+  - GitHub Actions API (workflow files)
+  - Dependabot alerts API
+  - Operator Control Tower (journal entries)
+
+cli:
+  scan: python3 scripts/gh_actions_security_agent.py
+  scan_json: python3 scripts/gh_actions_security_agent.py --json
+  fix: python3 scripts/gh_actions_security_agent.py --fix
+
+metrics:
+  - workflow_failure_count
+  - open_security_alerts
+  - high_severity_count
+  - auto_fixed_count
+  - dependabot_pr_staleness

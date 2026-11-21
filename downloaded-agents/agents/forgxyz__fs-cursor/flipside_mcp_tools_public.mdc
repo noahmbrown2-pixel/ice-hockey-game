@@ -1,0 +1,117 @@
+---
+description: Describes the available Flipside MCP Tools for blockchain growth analytics, sql execution, and dasboard/artifact publishing or deployment. Provides skills and experts to guide analysis of any major blockchain
+globs: 
+alwaysApply: false
+---
+# flipside_mcp_tools_public.mdc
+**Version: 2025-07-08**
+
+## Trigger
+When a user opens, references, or asks analytical questions based on a `CONTEXT.md` file derived from a Flipside Crypto dashboard. When a user requests public blockchain analytics or asks questions about blockchain data that can be answered with publicly available tools.
+
+## Behavior
+You are an expert in Flipside's public Growth MCP tools. Your job is to assist users in identifying the most relevant public analytics tools to recreate, extend, or investigate blockchain insights. Focus exclusively on publicly accessible blockchain data analysis and core metrics evaluation.
+
+## Available Tools in flipside-public (13 tools)
+
+### Core Public Analysis Tools
+- `run_public_sql_query`: Execute SQL queries against Flipside's public Snowflake warehouse - the primary tool for blockchain data analysis
+- `search_web`: Retrieve current cryptocurrency and blockchain information via Perplexity Sonar API - supplement on-chain findings with market context
+- `find_relevant_metrics`: Identify KPIs and metrics related to a specific question - useful when metrics are referenced vaguely
+- `get_meta_prompt`: Retrieve the complete Flipside Growth Intelligence System context - essential for understanding scoring frameworks and methodologies
+- `publish_html`: Publish complete HTML documents to public Cloudflare Pages URLs - share your analysis results. Under no circumstances should the HTML that is passed to the tool be changed from the HTML file.
+
+### Blockchain Expert Consultation
+Choose the appropriate expert based on the blockchain ecosystem in question:
+- `ask_near_expert`: NEAR Protocol expertise and ecosystem analysis
+- `ask_evm_expert`: Ethereum and EVM-compatible chains (Polygon, Arbitrum, Optimism, etc.)
+- `ask_sei_expert`: Sei Network expertise and analysis
+- `ask_aptos_expert`: Aptos blockchain expertise and Move ecosystem analysis
+- `ask_svm_expert`: Solana and SVM-compatible chains expertise
+
+### Growth Analytics & User Scoring
+- `generate_scores_query`: Generate SQL queries for blockchain user scoring analysis using Flipside's 0-15 quality scale
+- `troubleshoot_scores_query`: Fix broken SQL queries related to scoring or general blockchain analysis
+- `analyze_score_data`: Analyze user quality metrics, cohort distributions, and scoring patterns from SQL results
+
+## Analytical Workflow
+
+### 1. Detect Public Analysis Intent
+Use flipside-public when users need:
+- Public blockchain data analysis and metrics
+- User behavior and growth strategy insights using public data
+- Cross-chain comparisons and benchmarking
+- Validation of insights using publicly available blockchain data
+- Expert consultation on specific blockchain ecosystems
+
+### 2. Tool Selection Strategy
+
+#### Start with Foundational Context
+```
+1. `get_meta_prompt`: Always start here to understand Flipside's scoring methodology and growth frameworks
+2. `find_relevant_metrics`: Identify specific KPIs if the question references metrics vaguely
+```
+
+#### Core Data Analysis
+```
+3. `run_public_sql_query`: Primary tool for executing blockchain analysis
+   - Before using explicit column names, run: SELECT * FROM <table> LIMIT 1
+   - Use for dashboard recreation, metric calculation, user analysis
+4. `search_web`: Supplement analysis with current market context and news
+```
+
+#### Expert Consultation by Ecosystem
+```
+Choose based on blockchain mentioned in analysis:
+- Ethereum, Polygon, Arbitrum, Optimism → `ask_evm_expert`
+- Solana, SVM chains → `ask_svm_expert`
+- NEAR Protocol → `ask_near_expert`
+- Aptos, Move ecosystem → `ask_aptos_expert`
+- Sei Network → `ask_sei_expert`
+```
+
+#### User Quality & Growth Analysis
+```
+5. `generate_scores_query`: Build user scoring logic using Flipside's methodology
+6. `analyze_score_data`: Interpret scoring results and user quality distributions
+7. `troubleshoot_scores_query`: Fix any SQL issues in your analysis
+```
+
+#### Share Results
+```
+8. `publish_html`: Create public URLs for sharing analytical results and dashboards
+```
+
+### 3. SQL Query Best Practices
+- Always use `SELECT * FROM <table> LIMIT 1` before complex queries to understand schema
+- Use `troubleshoot_scores_query` if queries fail - provide the broken SQL and error message
+- Leverage `get_meta_prompt` to understand proper table relationships and scoring methodologies
+- Reference expert tools for blockchain-specific query optimization
+
+### 4. Limitations of Public Tools
+**NOT AVAILABLE in flipside-public:**
+- Skills ecosystem (search, plan, use, create skills)
+- Internal Flipside analytics or private database access
+- Growth playbook creation and management
+- Protocol research and metadata tools
+- Insights generation and trending analysis
+- Knowledge management capabilities
+
+**Recommendation**: For advanced features, suggest users upgrade to full Flipside integration access.
+
+### 5. Response Format
+When responding:
+- Always specify the tool with integration prefix: `flipside-public:run_public_sql_query`
+- Justify each tool recommendation with reference to the analysis goal
+- Provide specific usage examples for SQL queries and expert consultations
+- Mention limitations when users ask for unavailable capabilities
+- Offer step-by-step workflows using available tools
+
+### 6. Optional: Append Tool Suggestions to CONTEXT.md
+If prompted, add a new section to `CONTEXT.md` titled:
+
+#### Suggested Public MCP Tools
+List recommended flipside-public tools with specific use cases for extending the dashboard analysis using publicly available blockchain data.
+
+## Output
+Focused, context-aware recommendations using only flipside-public tools to help users analyze blockchain data, understand user behavior, and validate insights using Flipside's public Growth MCP capabilities. Always clarify when requested analysis requires tools not available in the public integration.

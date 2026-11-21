@@ -1,0 +1,345 @@
+---
+alwaysApply: true
+description: Core UX principles that apply to every interaction in the system
+---
+
+# UX Core Principles
+
+## Executive Summary
+The user should never see layout shifts, blank screens, or confusing interactions.
+Every action must be predictable, smooth, and accompanied by clear visual feedback.
+
+---
+
+## 1. Zero Layout Shift (CLS)
+
+**Why it matters:** Layout shifts cause users to lose their place and create a frustrating experience.
+
+### Requirements:
+- **Reserve space for all async content** before it loads
+- **Images:** Always with width/height or aspect-ratio
+- **Cards/banners:** Fixed height or min-height
+- **Never add content above existing content** after initial render
+- **Identical wrapper layout** across loading/error/success states
+
+```tsx
+// ✅ Correct
+<div className="aspect-video bg-gray-200">
+  {imageLoaded ? <img src={src} /> : <Skeleton />}
+</div>
+
+// ❌ Wrong
+<div>
+  {imageLoaded && <img src={src} />}
+</div>
+```
+
+---
+
+## 2. Loading States - Always Immediate
+
+**Why it matters:** A blank screen makes users think something is broken.
+
+### Types of Loading:
+
+#### Initial Load
+- Show full skeleton that mirrors final layout
+- 3-6 skeleton items in lists
+- Never just a spinner
+
+#### Background Refresh
+- **Keep existing data visible**
+- Add small indicator (icon/badge)
+- Don't refresh entire page
+
+#### User Action (button click)
+- Disable the button
+- Show spinner/loading text inside button
+- Maintain button height/width
+
+```tsx
+// ✅ Correct
+<Button disabled={isLoading}>
+  {isLoading ? (
+    <>
+      <Spinner className="mr-2" />
+      Saving...
+    </>
+  ) : (
+    'Save'
+  )}
+</Button>
+
+// ❌ Wrong
+{isLoading ? <Spinner /> : <Button>Save</Button>}
+```
+
+### Skeleton Guidelines:
+- **Fixed height** - matches final content exactly
+- **Subtle animation** - shimmer or pulse, not blinking
+- **Colors** - bg-gray-200/300, not white on white
+
+---
+
+## 3. Feedback on Every Interaction
+
+**Why it matters:** Users who don't receive feedback don't know if their action succeeded.
+
+### Required for every interaction:
+
+#### 1. Hover State
+- Subtle color/shadow change
+- cursor: pointer
+
+#### 2. Active/Press State  
+- scale-95 or bg darkening
+- "pressed" feeling
+
+#### 3. Disabled State
+- opacity-50
+- cursor-not-allowed
+- Cannot be clicked
+
+#### 4. Loading State
+- disabled + spinner
+- Text changes ("Saving..." instead of "Save")
+
+#### 5. Success Indication
+- Toast (2-3 seconds)
+- Inline confirmation (✓ green)
+- Or subtle animation
+
+#### 6. Error Indication
+- Clear, friendly error message
+- Red/orange color
+- **Never delete user input**
+- Suggest solution if possible
+
+```tsx
+// ✅ Complete example
+const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+<button
+  disabled={status === 'loading'}
+  className={cn(
+    'transition-all duration-150',
+    status === 'success' && 'bg-green-500',
+    status === 'error' && 'bg-red-500'
+  )}
+>
+  {status === 'loading' && <Spinner />}
+  {status === 'success' && '✓ Saved'}
+  {status === 'error' && 'Error - Try again'}
+  {status === 'idle' && 'Save'}
+</button>
+```
+
+---
+
+## 4. Animations & Transitions
+
+**Why it matters:** Motion helps users understand what changed and where.
+
+### Rules:
+- **Duration:** 150-200ms (300ms max for large modals)
+- **Easing:** ease-out for most cases
+- **Reduced Motion:** Always support `prefers-reduced-motion`
+
+```css
+/* ✅ Correct */
+.card {
+  transition: transform 150ms ease-out, opacity 150ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+}
+```
+
+### When to use:
+- ✅ Element appearance/disappearance (fade)
+- ✅ State transitions (hover, active)
+- ✅ Subtle element movement (slide)
+- ❌ Unnecessary distracting animations
+- ❌ Animations longer than 300ms
+
+---
+
+## 5. Optimistic Updates
+
+**Why it matters:** Users feel the app is fast and responsive.
+
+### When to use:
+- ✅ Toggles (like, favorite, checkbox)
+- ✅ Simple updates (name, title)
+- ✅ Delete items from list
+- ❌ Payments or critical operations
+- ❌ Complex operations with validation
+
+### How:
+1. Update UI immediately
+2. Send to server in background
+3. If error - revert to previous state + error message
+
+```tsx
+const handleToggleLike = async () => {
+  // Optimistic update
+  setIsLiked(!isLiked);
+  
+  try {
+    await api.toggleLike(postId);
+  } catch (error) {
+    // Rollback
+    setIsLiked(!isLiked);
+    toast.error('Failed to save - try again');
+  }
+};
+```
+
+---
+
+## 6. Error Handling Strategy
+
+**Why it matters:** Errors are part of life, and users need to understand what happened and what to do.
+
+### Error Types:
+
+#### Network Errors (no internet)
+- Show banner at top of page
+- "You are offline"
+- Enable automatic retry when connection returns
+
+#### Validation Errors
+- **Inline** - next to the field that failed
+- **Real-time** - after blur, not every keystroke
+- Red color + clear message
+
+#### Server Errors (500, 503)
+- Friendly message: "Something went wrong on our end"
+- "Try again" button
+- Log error ID for tracking
+
+#### 404 / Not Found
+- Dedicated page with navigation back
+- Suggest relevant content
+
+```tsx
+// ✅ Error UI pattern
+{error && (
+  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+    <p className="text-red-800 font-medium">
+      {error.message || 'Something went wrong'}
+    </p>
+    <button 
+      onClick={retry}
+      className="mt-2 text-red-600 underline"
+    >
+      Try again
+    </button>
+  </div>
+)}
+```
+
+---
+
+## 7. Empty States & Zero Results
+
+**Why it matters:** An empty screen is frustrating, but a good empty state can turn into an active user.
+
+### Requirements:
+- **Never leave screen empty** - always show something
+- **Explain** why it's empty
+- **Clear CTA** - what the user can do now
+
+```tsx
+// ✅ Good empty state
+<div className="text-center py-12">
+  <Icon className="w-16 h-16 mx-auto text-gray-400" />
+  <h3 className="mt-4 text-lg font-medium">No items yet</h3>
+  <p className="mt-2 text-gray-600">
+    Get started by adding your first item
+  </p>
+  <Button className="mt-4">Add Item</Button>
+</div>
+```
+
+### Types:
+- **First-time user:** Explain what the app does
+- **Zero results from search:** Suggest trying different search terms
+- **Filtered list is empty:** Suggest removing filters
+- **Deleted all items:** Offer undo or add new
+
+---
+
+## 8. Performance Targets
+
+**Why it matters:** Good UX is also measured in numbers, not just feeling.
+
+### Core Web Vitals:
+- **LCP** (Largest Contentful Paint): < 2.5s
+- **FID** (First Input Delay): < 100ms  
+- **CLS** (Cumulative Layout Shift): < 0.1
+
+### Strategies:
+
+#### Images
+- WebP/AVIF formats
+- Lazy load below fold
+- Responsive images (srcset)
+- Blur placeholder until loaded
+
+#### Code Splitting
+- Route-based splitting (automatic in Next.js)
+- Dynamic imports for heavy components
+- Lazy load modals/drawers
+
+#### Prefetching
+- Prefetch on hover for links
+- Preload critical resources
+
+```tsx
+// ✅ Image optimization
+<Image
+  src={url}
+  alt="description"
+  width={800}
+  height={600}
+  placeholder="blur"
+  loading="lazy"
+/>
+
+// ✅ Code splitting
+const HeavyChart = dynamic(() => import('./HeavyChart'), {
+  loading: () => <ChartSkeleton />,
+  ssr: false
+});
+```
+
+---
+
+## When to Break the Rules
+
+Sometimes you need to break a rule for better UX:
+
+1. **Long animation** - for dramatic transitions (page transitions)
+2. **No skeleton** - if data is really fast (< 100ms)
+3. **Full-page loader** - only for initial app load
+
+**But:** Always document why you broke it and maintain consistency.
+
+---
+
+## Checklist for Every New Feature
+
+Before merge, verify:
+- [ ] Has skeleton/loading state
+- [ ] No layout shift
+- [ ] Every button/link responds to hover/active
+- [ ] Error handling with friendly messages
+- [ ] Empty state if relevant
+- [ ] Images with width/height
+- [ ] Keyboard navigation support
+- [ ] Reduced motion support
+- [ ] Tested on mobile

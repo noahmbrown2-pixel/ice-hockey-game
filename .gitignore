@@ -59,3 +59,11 @@ Thumbs.db
 # Generated images (optional - uncomment if you don't want to track generated images)
 # otter_*.png
 # *_generated.png
+
+# Large/local-only (not for public repo)
+DOWNLOAD/
+.venv/
+node_modules/
+*.pre-restore.bak
+security-audits/
+football-ceo-deploy/

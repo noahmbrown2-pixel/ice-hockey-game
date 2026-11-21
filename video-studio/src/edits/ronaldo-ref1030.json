@@ -1,0 +1,314 @@
+{
+  "title": "CR7 (N0z) dark \u2014 2026-10-30 WhatsApp refs",
+  "sources": {
+    "C": "C:/Users/noahm/Downloads/ronaldo_2008-10/E43Xk7f8LVg.mp4",
+    "M": "C:/Users/noahm/Downloads/ronaldo_2008-10/mHqU2-tcum0.mp4",
+    "G": "C:/Users/noahm/Downloads/ronaldo_2008-10/gN5fBtLBdsM.mp4"
+  },
+  "sizes": {
+    "M": [
+      1282,
+      1510
+    ],
+    "G": [
+      1164,
+      1474
+    ]
+  },
+  "clipDir": "clips/ronaldo-ref1030",
+  "music": "audio/n0z-ufc-1030.mp3",
+  "scribbleText": "N0Z",
+  "scribbleClip": "overlays/n0z-scribble-alpha.webm",
+  "darken": 0.15,
+  "grade": "contrast(1.3) saturate(0.12)",
+  "letterbox": 0.19,
+  "notes": "v2: smooth motion only. Every shot's unique source fps x rate >= 30 (no repeated frames). Sources C/G/M have real 60fps motion; the 21fps Short and the ~28fps skill compilations were dropped. Timed to the 2026-10-30 WhatsApp UFC ref; song = that ref's audio.",
+  "shots": [
+    {
+      "id": "face",
+      "src": "G",
+      "at": 1.0,
+      "frames": 32,
+      "rate": 0.6,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "fadeIn": 14
+    },
+    {
+      "id": "stare",
+      "src": "G",
+      "at": 2.6,
+      "frames": 19,
+      "rate": 0.6,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "sky",
+      "src": "C",
+      "at": 59.75,
+      "frames": 71,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "push": 0.06,
+      "fy": 0.3
+    },
+    {
+      "id": "portrait",
+      "src": "C",
+      "at": 14.5,
+      "frames": 26,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "smile",
+      "src": "C",
+      "at": 7.6,
+      "frames": 26,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "scream",
+      "src": "M",
+      "at": 16.5,
+      "frames": 24,
+      "rate": 0.6,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "punch": true
+    },
+    {
+      "id": "stare2",
+      "src": "C",
+      "at": 39.8,
+      "frames": 21,
+      "rate": 0.7,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "sk1",
+      "src": "G",
+      "at": 12.6,
+      "frames": 21,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 6
+    },
+    {
+      "id": "sk2",
+      "src": "G",
+      "at": 13.05,
+      "frames": 25,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "sk3",
+      "src": "G",
+      "at": 13.52,
+      "frames": 22,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "sk4",
+      "src": "G",
+      "at": 13.97,
+      "frames": 25,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "sk5",
+      "src": "G",
+      "at": 14.42,
+      "frames": 23,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "sk6",
+      "src": "M",
+      "at": 22.72,
+      "frames": 27,
+      "rate": 0.72,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "sk7",
+      "src": "G",
+      "at": 14.87,
+      "frames": 23,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 6
+    },
+    {
+      "id": "sk8",
+      "src": "G",
+      "at": 17.59,
+      "frames": 24,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 8
+    },
+    {
+      "id": "f1",
+      "src": "C",
+      "at": 4.0,
+      "frames": 2,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "f2",
+      "src": "G",
+      "at": 10.05,
+      "frames": 3,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "f3",
+      "src": "C",
+      "at": 19.0,
+      "frames": 2,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "f4",
+      "src": "M",
+      "at": 11.3,
+      "frames": 3,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "f5",
+      "src": "C",
+      "at": 31.0,
+      "frames": 2,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "f6",
+      "src": "G",
+      "at": 9.9,
+      "frames": 2,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "f7",
+      "src": "C",
+      "at": 36.5,
+      "frames": 3,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "f8",
+      "src": "M",
+      "at": 5.0,
+      "frames": 2,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "f9",
+      "src": "C",
+      "at": 22.5,
+      "frames": 2,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "f10",
+      "src": "C",
+      "at": 27.0,
+      "frames": 2,
+      "rate": 1,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "shake": 10
+    },
+    {
+      "id": "roar",
+      "src": "C",
+      "at": 18.4,
+      "frames": 25,
+      "rate": 0.6,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "armsout",
+      "src": "C",
+      "at": 35.0,
+      "frames": 26,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "scribble": true,
+      "scribbleAt": {
+        "x": 180,
+        "y": 330,
+        "scale": 1.4
+      }
+    },
+    {
+      "id": "clap",
+      "src": "G",
+      "at": 18.6,
+      "frames": 24,
+      "rate": 0.55,
+      "fx": 0.5,
+      "zoom": 1.0
+    },
+    {
+      "id": "outro",
+      "src": "C",
+      "at": 65.4,
+      "frames": 96,
+      "rate": 0.5,
+      "fx": 0.5,
+      "zoom": 1.0,
+      "push": 0.06,
+      "fadeOut": 40
+    }
+  ]
+}

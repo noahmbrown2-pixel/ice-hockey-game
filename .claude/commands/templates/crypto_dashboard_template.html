@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Analysis Dashboard - {{TICKER}} - {{TIMESTAMP}}</title>
+    <style>
+        /* Color Palette */
+        :root {
+            --primary-blue: #3498db;
+            --dark-blue: #2c3e50;
+            --medium-gray: #34495e;
+            --light-gray: #f5f5f5;
+            --bg-dark: #1a1a2e;
+            --bg-card: #16213e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --success-green: #27ae60;
+            --warning-orange: #f39c12;
+            --error-red: #e74c3c;
+            --bull-green: #00d68f;
+            --bear-red: #ff3d71;
+            --neutral-yellow: #ffaa00;
+        }
+
+        /* Dark Theme Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Header Styles */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, var(--primary-blue), var(--bull-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1em;
+        }
+
+        .timestamp {
+            color: var(--warning-orange);
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .card h2 {
+            color: var(--primary-blue);
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            border-bottom: 2px solid var(--primary-blue);
+            padding-bottom: 10px;
+        }
+
+        /* Consensus Section */
+        .consensus-box {
+            grid-column: span 2;
+            background: linear-gradient(135deg, var(--bg-card), #1e3c72);
+            border: 2px solid var(--primary-blue);
+        }
+
+        .recommendation {
+            text-align: center;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .recommendation-badge {
+            display: inline-block;
+            padding: 15px 40px;
+            font-size: 2em;
+            font-weight: bold;
+            border-radius: 50px;
+            margin: 10px 0;
+        }
+
+        .buy-badge {
+            background: linear-gradient(135deg, var(--bull-green), #00b874);
+            color: white;
+        }
+
+        .hold-badge {
+            background: linear-gradient(135deg, var(--neutral-yellow), #ff9500);
+            color: white;
+        }
+
+        .sell-badge {
+            background: linear-gradient(135deg, var(--bear-red), #ff2d55);
+            color: white;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-item {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
+        /* Progress Bars */
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-blue), var(--bull-green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 0.5s ease;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th {
+            background: var(--dark-blue);
+            color: var(--text-primary);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        tr:hover {
+            background: rgba(52,152,219,0.1);
+        }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-green {
+            background: var(--bull-green);
+            box-shadow: 0 0 10px var(--bull-green);
+        }
+
+        .status-red {
+            background: var(--bear-red);
+            box-shadow: 0 0 10px var(--bear-red);
+        }
+
+        .status-yellow {
+            background: var(--neutral-yellow);
+            box-shadow: 0 0 10px var(--neutral-yellow);
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 12px 25px;
+            background: var(--primary-blue);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .nav-btn:hover {
+            background: var(--bull-green);
+            transform: scale(1.05);
+        }
+
+        /* Risk Matrix */
+        .risk-matrix {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .risk-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .risk-low {
+            background: var(--success-green);
+        }
+
+        .risk-medium {
+            background: var(--warning-orange);
+        }
+
+        .risk-high {
+            background: var(--error-red);
+        }
+
+        /* Charts Placeholder */
+        .chart-container {
+            height: 300px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            margin: 20px 0;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            background: rgba(39,174,96,0.1);
+            border-color: var(--success-green);
+            color: var(--success-green);
+        }
+
+        .alert-warning {
+            background: rgba(243,156,18,0.1);
+            border-color: var(--warning-orange);
+            color: var(--warning-orange);
+        }
+
+        .alert-danger {
+            background: rgba(231,76,60,0.1);
+            border-color: var(--error-red);
+            color: var(--error-red);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .consensus-box {
+                grid-column: span 1;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            animation: slideIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>{{TICKER}} Cryptocurrency Analysis Dashboard</h1>
+            <div class="subtitle">Comprehensive Multi-Agent Consensus Report</div>
+            <div class="timestamp">Generated: {{TIMESTAMP}}</div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-buttons">
+            <a href="agent_consensus_viewer.html" class="nav-btn">Agent Consensus</a>
+            <a href="investment_strategy_viewer.html" class="nav-btn">Investment Strategies</a>
+            <a href="technical_analysis_viewer.html" class="nav-btn">Technical Analysis</a>
+            <a href="risk_assessment_matrix.html" class="nav-btn">Risk Matrix</a>
+            <a href="#raw-data" class="nav-btn">Raw Data</a>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Consensus Recommendation -->
+            <div class="card consensus-box">
+                <h2>📊 Consensus Recommendation</h2>
+                <div class="recommendation">
+                    <div class="recommendation-badge {{RECOMMENDATION_CLASS}}">{{RECOMMENDATION}}</div>
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <div class="metric-label">Consensus Score</div>
+                            <div class="metric-value">{{CONSENSUS_SCORE}}%</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Confidence Level</div>
+                            <div class="metric-value">{{CONFIDENCE_LEVEL}}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Agent Agreement</div>
+                            <div class="metric-value">{{AGENT_AGREEMENT}}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Data Freshness</div>
+                            <div class="metric-value">{{DATA_FRESHNESS}}%</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{CONSENSUS_SCORE}}%">
+                            {{CONSENSUS_SCORE}}% Consensus
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Overview -->
+            <div class="card">
+                <h2>💹 Market Overview</h2>
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                        <th>Change</th>
+                    </tr>
+                    <tr>
+                        <td>Current Price</td>
+                        <td>${{CURRENT_PRICE}}</td>
+                        <td><span class="status-indicator {{PRICE_STATUS}}"></span>{{PRICE_CHANGE}}%</td>
+                    </tr>
+                    <tr>
+                        <td>Market Cap</td>
+                        <td>${{MARKET_CAP}}</td>
+                        <td>{{MCAP_CHANGE}}%</td>
+                    </tr>
+                    <tr>
+                        <td>24h Volume</td>
+                        <td>${{VOLUME_24H}}</td>
+                        <td>{{VOLUME_CHANGE}}%</td>
+                    </tr>
+                    <tr>
+                        <td>Dominance</td>
+                        <td>{{DOMINANCE}}%</td>
+                        <td>{{DOM_CHANGE}}%</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Key Insights -->
+            <div class="card">
+                <h2>🎯 Key Insights</h2>
+                <div class="alert alert-success">
+                    <strong>Bullish Signals:</strong> {{BULLISH_SIGNALS}}
+                </div>
+                <div class="alert alert-warning">
+                    <strong>Caution Points:</strong> {{CAUTION_POINTS}}
+                </div>
+                <div class="alert alert-danger">
+                    <strong>Risk Factors:</strong> {{RISK_FACTORS}}
+                </div>
+            </div>
+
+            <!-- Agent Agreement Matrix -->
+            <div class="card">
+                <h2>🤝 Agent Agreement</h2>
+                <table>
+                    <tr>
+                        <th>Agent Type</th>
+                        <th>Recommendation</th>
+                        <th>Confidence</th>
+                    </tr>
+                    {{AGENT_ROWS}}
+                </table>
+            </div>
+
+            <!-- Investment Plays -->
+            <div class="card">
+                <h2>💰 Top Investment Plays</h2>
+                <div class="metric-item">
+                    <div class="metric-label">Play #1</div>
+                    <div>{{PLAY_1}}</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Play #2</div>
+                    <div>{{PLAY_2}}</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Play #3</div>
+                    <div>{{PLAY_3}}</div>
+                </div>
+            </div>
+
+            <!-- Risk Assessment -->
+            <div class="card">
+                <h2>⚠️ Risk Assessment</h2>
+                <div class="risk-matrix">
+                    {{RISK_MATRIX}}
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Overall Risk Score</div>
+                    <div class="metric-value">{{RISK_SCORE}}/10</div>
+                </div>
+            </div>
+
+            <!-- Price Targets -->
+            <div class="card">
+                <h2>🎯 Price Targets</h2>
+                <div class="chart-container">
+                    <div>Price Chart Visualization</div>
+                </div>
+                <table>
+                    <tr>
+                        <th>Timeframe</th>
+                        <th>Target</th>
+                        <th>Confidence</th>
+                    </tr>
+                    <tr>
+                        <td>1 Week</td>
+                        <td>${{WEEK_TARGET}}</td>
+                        <td>{{WEEK_CONF}}%</td>
+                    </tr>
+                    <tr>
+                        <td>1 Month</td>
+                        <td>${{MONTH_TARGET}}</td>
+                        <td>{{MONTH_CONF}}%</td>
+                    </tr>
+                    <tr>
+                        <td>3 Months</td>
+                        <td>${{QUARTER_TARGET}}</td>
+                        <td>{{QUARTER_CONF}}%</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Action Items -->
+            <div class="card">
+                <h2>✅ Action Items</h2>
+                <ul style="color: var(--text-primary); line-height: 2;">
+                    {{ACTION_ITEMS}}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Data Sources -->
+        <div class="card" id="raw-data">
+            <h2>📁 Data Sources & Files</h2>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-label">Web Searches</div>
+                    <div class="metric-value">{{SEARCH_COUNT}}</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Agents Analyzed</div>
+                    <div class="metric-value">{{AGENT_COUNT}}</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Data Points</div>
+                    <div class="metric-value">{{DATA_POINTS}}</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Execution Time</div>
+                    <div class="metric-value">{{EXEC_TIME}}s</div>
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <h3>📂 Generated Files</h3>
+                <ul style="color: var(--text-secondary); line-height: 1.8;">
+                    <li>Research Data: <code>outputs/{{TIMESTAMP}}/research/</code></li>
+                    <li>Agent Outputs: <code>outputs/{{TIMESTAMP}}/agents/</code></li>
+                    <li>Consensus Report: <code>outputs/{{TIMESTAMP}}/consensus/</code></li>
+                    <li>JSON Exports: <code>outputs/{{TIMESTAMP}}/exports/</code></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Generated by Crypto Master Orchestrator v2.0 | {{TIMESTAMP}}</p>
+            <p>This analysis is for informational purposes only and does not constitute financial advice.</p>
+        </div>
+    </div>
+
+    <script>
+        // Add interactive features
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate progress bars on load
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+
+            // Add click handlers for navigation
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    if (this.href.includes('#')) {
+                        e.preventDefault();
+                        const target = document.querySelector(this.getAttribute('href'));
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                });
+            });
+
+            // Add hover effects to cards
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.borderColor = 'var(--primary-blue)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.borderColor = 'transparent';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

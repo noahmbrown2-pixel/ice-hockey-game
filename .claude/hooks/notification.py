@@ -13,6 +13,7 @@ import sys
 import subprocess
 import random
 from pathlib import Path
+from utils.constants import ensure_session_log_dir
 
 try:
     from dotenv import load_dotenv
@@ -92,14 +93,15 @@ def main():
         # Read JSON input from stdin
         input_data = json.loads(sys.stdin.read())
         
-        # Ensure log directory exists
-        import os
-        log_dir = os.path.join(os.getcwd(), 'logs')
-        os.makedirs(log_dir, exist_ok=True)
-        log_file = os.path.join(log_dir, 'notification.json')
+        # Extract session_id
+        session_id = input_data.get('session_id', 'unknown')
+        
+        # Ensure session log directory exists
+        log_dir = ensure_session_log_dir(session_id)
+        log_file = log_dir / 'notification.json'
         
         # Read existing log data or initialize empty list
-        if os.path.exists(log_file):
+        if log_file.exists():
             with open(log_file, 'r') as f:
                 try:
                     log_data = json.load(f)

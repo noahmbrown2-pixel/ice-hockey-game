@@ -1,0 +1,101 @@
+{
+  "polling_intervals": {
+    "transcript": 30,
+    "gmail": 120,
+    "github_stars": 300,
+    "nostr": 60,
+    "twitter": 300,
+    "nostr_dm": 60,
+    "x_bookmarks": 21600
+  },
+  "processing": {
+    "batch_size": 5,
+    "approval_timeout_hours": 24,
+    "retry_failed": true,
+    "max_retries": 3
+  },
+  "channels": {
+    "transcript": {
+      "enabled": true,
+      "lifelog_dir": "/home/craigmbrown/Project/Limitless-Lifelog-Manager/transcripts_archive",
+      "archive_mode": true,
+      "scan_recent_days": 7,
+      "file_pattern": "*_LC.json",
+      "note": "Fixed 2026-05-16: Limitless now archives as *_LC.json (LifelogChunk); *_TB.json was the legacy naming pre-2026-04 and is stale. Wrong glob = daemon scanned but found 0 files."
+    },
+    "gmail": {
+      "enabled": false,
+      "deduplication": {
+        "enabled": true,
+        "state_file": "sent_emails.json",
+        "skip_patterns": [
+          "TB-APPROVAL",
+          "[TB-APPROVAL]",
+          "Re: [TB-APPROVAL]",
+          "APPROVE",
+          "REJECT"
+        ]
+      },
+      "note": "DISABLED 2026-05-11: craigmbrown Gmail OAuth revoked, user opted not to reconsent. GmailPoller was generating 1399 invalid_grant errors (every 2 min). Voice-cmd pipeline now runs via TranscriptPoller only (Limitless archive). Re-enable by setting true + reconsenting via scripts/oauth_reconsent_helper.sh."
+    },
+    "github_stars": {
+      "enabled": true,
+      "auto_convert": true,
+      "note": "Auto-converts new stars to research commands - REQ-002"
+    },
+    "nostr": {
+      "enabled": true
+    },
+    "twitter": {
+      "enabled": false,
+      "status": "REPLACED",
+      "reason": "Replaced by x_bookmarks channel using Playwright browser automation",
+      "note": "See x_bookmarks channel below - no API cost required"
+    },
+    "x_bookmarks": {
+      "enabled": true,
+      "method": "playwright_scraper",
+      "scrape_interval_hours": 6,
+      "max_bookmarks_per_scrape": 50,
+      "headless": true,
+      "bookmarks_file": "data/x_bookmarks.json",
+      "auto_convert_to_research": true,
+      "note": "Browser automation via Playwright - FREE, no API cost. Run login first: python x_bookmarks_scraper.py --login"
+    },
+    "nostr_dm": {
+      "enabled": true,
+      "no_prefix_required": true,
+      "cmb24k_npubs": [
+        "npub1k8jrj87msk4l37kamaesmxkzfgv5ax7wu8ykp744czezwwx2uxesjyalj4",
+        "npub1tjzppf6hq5t2c5swvjhntwd08y3t66qrjwx746cr8dk6nmjecg4qhyjdkp"
+      ],
+      "note": "Monitors cmb24k DMs/notes, NO TB prefix required - REQ-003"
+    }
+  },
+  "approval": {
+    "channels": [
+      "github",
+      "email"
+    ],
+    "dual_delivery": true,
+    "github_first": true,
+    "initial_email": true,
+    "initial_nostr": false,
+    "email_on_engagement": true,
+    "continue_email_thread": true,
+    "backlog_cutoff": "2025-12-22T00:00:00",
+    "note": "REQ-2025-12-22: GitHub Issue + Email for NEW commands. Backlog (before cutoff) skips initial email."
+  },
+  "cost_tracking": {
+    "enabled": true,
+    "log_file": "logs/llm_costs.json",
+    "note": "Track LLM/MCP/tool costs at every call - REQ-005"
+  },
+  "memory_v4": {
+    "enabled": true,
+    "archive_research": true,
+    "archive_decisions": true,
+    "pattern_learning": true,
+    "note": "Archive all research and decisions to V4 memory - REQ-006"
+  }
+}

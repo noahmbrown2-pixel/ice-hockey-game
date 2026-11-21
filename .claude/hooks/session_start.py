@@ -13,6 +13,7 @@ import sys
 import subprocess
 from pathlib import Path
 from datetime import datetime
+from utils.constants import ensure_session_log_dir
 
 try:
     from dotenv import load_dotenv
@@ -21,11 +22,10 @@ except ImportError:
     pass  # dotenv is optional
 
 
-def log_session_start(input_data):
-    """Log session start event to logs directory."""
-    # Ensure logs directory exists
-    log_dir = Path("logs")
-    log_dir.mkdir(parents=True, exist_ok=True)
+def log_session_start(session_id, input_data):
+    """Log session start event to session directory."""
+    # Ensure session log directory exists
+    log_dir = ensure_session_log_dir(session_id)
     log_file = log_dir / 'session_start.json'
     
     # Read existing log data or initialize empty list
@@ -44,6 +44,32 @@ def log_session_start(input_data):
     # Write back to file with formatting
     with open(log_file, 'w') as f:
         json.dump(log_data, f, indent=2)
+    
+    # Also create/update the session data file for status line
+    create_session_data_for_status_line(session_id, input_data)
+
+
+def create_session_data_for_status_line(session_id, input_data):
+    """Create session data file for status line to read."""
+    # Ensure .claude/data/sessions directory exists
+    session_dir = Path('.claude/data/sessions')
+    session_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Create session data file
+    session_file = session_dir / f'{session_id}.json'
+    
+    # Initialize session data
+    session_data = {
+        'session_id': session_id,
+        'agent_name': 'Claude Code',
+        'prompts': [],
+        'started_at': datetime.now().isoformat(),
+        'source': input_data.get('source', 'unknown')
+    }
+    
+    # Write session data
+    with open(session_file, 'w') as f:
+        json.dump(session_data, f, indent=2)
 
 
 def get_git_status():
@@ -114,21 +140,33 @@ def load_development_context(source):
             context_parts.append(f"Uncommitted changes: {changes} files")
     
     # Load project-specific context files if they exist
+    # NOTE: .claude/PRINCIPLES.md is the canonical cross-cutting operating
+    # knowledge surface (content philosophy, goals, output quality, delegation,
+    # priority). Loaded first + given a larger char budget (3000 vs 1000).
+    # See .claude/PRINCIPLES.md "Loaders" topology block.
     context_files = [
+        ".claude/PRINCIPLES.md",           # canonical principles (RQ-principles-canonical-surface)
         ".claude/CONTEXT.md",
         ".claude/TODO.md",
         "TODO.md",
         ".github/ISSUE_TEMPLATE.md"
     ]
-    
+
+    # PRINCIPLES.md gets a larger budget because it's the headline operating doc
+    per_file_char_budget = {
+        ".claude/PRINCIPLES.md": 3000,
+    }
+    default_budget = 1000
+
     for file_path in context_files:
         if Path(file_path).exists():
             try:
                 with open(file_path, 'r') as f:
                     content = f.read().strip()
                     if content:
+                        budget = per_file_char_budget.get(file_path, default_budget)
                         context_parts.append(f"\n--- Content from {file_path} ---")
-                        context_parts.append(content[:1000])  # Limit to first 1000 chars
+                        context_parts.append(content[:budget])
             except Exception:
                 pass
     
@@ -159,7 +197,7 @@ def main():
         source = input_data.get('source', 'unknown')  # "startup", "resume", or "clear"
         
         # Log the session start event
-        log_session_start(input_data)
+        log_session_start(session_id, input_data)
         
         # Load development context if requested
         if args.load_context:

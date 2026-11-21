@@ -1,0 +1,50 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# CODE REVIEW & OPTIMIZATION PROTOCOL
+
+NOTE: If you need to review code changes, use `gh` CLI commands to get the diff (e.g., `git diff`, `gh pr diff`, or `gh repo view --json`).
+
+## REVIEW PROCESS
+
+1. **VERIFY REQUIREMENTS**
+   - Ensure the code fulfills its original purpose and requirements
+   - Check that all acceptance criteria and user stories are satisfied
+
+2. **CODE QUALITY ASSESSMENT**
+   - Evaluate adherence to SOLID principles:
+     - Single Responsibility: Each class/function does one thing well
+     - Open/Closed: Open for extension, closed for modification
+     - Liskov Substitution: Derived classes are substitutable for base classes
+     - Interface Segregation: Specific interfaces better than one general
+     - Dependency Inversion: Depend on abstractions, not concretions
+   - Verify DRY (Don't Repeat Yourself) principles are followed
+   - Confirm proper Dependency Injection is implemented where appropriate
+   - Check TDD principles are reflected in test coverage
+   - Apply YAGNI (You Aren't Gonna Need It) to remove unnecessary code
+
+3. **IMPLEMENTATION AUDIT**
+   - Remove any abandoned or commented-out code from previous approaches
+   - Ensure no debugging artifacts remain (console logs, temporary workarounds)
+   - Verify proper error handling and edge cases are covered
+   - Check for security vulnerabilities and performance bottlenecks
+
+4. **CODE EFFICIENCY**
+   - Optimize for performance where it matters (avoiding premature optimization)
+   - Ensure code is as minimal and elegant as possible
+   - Simplify complex logic without sacrificing readability
+   - Verify appropriate data structures and algorithms are used
+
+5. **FINAL VERIFICATION**
+   - Check test coverage for critical functionality
+   - Ensure documentation is accurate and helpful
+   - Verify the implementation aligns with the project's patterns and conventions
+
+## IMPORTANT RULES
+- Focus on what AI does well: style consistency, simple refactoring, performance hints
+- Avoid overreaching on business logic or architecture decisions without user guidance
+- Aim for perfect balance of best practices with minimal, elegant implementation
+- Highlight important issues rather than nitpicking minor style concerns
+- Check off each verification step in the scratchpad when complete

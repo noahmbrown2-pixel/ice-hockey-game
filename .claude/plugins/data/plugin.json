@@ -1,0 +1,76 @@
+{
+  "name": "data",
+  "version": "1.0.0",
+  "description": "SQL queries, data visualization, dashboards, and statistical analysis",
+  "author": "Anthropic (adapted for ETAC)",
+  "license": "Apache-2.0",
+  "namespace": "data",
+  "commands": [
+    {
+      "name": "analyze",
+      "file": "commands/analyze.md",
+      "description": "Answer data questions from quick lookups to full analyses"
+    },
+    {
+      "name": "explore-data",
+      "file": "commands/explore-data.md",
+      "description": "Profile and explore a dataset to understand shape, quality, and patterns"
+    },
+    {
+      "name": "write-query",
+      "file": "commands/write-query.md",
+      "description": "Write optimized SQL for your dialect with best practices"
+    },
+    {
+      "name": "create-viz",
+      "file": "commands/create-viz.md",
+      "description": "Create publication-quality visualizations with Python"
+    },
+    {
+      "name": "build-dashboard",
+      "file": "commands/build-dashboard.md",
+      "description": "Build interactive HTML dashboards with filters and charts"
+    },
+    {
+      "name": "validate",
+      "file": "commands/validate.md",
+      "description": "QA an analysis before sharing - methodology, accuracy, and bias checks"
+    }
+  ],
+  "skills": [
+    {
+      "name": "sql-queries",
+      "file": "skills/sql-queries.md",
+      "triggers": ["SQL", "query", "select", "join", "aggregate", "database"]
+    },
+    {
+      "name": "data-exploration",
+      "file": "skills/data-exploration.md",
+      "triggers": ["explore", "profile", "data quality", "describe data", "statistics"]
+    },
+    {
+      "name": "data-visualization",
+      "file": "skills/data-visualization.md",
+      "triggers": ["chart", "graph", "plot", "visualize", "histogram", "scatter"]
+    },
+    {
+      "name": "statistical-analysis",
+      "file": "skills/statistical-analysis.md",
+      "triggers": ["correlation", "regression", "hypothesis", "significance", "trend"]
+    },
+    {
+      "name": "data-validation",
+      "file": "skills/data-validation.md",
+      "triggers": ["validate", "check data", "data quality", "sanity check"]
+    },
+    {
+      "name": "interactive-dashboard-builder",
+      "file": "skills/interactive-dashboard-builder.md",
+      "triggers": ["dashboard", "interactive", "filters", "report builder"]
+    }
+  ],
+  "connectors": {
+    "required": ["quick-data"],
+    "optional": ["notionApi"]
+  }
+}

@@ -1,0 +1,14 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+No need to import vue directives or components.
+We are using Vue 3 Script Setup with Typescript.
+Dont import shadcn components, it will be automatically imported.
+Only add comments if you are sure they are needed.
+Use Lucide icons from 'lucide-vue-next' lib.
+
+Use Tanstack Query (@tanstack/vue-query) for server state management.
+Only use Pinia for client-side state that needs to be shared between components.
+Never use Pinia for server state or API calls.

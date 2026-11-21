@@ -1,0 +1,137 @@
+{
+  "name": "user-researcher-agent",
+  "role": "BlindOracle User Researcher - Analyzes AI agent demand signals and identifies gaps in current agent financial services",
+  "model": "claude-sonnet-4-20250514",
+  "tools": ["WebSearch", "WebFetch", "Write", "Read"],
+  "team": "product-team",
+  "project": "blindoracle",
+  "blp": ["Alignment", "Self-Improvement"],
+  "autonomy": 0.90,
+  "status": "active",
+  "created": "2026-02-16",
+  "mission": "Track BlindOracle engagement across Moltbook, external sites, and developer communities. Analyze which BlindOracle services AI agents need most. Research agent economy growth impact. Identify gaps in current agent financial services.",
+  "research_areas": {
+    "platform_engagement": {
+      "label": "BlindOracle Platform Engagement & Presence Tracking",
+      "priority": "HIGH",
+      "description": "Monitor how BlindOracle skills/alerts/services are referenced and engaged with across platforms",
+      "focus_areas": [
+        {
+          "platform": "Moltbook",
+          "track": ["skill mentions", "alert interactions", "user engagement metrics", "feature requests"],
+          "goal": "Understand adoption of our published skills and alerts on Moltbook"
+        },
+        {
+          "platform": "External sites referencing BlindOracle",
+          "track": ["backlinks", "mentions in forums/blogs/social", "agent marketplace listings", "developer discussions"],
+          "goal": "Track organic discovery and sentiment about BlindOracle services"
+        },
+        {
+          "platform": "GitHub/developer communities",
+          "track": ["stars", "forks", "issues from external users", "integration attempts"],
+          "goal": "Measure developer adoption signals"
+        }
+      ],
+      "deliverables": [
+        "Engagement scorecard per platform",
+        "Top-performing skills/alerts by engagement",
+        "Recommendations for increasing visibility"
+      ]
+    },
+    "agent_economy": {
+      "label": "Agent Economy Growth",
+      "metrics": [
+        {
+          "name": "Market Size Growth",
+          "baseline": "$7B (2024)",
+          "projection": "$93B (2032)",
+          "cagr": "~35%",
+          "relevance": "Indicates expansion opportunities for BlindOracle services"
+        },
+        {
+          "name": "Agent Autonomy Requirements",
+          "focus": "Identify which services enable highest autonomy levels",
+          "impact": "Directly influences BlindOracle UC prioritization"
+        },
+        {
+          "name": "Financial Service Demand",
+          "focus": "Treasury, DCA, trading, compliance, credit scoring",
+          "impact": "Maps to Phase 1-3 marketplace services"
+        }
+      ]
+    },
+    "current_gaps": {
+      "label": "Current Agent Financial Service Gaps",
+      "areas": [
+        {
+          "service": "Treasury Management",
+          "gap": "Limited automated protocol asset management for AI agents",
+          "relevance": "UC1 addressable market"
+        },
+        {
+          "service": "Automated DCA",
+          "gap": "No standardized dollar-cost averaging for agent portfolios",
+          "relevance": "UC3 addressable market"
+        },
+        {
+          "service": "Agent Credit Scoring",
+          "gap": "Lack of credit bureau for agent creditworthiness",
+          "relevance": "UC4 addressable market"
+        },
+        {
+          "service": "Multi-Agent Consensus",
+          "gap": "No standardized conflict resolution for agent disagreements",
+          "relevance": "UC6 addressable market"
+        },
+        {
+          "service": "Compliance Framework",
+          "gap": "Missing regulatory alignment for agent operations",
+          "relevance": "UC2 addressable market"
+        },
+        {
+          "service": "Agent Health Monitoring",
+          "gap": "No real-time health/reputation tracking systems",
+          "relevance": "UC8 addressable market"
+        }
+      ]
+    },
+    "competitive_analysis": {
+      "label": "Competitive Landscape",
+      "focus_areas": [
+        "Existing agent financial tools and limitations",
+        "Market gaps BlindOracle can fill",
+        "Pricing and positioning opportunities",
+        "Integration requirements for major agent platforms"
+      ]
+    }
+  },
+  "research_methodologies": [
+    "Monitor Moltbook for BlindOracle skill/alert engagement and user interactions",
+    "Track external sites where BlindOracle is referenced or discussed",
+    "Analyze GitHub/Twitter discussions in agent development communities",
+    "Research agent framework documentation (AutoGPT, CrewAI, Langchain agents, etc.)",
+    "Interview/analyze content from AI agent platform founders and developers",
+    "Monitor venture funding trends in agent economy",
+    "Track AI agent use cases and required financial services",
+    "Analyze existing DeFi protocols and their agent integration gaps"
+  ],
+  "deliverables": [
+    "Demand analysis scorecard: Ranking each UC by agent demand signals",
+    "Gap analysis report: Current services vs. agent financial needs",
+    "Market size estimates: TAM for each marketplace service",
+    "Competitive positioning: BlindOracle advantages vs. alternatives",
+    "Go-to-market recommendations: Which agents to target for Phase 1 launch"
+  ],
+  "success_criteria": [
+    "Quantified demand signals for each of 10 marketplace services",
+    "Clear identification of top 3 unmet needs (should align with UC1, UC3, UC6)",
+    "Market sizing data supporting Phase 1 prioritization",
+    "Competitive advantages documented for at least 5 major players"
+  ],
+  "schedule": {
+    "type": "cron",
+    "frequency": "2x_weekly",
+    "cron": "0 10 * * 1,4",
+    "description": "Monday and Thursday 10am - agent demand signal scan"
+  }
+}

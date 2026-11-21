@@ -1,21 +1,22 @@
 ---
-model: opus
-description: Initial setup prompt - reads project structure and gains context
+allowed-tools: Bash, Read
+description: Load context for a new agent session by analyzing codebase structure, documentation and README
 ---
 
 # Prime
 
-## Purpose
+Run the commands under the `Execute` section to gather information about the project, and then review the files listed under `Read` to understand the project's purpose and functionality then `Report` your findings.
 
-Load project context by reading specs, agents, commands, skills, hooks, and tracked files to understand the current state of the Agentic Finance Review codebase.
+## Execute
+- `git ls-files`
 
-## Workflow
+## Read
+- README.md
+- ai_docs/claude-code/cc_hooks_docs.md
+- ai_docs/claude-code/uv-single-file-scripts.md
+- ai_docs/claude-code/anthropic_custom_slash_commands.md
+- ai_docs/claude-code/anthropic_docs_subagents.md
 
-1. Read `specs/init.md`
-2. Read `.claude/agents/*`
-3. Read `.claude/commands/*`
-4. Read `.claude/skills/*`
-5. Read `.claude/hooks/*`
-6. Read `justfile`
-7. Run `git ls-files`
-8. Report: "Project context loaded. Ready to assist with Agentic Finance Review."
+## Report
+
+- Provide a summary of your understanding of the project

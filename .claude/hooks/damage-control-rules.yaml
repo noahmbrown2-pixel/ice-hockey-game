@@ -1,0 +1,182 @@
+# RQ-200: TheBaby Damage-Control Rules (L4 whitelist + path-tier controls)
+# Inspired by disler/pi-vs-claude-code damage-control extension
+# Single source of truth -- agents do NOT override these locally.
+#
+# Schema:
+#   policies:
+#     <policy_name>:
+#       block_mode: soft|hard
+#       bashAllowList: [<anchored regex>, ...]
+#       compoundShellOps: [<literal substring to pre-reject>, ...]
+#       zeroAccessPaths: [<regex matched against file_path>, ...]
+#       readOnlyPaths: [<regex>, ...]    # block write/edit; read OK
+#       noDeletePaths: [<regex>, ...]    # block rm/delete; modify OK
+#
+# Loaded by .claude/hooks/damage_control_l4.py with 60s in-process cache.
+# Edit this file -> reload happens automatically within 60s.
+
+schema_version: "1.0"
+last_updated: "2026-05-12"
+source_design: ".claude/designs/design-rq-200-bash-damage-control-l4.md"
+
+policies:
+
+  # =====================================================================
+  # INTERNAL POLICY -- soft-block (block + actionable feedback, agent retries)
+  # Applies to: ditd_queue_consumer, /plan_w_team Builder/Validator,
+  #             BLP grader, and other internal orchestrator agents.
+  # Marketplace agents do NOT use this policy.
+  # =====================================================================
+  internal:
+    block_mode: soft
+
+    # L4 whitelist -- anchored regexes. Bash command MUST match one of these.
+    # Per disler rule #3: "Pin specific scripts. Never pattern-match an interpreter."
+    bashAllowList:
+      # --- Read-only inspection (safe always) ---
+      - '^git status$'
+      - '^git log( -[0-9]+)?( --oneline)?( --stat)?$'
+      - '^git diff( --stat)?( --cached)?( HEAD~[0-9]+)?$'
+      - '^git branch( --show-current)?( -a)?$'
+      - '^git show( -[0-9]+)?( --stat)?$'
+      - '^git rev-parse HEAD$'
+
+      # --- Test runners (specific shapes only) ---
+      - '^npm test$'
+      - '^pytest( -v)?$'
+      - '^pytest tests/[a-zA-Z0-9_/.-]+(::[a-zA-Z0-9_]+)?( -v)?$'
+      - '^pytest tests/red_team/(test_disler_attacks|test_damage_control_l4_unit|test_orchestrator_corpus)\.py( -v)?$'
+
+      # --- File inspection (project-scoped only, no compound ops) ---
+      - '^ls( -la?h?)?( /home/craigmbrown/Project/[a-zA-Z0-9_./-]+)?$'
+      - '^cat /home/craigmbrown/Project/[a-zA-Z0-9_./-]+\.(py|md|json|yaml|yml|txt|toml|cfg|ini)$'
+      - '^head( -[0-9]+)? /home/craigmbrown/Project/[a-zA-Z0-9_./-]+\.(py|md|json|yaml|yml|txt|log)$'
+      - '^tail( -[0-9]+)? /home/craigmbrown/Project/[a-zA-Z0-9_./-]+\.(py|md|json|yaml|yml|txt|log)$'
+      - '^wc( -[lcw])? /home/craigmbrown/Project/[a-zA-Z0-9_./-]+$'
+
+      # --- Pinned orchestrator scripts (NEVER pattern-match `python3 .*\.py`) ---
+      # Allows `python3 scripts/<pinned>.py [--flag [path-like-value]]*` ONLY.
+      # Each arg MUST start with `--`; values (if present) must look like paths.
+      # Bare positionals are NOT allowed -- prevents `python3 script.py rm -rf /` shapes.
+      - '^python3 scripts/(plan_deliverable_validator|ditd_qa_validator|blp_extractor|plan_review_dashboard|nightly_apos_executor)\.py( --[a-z-]+( [\w/.-]+)?)*$'
+      - '^bash scripts/massat_cron_runner\.sh --(quick|full)$'
+
+      # --- Tightly pinned `python3 -c` shapes for AST validation only ---
+      # These are EXACT shapes that ditd_qa_validator.py uses today.
+      # Any other inline -c is BLOCKED.
+      - '^python3 -c "import ast; ast\.parse\(open\([^)]+\)\.read\(\)\)"$'
+
+      # --- System inspection (read-only, observability) ---
+      - '^crontab -l$'
+      - '^systemctl (is-enabled|is-active|status) [a-zA-Z0-9_.@-]+(\.service|\.timer)?$'
+      - '^journalctl -u [a-zA-Z0-9_.@-]+(\.service|\.timer)? --since [a-zA-Z0-9 ":-]+$'
+
+      # --- Network read-only (curl GET only, no piping) ---
+      - '^curl -s https?://[a-zA-Z0-9./_-]+$'
+
+      # --- jq read-only ---
+      - '^jq [^|;`$()<>]+ /home/craigmbrown/Project/[a-zA-Z0-9_./-]+\.json$'
+
+    # Pre-rejected BEFORE the regex check runs (disler "interpreter+arbitrary-script" rule).
+    # If any of these literal substrings appear in the command, block immediately.
+    compoundShellOps:
+      - '&&'
+      - '||'
+      - ';'
+      - '|'
+      - '>'
+      - '<'
+      - '`'
+      - '$('
+      - '$(('
+      - '<<'
+      - '>>'
+
+    # File paths the agent may NOT read OR write
+    zeroAccessPaths:
+      - '\.env$'
+      - '\.env\.[a-z]+$'
+      - '/\.ssh/.*'
+      - '.*\.pem$'
+      - '.*\.key$'
+      - '/home/craigmbrown/\.config/google_api/.*\.pickle$'
+      - '/home/craigmbrown/Project/data/credentials/.*'
+
+    # File paths the agent may read but NOT write/edit
+    readOnlyPaths:
+      - '^package-lock\.json$'
+      - '^bun\.lock$'
+      - '^uv\.lock$'
+      - '^/etc/.*'
+
+    # File paths the agent may modify but NOT delete
+    noDeletePaths:
+      - '^\.git/'
+      - '^Dockerfile$'
+      - '^README\.md$'
+      - '^CLAUDE\.md$'
+      - '^\.claude/CONSTITUTION\.md$'
+      - '^specs/plan-rq-.*\.md$'
+      - '^\.claude/hooks/damage-control-rules\.yaml$'
+
+  # =====================================================================
+  # MARKETPLACE POLICY -- hard-block (terminate turn, no negotiation)
+  # Applies to: BlindOracle external marketplace agents (identified via
+  #             DELEGATION_CONTEXT passport scope).
+  # =====================================================================
+  marketplace:
+    block_mode: hard
+
+    # RQ-201 L5: Bash is OFF the menu entirely. Marketplace agents call the
+    # 3 narrow MCP tools (run_tests, git_status, list_target) via the
+    # marketplace-safe-tools-mcp server (or the chainlink-mirror) -- never Bash.
+    # Per disler L5 thesis: attack surface = shape of the tool, not its content.
+    bashAllowList: []
+
+    # RQ-201 L5: whitelist of MCP tools marketplace agents may invoke.
+    # Format: "<server>__<tool>" matching the harness's mcp__<server>__<tool>
+    # tool-name shape. damage_control_l4 strips the mcp__ prefix before
+    # checking against this list. Anything not in this list is hard-blocked.
+    allowedMcpTools:
+      - 'marketplace-safe-tools__run_tests'
+      - 'marketplace-safe-tools__git_status'
+      - 'marketplace-safe-tools__list_target'
+      - 'chainlink-prediction-markets__run_tests'      # mirror
+      - 'chainlink-prediction-markets__git_status'     # mirror
+      - 'chainlink-prediction-markets__list_target'    # mirror
+
+    compoundShellOps:
+      # Same set as internal -- disler rule applies universally
+      - '&&'
+      - '||'
+      - ';'
+      - '|'
+      - '>'
+      - '<'
+      - '`'
+      - '$('
+      - '$(('
+      - '<<'
+      - '>>'
+
+    # Marketplace gets EVERYTHING internal blocks plus internal-only assets
+    zeroAccessPaths:
+      - '\.env$'
+      - '\.env\.[a-z]+$'
+      - '/\.ssh/.*'
+      - '.*\.pem$'
+      - '.*\.key$'
+      - '/home/craigmbrown/Project/data/.*'
+      - '/home/craigmbrown/Project/v5_memory/.*'
+      - '/home/craigmbrown/Project/scripts/.*'
+      - '/home/craigmbrown/Project/.claude/.*'
+      - '/home/craigmbrown/Project/specs/.*'
+      - '/home/craigmbrown/Project/super_orchestrator/.*'
+
+    # Marketplace can read NOTHING outside its own ./target/ sandbox
+    readOnlyPaths:
+      - '^(?!\./target/).*'
+
+    # Marketplace cannot delete anything
+    noDeletePaths:
+      - '.*'

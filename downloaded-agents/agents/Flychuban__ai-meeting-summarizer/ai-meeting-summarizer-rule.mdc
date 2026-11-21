@@ -1,0 +1,173 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+🤖 Cursor Rule: AI Meeting Summarizer App
+You are an expert AI full-stack developer helping build and scale a project using the T3 Stack, shadcn/ui, and Vercel AI SDK to transcribe and summarize meeting audio for users.
+
+🏗️ Project Overview
+This is a full-stack web application built using the T3 Stack:
+
+Next.js (App Router) version 15
+
+TypeScript
+
+Tailwind CSS version 3
+
+shadcn/ui
+
+tRPC
+
+Prisma + PostgreSQL (via Neon)
+
+NextAuth (email/password + GitHub OAuth)
+
+Vercel AI SDK (OpenAI model)
+
+pnpm as the package manager
+
+🔊 What It Does
+This app enables users to upload .mp3 or .wav audio recordings of meetings. It then transcribes the audio using AI and generates clean summaries that include:
+
+Key points
+
+Decisions
+
+Action items
+
+Users can tag and save meetings, as well as export the summaries in various formats.
+
+👤 User Features
+Auth: Sign up/in with GitHub OAuth or email/password (via NextAuth)
+
+Upload: Drag-and-drop or select .mp3 / .wav file (max ~100MB)
+
+Summarize: Transcribe audio and extract meaningful meeting notes
+
+View: See results in a clean, structured UI
+
+Save & Tag: Authenticated users can label and store summaries
+
+Export: Users can export summaries as JSON, Markdown, or PDF
+
+🎨 UI Guidelines
+Use shadcn/ui components and Tailwind CSS for styling
+
+Color Theme: Clean white background with orange gradient highlights
+
+Landing page should feel modern and professional
+
+Include illustrations/placeholders to welcome new users
+
+Ensure mobile responsiveness and good accessibility practices
+
+🔐 Auth Flow
+Use NextAuth with:
+
+GitHub OAuth
+
+Email/password credentials
+
+Secure access to user-specific meeting data
+
+Redirect unauthenticated users from protected routes
+
+Sessions handled through App Router and server actions
+
+🧠 AI & Audio Handling
+Transcription Flow
+Use Vercel AI SDK (e.g. OpenAI Whisper model) to convert .mp3/.wav to text
+
+Provide loading indicators and feedback on long processes
+
+Summarization Flow
+Prompt AI to extract:
+
+Key Points
+
+Decisions
+Action Items
+
+Allow users to preview and edit the result before saving/exporting
+
+📁 File Upload
+Accept .mp3 and .wav audio formats
+
+Drag-and-drop upload zone (fallback to input button)
+
+Limit file size (~100MB)
+
+Display upload progress & errors
+
+📤 Export Options
+Allow users to:
+
+Copy to clipboard
+
+Download as:
+
+.json
+
+.md
+
+.pdf (via pdf-lib or html2pdf)
+
+Provide a clean UI to select export type
+
+⚙️ Backend Guidelines
+Use tRPC for API routes
+
+Wrap AI SDK calls in backend functions
+
+Store meeting summaries in PostgreSQL via Prisma
+
+Validate all inputs using zod schemas
+
+Organize code under lib/, server/api/, and components/
+
+💡 Dev Philosophy
+Implement complete feature logic (no placeholders unless explicitly told)
+
+Focus on modularity, type safety, and clarity
+
+Comment any complex logic
+
+Prefer Zod-first schema development and use infer in TypeScript
+
+Avoid unnecessary complexity unless it enhances UX or performance
+
+✅ Style & Structure Conventions
+Naming Conventions
+camelCase for functions and variables
+
+PascalCase for components and Zod schemas
+
+snake_case for DB fields (if used)
+
+TypeScript Usage
+Use strict typing
+
+Prefer inferring from Zod where possible
+
+Avoid any types — be precise with AI response types
+
+UI & Styling
+Use shadcn/ui for all UI components
+
+Tailwind CSS for layout and spacing
+
+Orange gradient for primary actions (e.g., upload, summarize, export)
+
+Accessible forms and buttons
+
+🧠 AI SDK Integration Best Practices
+Transcribe with Whisper (if available)
+
+Summarize using high-quality prompt engineering
+
+Stream responses if possible for large meetings (bonus)
+
+Sanitize and validate response before rendering
+
+Handle errors (e.g., low-quality audio, long processing time)

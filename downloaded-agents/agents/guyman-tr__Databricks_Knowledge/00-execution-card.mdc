@@ -1,0 +1,110 @@
+---
+description: "Per-Object Execution Card — compact flight checklist for DWH wiki pipeline. KEEP LOADED at all times during batch processing. Full phase rules are loaded on-demand; this card is the cognitive anchor."
+globs:
+alwaysApply: false
+---
+
+# Per-Object Execution Card
+
+**Load this ONCE at batch start. Never unload it. Load full phase rules on-demand per step.**
+
+## Pipeline (standard path)
+
+```
+ #   Phase              Do what                                        Rule file            Gate    Checkpoint
+ 1   Structure          Read SSDT DDL → columns, types, indexes        01-structure         HARD    PHASE 1 CHECKPOINT: PASS
+ 2   Sample + ETL       SELECT TOP 10 + row count + ETL source chain   02-live-data         HARD    PHASE 2 CHECKPOINT: PASS ← IMMEDIATE
+ 3   Distribution       Value counts, NULLs, enums                     03-distribution      SOFT    PHASE 3 CHECKPOINT: PASS
+ 4   Lookup             Resolve *ID → Dim/Dict (repo first, then MCP)  04-lookup            SOFT    PHASE 4 CHECKPOINT: PASS
+ 5   JOINs              Grep SPs/views for JOIN patterns               05-join-analysis     SOFT    PHASE 5 CHECKPOINT: PASS
+ 6   Business Logic     Column groups, hierarchies, flags              06-business-logic    SOFT    PHASE 6 CHECKPOINT: PASS
+ 7   View Deps          Which views reference this table?              07-view-dependency   SOFT    PHASE 7 CHECKPOINT: PASS
+ 8   SP Scan            Find writer/reader SPs (consume P2 results!)   08-procedure-scan    HARD    PHASE 8 CHECKPOINT: PASS
+ 9   SP Logic           Read top SPs deeply → source-to-target map     09-procedure-logic   HARD    PHASE 9 CHECKPOINT: PASS ← feeds lineage
+ 9B  ETL Orchestration  Refresh schedule, dependencies                 09b-etl-orch         SOFT    PHASE 9B CHECKPOINT: PASS
+10   Atlassian          Search Jira/Confluence for business context     10-atlassian         SOFT    PHASE 10 CHECKPOINT: PASS
+10A  Upstream Wiki      Generic Pipeline → production source → read    13-prod-lineage §1-3 HARD*   PHASE 10A CHECKPOINT: PASS
+10B  Column Lineage     Write .lineage.md (BEFORE doc!)                13-prod-lineage §2-6 HARD    PHASE 10B CHECKPOINT: PASS
+11   Generate Doc       Read .lineage.md → write .md, .review-needed, .alter.sql (ALL 4 FILES)  11-generate-doc  HARD    (shape check)
+     ── validate-wiki.ps1 + validate-tier1-coverage.ps1 ──
+     ── ALTER COLUMN CHECK: wiki={N} alter={M} — must match ──
+16   Eval (EXPERIMENT)  Adversarial review: score against source material, regen if <7.5   16-adversarial-eval  SOFT    (evaluator score)
+12   Cross-Enrich       Pre-Read is embedded in P11; batch pass later  12-cross-enrich      —       —
+```
+
+*HARD when Phase 2 found a known source (staging/ext/migration). SOFT only if source genuinely unknown.
+
+## Simple Dictionary Fast-Path
+
+**Criteria**: ≤10 columns, no computed columns, single-source from SP_Dictionaries.
+
+```
+ 1 → 2 → 8 → 4 → 10A → 10B → 11
+```
+
+Skip: P3 (trivial dist), P5 (no JOINs), P6 (no logic), P7 (no views), P9B (no orchestration), P10 (low value).
+P9 runs only if SP_Dictionaries has non-trivial transforms (column renames, CASE, hardcoded values).
+
+## Function Path
+
+Functions follow the standard pipeline with these adaptations:
+- **P1**: Read CREATE FUNCTION from SSDT → parameters, return type (scalar or TABLE), referenced objects
+- **P2**: Skip live sampling (functions need parameters to execute)
+- **P3**: Skip distribution analysis (no storage layer)
+- **P5**: Analyze JOINs/CROSS APPLY within the function body
+- **P7**: Reverse — find which views/SPs CALL this function (CROSS APPLY / scalar reference)
+- **P8-P9**: Find SPs that call the function → understand execution context
+- **P10.5**: Functions are Synapse-only; no UC target expected (UC Target: `_Not_Migrated`)
+- **P10B**: Emit **`.lineage.md`** (repo-local: §3 Source Objects → referenced tables/views). UC External Lineage API does not apply until a UC entity exists.
+- **P11**: Document using the standard template (Section 4 = parameters + return columns)
+- **ALTER**: **`generate-alter-dwh`** writes a **comment-only stub** `.alter.sql` for `_Not_Migrated` functions (`_batch_generate_lib.is_uc_knowledge_only`). Executable ALTER only if a UC mapping appears later.
+
+## Phase Gate Checklist (emit before Phase 11)
+
+```
+PHASE GATE CHECK — {ObjectName}:
+  [x] P1 DDL   [x] P2 Sample   [x] P3 Dist   [x] P4 Lookup
+  [x] P5 JOIN  [x] P6 BizLogic [x] P7 Views  [x] P8 SP-scan
+  [x] P9 SP-logic [x] P9B ETL  [x] P10 Jira  [x] P10A Upstream  [x] P10B Lineage
+  → Ready for P11
+OUTPUT CHECK — {ObjectName}:
+  [x] .lineage.md exists   [x] .md exists   [x] .review-needed.md exists
+  [-] .alter.sql — deferred to /generate-alter-dwh
+```
+
+For simple-dictionary fast-path, unchecked boxes are marked `[-]` (skipped by fast-path):
+```
+PHASE GATE CHECK — {ObjectName} [SIMPLE-DICT]:
+  [x] P1 DDL   [x] P2 Sample   [-] P3 Dist   [x] P4 Lookup
+  [-] P5 JOIN  [-] P6 BizLogic [-] P7 Views  [x] P8 SP-scan
+  [-] P9 SP-logic [-] P9B ETL  [-] P10 Jira  [x] P10A Upstream  [x] P10B Lineage
+  → Ready for P11
+OUTPUT CHECK — {ObjectName} [SIMPLE-DICT]:
+  [x] .lineage.md exists   [x] .md exists   [x] .review-needed.md exists
+  [-] .alter.sql — deferred to /generate-alter-dwh
+```
+
+**Phase 11 MUST refuse to generate if any `[ ]` (unchecked, non-skipped) box remains.**
+
+## Hard Enforcement Reminders
+
+- **⛔ ONE BATCH PER SESSION**: After end-of-batch banner → STOP. Do NOT start the next batch. New session required.
+- **⛔ BATCH SIZE**: DWH_dbo=8, BI_DB_dbo=4, Dealing/EXW/eMoney=6, default=5. DDR tables (100+ cols) count as 3 slots — may need solo batch. See `batch-orchestration.mdc` for weighted sizing.
+- **⛔ TIER SUFFIX ON EVERY DESCRIPTION (Rule 19)**: Every column description MUST end with `(Tier N — source.table)`. This suffix is written verbatim to Unity Catalog by Phase 11W. No exceptions.
+- **⛔ LINEAGE BEFORE DOCS**: Write `.lineage.md` BEFORE `.md`. Phase 11 READS the lineage file to assign tiers. See `GATE-lineage-contract.mdc`.
+- **⛔ THREE FILES PER OBJECT IN WIKI BUILD, WRITE ORDER IS SACRED**: Phase 11 in wiki-only mode produces exactly THREE files per object. Write them in THIS order:
+  1. `{ObjectName}.lineage.md` ← **LINEAGE** (column-level source mapping from Phase 10B). Written FIRST because the wiki reads it.
+  2. `{ObjectName}.md` ← **THE WIKI** (full 8-section template, 100+ lines). This is the primary artifact.
+  3. `{ObjectName}.review-needed.md` ← **SIDECAR** (Tier 4 items, questions, reviewer corrections). This is NOT the wiki. It is a lightweight review checklist.
+  **ALTER scripts (`.alter.sql`) are generated SEPARATELY** via `/generate-alter-dwh` after wiki quality is reviewed. Do NOT generate `.alter.sql` during wiki build.
+  **Do NOT proceed to the next object until all 3 files exist on disk.** A missing file is a HARD FAIL for the object. The `.md` file is the wiki. The `.review-needed.md` is the sidecar. Do NOT put wiki content in the sidecar. Do NOT skip the `.md` file. If you find yourself writing the Elements table into `.review-needed.md`, you are writing to the WRONG file — STOP and write to `.md` first.
+- **⛔ ALTER COLUMN PARITY (enforced at ALTER generation time, not wiki build)**: When `.alter.sql` exists (created by `/generate-alter-dwh`), the number of ALTER COLUMN statements per UC target MUST equal the number of element rows in the wiki. Column names must also match. Run `python tools/audit_wiki_alter_comment_parity.py` to validate. This check is deferred — wiki build does NOT produce `.alter.sql`.
+- **⛔ UTF-8 FILE ENCODING ON ALL WRITES**: Every file write (`.md`, `.review-needed.md`, `.lineage.md`, `.alter.sql`) MUST use explicit `encoding="utf-8"`. Never rely on system default encoding. Python: `open(path, "w", encoding="utf-8")`. The sanitizer is a safety net, not a substitute for correct encoding at write time.
+- **⛔ THREE VALIDATIONS**: After each wiki doc, run `validate-wiki.ps1` (structural **and** wiki-vs-ALTER COMMENT parity when `.alter.sql` exists), then `validate-tier1-coverage.ps1` (semantic). All must pass before proceeding. Parity is enforced by `tools/audit_wiki_alter_comment_parity.py` (same encoding as `merge_wiki_column_comments_into_alter.py`).
+- **⛔ BATCH LOOP PARITY**: `run-dwh-wiki-batch-loop.ps1` / `.sh` runs `python tools/audit_wiki_alter_comment_parity.py --under <SchemaName>` after **every** iteration. On failure it writes `knowledge/synapse/Wiki/<Schema>/_parity_gate_last_run.txt` (and `_parity_last_report.json`) and **does not stop** — the next iteration should fix parity before new work. On PASS, both files reflect success.
+- **⛔ PHASE 9 IS HARD**: Read the SP code. Trace column assignments to source tables. The SP tells you WHERE each column comes from — you don't need to guess. If Phase 9 is skipped, Phase 10B lineage will be wrong, Phase 11 tiers will be wrong, and the semantic validation will fail.
+- **⛔ SYNAPSE MCP IS MANDATORY**: Phase 2 (sampling) and Phase 3 (distribution) require a live Synapse MCP connection. If MCP is unavailable, emit `PHASE 2 GATE: FAILED — MCP unavailable` and **STOP THE BATCH**. Do NOT proceed with code-only documentation. Do NOT mark phases as `(MCP-unavail)` and continue. A wiki without data evidence is incomplete and will receive a FAIL score from the adversarial evaluator. The loop script pre-validates MCP connectivity before starting — if you reach Phase 2 and MCP is down, something broke mid-batch.
+- **⛔ CHECKPOINT MARKERS ARE NOT OPTIONAL**: Every phase MUST emit its `PHASE {N} CHECKPOINT: PASS/FAIL` marker at completion. Every HARD phase must show PASS before the next phase begins. The GATE verifies the full checkpoint chain before Phase 11 runs. A missing checkpoint is treated the same as a failed checkpoint.
+- **⛔ GOLDEN REFERENCE**: Read `GOLDEN-REFERENCE.mdc` once per batch. Your output must match the golden skeleton shape. **FK columns use `FK to Dim_X.`** — no inline `N=Label` enum (>=3 pairs) unless the wiki being generated IS `Dim_X.md` itself (Rule 22 in `11-generate-documentation.mdc`; HARD-gated by `scan_verbose_enums.py` in Phase 16).
+- **⛔ VIEWS ARE EQUAL CITIZENS — EVERY COLUMN GETS ITS OWN ROW**: A view wiki MUST list every column individually in the Elements table — no `2+ | All X columns | a.* | See X.md` shortcuts. If the view does `SELECT a.* FROM Fact_X a`, expand all columns from `Fact_X`'s wiki verbatim. Pass-through columns copy the base table description exactly (same tier, same source). View-added columns (JOINs, computed) get their own descriptions. A view with 130 inherited columns has 130+ Element rows.
+- **⛔ SHARED COLUMN = SAME DESCRIPTION (Cross-Object Consistency)**: When two tables share a column that traces to the SAME production source (via lineage), their descriptions MUST be identical. The canonical description lives in the dimension/master table wiki (e.g., `Dim_Position` owns `PositionID`, `Dim_Customer` owns `RealCID`). All other tables (facts, BI_DB, aggregates) MUST inherit the dimension's description verbatim — do NOT paraphrase, do NOT rewrite, do NOT change the tier. Before writing any column description, check if a wiki already exists for the canonical table and copy from it. If a column says "Same meaning as `Dim_X.Y`" but has a different description, that is a HARD BUG. The description and tier MUST match exactly.

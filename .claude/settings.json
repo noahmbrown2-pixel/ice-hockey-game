@@ -1,196 +1,36 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(mkdir:*)",
-      "Bash(uv:*)",
-      "Bash(find:*)",
-      "Bash(mv:*)",
-      "Bash(grep:*)",
-      "Bash(npm:*)",
-      "Bash(ls:*)",
-      "Bash(cp:*)",
-      "Bash(chmod:*)",
-      "Bash(touch:*)"
-    ],
-    "deny": []
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "uv run $CLAUDE_PROJECT_DIR/.claude/status_lines/status_line_v6.py",
-    "padding": 0
-  },
+  "_comment": "Project-shared Claude Code settings. Adopted 2026-05-15 from /insights friction analysis. User-only overrides live in settings.local.json. Existing .claude/hooks/pre_tool_use.py (DamageControlValidator + delegation injection) runs independently — DO NOT remove.",
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/pre_tool_use.py"
+            "command": "python3 /c/Users/noahm/Project/.claude/hooks/pre_send_verification.py --check-outbound-shape --payload \"$CLAUDE_TOOL_INPUT_command\" 2>&1 | head -20",
+            "description": "RQ-220 pre-send verification — deterministic rule-corpus check on outbound-shaped Bash commands. Returns 1 to block, 0 to allow. Skips silently if command doesn't match outbound shape."
+          },
+          {
+            "type": "command",
+            "command": "python3 /c/Users/noahm/Project/.claude/hooks/pre_token_budget.py 2>&1 | head -10",
+            "description": "RQ-228 Cat 2 pre-token-budget hook — projects $ cost of any Bash command invoking an LLM (claude -p / curl api.anthropic.com / nano-agent / etc) vs daily running total in budget_tracking.db. Warn-only per operator decision 2026-05-17 — never blocks, always exits 0. Logs projected cost to .claude/token_budget_log.jsonl. Promotion to block-mode via Cat 11 (rule_lifecycle_manager.py) after 14d of data, requires TB_TOKEN_DAILY_CAP_USD=N + TB_TOKEN_BUDGET_MODE=block env."
           }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/post_tool_use.py"
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
+            "command": "for f in $CLAUDE_FILE_PATHS; do case \"$f\" in *.py) python3 -m py_compile \"$f\" 2>&1 | head -10 || true ;; esac; done",
+            "description": "Run py_compile on Python edits — catches rename-but-missed-log-statement bugs. Advisory: prints errors but does not block."
+          },
           {
             "type": "command",
-            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/notification.py --notify"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/stop.py --chat"
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/subagent_stop.py --notify"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/user_prompt_submit.py --log-only --store-last-prompt --name-agent"
-          }
-        ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/pre_compact.py"
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "git rev-parse --is-inside-work-tree 2>/dev/null && git add -A && git commit -m \"pre-compact checkpoint\" 2>/dev/null || true",
-            "statusMessage": "Saving git checkpoint before compact..."
-          }
-        ]
-      }
-    ],
-    "CwdChanged": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "test -f .envrc && direnv allow . 2>/dev/null; true",
-            "async": true
-          }
-        ]
-      }
-    ],
-    "PermissionDenied": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo '{\"retry\": true}'"
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/session_start.py"
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/session_end.py"
-          }
-        ]
-      }
-    ],
-    "PermissionRequest": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/permission_request.py --log-only"
-          }
-        ]
-      }
-    ],
-    "PostToolUseFailure": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/post_tool_use_failure.py"
-          }
-        ]
-      }
-    ],
-    "SubagentStart": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/subagent_start.py"
-          }
-        ]
-      }
-    ],
-    "Setup": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/setup.py"
+            "command": "for f in $CLAUDE_FILE_PATHS; do case \"$f\" in */SKILL.md) python3 /c/Users/noahm/Project/scripts/skill_quality_grader.py --only \"$f\" --no-usage 2>&1 | tail -4 || true ;; esac; done",
+            "description": "Skill-QA rubric (Mnilax 3 properties: role line / output shape / termination) on SKILL.md edits. Body-level companion to doc-skill-frontmatter. Advisory warn-only — prints score, never blocks. Add --min-score to gate."
           }
         ]
       }

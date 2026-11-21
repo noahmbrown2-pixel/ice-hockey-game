@@ -1,47 +1,49 @@
----
-description: Creates a concise engineering implementation plan based on user requirements and saves it to specs directory
-argument-hint: [user prompt]
----
+# Plan
 
-# Quick Plan
-
-Create a detailed implementation plan based on the user's requirements provided through the `USER_PROMPT` variable. Analyze the request, think through the implementation approach, and save a comprehensive specification document to `PLAN_OUTPUT_DIRECTORY/<name-of-plan>.md` that can be used as a blueprint for actual development work. Follow the `Instructions` and work through the `Workflow` to create the plan.
+Create a plan to complete the task using the specified markdown `Plan Format`. Research the codebase and create a thorough plan appropriate to the task's complexity.
 
 ## Variables
-
-USER_PROMPT: $1
-PLAN_OUTPUT_DIRECTORY: `specs/`
+adw_id: $ARGUMENTS (IMPORTANT: first argument)
+prompt: $ARGUMENTS (IMPORTANT: second argument)
 
 ## Instructions
 
-- IMPORTANT: If no `USER_PROMPT` is provided, stop and ask the user to provide it.
-- Carefully analyze the user's requirements provided in the USER_PROMPT variable
-- Determine the task type (chore|feature|refactor|fix|enhancement) and complexity (simple|medium|complex)
-- Think deeply (ultrathink) about the best approach to implement the requested functionality or solve the problem
-- Understand the codebase directly without subagents to understand existing patterns and architecture
-- Follow the Plan Format below to create a comprehensive implementation plan
-- Include all required sections and conditional sections based on task type and complexity
-- Generate a descriptive, kebab-case filename based on the main topic of the plan
-- Save the complete implementation plan to `PLAN_OUTPUT_DIRECTORY/<descriptive-name>.md`
-- Ensure the plan is detailed enough that another developer could follow it to implement the solution
-- Include code examples or pseudo-code where appropriate to clarify complex concepts
-- Consider edge cases, error handling, and scalability concerns
+- If the adw_id or prompt is not provided, stop and ask the user to provide them.
+- IMPORTANT: Create a plan to complete the task described in the `prompt`
+- The plan should be appropriately detailed based on the task complexity:
+  - Simple tasks (chores, fixes): Focus on specific changes and validation
+  - Complex tasks (features, refactors): Include design, phases, and testing strategy
+- Create the plan in the `specs/` directory with filename: `plan-{adw_id}-{descriptive-name}.md`
+  - Replace `{descriptive-name}` with a short, descriptive name based on the task (e.g., "update-readme", "add-logging", "implement-api", "refactor-agent")
+- Research the codebase starting with `README.md`
+- IMPORTANT: When you finish your plan, return only the path to the plan file created.
+- IMPORTANT: Replace every <placeholder> in the `Plan Format` with the requested value
+- Think hard and throughly through the task requirements and appropriate level of planning needed
+- Follow existing patterns and conventions in the codebase
 
 ## Workflow
 
-1. Analyze Requirements - THINK HARD and parse the USER_PROMPT to understand the core problem and desired outcome
-2. Understand Codebase - Without subagents, directly understand existing patterns, architecture, and relevant files
-3. Design Solution - Develop technical approach including architecture decisions and implementation strategy
-4. Document Plan - Structure a comprehensive markdown document with problem statement, implementation steps, and testing approach
-5. Generate Filename - Create a descriptive kebab-case filename based on the plan's main topic
-6. Save & Report - Follow the `Report` section to write the plan to `PLAN_OUTPUT_DIRECTORY/<filename>.md` and provide a summary of key components
+1. **Research the Codebase**: Start with `README.md` to understand the project structure, existing patterns, and conventions
+2. **Write Plan**: Create the plan document in `specs/*.md` following the Plan Format template
+3. IMPORTANT: Think and make sure when you finish your work you return ONLY the path to the plan you've created and nothing else.
+
+## Codebase Structure
+
+- `README.md` - Project overview and instructions (start here)
+- `apps/` - Application layer you'll be working in
+- `.claude/commands/` - Claude command templates
+- `specs/` - Specification and plan documents
 
 ## Plan Format
 
-Follow this format when creating implementation plans:
-
 ```md
 # Plan: <task name>
+
+## Metadata
+adw_id: `{adw_id}`
+prompt: `{prompt}`
+task_type: <chore|feature|refactor|fix|enhancement>
+complexity: <simple|medium|complex>
 
 ## Task Description
 <describe the task in detail based on the prompt>
@@ -107,17 +109,9 @@ Execute these commands to validate the task is complete:
 <optional additional context, considerations, or dependencies. If new libraries are needed, specify using `uv add`>
 ```
 
+## Task
+Use the task description from the `prompt` variable.
+
 ## Report
 
-After creating and saving the implementation plan, provide a concise report with the following format:
-
-```
-✅ Implementation Plan Created
-
-File: PLAN_OUTPUT_DIRECTORY/<filename>.md
-Topic: <brief description of what the plan covers>
-Key Components:
-- <main component 1>
-- <main component 2>
-- <main component 3>
-```
+IMPORTANT: Exclusively return the path to the plan file created.

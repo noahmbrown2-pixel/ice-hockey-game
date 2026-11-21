@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAGE BEASTS — Animal Fight Promotion</title>
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap">
+<style>
+  :root{
+    --bg:#0b0b0d; --bg2:#141417; --panel:#1a1a1f; --panel2:#202027;
+    --gold:#e8b923; --red:#c0392b; --green:#2ecc71; --txt:#eee; --dim:#8a8a92;
+    --border:#2c2c33;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:
+      radial-gradient(circle at 50% 0%, #1c1c22 0%, var(--bg) 60%);
+    color:var(--txt); font-family:'Segoe UI',Arial,sans-serif;
+    padding-bottom:40px;
+  }
+  header{
+    background:linear-gradient(180deg,#1a1a1f,#0e0e10);
+    border-bottom:3px solid var(--gold);
+    padding:14px 20px; display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:10px; position:sticky; top:0; z-index:50;
+  }
+  header h1{
+    margin:0; font-size:26px; letter-spacing:2px; color:var(--gold);
+    text-shadow:0 0 12px rgba(232,185,35,0.4);
+  }
+  header h1 span{color:var(--red);}
+  .hud{display:flex; gap:16px; align-items:center; flex-wrap:wrap;}
+  .hud .stat{background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:6px 12px; font-size:14px;}
+  .hud .stat b{color:var(--gold);}
+  nav{display:flex; gap:8px; flex-wrap:wrap;}
+  nav button{
+    background:var(--panel2); color:var(--txt); border:1px solid var(--border);
+    padding:8px 14px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600;
+  }
+  nav button:hover{border-color:var(--gold); color:var(--gold);}
+  nav button.active{background:var(--gold); color:#111; border-color:var(--gold);}
+  main{max-width:1100px; margin:0 auto; padding:20px;}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:16px;}
+  .fight{
+    background:var(--panel2); border:1px solid var(--border); border-radius:10px;
+    padding:14px; margin-bottom:14px;
+  }
+  .fight.title{border-color:var(--gold); box-shadow:0 0 18px rgba(232,185,35,0.15);}
+  .fight-tag{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--dim); margin-bottom:6px; display:flex; justify-content:space-between;}
+  .fight-tag .belt{color:var(--gold); font-weight:700;}
+  .matchup{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .corner{
+    flex:1; background:var(--panel); border:2px solid var(--border); border-radius:8px; padding:10px;
+    cursor:pointer; text-align:center; transition:.15s;
+  }
+  .corner:hover{border-color:var(--gold);}
+  .corner.picked{border-color:var(--green); background:#173322;}
+  .corner .emoji{font-size:38px;}
+  .corner .name{font-weight:700; margin-top:4px;}
+  .corner .nick{font-size:11px; color:var(--dim); font-style:italic;}
+  .corner .rec{font-size:12px; color:var(--dim); margin-top:2px;}
+  .corner .odds{font-size:15px; font-weight:700; margin-top:6px;}
+  .odds.fav{color:#e07a7a;}
+  .odds.dog{color:var(--green);}
+  .vs{font-weight:900; color:var(--red); font-size:20px; padding:0 8px;}
+  .bet-row{display:flex; gap:8px; align-items:center; margin-top:10px; flex-wrap:wrap;}
+  .bet-row input{
+    width:90px; background:var(--panel); border:1px solid var(--border); color:var(--txt);
+    padding:6px 8px; border-radius:6px; font-size:14px;
+  }
+  .bet-row button{
+    background:var(--panel); border:1px solid var(--border); color:var(--txt);
+    padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;
+  }
+  .bet-row button:hover{border-color:var(--gold);}
+  .bet-row .payout{font-size:12px; color:var(--dim);}
+  .bet-cleared{font-size:11px; color:var(--dim);}
+  .primary-btn{
+    background:linear-gradient(180deg,var(--gold),#c99a1a); color:#161616; border:none;
+    padding:12px 22px; border-radius:8px; font-weight:800; font-size:15px; cursor:pointer;
+    letter-spacing:1px;
+  }
+  .primary-btn:hover{filter:brightness(1.1);}
+  .primary-btn:disabled{opacity:.4; cursor:not-allowed;}
+  .ghost-btn{
+    background:transparent; border:1px solid var(--border); color:var(--txt);
+    padding:10px 18px; border-radius:8px; cursor:pointer; font-size:14px;
+  }
+  .ghost-btn:hover{border-color:var(--gold); color:var(--gold);}
+  .center{text-align:center;}
+  /* --- Sim / 3D arena view --- */
+  .cage-wrap{display:flex; flex-direction:column; align-items:center; gap:14px;}
+  #cage-slot{
+    width:100%; max-width:640px; aspect-ratio:16/10; position:relative;
+    border:4px solid #2a4a8a; border-radius:6px; overflow:hidden; background:#f4f1e4;
+  }
+  #cage-slot canvas{width:100% !important; height:100% !important; display:block;}
+  .finish-stamp{
+    position:absolute; top:50%; left:50%; font-size:52px; color:#d84a3a;
+    font-family:'Permanent Marker', 'Segoe UI', Arial, sans-serif;
+    letter-spacing:1px; text-shadow:0 0 8px rgba(244,241,228,0.9); pointer-events:none;
+    transform:translate(-50%,-50%) rotate(-10deg) scale(0); opacity:0;
+    transition:transform .35s cubic-bezier(.34,1.56,.64,1), opacity .35s;
+  }
+  .finish-stamp.show{opacity:1; transform:translate(-50%,-50%) rotate(-10deg) scale(1);}
+  .hpbar-wrap{width:100%; max-width:640px;}
+  .hpbar-row{display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;}
+  .hpbar{height:14px; background:#111; border:1px solid var(--border); border-radius:7px; overflow:hidden; margin-bottom:10px;}
+  .hpbar > div{height:100%; background:linear-gradient(90deg,#2ecc71,#e8b923,#c0392b); transition:width .2s;}
+  .hpbar.right > div{float:right;}
+  .log-feed{
+    width:100%; max-width:640px; height:150px; overflow-y:auto; background:#0e0e10;
+    border:1px solid var(--border); border-radius:8px; padding:10px; font-size:13px; line-height:1.5;
+  }
+  .log-feed div.big{color:var(--gold); font-weight:700;}
+  .log-feed div span.rn{color:var(--dim); margin-right:6px;}
+  .round-indicator{font-size:13px; color:var(--dim); letter-spacing:1px;}
+  /* --- summary --- */
+  .result-line{display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:6px;}
+  .result-line:last-child{border-bottom:none;}
+  .method{font-size:12px; color:var(--dim);}
+  .champ-change{color:var(--gold); font-weight:700;}
+  .bet-result.win{color:var(--green); font-weight:700;}
+  .bet-result.loss{color:#e07a7a; font-weight:700;}
+  /* rankings */
+  .wc-tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;}
+  .wc-tabs button{background:var(--panel2); border:1px solid var(--border); color:var(--txt); padding:6px 12px; border-radius:20px; cursor:pointer; font-size:12px;}
+  .wc-tabs button.active{background:var(--gold); color:#111; border-color:var(--gold);}
+  table{width:100%; border-collapse:collapse; font-size:14px;}
+  th,td{text-align:left; padding:8px; border-bottom:1px solid var(--border);}
+  th{color:var(--dim); font-weight:600; font-size:12px; text-transform:uppercase;}
+  tr.champ-row{background:rgba(232,185,35,0.08);}
+  .belt-icon{color:var(--gold);}
+  /* --- poster --- */
+  .poster-card{text-align:center; background:linear-gradient(180deg,#1a1a1f,#0c0c0e); border:2px solid var(--gold);}
+  .poster-kicker{letter-spacing:4px; color:var(--dim); font-size:13px;}
+  .poster-event{font-size:28px; font-weight:900; color:var(--gold); margin:4px 0 10px; letter-spacing:2px;}
+  .poster-division{color:var(--red); font-weight:800; margin-bottom:20px; letter-spacing:1px;}
+  .poster-main{display:flex; align-items:center; justify-content:center; gap:24px; flex-wrap:wrap; margin-bottom:24px;}
+  .poster-fighter{width:180px;}
+  .poster-emoji{font-size:80px; display:block; filter:drop-shadow(0 6px 10px #000);}
+  .poster-name{font-weight:800; font-size:17px; margin-top:6px;}
+  .poster-nick{font-style:italic; color:var(--dim); font-size:12px;}
+  .poster-rec{font-size:12px; color:var(--gold); margin-top:4px; letter-spacing:1px;}
+  .poster-vs{font-size:34px; font-weight:900; color:var(--red);}
+  .poster-sub{text-transform:uppercase; letter-spacing:2px; color:var(--dim); font-size:12px; margin-bottom:8px; border-top:1px solid var(--border); padding-top:16px;}
+  .poster-undercard{display:flex; flex-direction:column; gap:8px; max-width:520px; margin:0 auto;}
+  .poster-bout{display:flex; justify-content:space-between; gap:10px; background:var(--panel2); border:1px solid var(--border); border-radius:6px; padding:8px 12px; font-size:13px; flex-wrap:wrap; text-align:left;}
+  .poster-wc{color:var(--dim);}
+  /* --- schedule --- */
+  .schedule-note{font-size:13px; color:var(--dim); margin-bottom:14px;}
+  .corner.readonly{cursor:default;}
+  .corner.readonly:hover{border-color:var(--border);}
+  .muted{color:var(--dim); font-size:13px;}
+  h2{margin-top:0; color:var(--gold); font-size:19px;}
+  h3{margin:0 0 8px 0;}
+  .flex-between{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;}
+  .footer-actions{display:flex; justify-content:center; gap:12px; margin-top:18px;}
+  ul.help-list{line-height:1.7;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>CAGE <span>BEASTS</span></h1>
+  <div class="hud">
+    <div class="stat">Bankroll: <b id="hud-bankroll">$0</b></div>
+    <div class="stat">Event <b id="hud-event">#0</b></div>
+    <div class="stat">At Risk: <b id="hud-risk">$0</b></div>
+  </div>
+  <nav id="nav">
+    <button data-screen="card">Fight Card</button>
+    <button data-screen="poster">Fight Poster</button>
+    <button data-screen="schedule">Upcoming Cards</button>
+    <button data-screen="rankings">Rankings</button>
+    <button data-screen="help">How To Play</button>
+    <button id="sound-toggle-btn">🔊</button>
+    <button id="reset-btn">Reset Save</button>
+  </nav>
+</header>
+
+<main id="main"></main>
+
+<script>
+(function(){
+"use strict";
+
+// ---------- Data ----------
+const WEIGHT_CLASSES = [
+  {name:"Featherweight", range:"under 2 lbs",
+    species:[["Mouse","🐭"],["Rat","🐀"],["Squirrel","🐿️"],["Hedgehog","🦔"]],
+    mul:{power:0.50, speed:1.30, chin:0.60, stamina:1.10}},
+  {name:"Bantamweight", range:"2–5 lbs",
+    species:[["Ferret","🦦"],["Raccoon","🦝"],["Skunk","🦨"],["Chipmunk","🐿️"]],
+    mul:{power:0.65, speed:1.20, chin:0.70, stamina:1.05}},
+  {name:"Lightweight", range:"5–15 lbs",
+    species:[["Barn Cat","🐈"],["Fox","🦊"],["Jackrabbit","🐇"],["Terrier","🐕"]],
+    mul:{power:0.80, speed:1.10, chin:0.80, stamina:1.00}},
+  {name:"Welterweight", range:"15–35 lbs",
+    species:[["Badger","🦡"],["Beaver","🦫"],["Coyote","🐕‍🦺"],["Bulldog","🐶"]],
+    mul:{power:0.95, speed:1.00, chin:0.90, stamina:1.00}},
+  {name:"Middleweight", range:"35–80 lbs",
+    species:[["Wolf","🐺"],["Hyena","🐆"],["Wild Boar","🐗"],["Bighorn Ram","🐏"]],
+    mul:{power:1.10, speed:0.95, chin:1.00, stamina:0.95}},
+  {name:"Light Heavyweight", range:"80–180 lbs",
+    species:[["Lion","🦁"],["Tiger","🐯"],["Leopard","🐆"],["Black Panther","🐆"]],
+    mul:{power:1.25, speed:0.90, chin:1.10, stamina:0.90}},
+  {name:"Heavyweight", range:"180–400 lbs",
+    species:[["Grizzly Bear","🐻"],["Gorilla","🦍"],["Bull","🐂"],["Bison","🦬"]],
+    mul:{power:1.45, speed:0.75, chin:1.30, stamina:0.85}},
+  {name:"Super Heavyweight", range:"400+ lbs",
+    species:[["Rhino","🦏"],["Hippo","🦛"],["Elephant","🐘"],["Crocodile","🐊"]],
+    mul:{power:1.70, speed:0.60, chin:1.50, stamina:0.75}},
+];
+
+const ADJ = ["Iron","Savage","Crimson","Midnight","Rabid","Thunder","Shadow","Brutal",
+  "Reckless","Grim","Vicious","Silent","Wild","Ruthless","Blood","Steel","Feral","Ghost",
+  "Rogue","Merciless","Ancient","Rusty","Bone","Storm","Venom","Doom","Copper","Diesel"];
+const NICK = ["The Mauler","The Butcher","The Hammer","The Reaper","The Destroyer",
+  "The Beast","The Assassin","The Wrecking Ball","The Nightmare","The Executioner",
+  "The Punisher","The Annihilator","The Savage","The Berserker","The Juggernaut",
+  "The Widowmaker","The Cage Rat","The Warlord"];
+
+const SAVE_KEY = "cageBeastsSave_v1";
+const START_BANKROLL = 1000;
+
+// ---------- Helpers ----------
+function rnd(min,max){ return Math.random()*(max-min)+min; }
+function rndInt(min,max){ return Math.floor(rnd(min,max+1)); }
+function choice(arr){ return arr[rndInt(0,arr.length-1)]; }
+function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); }
+function fmtMoney(n){ return (n<0?"-$":"$") + Math.abs(Math.round(n)).toLocaleString(); }
+function uid(){ return 'f' + Math.random().toString(36).slice(2,10); }
+
+function americanOdds(probA){
+  // returns {a: oddsString, b: oddsString, decA, decB}
+  const p = clamp(probA, 0.03, 0.97);
+  function toOdds(prob){
+    if(prob >= 0.5){
+      const o = -Math.round(prob/(1-prob)*100);
+      return {label: o.toString(), dec: 1 + 100/Math.abs(o)};
+    } else {
+      const o = Math.round((1-prob)/prob*100);
+      return {label: "+"+o, dec: 1 + o/100};
+    }
+  }
+  const A = toOdds(p);
+  const B = toOdds(1-p);
+  return {aLabel:A.label, bLabel:B.label, aDec:A.dec, bDec:B.dec};
+}
+
+// ---------- Fighter generation ----------
+function genFighter(wcIndex){
+  const wc = WEIGHT_CLASSES[wcIndex];
+  const [sName, emoji] = choice(wc.species);
+  const base = () => rnd(40,90);
+  const power = clamp(Math.round(base()*wc.mul.power), 10, 100);
+  const speed = clamp(Math.round(base()*wc.mul.speed), 10, 100);
+  const chin = clamp(Math.round(base()*wc.mul.chin), 10, 100);
+  const stamina = clamp(Math.round(base()*wc.mul.stamina), 10, 100);
+  return {
+    id: uid(),
+    wcIndex,
+    species: sName,
+    emoji,
+    name: choice(ADJ) + " " + sName,
+    nick: choice(NICK),
+    power, speed, chin, stamina,
+    wins:0, losses:0, streak:0, koWins:0, isChampion:false,
+  };
+}
+
+function rating(f){
+  return f.power*0.35 + f.speed*0.25 + f.chin*0.25 + f.stamina*0.15;
+}
+
+// ---------- Sound Effects (Web Audio API, synthesized — no external files) ----------
+const Sound = (function(){
+  let actx = null, master = null, enabled = true;
+  let ambienceSrc = null, ambienceGain = null;
+  let noiseBuf = null;
+
+  function ctx(){
+    if(!actx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      actx = new AC();
+      master = actx.createGain();
+      master.gain.value = enabled ? 1 : 0;
+      master.connect(actx.destination);
+    }
+    if(actx.state === 'suspended') actx.resume();
+    return actx;
+  }
+
+  function getNoiseBuffer(){
+    const c = ctx(); if(!c) return null;
+    if(noiseBuf) return noiseBuf;
+    const len = c.sampleRate * 2;
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const data = buf.getChannelData(0);
+    for(let i=0;i<len;i++) data[i] = Math.random()*2-1;
+    noiseBuf = buf;
+    return buf;
+  }
+  function randomOffset(){ return Math.random()*1.5; }
+
+  function setEnabled(v){
+    enabled = v;
+    if(master) master.gain.value = v ? 1 : 0;
+  }
+  function isEnabled(){ return enabled; }
+
+  function playHit(big){
+    const c = ctx(); if(!c) return;
+    const now = c.currentTime;
+    const dur = big ? 0.18 : 0.09;
+
+    const src = c.createBufferSource();
+    src.buffer = getNoiseBuffer();
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = big ? 900 : 1800;
+    bp.Q.value = 0.8;
+    const g = c.createGain();
+    g.gain.setValueAtTime(big ? 0.35 : 0.15, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now+dur);
+    src.connect(bp); bp.connect(g); g.connect(master);
+    src.start(now, randomOffset()); src.stop(now+dur);
+
+    if(big){
+      const osc = c.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(120, now);
+      osc.frequency.exponentialRampToValueAtTime(45, now+0.15);
+      const og = c.createGain();
+      og.gain.setValueAtTime(0.4, now);
+      og.gain.exponentialRampToValueAtTime(0.001, now+0.22);
+      osc.connect(og); og.connect(master);
+      osc.start(now); osc.stop(now+0.24);
+    }
+  }
+
+  function playBell(){
+    const c = ctx(); if(!c) return;
+    const now = c.currentTime;
+    [880, 1320, 1760].forEach((freq, i)=>{
+      const osc = c.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.001, now);
+      g.gain.linearRampToValueAtTime(0.22/(i+1), now+0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, now+1.2);
+      osc.connect(g); g.connect(master);
+      osc.start(now); osc.stop(now+1.3);
+    });
+  }
+
+  function playCrowdRoar(big){
+    const c = ctx(); if(!c) return;
+    const now = c.currentTime;
+    const peak = big ? 0.4 : 0.26;
+    const src = c.createBufferSource();
+    src.buffer = getNoiseBuffer();
+    src.loop = true;
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(500, now);
+    bp.frequency.linearRampToValueAtTime(1200, now+0.6);
+    bp.frequency.linearRampToValueAtTime(700, now+1.8);
+    bp.Q.value = 0.6;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.001, now);
+    g.gain.linearRampToValueAtTime(peak, now+0.25);
+    g.gain.linearRampToValueAtTime(peak*0.7, now+1.0);
+    g.gain.exponentialRampToValueAtTime(0.001, now+2.2);
+    src.connect(bp); bp.connect(g); g.connect(master);
+    src.start(now, randomOffset()); src.stop(now+2.3);
+  }
+
+  function playTick(){
+    const c = ctx(); if(!c) return;
+    const now = c.currentTime;
+    const osc = c.createOscillator();
+    osc.type = 'square';
+    osc.frequency.value = 1200;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.06, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now+0.05);
+    osc.connect(g); g.connect(master);
+    osc.start(now); osc.stop(now+0.06);
+  }
+
+  function startAmbience(){
+    const c = ctx(); if(!c || ambienceSrc) return;
+    const src = c.createBufferSource();
+    src.buffer = getNoiseBuffer();
+    src.loop = true;
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 350;
+    bp.Q.value = 0.5;
+    const g = c.createGain();
+    g.gain.value = 0;
+    src.connect(bp); bp.connect(g); g.connect(master);
+    src.start(0, randomOffset());
+    g.gain.linearRampToValueAtTime(0.05, c.currentTime+1.5);
+    ambienceSrc = src;
+    ambienceGain = g;
+  }
+
+  function stopAmbience(){
+    if(!ambienceSrc || !actx) return;
+    ambienceGain.gain.linearRampToValueAtTime(0, actx.currentTime+0.5);
+    const src = ambienceSrc;
+    ambienceSrc = null; ambienceGain = null;
+    setTimeout(()=>{ try{ src.stop(); }catch(e){} }, 600);
+  }
+
+  return {ctx, setEnabled, isEnabled, playHit, playBell, playCrowdRoar, playTick, startAmbience, stopAmbience};
+})();
+
+// ---------- Game state ----------
+let state = null;
+
+function freshState(){
+  const s = {
+    bankroll: START_BANKROLL,
+    eventNumber: 0,
+    fighters: {}, // id -> fighter
+    champions: [], // wcIndex -> fighterId
+    roster: [], // array of arrays: roster[wcIndex] = [fighterIds]
+    currentCard: null, // {mainWc, fights:[...]}
+    pendingBets: {}, // fightIndex -> {corner, amount}
+    lastResults: null, // summary of last resolved card
+    screen: "card",
+    rankTab: 0,
+    soundEnabled: true,
+  };
+  for(let wc=0; wc<WEIGHT_CLASSES.length; wc++){
+    const ids = [];
+    for(let i=0;i<8;i++){
+      const f = genFighter(wc);
+      s.fighters[f.id] = f;
+      ids.push(f.id);
+    }
+    // pick best rating as inaugural champion
+    let best = ids[0];
+    for(const id of ids) if(rating(s.fighters[id]) > rating(s.fighters[best])) best = id;
+    s.fighters[best].isChampion = true;
+    s.champions[wc] = best;
+    s.roster[wc] = ids;
+  }
+  return s;
+}
+
+function save(){
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  }catch(e){ /* ignore quota errors */ }
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return null;
+}
+
+function F(id){ return state.fighters[id]; }
+
+// ---------- Card generation ----------
+function pickChallenger(wcIndex){
+  const champId = state.champions[wcIndex];
+  const pool = state.roster[wcIndex].filter(id=>id!==champId);
+  pool.sort((a,b)=>{
+    const fa=F(a), fb=F(b);
+    const sa = fa.wins*2 - fa.losses + fa.streak;
+    const sb = fb.wins*2 - fb.losses + fb.streak;
+    return sb-sa;
+  });
+  return pool[0];
+}
+
+function buildOdds(idA, idB){
+  const fa=F(idA), fb=F(idB);
+  const ra=rating(fa), rb=rating(fb);
+  const probA = 1/(1+Math.pow(10,(rb-ra)/50));
+  const o = americanOdds(probA);
+  return {probA, aLabel:o.aLabel, bLabel:o.bLabel, aDec:o.aDec, bDec:o.bDec};
+}
+
+function generateCard(){
+  const mainWc = state.eventNumber % WEIGHT_CLASSES.length;
+  const champId = state.champions[mainWc];
+  const challengerId = pickChallenger(mainWc);
+  const fights = [];
+
+  const usedIds = new Set([champId, challengerId]);
+  const undercardCount = 4;
+  const availableClasses = WEIGHT_CLASSES.map((_,i)=>i);
+
+  const undercard = [];
+  let attempts = 0;
+  while(undercard.length < undercardCount && attempts < 200){
+    attempts++;
+    const wc = choice(availableClasses);
+    const pool = state.roster[wc].filter(id=>!usedIds.has(id));
+    if(pool.length < 2) continue;
+    // sort by rating, pick two reasonably close fighters for competitiveness
+    const sorted = pool.slice().sort((a,b)=>rating(F(a))-rating(F(b)));
+    const i1 = rndInt(0, sorted.length-2);
+    const idA = sorted[i1];
+    const idB = sorted[i1+1];
+    usedIds.add(idA); usedIds.add(idB);
+    undercard.push({wcIndex:wc, idA, idB, isTitle:false});
+  }
+
+  for(const bout of undercard){
+    const odds = buildOdds(bout.idA, bout.idB);
+    fights.push(Object.assign({rounds:3, resolved:false}, bout, odds));
+  }
+  const mainOdds = buildOdds(champId, challengerId);
+  fights.push(Object.assign({
+    wcIndex:mainWc, idA:champId, idB:challengerId, isTitle:true, rounds:5, resolved:false
+  }, mainOdds));
+
+  state.currentCard = { mainWc, fights, resultsIndex:0 };
+  state.pendingBets = {};
+}
+
+// ---------- Fight simulation ----------
+function simulateFight(fightMeta){
+  const fa = F(fightMeta.idA), fb = F(fightMeta.idB);
+  let hpA = 100, hpB = 100;
+  const events = [];
+  let winner = null, method = null, finishRound = null;
+  const totalRounds = fightMeta.rounds;
+  let dmgTotalA = 0, dmgTotalB = 0; // damage each fighter DEALT
+  let curRound = 1;
+
+  const flavorHit = ["lands a heavy shot on", "connects clean with", "cracks", "tags",
+    "rocks", "blasts", "catches", "drills"];
+  const flavorLight = ["pokes at", "grazes", "flicks a jab at", "paws at", "clips"];
+  const flavorBig = ["EXPLODES with a devastating shot on", "detonates a monster strike on",
+    "unloads a fight-changing blow on", "connects with a highlight-reel shot on"];
+
+  function offense(f){ return f.power*0.6 + f.speed*0.4; }
+  function defense(f){ return f.chin*0.5 + f.stamina*0.3 + f.speed*0.2; }
+
+  function doExchange(attacker, defender, who, fatigueMul){
+    const off = offense(attacker) * fatigueMul;
+    const def = defense(defender);
+    const hitChance = clamp(0.45 + (off-def)/220, 0.25, 0.88);
+    let dmg, big=false, text;
+    if(Math.random() < hitChance){
+      const flush = Math.random() < 0.24;
+      const baseDmg = rnd(9,19) * (attacker.power/70);
+      if(flush){
+        dmg = baseDmg * 3.0;
+        big = true;
+        text = `${attacker.emoji} ${attacker.name} ${choice(flavorBig)} ${defender.emoji} ${defender.name}!`;
+      } else {
+        dmg = baseDmg;
+        text = `${attacker.emoji} ${attacker.name} ${choice(flavorHit)} ${defender.emoji} ${defender.name}.`;
+      }
+    } else {
+      dmg = rnd(0,3.5);
+      text = `${attacker.emoji} ${attacker.name} ${choice(flavorLight)} ${defender.emoji} ${defender.name}.`;
+    }
+    dmg = Math.round(dmg*10)/10;
+    if(who==='A'){ hpB = clamp(hpB-dmg,0,100); dmgTotalA += dmg; }
+    else { hpA = clamp(hpA-dmg,0,100); dmgTotalB += dmg; }
+
+    events.push({round: curRound, text, hpA, hpB, big, attacker:who});
+
+    const defenderHp = who==='A' ? hpB : hpA;
+    if(defenderHp<=0){
+      winner = who;
+      method = "KO/TKO";
+      finishRound = curRound;
+    } else if(defenderHp <= 50 && Math.random() < 0.7){
+      // Referee stoppage: a badly-hurt fighter can be finished without
+      // literally reaching 0 HP, same as a real TKO on a defenseless fighter.
+      winner = who;
+      method = "KO/TKO";
+      finishRound = curRound;
+      events.push({round:curRound, text:`The referee steps in — ${defender.emoji} ${defender.name} can't defend anymore! ${attacker.emoji} ${attacker.name} wins by TKO.`, hpA, hpB, big:true});
+    }
+  }
+
+  for(let r=1; r<=totalRounds; r++){
+    curRound = r;
+    const fatigueA = 1 + (r-1)*0.05*(1 - fa.stamina/100);
+    const fatigueB = 1 + (r-1)*0.05*(1 - fb.stamina/100);
+
+    doExchange(fa, fb, 'A', fatigueB);
+    if(winner) break;
+    doExchange(fb, fa, 'B', fatigueA);
+    if(winner) break;
+
+    if(r>=2){
+      const diff = dmgTotalA - dmgTotalB;
+      if(Math.abs(diff) > 30 && Math.random() < 0.13){
+        winner = diff>0 ? 'A' : 'B';
+        method = "Submission";
+        finishRound = r;
+        const win = winner==='A'?fa:fb, lose = winner==='A'?fb:fa;
+        events.push({round:r, text:`${win.emoji} ${win.name} forces a scramble and locks in a fight-ending submission on ${lose.emoji} ${lose.name}!`, hpA, hpB, big:true});
+        break;
+      }
+    }
+  }
+
+  if(!winner){
+    if(dmgTotalA === dmgTotalB){
+      winner = Math.random()<0.5 ? 'A':'B';
+      method = "Decision (Split)";
+    } else {
+      winner = dmgTotalA>dmgTotalB ? 'A':'B';
+      method = Math.abs(dmgTotalA-dmgTotalB) > 20 ? "Decision (Unanimous)" : "Decision (Split)";
+    }
+    finishRound = totalRounds;
+    const win = winner==='A'?fa:fb;
+    events.push({round:totalRounds, text:`Judges' scorecards: ${win.emoji} ${win.name} wins by ${method}.`, hpA, hpB, big:false});
+  }
+
+  return {events, winner, method, finishRound, fighterA:fa, fighterB:fb};
+}
+
+// ---------- 3D Arena (three.js) ----------
+let arena = null;
+const ARENA_FIGHTER_SCALE = 1.15;
+// Per-weight-class framing: heavier classes use bigger bodies, so the camera
+// pulls back and fighters spread out more to avoid clipping the frame.
+const ARENA_WC_CAMERA = [
+  {spacing:1.15, camZ:3.8, camY:1.9, lookY:0.55, plateY:0.55, shadowR:0.35},
+  {spacing:1.25, camZ:4.1, camY:2.0, lookY:0.60, plateY:0.58, shadowR:0.40},
+  {spacing:1.35, camZ:4.4, camY:2.1, lookY:0.65, plateY:0.76, shadowR:0.42},
+  {spacing:1.45, camZ:4.7, camY:2.3, lookY:0.72, plateY:0.76, shadowR:0.46},
+  {spacing:1.60, camZ:5.2, camY:2.5, lookY:0.90, plateY:0.93, shadowR:0.50},
+  {spacing:1.75, camZ:5.7, camY:2.7, lookY:1.00, plateY:1.12, shadowR:0.55},
+  {spacing:1.95, camZ:6.4, camY:3.0, lookY:1.15, plateY:1.15, shadowR:0.62},
+  {spacing:2.20, camZ:7.3, camY:3.4, lookY:1.35, plateY:1.54, shadowR:0.72},
+];
+
+function makeShadowBlob(radius){
+  const geo = new THREE.CircleGeometry(radius, 20);
+  const mat = new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:0.45});
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.rotation.x = -Math.PI/2;
+  return mesh;
+}
+
+function makeNameplateSprite(fighter){
+  // Emoji-only (not name text): fighter names are procedurally generated and
+  // can run long ("Diesel Wild Boar"), which clipped against the sprite's
+  // fixed width at the arena's camera distance. A single glyph always fits,
+  // and the full name is already shown in the HTML hp-bar below.
+  const cnv = document.createElement('canvas');
+  cnv.width = 96; cnv.height = 96;
+  const ctx = cnv.getContext('2d');
+  ctx.fillStyle = 'rgba(26,42,74,0.82)';
+  ctx.beginPath();
+  ctx.arc(48,48,44,0,Math.PI*2);
+  ctx.fill();
+  ctx.font = '52px sans-serif';
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'center';
+  ctx.fillText(fighter.emoji, 48, 52);
+  const tex = new THREE.CanvasTexture(cnv);
+  const mat = new THREE.SpriteMaterial({map:tex, transparent:true, depthTest:false});
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(0.45, 0.45, 1);
+  return sprite;
+}
+
+function makeHealthBarSprite(){
+  const cnv = document.createElement('canvas');
+  cnv.width = 128; cnv.height = 24;
+  const tex = new THREE.CanvasTexture(cnv);
+  const mat = new THREE.SpriteMaterial({map:tex, transparent:true, depthTest:false});
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(0.9, 0.17, 1);
+  sprite.userData.cnv = cnv;
+  sprite.userData.ctx2d = cnv.getContext('2d');
+  drawHealthBar(sprite, 100);
+  return sprite;
+}
+
+function drawHealthBar(sprite, pct){
+  const ctx = sprite.userData.ctx2d;
+  const w = sprite.userData.cnv.width, h = sprite.userData.cnv.height;
+  pct = Math.max(0, Math.min(100, pct));
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = 'rgba(20,20,24,0.8)';
+  ctx.fillRect(0,0,w,h);
+  const fillW = (pct/100) * (w-4);
+  const hue = pct > 50 ? 120 : (pct > 25 ? 45 : 0);
+  ctx.fillStyle = `hsl(${hue}, 70%, 45%)`;
+  ctx.fillRect(2, 2, fillW, h-4);
+  ctx.strokeStyle = 'rgba(26,42,74,0.9)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(1.5,1.5,w-3,h-3);
+  sprite.material.map.needsUpdate = true;
+}
+
+// Hand-drawn "notebook doodle" look for the 3D arena: flat toon-shaded
+// bands + dark ink outlines on every shape, over a cream ruled-paper
+// backdrop. toonGradient is created once in initArena() and shared by
+// every toon material (materials are still per-box and safe to dispose;
+// disposing a material never disposes a texture it merely references).
+let toonGradient = null;
+
+function makeToonGradient(){
+  const size = 4;
+  const data = new Uint8Array(size);
+  for(let i=0;i<size;i++) data[i] = Math.floor((i/(size-1))*255);
+  const tex = new THREE.DataTexture(data, size, 1, THREE.RedFormat);
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+function makePaperTexture(){
+  const cnv = document.createElement('canvas');
+  cnv.width = 512; cnv.height = 512;
+  const ctx = cnv.getContext('2d');
+  ctx.fillStyle = '#f4f1e4';
+  ctx.fillRect(0,0,512,512);
+  ctx.strokeStyle = 'rgba(120,150,210,0.45)';
+  ctx.lineWidth = 1.5;
+  for(let y=36; y<512; y+=32){
+    ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(512,y+0.5); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(200,90,90,0.4)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(46,0); ctx.lineTo(46,512); ctx.stroke();
+  return new THREE.CanvasTexture(cnv);
+}
+
+function addOutline(mesh, geometry, color){
+  const edges = new THREE.EdgesGeometry(geometry);
+  const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: color!==undefined ? color : 0x1a2a4a}));
+  mesh.add(line);
+  return line;
+}
+
+function _box(parent, w,h,d, x,y,z, color){
+  const geo = new THREE.BoxGeometry(w,h,d);
+  const m = new THREE.Mesh(geo, new THREE.MeshToonMaterial({color, gradientMap: toonGradient}));
+  m.position.set(x,y,z);
+  addOutline(m, geo);
+  parent.add(m);
+  return m;
+}
+
+function disposeObject3D(obj){
+  obj.traverse(child=>{
+    if(child.geometry) child.geometry.dispose();
+    if(child.material) child.material.dispose();
+  });
+}
+
+function buildPlaceholderBody(color){
+  const g = new THREE.Group();
+  _box(g, 0.9,0.7,1.3, 0,0.55,0, color);
+  _box(g, 0.5,0.5,0.5, 0,1.0,0.7, color);
+  return g;
+}
+
+// All archetype bodies face local +X ("forward"). createFighterMesh() rotates
+// the whole group to face the opponent based on which corner (A/B) it's in.
+function _boxPair(parent, w,h,d, x,y,z, color){
+  _box(parent, w,h,d, x,y,z, color);
+  _box(parent, w,h,d, x,y,-z, color);
+}
+
+function buildRodentBody(color, decor){
+  decor = decor || {};
+  const g = new THREE.Group();
+  _box(g, 0.35,0.28,0.55, 0,0.16,0, color);
+  _box(g, 0.22,0.2,0.22, 0.32,0.22,0, color);
+  _boxPair(g, 0.08,0.12,0.03, 0.38,0.34,0.09, color);
+  _boxPair(g, 0.08,0.16,0.08, 0.18,0.08,0.18, color);
+  _boxPair(g, 0.08,0.16,0.08, -0.18,0.08,0.18, color);
+  if(decor.bigTail){
+    _box(g, 0.1,0.1,0.2, -0.4,0.22,0, color);
+    _box(g, 0.12,0.14,0.16, -0.5,0.4,0, color);
+    _box(g, 0.12,0.16,0.12, -0.52,0.58,0, color);
+  } else {
+    _box(g, 0.06,0.06,0.5, -0.42,0.14,0, color);
+  }
+  if(decor.spikes){
+    const spikeColor = 0x3a332c;
+    for(let i=0;i<6;i++){
+      const s = _box(g, 0.05,0.05,0.12, -0.15+i*0.08, 0.32, 0, spikeColor);
+      s.rotation.x = -0.4;
+    }
+  }
+  return g;
+}
+
+function buildBanditBody(color, decor){
+  decor = decor || {};
+  const g = new THREE.Group();
+  _box(g, 0.55,0.28,0.75, 0,0.18,0, color);
+  _box(g, 0.28,0.24,0.26, 0.45,0.24,0, color);
+  _boxPair(g, 0.06,0.1,0.04, 0.5,0.34,0.1, color);
+  _boxPair(g, 0.1,0.2,0.1, 0.28,0.1,0.22, color);
+  _boxPair(g, 0.1,0.2,0.1, -0.28,0.1,0.22, color);
+  if(decor.mask){
+    _box(g, 0.05,0.06,0.3, 0.5,0.28,0, 0x2a2a2a);
+  }
+  if(decor.tailRings){
+    _box(g, 0.14,0.14,0.4, -0.5,0.22,0, color);
+    for(let i=0;i<3;i++) _box(g, 0.15,0.15,0.06, -0.62-i*0.14, 0.22, 0, i%2===0 ? 0x2a2a2a : 0xd8d0c0);
+  } else {
+    _box(g, 0.14,0.14,0.55, -0.5,0.22,0, color);
+  }
+  if(decor.backStripe){
+    _box(g, 0.06,0.05,0.7, 0,0.33,0, 0xf2f2ea);
+  }
+  return g;
+}
+
+function buildLeanBody(color, decor){
+  decor = decor || {};
+  const g = new THREE.Group();
+  _box(g, 0.4,0.3,0.6, 0,0.28,0, color);
+  _box(g, 0.26,0.24,0.24, 0.38,0.36,0, color);
+  const earH = decor.tallEars ? 0.4 : 0.22;
+  const earPair = _boxPair(g, 0.08,earH,0.05, 0.42, 0.44+earH/2, 0.08, color);
+  if(decor.floppyEars){
+    g.children[g.children.length-1].rotation.z = 0.5;
+    g.children[g.children.length-2].rotation.z = -0.5;
+  }
+  _boxPair(g, 0.08,0.28,0.08, 0.24,0.14,0.16, color);
+  _boxPair(g, 0.08,0.28,0.08, -0.24,0.14,0.16, color);
+  _box(g, 0.06,0.06,0.4, -0.35,0.3,0, color);
+  if(decor.whiteTailTip){
+    _box(g, 0.08,0.08,0.1, -0.55,0.3,0, 0xf2f2ea);
+  }
+  return g;
+}
+
+function buildDiggerBody(color, decor){
+  decor = decor || {};
+  const g = new THREE.Group();
+  _box(g, 0.55,0.38,0.75, 0,0.32,0, color);
+  _box(g, 0.34,0.3,0.3, 0.48,0.4,0, color);
+  _boxPair(g, 0.14,0.22,0.14, 0.28,0.16,0.24, color);
+  _boxPair(g, 0.14,0.22,0.14, -0.28,0.16,0.24, color);
+  if(decor.faceStripe){
+    _box(g, 0.05,0.3,0.06, 0.62,0.4,0, 0xf2f2ea);
+  }
+  if(decor.paddleTail){
+    _box(g, 0.06,0.06,0.15, -0.42,0.3,0, color);
+    _box(g, 0.32,0.06,0.3, -0.62,0.28,0, color);
+  } else {
+    _box(g, 0.1,0.1,0.3, -0.42,0.3,0, color);
+  }
+  if(decor.underbite){
+    _box(g, 0.16,0.1,0.14, 0.6,0.28,0, color);
+  }
+  return g;
+}
+
+function buildCanineBody(color, decor){
+  decor = decor || {};
+  const g = new THREE.Group();
+  const backLegH = decor.slopedBack ? 0.3 : 0.36;
+  const frontLegH = 0.36;
+  _box(g, 0.55,0.4,0.9, 0,0.42,0, color);
+  _box(g, 0.32,0.3,0.34, 0.55,0.5,0, color);
+  _boxPair(g, 0.07,0.16,0.05, 0.55,0.65,0.1, color);
+  _boxPair(g, 0.14,frontLegH,0.14, 0.32,frontLegH/2, 0.2, color);
+  _boxPair(g, 0.14,backLegH,0.14, -0.32,backLegH/2, 0.2, color);
+  _box(g, 0.08,0.08,0.45, -0.5,0.46,0, color);
+  if(decor.tusks){
+    _boxPair(g, 0.04,0.14,0.04, 0.72,0.36,0.1, 0xf2f2ea);
+  }
+  if(decor.hornCurl){
+    _boxPair(g, 0.06,0.06,0.2, 0.6,0.68,0.14, 0xd8cba8);
+  }
+  return g;
+}
+
+function buildBigCatBody(color, decor){
+  decor = decor || {};
+  const g = new THREE.Group();
+  _box(g, 0.6,0.45,1.05, 0,0.48,0, color);
+  _box(g, 0.36,0.32,0.36, 0.62,0.58,0, color);
+  _boxPair(g, 0.08,0.18,0.06, 0.6,0.76,0.12, color);
+  _boxPair(g, 0.16,0.42,0.16, 0.36,0.21,0.24, color);
+  _boxPair(g, 0.16,0.42,0.16, -0.36,0.21,0.24, color);
+  _box(g, 0.08,0.08,0.65, -0.55,0.5,0, color);
+  if(decor.mane){
+    const maneColor = 0xd8a83c;
+    for(let i=0;i<8;i++){
+      const angle = (i/8) * Math.PI*2;
+      _box(g, 0.14,0.14,0.14, 0.62+Math.cos(angle)*0.22, 0.6+Math.sin(angle)*0.16, Math.sin(angle)*0.22, maneColor);
+    }
+  }
+  if(decor.stripes){
+    for(let i=0;i<4;i++){
+      _boxPair(g, 0.04,0.4,0.04, -0.3+i*0.25, 0.48, 0.3, 0x1a1a1a);
+    }
+  }
+  if(decor.spots){
+    for(let i=0;i<8;i++){
+      const x = -0.4 + Math.random()*0.9;
+      const z = (Math.random()<0.5?1:-1) * (0.28+Math.random()*0.1);
+      _box(g, 0.07,0.07,0.07, x, 0.5+Math.random()*0.15, z, 0x2a2018);
+    }
+  }
+  return g;
+}
+
+function buildBulkyBody(color, decor){
+  decor = decor || {};
+  const g = new THREE.Group();
+  _box(g, 0.75,0.55,1.1, 0,0.55,0, color);
+  _box(g, 0.4,0.36,0.38, 0.65,0.65,0, color);
+  _boxPair(g, 0.08,0.1,0.06, 0.68,0.82,0.14, color);
+  if(decor.longArms){
+    g.children[0].rotation.x = -0.15;
+    _boxPair(g, 0.22,0.6,0.22, 0.4,0.3,0.3, color);
+    _boxPair(g, 0.2,0.4,0.2, -0.35,0.2,0.28, color);
+  } else {
+    _boxPair(g, 0.2,0.4,0.2, 0.32,0.2,0.28, color);
+    _boxPair(g, 0.2,0.4,0.2, -0.32,0.2,0.28, color);
+  }
+  if(decor.horns){
+    _boxPair(g, 0.06,0.22,0.06, 0.75,0.85,0.14, 0xd8cba8);
+  }
+  if(decor.hump){
+    _box(g, 0.5,0.3,0.4, 0.15,0.95,0, color);
+    _box(g, 0.5,0.15,0.5, 0.4,0.75,0, color);
+  }
+  return g;
+}
+
+function buildMegafaunaBody(color, decor){
+  decor = decor || {};
+  const g = new THREE.Group();
+  if(decor.crocodile){
+    _box(g, 1.6,0.35,0.5, 0,0.25,0, color);
+    _box(g, 0.55,0.15,0.35, 1.0,0.24,0, color);
+    _box(g, 0.6,0.12,0.22, 1.35,0.2,0, color);
+    _boxPair(g, 0.04,0.05,0.06, 1.55,0.24,0.08, 0xf2f2ea);
+    for(let i=0;i<6;i++){
+      _box(g, 0.1,0.08,0.1, -0.6+i*0.28, 0.42, 0, color);
+    }
+    _boxPair(g, 0.14,0.16,0.14, 0.6,0.12,0.22, color);
+    _boxPair(g, 0.14,0.16,0.14, -0.6,0.12,0.22, color);
+    _box(g, 0.1,0.1,0.9, -1.0,0.22,0, color);
+    return g;
+  }
+  _box(g, 1.0,0.75,1.6, 0,0.85,0, color);
+  _box(g, 0.5,0.45,0.5, 0.9,0.95,0, color);
+  _boxPair(g, 0.28,0.6,0.28, 0.5,0.3,0.4, color);
+  _boxPair(g, 0.28,0.6,0.28, -0.5,0.3,0.4, color);
+  if(decor.horn){
+    _box(g, 0.14,0.14,0.3, 1.18,0.85,0, 0xcfc4a8);
+  }
+  if(decor.trunk){
+    _box(g, 0.18,0.18,0.22, 1.05,0.7,0, color);
+    _box(g, 0.16,0.16,0.2, 1.12,0.5,0, color);
+    _box(g, 0.14,0.14,0.18, 1.16,0.32,0, color);
+    _boxPair(g, 0.35,0.5,0.06, 0.75,1.0,0.5, color);
+  }
+  if(decor.wideJaw){
+    g.children[0].scale.z = 1.15;
+    _box(g, 0.55,0.2,0.45, 0.95,0.65,0, color);
+  }
+  return g;
+}
+
+const ARCHETYPE_BUILDERS = [
+  buildRodentBody, buildBanditBody, buildLeanBody, buildDiggerBody,
+  buildCanineBody, buildBigCatBody, buildBulkyBody, buildMegafaunaBody,
+];
+
+const SPECIES_VISUALS = {
+  "Mouse":     {wc:0, color:0x9a9a9a, decor:{}},
+  "Rat":       {wc:0, color:0x7a7267, decor:{}},
+  "Squirrel":  {wc:0, color:0xa15c32, decor:{bigTail:true}},
+  "Hedgehog":  {wc:0, color:0x8a7256, decor:{spikes:true}},
+
+  "Ferret":    {wc:1, color:0xd8cba8, decor:{}},
+  "Raccoon":   {wc:1, color:0x6b6b6b, decor:{mask:true, tailRings:true}},
+  "Skunk":     {wc:1, color:0x2a2a2a, decor:{backStripe:true}},
+  "Chipmunk":  {wc:1, color:0xa15c32, decor:{}},
+
+  "Barn Cat":  {wc:2, color:0x8a5a3a, decor:{}},
+  "Fox":       {wc:2, color:0xc25a2c, decor:{whiteTailTip:true}},
+  "Jackrabbit":{wc:2, color:0xb5a487, decor:{tallEars:true}},
+  "Terrier":   {wc:2, color:0xd8cba8, decor:{floppyEars:true}},
+
+  "Badger":    {wc:3, color:0x4a4a4a, decor:{faceStripe:true}},
+  "Beaver":    {wc:3, color:0x6b4a2a, decor:{paddleTail:true}},
+  "Coyote":    {wc:3, color:0x9a8262, decor:{}},
+  "Bulldog":   {wc:3, color:0xc9a876, decor:{underbite:true}},
+
+  "Wolf":      {wc:4, color:0x8a8a92, decor:{}},
+  "Hyena":     {wc:4, color:0xb5a06a, decor:{slopedBack:true}},
+  "Wild Boar": {wc:4, color:0x4a3c30, decor:{tusks:true}},
+  "Bighorn Ram":{wc:4, color:0xa89a82, decor:{hornCurl:true}},
+
+  "Lion":      {wc:5, color:0xc9a24a, decor:{mane:true}},
+  "Tiger":     {wc:5, color:0xd97a2a, decor:{stripes:true}},
+  "Leopard":   {wc:5, color:0xd8b667, decor:{spots:true}},
+  "Black Panther":{wc:5, color:0x18181c, decor:{}},
+
+  "Grizzly Bear":{wc:6, color:0x6b4a30, decor:{}},
+  "Gorilla":   {wc:6, color:0x2a2a2a, decor:{longArms:true}},
+  "Bull":      {wc:6, color:0x4a3c30, decor:{horns:true}},
+  "Bison":     {wc:6, color:0x3a2e24, decor:{hump:true}},
+
+  "Rhino":     {wc:7, color:0x8a8a82, decor:{horn:true}},
+  "Hippo":     {wc:7, color:0x9a7a7a, decor:{wideJaw:true}},
+  "Elephant":  {wc:7, color:0x8a8a8a, decor:{trunk:true}},
+  "Crocodile": {wc:7, color:0x4a5c3a, decor:{crocodile:true}},
+};
+
+function createFighterMesh(fighter){
+  const visual = SPECIES_VISUALS[fighter.species];
+  const outer = new THREE.Group();
+  let body;
+  if(visual){
+    body = ARCHETYPE_BUILDERS[visual.wc](visual.color, visual.decor);
+  } else {
+    body = buildPlaceholderBody(0x888888);
+  }
+  outer.add(body);
+  return outer;
+}
+
+function initArena(){
+  if(arena || typeof THREE === 'undefined') return;
+
+  const mount = document.createElement('div');
+  mount.id = 'arena-mount';
+  mount.style.width = '100%';
+  mount.style.height = '100%';
+
+  const renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  mount.appendChild(renderer.domElement);
+
+  toonGradient = makeToonGradient();
+
+  const scene = new THREE.Scene();
+  scene.background = makePaperTexture();
+
+  const camera = new THREE.PerspectiveCamera(50, 16/10, 0.1, 100);
+  camera.position.set(0, 2.5, 5.2);
+  camera.lookAt(0, 0.9, 0);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+  const dir = new THREE.DirectionalLight(0xfff4e0, 0.7);
+  dir.position.set(5, 8, 5);
+  scene.add(dir);
+  const spotA = new THREE.PointLight(0x6a8fd8, 0.4, 14);
+  spotA.position.set(-3, 4, -3);
+  scene.add(spotA);
+  const spotB = new THREE.PointLight(0x6a8fd8, 0.4, 14);
+  spotB.position.set(3, 4, -3);
+  scene.add(spotB);
+
+  // Octagon floor
+  const floorGeo = new THREE.CylinderGeometry(3.6, 3.6, 0.15, 8);
+  const floor = new THREE.Mesh(floorGeo, new THREE.MeshToonMaterial({color:0xc9d6e8, gradientMap: toonGradient}));
+  floor.position.y = -0.075;
+  addOutline(floor, floorGeo);
+  scene.add(floor);
+
+  // Fence: 8 posts + 2 rail rings around the octagon, all in the same
+  // ink-blue tone as the outlines so the cage itself reads as blue linework.
+  const R = 3.6;
+  const verts = [];
+  for(let i=0;i<8;i++){
+    const angle = i*(Math.PI/4);
+    verts.push([R*Math.cos(angle), R*Math.sin(angle)]);
+  }
+  const fenceColor = 0x2a4a8a;
+  verts.forEach(([x,z])=>{
+    const postGeo = new THREE.BoxGeometry(0.08,1.4,0.08);
+    const post = new THREE.Mesh(postGeo, new THREE.MeshToonMaterial({color:fenceColor, gradientMap: toonGradient}));
+    post.position.set(x, 0.7, z);
+    addOutline(post, postGeo);
+    scene.add(post);
+  });
+  for(let i=0;i<8;i++){
+    const [x1,z1] = verts[i], [x2,z2] = verts[(i+1)%8];
+    const dx = x2-x1, dz = z2-z1;
+    const len = Math.sqrt(dx*dx + dz*dz);
+    [0.4, 1.2].forEach(y=>{
+      const railGeo = new THREE.BoxGeometry(len,0.06,0.06);
+      const rail = new THREE.Mesh(railGeo, new THREE.MeshToonMaterial({color:fenceColor, gradientMap: toonGradient}));
+      rail.position.set((x1+x2)/2, y, (z1+z2)/2);
+      rail.rotation.y = Math.atan2(-dz, dx);
+      addOutline(rail, railGeo);
+      scene.add(rail);
+    });
+  }
+
+  arena = {
+    mount, renderer, scene, camera,
+    fighters: {A:null, B:null},
+    aux: {A:null, B:null},
+    tweens: {A:null, B:null},
+    particles: [],
+    lastTs: 0,
+    rafId: null,
+    paused: true,
+  };
+}
+
+function disposeAux(aux){
+  if(!aux) return;
+  aux.shadow.geometry.dispose();
+  aux.shadow.material.dispose();
+  aux.nameSprite.material.map.dispose();
+  aux.nameSprite.material.dispose();
+  aux.healthBar.material.map.dispose();
+  aux.healthBar.material.dispose();
+}
+
+function arenaLoadFight(fa, fb){
+  if(!arena) return;
+  ['A','B'].forEach(side=>{
+    if(arena.fighters[side]){
+      arena.scene.remove(arena.fighters[side]);
+      disposeObject3D(arena.fighters[side]);
+      arena.fighters[side] = null;
+    }
+    if(arena.aux[side]){
+      arena.scene.remove(arena.aux[side].shadow);
+      arena.scene.remove(arena.aux[side].nameSprite);
+      arena.scene.remove(arena.aux[side].healthBar);
+      disposeAux(arena.aux[side]);
+      arena.aux[side] = null;
+    }
+  });
+  arena.particles.forEach(p=>{
+    arena.scene.remove(p.mesh);
+    p.mesh.geometry.dispose();
+    p.mesh.material.dispose();
+  });
+  arena.particles.length = 0;
+
+  const wcCfg = ARENA_WC_CAMERA[fa.wcIndex] || ARENA_WC_CAMERA[4];
+  arena.fighterX = wcCfg.spacing;
+  arena.camera.position.set(0, wcCfg.camY, wcCfg.camZ);
+  arena.camera.lookAt(0, wcCfg.lookY, 0);
+
+  const groupA = createFighterMesh(fa);
+  groupA.position.set(-arena.fighterX, 0, 0);
+  groupA.rotation.y = 0; // faces +X, toward center/opponent
+  groupA.scale.setScalar(ARENA_FIGHTER_SCALE);
+  arena.scene.add(groupA);
+  const groupB = createFighterMesh(fb);
+  groupB.position.set(arena.fighterX, 0, 0);
+  groupB.rotation.y = Math.PI; // faces -X, toward center/opponent
+  groupB.scale.setScalar(ARENA_FIGHTER_SCALE);
+  arena.scene.add(groupB);
+
+  arena.fighters.A = groupA;
+  arena.fighters.B = groupB;
+  arena.tweens.A = null;
+  arena.tweens.B = null;
+
+  const shadowA = makeShadowBlob(wcCfg.shadowR);
+  shadowA.position.set(-arena.fighterX, 0.005, 0);
+  arena.scene.add(shadowA);
+  const nameA = makeNameplateSprite(fa);
+  nameA.position.set(-arena.fighterX, wcCfg.plateY, 0);
+  arena.scene.add(nameA);
+  const hpBarA = makeHealthBarSprite();
+  hpBarA.position.set(-arena.fighterX, wcCfg.plateY+0.32, 0);
+  arena.scene.add(hpBarA);
+
+  const shadowB = makeShadowBlob(wcCfg.shadowR);
+  shadowB.position.set(arena.fighterX, 0.005, 0);
+  arena.scene.add(shadowB);
+  const nameB = makeNameplateSprite(fb);
+  nameB.position.set(arena.fighterX, wcCfg.plateY, 0);
+  arena.scene.add(nameB);
+  const hpBarB = makeHealthBarSprite();
+  hpBarB.position.set(arena.fighterX, wcCfg.plateY+0.32, 0);
+  arena.scene.add(hpBarB);
+
+  arena.aux.A = {shadow:shadowA, nameSprite:nameA, healthBar:hpBarA};
+  arena.aux.B = {shadow:shadowB, nameSprite:nameB, healthBar:hpBarB};
+}
+
+function arenaSetHp(side, pct){
+  if(!arena || !arena.aux[side]) return;
+  drawHealthBar(arena.aux[side].healthBar, pct);
+}
+
+function spawnImpactParticles(){
+  if(!arena) return;
+  for(let i=0;i<12;i++){
+    const geo = new THREE.BoxGeometry(0.08,0.08,0.08);
+    const material = new THREE.MeshBasicMaterial({color:0xd84a3a});
+    const mesh = new THREE.Mesh(geo, material);
+    mesh.position.set(0, 1.0, 0);
+    const angle = Math.random()*Math.PI*2;
+    const speed = 1.5 + Math.random()*1.5;
+    const vel = new THREE.Vector3(Math.cos(angle)*speed, 1.5+Math.random()*1.5, Math.sin(angle)*speed*0.4);
+    arena.scene.add(mesh);
+    arena.particles.push({mesh, vel, life:0.5});
+  }
+}
+
+function arenaOnAttack(side, big){
+  if(!arena) return;
+  const now = performance.now();
+  arena.tweens[side] = {type:'lunge', start:now, duration:300};
+  const other = side==='A' ? 'B' : 'A';
+  arena.tweens[other] = {type: big?'knockback':'flash', start:now, duration: big?400:250};
+  if(big) spawnImpactParticles();
+}
+
+function arenaOnFinish(loserSide, isFinish){
+  if(!arena || !isFinish) return;
+  arena.tweens[loserSide] = {type:'grounded', start:performance.now(), duration:400, permanent:true};
+}
+
+function updateArenaFrame(ts){
+  const dt = arena.lastTs ? (ts-arena.lastTs)/1000 : 0;
+  arena.lastTs = ts;
+
+  ['A','B'].forEach(side=>{
+    const group = arena.fighters[side];
+    if(!group) return;
+    const fx = arena.fighterX || 1.6;
+    const baseX = side==='A' ? -fx : fx;
+    const tw = arena.tweens[side];
+    let bobY = Math.sin(ts*0.0024 + (side==='A'?0:Math.PI))*0.08;
+    let offsetX = 0, rotZ = 0, rotX = 0, dropY = 0;
+
+    if(tw){
+      const elapsed = performance.now() - tw.start;
+      const t = Math.min(elapsed / tw.duration, 1);
+      if(tw.type === 'lunge'){
+        const dir = side==='A' ? 1 : -1;
+        const progress = t<0.5 ? t*2 : (1-t)*2;
+        offsetX = dir * progress * 0.5;
+        if(t>=1) arena.tweens[side] = null;
+      } else if(tw.type === 'knockback'){
+        const dir = side==='A' ? -1 : 1;
+        const progress = t<0.5 ? t*2 : (1-t)*2;
+        offsetX = dir * progress * 0.3;
+        rotZ = dir * progress * 0.2;
+        if(t>=1) arena.tweens[side] = null;
+      } else if(tw.type === 'flash'){
+        if(t>=1) arena.tweens[side] = null;
+      } else if(tw.type === 'grounded'){
+        rotX = t * (Math.PI/2);
+        dropY = -t*0.3;
+        bobY = 0;
+      }
+    }
+
+    group.position.x = baseX + offsetX;
+    group.position.y = bobY + dropY;
+    group.rotation.z = rotZ;
+    group.rotation.x = rotX;
+
+    const aux = arena.aux[side];
+    if(aux){
+      aux.shadow.position.x = baseX + offsetX;
+      aux.nameSprite.position.x = baseX + offsetX;
+      aux.healthBar.position.x = baseX + offsetX;
+    }
+  });
+
+  for(let i=arena.particles.length-1;i>=0;i--){
+    const p = arena.particles[i];
+    p.life -= dt;
+    if(p.life<=0){
+      arena.scene.remove(p.mesh);
+      p.mesh.geometry.dispose();
+      p.mesh.material.dispose();
+      arena.particles.splice(i,1);
+      continue;
+    }
+    p.vel.y -= 4*dt;
+    p.mesh.position.addScaledVector(p.vel, dt);
+  }
+
+  arena.renderer.render(arena.scene, arena.camera);
+}
+
+function arenaTick(ts){
+  if(!arena || arena.paused) return;
+  updateArenaFrame(ts);
+  arena.rafId = requestAnimationFrame(arenaTick);
+}
+
+function resizeArena(slotEl){
+  if(!arena || !slotEl) return;
+  const w = slotEl.clientWidth || 640;
+  const h = slotEl.clientHeight || 400;
+  arena.renderer.setSize(w, h, false);
+  arena.camera.aspect = w / h;
+  arena.camera.updateProjectionMatrix();
+}
+
+function mountArena(slotEl){
+  if(!arena || !slotEl) return;
+  if(arena.mount.parentElement !== slotEl){
+    slotEl.appendChild(arena.mount);
+  }
+  resizeArena(slotEl);
+  arena.paused = false;
+  if(!arena.rafId) arena.rafId = requestAnimationFrame(arenaTick);
+}
+
+function pauseArena(){
+  if(!arena) return;
+  arena.paused = true;
+  if(arena.rafId){ cancelAnimationFrame(arena.rafId); arena.rafId = null; }
+}
+
+window.addEventListener('resize', ()=>{
+  if(arena && arena.mount.parentElement) resizeArena(arena.mount.parentElement);
+});
+
+// ---------- Rendering ----------
+const mainEl = document.getElementById('main');
+const navEl = document.getElementById('nav');
+
+function updateHud(){
+  document.getElementById('hud-bankroll').textContent = fmtMoney(state.bankroll);
+  document.getElementById('hud-event').textContent = "#" + (state.eventNumber+1);
+  let risk = 0;
+  for(const k in state.pendingBets) risk += state.pendingBets[k].amount;
+  document.getElementById('hud-risk').textContent = fmtMoney(risk);
+  navEl.querySelectorAll('button[data-screen]').forEach(b=>{
+    b.classList.toggle('active', b.dataset.screen === state.screen);
+  });
+  document.getElementById('sound-toggle-btn').textContent = state.soundEnabled ? '🔊' : '🔇';
+}
+
+function render(){
+  updateHud();
+  if(state.screen !== 'sim'){ pauseArena(); Sound.stopAmbience(); }
+  if(state.screen === 'card') renderCard();
+  else if(state.screen === 'sim') renderSim();
+  else if(state.screen === 'summary') renderSummary();
+  else if(state.screen === 'poster') renderPoster();
+  else if(state.screen === 'schedule') renderSchedule();
+  else if(state.screen === 'rankings') renderRankings();
+  else if(state.screen === 'help') renderHelp();
+  save();
+}
+
+function oddsClass(label){ return label.startsWith('+') ? 'odds dog' : 'odds fav'; }
+
+function renderCard(){
+  const card = state.currentCard;
+  let html = `<div class="card"><div class="flex-between"><h2>Fight Card — Event #${state.eventNumber+1}</h2>
+    <span class="muted">${card.fights.length} bouts · Main Event: ${WEIGHT_CLASSES[card.mainWc].name} Title</span></div>`;
+
+  card.fights.forEach((fight, idx)=>{
+    const fa = F(fight.idA), fb = F(fight.idB);
+    const bet = state.pendingBets[idx];
+    const wc = WEIGHT_CLASSES[fight.wcIndex];
+    html += `<div class="fight ${fight.isTitle?'title':''}">
+      <div class="fight-tag">
+        <span>${wc.name} · ${fight.rounds} Rounds${fight.isTitle?'':''}</span>
+        <span>${fight.isTitle?'<span class="belt">🏆 TITLE FIGHT · CHAMPIONSHIP ON THE LINE</span>':''}</span>
+      </div>
+      <div class="matchup">
+        <div class="corner ${bet&&bet.corner==='A'?'picked':''}" data-idx="${idx}" data-corner="A">
+          <span class="emoji">${fa.emoji}</span>
+          <div class="name">${fa.isChampion?'🏆 ':''}${fa.name}</div>
+          <div class="nick">"${fa.nick}"</div>
+          <div class="rec">${fa.wins}-${fa.losses}${fa.streak>1?` · W${fa.streak}`:''}</div>
+          <div class="${oddsClass(fight.aLabel)}">${fight.aLabel}</div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="corner ${bet&&bet.corner==='B'?'picked':''}" data-idx="${idx}" data-corner="B">
+          <span class="emoji">${fb.emoji}</span>
+          <div class="name">${fb.isChampion?'🏆 ':''}${fb.name}</div>
+          <div class="nick">"${fb.nick}"</div>
+          <div class="rec">${fb.wins}-${fb.losses}${fb.streak>1?` · W${fb.streak}`:''}</div>
+          <div class="${oddsClass(fight.bLabel)}">${fight.bLabel}</div>
+        </div>
+      </div>
+      <div class="bet-row" data-bet-idx="${idx}">
+        <input type="number" min="1" step="1" placeholder="Bet $" value="${bet?bet.amount:''}" data-bet-input="${idx}">
+        <button data-quick="10" data-idx="${idx}">$10</button>
+        <button data-quick="25" data-idx="${idx}">$25</button>
+        <button data-quick="50" data-idx="${idx}">$50</button>
+        <button data-quick="max" data-idx="${idx}">Max</button>
+        <button data-clear="${idx}">Clear Bet</button>
+        <span class="payout" id="payout-${idx}"></span>
+      </div>
+    </div>`;
+  });
+
+  html += `<div class="footer-actions">
+    <button class="primary-btn" id="start-card-btn">LOCK IN &amp; START CARD</button>
+  </div></div>`;
+  mainEl.innerHTML = html;
+
+  card.fights.forEach((fight, idx)=>updatePayoutLabel(idx));
+
+  mainEl.querySelectorAll('.corner').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const idx = +el.dataset.idx, corner = el.dataset.corner;
+      const input = mainEl.querySelector(`[data-bet-input="${idx}"]`);
+      let amt = state.pendingBets[idx] ? state.pendingBets[idx].amount : (parseInt(input.value)||0);
+      if(amt<=0) amt = 10;
+      state.pendingBets[idx] = {corner, amount: amt};
+      Sound.playTick();
+      render();
+    });
+  });
+  mainEl.querySelectorAll('[data-quick]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const idx = +el.dataset.idx;
+      const q = el.dataset.quick;
+      const existingCorner = state.pendingBets[idx] ? state.pendingBets[idx].corner : 'A';
+      let amt;
+      if(q==='max'){
+        let spent=0;
+        for(const k in state.pendingBets) if(+k!==idx) spent += state.pendingBets[k].amount;
+        amt = Math.max(0, Math.floor(state.bankroll - spent));
+      } else amt = parseInt(q,10);
+      if(amt<=0){ delete state.pendingBets[idx]; }
+      else state.pendingBets[idx] = {corner: existingCorner, amount: amt};
+      render();
+    });
+  });
+  mainEl.querySelectorAll('[data-clear]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      delete state.pendingBets[el.dataset.clear];
+      render();
+    });
+  });
+  mainEl.querySelectorAll('[data-bet-input]').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      const idx = +el.dataset.betInput;
+      const val = parseInt(el.value,10);
+      const corner = state.pendingBets[idx] ? state.pendingBets[idx].corner : 'A';
+      if(!val || val<=0) delete state.pendingBets[idx];
+      else state.pendingBets[idx] = {corner, amount: val};
+      // Defer: re-rendering synchronously inside a change/blur handler while
+      // the input itself is mid-event can throw "node no longer a child" in Chrome.
+      setTimeout(render, 0);
+    });
+  });
+
+  document.getElementById('start-card-btn').addEventListener('click', ()=>{
+    let totalRisk = 0;
+    for(const k in state.pendingBets) totalRisk += state.pendingBets[k].amount;
+    if(totalRisk > state.bankroll){
+      alert("Your total bets exceed your bankroll. Adjust before starting the card.");
+      return;
+    }
+    state.bankroll -= totalRisk;
+    state.currentCard.resultsIndex = 0;
+    state.currentCard.log = [];
+    state.screen = 'sim';
+    startNextFight();
+  });
+}
+
+function updatePayoutLabel(idx){
+  const bet = state.pendingBets[idx];
+  const lbl = document.getElementById('payout-'+idx);
+  if(!lbl) return;
+  if(!bet){ lbl.textContent=''; return; }
+  const fight = state.currentCard.fights[idx];
+  const dec = bet.corner==='A' ? fight.aDec : fight.bDec;
+  lbl.textContent = `Risking ${fmtMoney(bet.amount)} to win ${fmtMoney(bet.amount*(dec-1))} (returns ${fmtMoney(bet.amount*dec)})`;
+}
+
+// ---------- Sim playback ----------
+let simTimer = null;
+let simState = null;
+
+function startNextFight(){
+  const card = state.currentCard;
+  const idx = card.resultsIndex;
+  if(idx >= card.fights.length){
+    state.screen = 'summary';
+    render();
+    return;
+  }
+  const fight = card.fights[idx];
+  const result = simulateFight(fight);
+  fight._result = result;
+  simState = {idx, fight, result, evIdx:0, hpA:100, hpB:100, lastBellRound:0};
+  render();
+}
+
+function renderSim(){
+  const card = state.currentCard;
+  const idx = card.resultsIndex;
+  const fight = card.fights[idx];
+  const fa = F(fight.idA), fb = F(fight.idB);
+  const wc = WEIGHT_CLASSES[fight.wcIndex];
+
+  mainEl.innerHTML = `<div class="card">
+    <div class="flex-between">
+      <h2>${wc.name}${fight.isTitle?' — 🏆 Title Fight':''}</h2>
+      <span class="round-indicator" id="round-ind">Round 1 / ${fight.rounds}</span>
+    </div>
+    <div class="cage-wrap">
+      <div id="cage-slot">
+        <div class="finish-stamp" id="finish-stamp"></div>
+      </div>
+      <div class="hpbar-wrap">
+        <div class="hpbar-row"><span>${fa.emoji} ${fa.name}</span><span id="hp-a-label">100%</span></div>
+        <div class="hpbar"><div id="hp-a-bar" style="width:100%"></div></div>
+        <div class="hpbar-row"><span id="hp-b-label">100%</span><span>${fb.emoji} ${fb.name}</span></div>
+        <div class="hpbar right"><div id="hp-b-bar" style="width:100%"></div></div>
+      </div>
+      <div class="log-feed" id="log-feed"></div>
+      <div class="footer-actions">
+        <button class="ghost-btn" id="skip-btn">Skip to Result</button>
+      </div>
+    </div>
+  </div>`;
+
+  initArena();
+  arenaLoadFight(fa, fb);
+  mountArena(document.getElementById('cage-slot'));
+  Sound.startAmbience();
+
+  document.getElementById('skip-btn').addEventListener('click', skipFight);
+  playNextEvent();
+}
+
+function playNextEvent(){
+  if(!simState) return;
+  clearTimeout(simTimer);
+  const {result} = simState;
+  if(simState.evIdx >= result.events.length){
+    showFinishOverlay();
+    simTimer = setTimeout(finishFightPlayback, 1500);
+    return;
+  }
+  const ev = result.events[simState.evIdx];
+  simState.evIdx++;
+
+  if(ev.round !== simState.lastBellRound){
+    Sound.playBell();
+    simState.lastBellRound = ev.round;
+  }
+
+  const roundInd = document.getElementById('round-ind');
+  if(roundInd) roundInd.textContent = `Round ${ev.round} / ${simState.fight.rounds}`;
+
+  const logFeed = document.getElementById('log-feed');
+  if(logFeed){
+    const line = document.createElement('div');
+    if(ev.big) line.className = 'big';
+    line.innerHTML = `<span class="rn">R${ev.round}</span>${ev.text}`;
+    logFeed.appendChild(line);
+    logFeed.scrollTop = logFeed.scrollHeight;
+  }
+
+  const hpA = document.getElementById('hp-a-bar'), hpB = document.getElementById('hp-b-bar');
+  const hpAL = document.getElementById('hp-a-label'), hpBL = document.getElementById('hp-b-label');
+  if(hpA){ hpA.style.width = ev.hpA + '%'; hpAL.textContent = Math.round(ev.hpA)+'%'; }
+  if(hpB){ hpB.style.width = ev.hpB + '%'; hpBL.textContent = Math.round(ev.hpB)+'%'; }
+  arenaSetHp('A', ev.hpA);
+  arenaSetHp('B', ev.hpB);
+
+  if(ev.attacker){
+    arenaOnAttack(ev.attacker, ev.big);
+    Sound.playHit(ev.big);
+  }
+
+  simTimer = setTimeout(playNextEvent, 650);
+}
+
+function showFinishOverlay(){
+  if(!simState) return;
+  const result = simState.result;
+  const loserSide = result.winner === 'A' ? 'B' : 'A';
+  const isFinish = result.method === 'KO/TKO' || result.method === 'Submission';
+  arenaOnFinish(loserSide, isFinish);
+  Sound.playCrowdRoar(isFinish);
+  const stamp = document.getElementById('finish-stamp');
+  if(stamp){
+    let txt = 'DECISION';
+    if(result.method === 'KO/TKO') txt = 'KO!';
+    else if(result.method === 'Submission') txt = 'TAP OUT!';
+    stamp.textContent = txt;
+    stamp.classList.add('show');
+  }
+}
+
+function skipFight(){
+  clearTimeout(simTimer);
+  if(!simState) return;
+  const {result} = simState;
+  const logFeed = document.getElementById('log-feed');
+  while(simState.evIdx < result.events.length){
+    const ev = result.events[simState.evIdx];
+    simState.evIdx++;
+    if(logFeed){
+      const line = document.createElement('div');
+      if(ev.big) line.className = 'big';
+      line.innerHTML = `<span class="rn">R${ev.round}</span>${ev.text}`;
+      logFeed.appendChild(line);
+    }
+    const hpA = document.getElementById('hp-a-bar'), hpB = document.getElementById('hp-b-bar');
+    const hpAL = document.getElementById('hp-a-label'), hpBL = document.getElementById('hp-b-label');
+    if(hpA){ hpA.style.width = ev.hpA+'%'; hpAL.textContent = Math.round(ev.hpA)+'%'; }
+    if(hpB){ hpB.style.width = ev.hpB+'%'; hpBL.textContent = Math.round(ev.hpB)+'%'; }
+    arenaSetHp('A', ev.hpA);
+    arenaSetHp('B', ev.hpB);
+  }
+  if(logFeed) logFeed.scrollTop = logFeed.scrollHeight;
+  showFinishOverlay();
+  simTimer = setTimeout(finishFightPlayback, 500);
+}
+
+function finishFightPlayback(){
+  const card = state.currentCard;
+  const idx = simState.idx;
+  const fight = card.fights[idx];
+  const result = simState.result;
+  applyFightResult(fight, result);
+  card.resultsIndex++;
+  simState = null;
+  setTimeout(()=>{
+    startNextFight();
+  }, 900);
+}
+
+function applyFightResult(fight, result){
+  const fa = F(fight.idA), fb = F(fight.idB);
+  const winnerId = result.winner==='A' ? fight.idA : fight.idB;
+  const loserId = result.winner==='A' ? fight.idB : fight.idA;
+  const winner = F(winnerId), loser = F(loserId);
+
+  winner.wins++; winner.streak = Math.max(1, winner.streak+1);
+  loser.losses++; loser.streak = 0;
+  if(result.method === "KO/TKO") winner.koWins++;
+
+  let champChange = null;
+  if(fight.isTitle){
+    const champId = fight.idA; // champ always placed as idA when card generated
+    if(winnerId !== champId){
+      // challenger won the belt
+      F(champId).isChampion = false;
+      winner.isChampion = true;
+      state.champions[fight.wcIndex] = winnerId;
+      champChange = {newChampId: winnerId, oldChampId: champId};
+    }
+  }
+
+  fight.resolved = true;
+  fight.result = {
+    winnerId, loserId, method: result.method, finishRound: result.finishRound, champChange
+  };
+
+  // resolve bet
+  const idx = state.currentCard.fights.indexOf(fight);
+  const bet = state.pendingBets[idx];
+  let betOutcome = null;
+  if(bet){
+    const pickedId = bet.corner==='A' ? fight.idA : fight.idB;
+    const won = pickedId === winnerId;
+    const dec = bet.corner==='A' ? fight.aDec : fight.bDec;
+    if(won){
+      const payout = bet.amount * dec;
+      state.bankroll += payout;
+      betOutcome = {won:true, amount:bet.amount, payout, corner:bet.corner};
+    } else {
+      betOutcome = {won:false, amount:bet.amount, payout:0, corner:bet.corner};
+    }
+  }
+  fight.betOutcome = betOutcome;
+}
+
+function renderSummary(){
+  const card = state.currentCard;
+  let html = `<div class="card"><h2>Event #${state.eventNumber+1} — Results</h2>`;
+  let netChange = 0;
+  card.fights.forEach(fight=>{
+    const wc = WEIGHT_CLASSES[fight.wcIndex];
+    const win = F(fight.result.winnerId), lose = F(fight.result.loserId);
+    html += `<div class="result-line">
+      <div>
+        <div><b>${win.emoji} ${win.name}</b> def. ${lose.emoji} ${lose.name}
+          ${fight.result.champChange ? '<span class="champ-change">— NEW CHAMPION!</span>' : ''}</div>
+        <div class="method">${wc.name} · ${fight.result.method} · Round ${fight.result.finishRound}</div>
+      </div>
+      <div>`;
+    if(fight.betOutcome){
+      netChange += fight.betOutcome.won ? (fight.betOutcome.payout-fight.betOutcome.amount) : -fight.betOutcome.amount;
+      html += fight.betOutcome.won
+        ? `<span class="bet-result win">Bet WON +${fmtMoney(fight.betOutcome.payout-fight.betOutcome.amount)}</span>`
+        : `<span class="bet-result loss">Bet LOST -${fmtMoney(fight.betOutcome.amount)}</span>`;
+    } else {
+      html += `<span class="bet-cleared">No bet placed</span>`;
+    }
+    html += `</div></div>`;
+  });
+  html += `<div class="flex-between" style="margin-top:14px;">
+      <span class="muted">Net from bets this card: <b style="color:${netChange>=0?'var(--green)':'#e07a7a'}">${netChange>=0?'+':''}${fmtMoney(netChange)}</b></span>
+      <span class="muted">Bankroll: <b>${fmtMoney(state.bankroll)}</b></span>
+    </div>
+    <div class="footer-actions"><button class="primary-btn" id="next-card-btn">Continue to Next Card</button></div>
+  </div>`;
+  mainEl.innerHTML = html;
+
+  retireAndReplenish();
+
+  document.getElementById('next-card-btn').addEventListener('click', ()=>{
+    state.eventNumber++;
+    generateCard();
+    state.screen = 'card';
+    render();
+  });
+}
+
+function retireAndReplenish(){
+  for(let wc=0; wc<WEIGHT_CLASSES.length; wc++){
+    const ids = state.roster[wc];
+    for(let i=0;i<ids.length;i++){
+      const f = F(ids[i]);
+      if(f.isChampion) continue;
+      if(f.losses>=4 && (f.losses-f.wins)>=3){
+        delete state.fighters[f.id];
+        const nf = genFighter(wc);
+        state.fighters[nf.id] = nf;
+        ids[i] = nf.id;
+      }
+    }
+  }
+}
+
+function renderPoster(){
+  const card = state.currentCard;
+  const main = card.fights[card.fights.length-1];
+  const champ = F(main.idA), chal = F(main.idB);
+  const wc = WEIGHT_CLASSES[main.wcIndex];
+  const undercard = card.fights.slice(0, card.fights.length-1);
+
+  const undercardHtml = undercard.map(f=>{
+    const a=F(f.idA), b=F(f.idB), w=WEIGHT_CLASSES[f.wcIndex];
+    return `<div class="poster-bout">
+      <span class="poster-wc">${w.name}</span>
+      <span class="poster-names">${a.emoji} ${a.name} <b>vs</b> ${b.emoji} ${b.name}</span>
+    </div>`;
+  }).join('');
+
+  mainEl.innerHTML = `<div class="card poster-card">
+    <div class="poster-kicker">CAGE BEASTS PRESENTS</div>
+    <div class="poster-event">EVENT #${state.eventNumber+1}</div>
+    <div class="poster-division">🏆 ${wc.name.toUpperCase()} TITLE FIGHT 🏆</div>
+    <div class="poster-main">
+      <div class="poster-fighter">
+        <span class="poster-emoji">${champ.emoji}</span>
+        <div class="poster-name">${champ.name}</div>
+        <div class="poster-nick">"${champ.nick}"</div>
+        <div class="poster-rec">${champ.wins}-${champ.losses} · CHAMPION</div>
+      </div>
+      <div class="poster-vs">VS</div>
+      <div class="poster-fighter">
+        <span class="poster-emoji">${chal.emoji}</span>
+        <div class="poster-name">${chal.name}</div>
+        <div class="poster-nick">"${chal.nick}"</div>
+        <div class="poster-rec">${chal.wins}-${chal.losses} · CHALLENGER</div>
+      </div>
+    </div>
+    <div class="poster-sub">Also on the card</div>
+    <div class="poster-undercard">${undercardHtml}</div>
+    <div class="footer-actions"><button class="ghost-btn" id="poster-back-btn">Back to Fight Card</button></div>
+  </div>`;
+
+  document.getElementById('poster-back-btn').addEventListener('click', ()=>{
+    state.screen = 'card';
+    render();
+  });
+}
+
+function getUpcomingMainEvents(count){
+  const list = [];
+  for(let i=0;i<count;i++){
+    const evNum = state.eventNumber + i;
+    const wc = evNum % WEIGHT_CLASSES.length;
+    const champId = state.champions[wc];
+    const challengerId = pickChallenger(wc);
+    list.push({evNum, wc, champId, challengerId, isCurrent: i===0});
+  }
+  return list;
+}
+
+function renderSchedule(){
+  const upcoming = getUpcomingMainEvents(5);
+  const rows = upcoming.map(u=>{
+    const wc = WEIGHT_CLASSES[u.wc];
+    const champ = F(u.champId), chal = F(u.challengerId);
+    return `<div class="fight title">
+      <div class="fight-tag">
+        <span>Event #${u.evNum+1}${u.isCurrent?' · ON NOW':''}</span>
+        <span class="belt">🏆 ${wc.name} Title</span>
+      </div>
+      <div class="matchup">
+        <div class="corner readonly">
+          <span class="emoji">${champ.emoji}</span>
+          <div class="name">🏆 ${champ.name}</div>
+          <div class="nick">"${champ.nick}"</div>
+          <div class="rec">${champ.wins}-${champ.losses} · Champion</div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="corner readonly">
+          <span class="emoji">${chal.emoji}</span>
+          <div class="name">${chal.name}</div>
+          <div class="nick">"${chal.nick}"</div>
+          <div class="rec">${chal.wins}-${chal.losses} · Top Contender</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  mainEl.innerHTML = `<div class="card">
+    <h2>Upcoming Cards</h2>
+    <div class="schedule-note">Event #${state.eventNumber+1} is the live card — its Main Event and full undercard are locked in on the Fight Card screen.
+      Events after that are a projection: the division on the line is fixed by rotation, but the challenger is just today's top contender and may change based on how earlier cards play out.</div>
+    ${rows}
+  </div>`;
+}
+
+function renderRankings(){
+  let tabs = '';
+  WEIGHT_CLASSES.forEach((wc,i)=>{
+    tabs += `<button class="${state.rankTab===i?'active':''}" data-wc="${i}">${wc.name}</button>`;
+  });
+  const wc = WEIGHT_CLASSES[state.rankTab];
+  const ids = state.roster[state.rankTab].slice().sort((a,b)=>{
+    const fa=F(a), fb=F(b);
+    if(fa.isChampion) return -1;
+    if(fb.isChampion) return 1;
+    return (fb.wins-fb.losses) - (fa.wins-fa.losses);
+  });
+  let rows = '';
+  ids.forEach((id,i)=>{
+    const f = F(id);
+    rows += `<tr class="${f.isChampion?'champ-row':''}">
+      <td>${f.isChampion?'<span class="belt-icon">🏆</span>':'#'+i}</td>
+      <td>${f.emoji} ${f.name} <span class="muted">"${f.nick}"</span></td>
+      <td>${f.wins}-${f.losses}</td>
+      <td>${f.streak>0?('W'+f.streak):'—'}</td>
+      <td>${f.koWins}</td>
+      <td>${f.power}</td>
+      <td>${f.speed}</td>
+      <td>${f.chin}</td>
+      <td>${f.stamina}</td>
+    </tr>`;
+  });
+  mainEl.innerHTML = `<div class="card">
+    <h2>Divisional Rankings</h2>
+    <div class="wc-tabs">${tabs}</div>
+    <div class="muted" style="margin-bottom:10px;">${wc.name} (${wc.range})</div>
+    <table>
+      <thead><tr><th>Rank</th><th>Fighter</th><th>Record</th><th>Streak</th><th>KOs</th>
+      <th>PWR</th><th>SPD</th><th>CHIN</th><th>STA</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+  mainEl.querySelectorAll('[data-wc]').forEach(el=>{
+    el.addEventListener('click', ()=>{ state.rankTab = +el.dataset.wc; render(); });
+  });
+}
+
+function renderHelp(){
+  mainEl.innerHTML = `<div class="card">
+    <h2>How To Play</h2>
+    <ul class="help-list">
+      <li>Every event is a fight card with several bouts across the 8 weight classes, ending in a <b>Main Event that always has a championship on the line</b>.</li>
+      <li>Click a fighter's corner to bet on them, set an amount, and hit <b>LOCK IN &amp; START CARD</b>. You can bet on as many individual fights as you like, but the total can't exceed your bankroll.</li>
+      <li>Odds are shown American-style: a negative number is the favorite (bet more to win less), a positive number is the underdog (bet less to win more).</li>
+      <li>Watch each fight play out round by round in the cage, or hit <b>Skip to Result</b> to jump ahead.</li>
+      <li>Fights end by <b>KO/TKO</b>, <b>Submission</b>, or <b>Decision</b> if it goes the distance.</li>
+      <li>If the challenger beats the champion in the Main Event, the belt changes hands and rankings update.</li>
+      <li>Check <b>Rankings</b> to scout stats (Power, Speed, Chin, Stamina) across all 8 divisions: Featherweight, Bantamweight, Lightweight, Welterweight, Middleweight, Light Heavyweight, Heavyweight, and Super Heavyweight.</li>
+      <li>Your bankroll and every fighter/record/title persist automatically. Use <b>Reset Save</b> to start a brand new promotion.</li>
+    </ul>
+  </div>`;
+}
+
+// ---------- Nav wiring ----------
+navEl.addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-screen]');
+  if(btn){
+    state.screen = btn.dataset.screen;
+    render();
+    return;
+  }
+  if(e.target.id === 'reset-btn'){
+    if(confirm("Reset your entire save (bankroll, fighters, titles)? This cannot be undone.")){
+      localStorage.removeItem(SAVE_KEY);
+      state = freshState();
+      generateCard();
+      render();
+    }
+  }
+});
+
+// ---------- Boot ----------
+function boot(){
+  initArena();
+  const loaded = load();
+  if(loaded && loaded.fighters && loaded.roster){
+    state = loaded;
+    if(state.soundEnabled === undefined) state.soundEnabled = true;
+    if(!state.currentCard) generateCard();
+    if(state.screen === 'sim') state.screen = 'card'; // don't resume mid-animation
+  } else {
+    state = freshState();
+    generateCard();
+  }
+  Sound.setEnabled(state.soundEnabled);
+
+  // Browsers block audio until a real user gesture; unlock on the first one.
+  document.addEventListener('pointerdown', Sound.ctx, {once:true});
+  document.addEventListener('keydown', Sound.ctx, {once:true});
+
+  document.getElementById('sound-toggle-btn').addEventListener('click', ()=>{
+    state.soundEnabled = !state.soundEnabled;
+    Sound.setEnabled(state.soundEnabled);
+    render();
+  });
+
+  render();
+}
+boot();
+
+})();
+</script>
+</body>
+</html>

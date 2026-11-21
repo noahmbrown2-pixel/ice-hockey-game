@@ -1,0 +1,362 @@
+<!doctype html>
+<!-- Copyright (c) 2025 Craig M. Brown. All rights reserved. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Last Barricade — Zombie Defense</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0a0a;overflow:hidden;font-family:'Courier New',monospace;color:#00ff41}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  canvas{background:#101418;display:block;max-width:100%;max-height:100%;touch-action:none}
+  #hud{position:fixed;top:8px;left:8px;font-size:14px;text-shadow:0 0 4px #000;pointer-events:none;line-height:1.6}
+  #hud b{color:#fff}
+  #msg{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+       text-align:center;background:rgba(5,5,5,.86);z-index:5}
+  #msg h1{font-size:32px;margin:.2em;color:#ff3b3b;text-shadow:0 0 10px #ff0000}
+  #msg p{max-width:560px;font-size:15px;line-height:1.6;color:#9fffb0}
+  #msg button{margin-top:14px;background:#00ff41;color:#000;border:0;padding:12px 26px;font-size:16px;
+       font-family:inherit;font-weight:bold;border-radius:6px;cursor:pointer}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c" width="960" height="600"></canvas></div>
+<div id="hud"></div>
+<div id="msg">
+  <h1 style="color:#00ff41;text-shadow:0 0 10px #00ff41">LAST BARRICADE</h1>
+  <p><b style="color:#fff">Side-scrolling base defense.</b> The horde comes from the right —
+     defend your barricade on the left.<br>
+     Aim: <b style="color:#fff">Mouse</b> &nbsp; Shoot: <b style="color:#fff">Click / Hold</b> &nbsp;
+     Reload: <b style="color:#fff">R</b><br>
+     Build turrets &amp; repair the wall with <span style="color:#ffd24a">scrap</span> from kills.
+     Keys <b style="color:#fff">1</b> turret &nbsp; <b style="color:#fff">2</b> repair wall &nbsp; <b style="color:#fff">3</b> barricade spike.<br>
+     If the wall falls and zombies reach the left edge, it's over.</p>
+  <button id="start">START</button>
+</div>
+<script>
+const C=document.getElementById('c'),X=C.getContext('2d');
+const W=C.width,H=C.height,GROUND=H-70;
+const hud=document.getElementById('hud'),msg=document.getElementById('msg');
+const rand=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>v<a?a:v>b?b:v;
+let mouse={x:W/2,y:H/2,down:false},keys={};
+function mpos(e){const r=C.getBoundingClientRect();mouse.x=(e.clientX-r.left)*(W/r.width);mouse.y=(e.clientY-r.top)*(H/r.height);}
+C.addEventListener('mousemove',mpos);
+C.addEventListener('mousedown',e=>{mpos(e);mouse.down=true;});
+addEventListener('mouseup',()=>mouse.down=false);
+C.addEventListener('touchstart',e=>{mpos(e.touches[0]);mouse.down=true;e.preventDefault();},{passive:false});
+C.addEventListener('touchmove',e=>{mpos(e.touches[0]);e.preventDefault();},{passive:false});
+C.addEventListener('touchend',()=>mouse.down=false);
+addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+
+let wall,P,zombies,bullets,turrets,particles,spikes,fireballs,flaks,scrap,score,wave,spawnQueue,spawnT,betweenWaves,waveBreak,paused,dead,started=false,shake=0;
+const WALLX=140;
+
+function reset(){
+  wall={x:WALLX,hp:300,maxhp:300};
+  P={x:90,y:GROUND-40,dmg:14,fireRate:8,fireT:0,clip:10,maxClip:10,ammo:10,reload:70,reloadT:0};
+  zombies=[];bullets=[];turrets=[];particles=[];spikes=[];fireballs=[];flaks=[];
+  scrap=60;score=0;wave=0;betweenWaves=true;waveBreak=90;paused=false;dead=false;spawnQueue=0;spawnT=0;shake=0;
+  startWave();
+}
+function startWave(){wave++;betweenWaves=false;spawnQueue=5+wave*3;spawnT=30;P.ammo=P.maxClip;P.reloadT=0;
+  if(wave%10===0){spawnBoss();spawnQueue=Math.floor(spawnQueue/2);} // boss wave: one boss + a thinner horde
+}
+function spawnBoss(){
+  const hp=900+wave*70; // scales each boss wave (10,20,30…)
+  zombies.push({x:W+rand(40,120),y:GROUND-44,t:'boss',r:42,hp,maxhp:hp,
+    spd:0.16,dmg:2.4,col:'#7a2a8a',scrap:120+wave*4,hit:0,wob:rand(0,6.3),atk:0,
+    boss:true,fireCd:140,fireEvery:Math.max(60,150-wave*3)}); // slow, but hurls fireballs
+}
+function spawnZombie(){
+  let t='walker';const roll=Math.random();
+  if(wave>=2&&roll<0.15+wave*0.012)t='runner';
+  if(wave>=4&&roll>0.9)t='brute';
+  const base={
+    walker:{hp:30,spd:0.55,r:14,dmg:0.5,col:'#6a9e4f',scrap:4},
+    runner:{hp:18,spd:1.25,r:11,dmg:0.4,col:'#c7d24a',scrap:6},
+    brute:{hp:150,spd:0.32,r:22,dmg:1.4,col:'#9e4f4f',scrap:18},
+  }[t];
+  const hpMul=1+wave*0.16;
+  zombies.push({x:W+rand(0,160),y:GROUND-base.r,t,r:base.r,hp:base.hp*hpMul,maxhp:base.hp*hpMul,
+    spd:base.spd*(1+wave*0.02),dmg:base.dmg,col:base.col,scrap:base.scrap,hit:0,wob:rand(0,6.3),atk:0});
+}
+function fire(){
+  if(P.fireT>0||P.reloadT>0)return;
+  if(P.ammo<=0){P.reloadT=P.reload;return;}
+  P.ammo--;P.fireT=P.fireRate;
+  const a=Math.atan2(mouse.y-(P.y-10),mouse.x-(P.x+14));
+  bullets.push({x:P.x+14,y:P.y-10,vx:Math.cos(a)*14,vy:Math.sin(a)*14,dmg:P.dmg,life:90,own:'p'});
+  for(let i=0;i<3;i++)particles.push({x:P.x+18,y:P.y-10,vx:Math.cos(a)*rand(1,3)+rand(-1,1),vy:Math.sin(a)*rand(1,3),life:rand(5,12),col:'#ffd24a',r:2});
+  shake=Math.min(shake+1,5);
+}
+function burst(x,y,col,n){for(let i=0;i<n;i++){const a=rand(0,6.28),s=rand(1,5);
+  particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(12,26),col,r:rand(1.5,3.5)});}}
+
+function buy(kind){
+  if(kind==='turret'){ if(scrap<35)return; scrap-=35;
+    turrets.push({x:rand(WALLX+30,WALLX+120),y:GROUND-30,cd:0,range:520,dmg:7,rate:22,hp:80,maxhp:80}); }
+  if(kind==='wall'){ if(scrap<20)return; scrap-=20; // reinforce raises the max cap too, up to 10000
+    wall.maxhp=Math.min(10000,wall.maxhp+120); wall.hp=Math.min(wall.maxhp,wall.hp+120); }
+  if(kind==='spike'){ if(scrap<25)return; scrap-=25;
+    spikes.push({x:wall.x+22,y:GROUND-10,dmg:1.2}); }
+  if(kind==='mega'){ if(scrap<150)return; scrap-=150; // big reinforce: +1000 hp & cap, up to 10000
+    wall.maxhp=Math.min(10000,wall.maxhp+1000); wall.hp=Math.min(wall.maxhp,wall.hp+1000); }
+  if(kind==='flak'){ if(scrap<1000)return; scrap-=1000; // anti-fireball cannon mounted on the wall
+    flaks.push({x:wall.x+14+(flaks.length%2)*14,y:GROUND-118,cd:0,rate:7,tracer:null}); }
+}
+
+function update(){
+  if(paused||dead)return;
+  if(!betweenWaves){
+    if(spawnQueue>0){spawnT--;if(spawnT<=0){spawnZombie();spawnQueue--;spawnT=Math.max(18,55-wave*2);}}
+    if(spawnQueue<=0&&zombies.length===0){ // wave cleared → auto intermission (no click needed)
+      betweenWaves=true;waveBreak=300;scrap+=12; // ~5s breather + clear bonus; keep building with 1/2/3
+    }
+  } else {
+    waveBreak--; // auto-countdown; building still works during the break
+    if(waveBreak<=0)startWave();
+  }
+  // shooting input
+  if(P.fireT>0)P.fireT--;
+  if(P.reloadT>0){P.reloadT--;if(P.reloadT<=0)P.ammo=P.maxClip;}
+  if(keys['r']&&P.ammo<P.maxClip&&P.reloadT<=0)P.reloadT=P.reload;
+  if(mouse.down)fire();
+  if(keys['1']){buy('turret');keys['1']=false;}
+  if(keys['2']){buy('wall');keys['2']=false;}
+  if(keys['4']){buy('mega');keys['4']=false;}
+  if(keys['5']){buy('flak');keys['5']=false;}
+  if(keys['3']){buy('spike');keys['3']=false;}
+  // turrets auto-fire — target the nearest zombie that's visible on-screen ahead of the turret
+  for(const t of turrets){
+    if(t.cd>0)t.cd--;
+    let tgt=null,bd=1e9;
+    for(const z of zombies){const d=z.x-t.x;if(d>0&&z.x<=W&&d<bd){bd=d;tgt=z;}}
+    t.target=tgt; // remember lock for the laser sight (drawn in draw())
+    if(tgt&&t.cd<=0){t.cd=t.rate;
+      const a=Math.atan2(tgt.y-(t.y-18),tgt.x-t.x);
+      bullets.push({x:t.x,y:t.y-18,vx:Math.cos(a)*13,vy:Math.sin(a)*13,dmg:t.dmg,life:90,own:'t'});}
+  }
+  // bullets
+  for(const b of bullets){b.x+=b.vx;b.y+=b.vy;b.life--;
+    for(const z of zombies){if(z.dead)continue;
+      if(Math.hypot(b.x-z.x,b.y-z.y)<z.r+3){z.hp-=b.dmg;z.hit=5;b.life=0;burst(b.x,b.y,'#ff5a5a',3);
+        if(z.hp<=0){z.dead=true;score+=Math.round(z.maxhp);scrap+=z.scrap;burst(z.x,z.y,z.col,12);}break;}}
+    // shoot down incoming fireballs (skill reward)
+    if(b.life>0)for(const f of fireballs){if(f.dead)continue;
+      if(Math.hypot(b.x-f.x,b.y-f.y)<f.r+3){f.dead=true;b.life=0;score+=5;burst(f.x,f.y,'#ffd24a',10);break;}}}
+  bullets=bullets.filter(b=>b.life>0&&b.x<W+30&&b.x>-30&&b.y<H+30&&b.y>-30);
+  zombies=zombies.filter(z=>!z.dead);
+  // zombies advance
+  for(const z of zombies){
+    // enrage: the more wounded, the faster. Normal at full HP, ramps to ~2.1x near death.
+    // Bosses are immune — they stay slow and menacing.
+    const hpFrac=z.hp/z.maxhp;
+    z.enraged=!z.boss&&hpFrac<0.5;
+    const eff=z.spd*(z.enraged?1+(0.5-hpFrac)*2.2:1);
+    z.wob+=z.enraged?0.32:0.18;z.y=GROUND-z.r+Math.sin(z.wob)*(z.enraged?3:2);
+    if(z.hit>0)z.hit--;
+    // boss: hurl fireballs at the wall on a cooldown
+    if(z.boss&&wall.hp>0){
+      z.fireCd--;
+      if(z.fireCd<=0){
+        z.fireCd=z.fireEvery;
+        const tx=wall.x+14, ty=GROUND-rand(20,100);
+        const fa=Math.atan2(ty-(z.y-z.r*0.5),tx-(z.x-z.r));
+        fireballs.push({x:z.x-z.r,y:z.y-z.r*0.5,vx:Math.cos(fa)*5,vy:Math.sin(fa)*5,r:11,dmg:26,life:240});
+        burst(z.x-z.r,z.y-z.r*0.5,'#ff8a3b',8); // launch telegraph
+      }
+    }
+    const wallFront=wall.x+24;
+    if(wall.hp>0 && z.x>wallFront){ // attack wall
+      z.x-=eff; // approach
+      if(z.x<=wallFront){z.x=wallFront; z.atk++; if(z.atk%30===0){wall.hp-=z.dmg*6;burst(wall.x+24,z.y,'#888',4);}}
+    } else {
+      z.x-=eff; // wall down or passed — march to left edge
+      if(z.x< -10){} // handled below
+    }
+    // spikes damage near wall
+    for(const s of spikes){if(Math.abs(z.x-s.x)<26){z.hp-=s.dmg; if(z.hp<=0){z.dead=true;score+=Math.round(z.maxhp);scrap+=z.scrap;burst(z.x,z.y,z.col,12);}}}
+    // reach base
+    if(z.x<70){dead=true;gameOver();}
+  }
+  zombies=zombies.filter(z=>!z.dead);
+  // flak cannons — auto-intercept incoming fireballs before they reach the wall
+  for(const fl of flaks){
+    if(fl.cd>0)fl.cd--;
+    if(fl.tracer)fl.tracer.life--;
+    if(fl.cd<=0){
+      let tgt=null,bd=1e9;
+      for(const f of fireballs){if(f.dead)continue;const d=Math.hypot(f.x-fl.x,f.y-fl.y);if(d<bd){bd=d;tgt=f;}}
+      if(tgt){tgt.dead=true;fl.cd=fl.rate;score+=5;fl.tracer={x:tgt.x,y:tgt.y,life:6};
+        for(let i=0;i<12;i++)particles.push({x:tgt.x,y:tgt.y,vx:rand(-4,4),vy:rand(-4,4),life:rand(8,18),col:i%2?'#7fdfff':'#fff',r:rand(2,4)});}
+    }
+  }
+  // fireballs (boss projectiles) — fly to the wall and detonate
+  for(const f of fireballs){
+    if(f.dead)continue; // already intercepted by flak this frame
+    f.x+=f.vx;f.y+=f.vy;f.life--;
+    if(wall.hp>0 && f.x<=wall.x+28 && f.x>wall.x-12){ // impact wall
+      wall.hp-=f.dmg;f.dead=true;shake=Math.min(shake+5,9);
+      for(let i=0;i<16;i++)particles.push({x:f.x,y:f.y,vx:rand(-5,5),vy:rand(-5,5),life:rand(12,28),col:i%2?'#ff8a3b':'#ffd24a',r:rand(2,5)});
+    }
+    if(wall.hp<=0 && f.x<70){dead=true;gameOver();} // got past a downed wall → base hit
+  }
+  fireballs=fireballs.filter(f=>!f.dead&&f.life>0&&f.x>-30&&f.x<W+40);
+  if(wall.hp<0)wall.hp=0;
+  for(const p of particles){p.x+=p.vx;p.y+=p.vy;p.vx*=0.92;p.vy*=0.92;p.life--;}
+  particles=particles.filter(p=>p.life>0);
+  if(shake>0)shake*=0.85;
+}
+
+function draw(){
+  X.save();
+  if(shake>0.3)X.translate(rand(-shake,shake),rand(-shake,shake));
+  // sky + ground
+  const g=X.createLinearGradient(0,0,0,GROUND);g.addColorStop(0,'#1a2330');g.addColorStop(1,'#101418');
+  X.fillStyle=g;X.fillRect(0,0,W,GROUND);
+  X.fillStyle='#2a2018';X.fillRect(0,GROUND,W,H-GROUND);
+  X.fillStyle='#3a2e22';for(let x=0;x<W;x+=24)X.fillRect(x,GROUND,12,5);
+  // moon
+  X.fillStyle='#cfe';X.beginPath();X.arc(W-90,80,30,0,6.28);X.fill();
+  // base zone marker (left)
+  X.fillStyle='rgba(0,255,65,.06)';X.fillRect(0,0,70,GROUND);
+  // spikes
+  for(const s of spikes){X.fillStyle='#bbb';for(let i=-1;i<2;i++){X.beginPath();
+    X.moveTo(s.x+i*8,GROUND);X.lineTo(s.x+i*8+4,GROUND-18);X.lineTo(s.x+i*8+8,GROUND);X.fill();}}
+  // wall
+  if(wall.hp>0){
+    const wpct=wall.hp/wall.maxhp;
+    X.fillStyle='#5b5b5b';X.fillRect(wall.x,GROUND-110,28,110);
+    X.fillStyle='#3a3a3a';for(let y=GROUND-110;y<GROUND;y+=16)X.fillRect(wall.x,y,28,2);
+    // damage cracks
+    X.fillStyle='#1a1a1a';if(wpct<0.66)X.fillRect(wall.x+6,GROUND-70,2,40);
+    if(wpct<0.33)X.fillRect(wall.x+18,GROUND-90,2,55);
+    X.fillStyle='#000';X.fillRect(wall.x-2,GROUND-118,32,5);
+    X.fillStyle=wpct<0.3?'#ff3b3b':'#00ff41';X.fillRect(wall.x-2,GROUND-118,32*wpct,5);
+  }
+  // turrets (+ laser sight to locked target)
+  for(const t of turrets){
+    const mx=t.x,my=t.y-18; // muzzle
+    if(t.target&&!t.target.dead){
+      const tx=t.target.x,ty=t.target.y;
+      // beam
+      X.strokeStyle='rgba(255,40,40,.55)';X.lineWidth=1.5;
+      X.beginPath();X.moveTo(mx,my);X.lineTo(tx,ty);X.stroke();
+      // emitter dot pulse + target marker
+      X.fillStyle='rgba(255,60,60,.9)';X.beginPath();X.arc(mx,my,2.5,0,6.28);X.fill();
+      X.strokeStyle='#ff2a2a';X.lineWidth=1.5;X.beginPath();X.arc(tx,ty,t.target.r+4,0,6.28);X.stroke();
+      X.beginPath();X.moveTo(tx-6,ty);X.lineTo(tx+6,ty);X.moveTo(tx,ty-6);X.lineTo(tx,ty+6);X.stroke();
+    }
+    X.fillStyle='#446';X.fillRect(t.x-10,t.y-12,20,24);
+    // barrel rotates toward target
+    const a=t.target&&!t.target.dead?Math.atan2(t.target.y-my,t.target.x-t.x):0;
+    X.save();X.translate(t.x,my);X.rotate(a);X.fillStyle='#88a';X.fillRect(0,-3,20,6);X.restore();
+  }
+  // flak cannons (anti-fireball) — mounted on the wall top
+  for(const fl of flaks){
+    // intercept tracer (cyan flash to the destroyed fireball)
+    if(fl.tracer&&fl.tracer.life>0){
+      X.strokeStyle='rgba(127,223,255,.85)';X.lineWidth=2;
+      X.beginPath();X.moveTo(fl.x,fl.y-8);X.lineTo(fl.tracer.x,fl.tracer.y);X.stroke();
+    }
+    // mount base + dome
+    X.fillStyle='#234a5a';X.fillRect(fl.x-9,fl.y-6,18,14);
+    X.fillStyle='#3a7fa0';X.beginPath();X.arc(fl.x,fl.y-6,8,Math.PI,0);X.fill();
+    // twin barrels aimed at nearest fireball (or up-right at rest)
+    let aim=-0.5;
+    if(fireballs.length){let n=null,bd=1e9;for(const f of fireballs){if(f.dead)continue;const d=Math.hypot(f.x-fl.x,f.y-fl.y);if(d<bd){bd=d;n=f;}}if(n)aim=Math.atan2(n.y-(fl.y-8),n.x-fl.x);}
+    X.save();X.translate(fl.x,fl.y-8);X.rotate(aim);
+    X.fillStyle='#7fdfff';X.fillRect(0,-4,16,3);X.fillRect(0,2,16,3);X.restore();
+  }
+  // zombies
+  for(const z of zombies){
+    if(z.boss){ // hulking fireball-lobbing boss
+      X.fillStyle='rgba(255,80,200,.18)';X.beginPath();X.arc(z.x,z.y-z.r*0.3,z.r*1.5,0,6.28);X.fill(); // aura
+      X.fillStyle=z.hit>0?'#fff':'#7a2a8a';
+      X.fillRect(z.x-z.r,z.y-z.r,z.r*2,z.r*2);
+      X.fillStyle='#5a1a6a';X.fillRect(z.x-z.r,z.y-z.r,z.r*2,6); // brow shadow
+      // horns
+      X.fillStyle='#3a0f44';
+      X.beginPath();X.moveTo(z.x-z.r,z.y-z.r);X.lineTo(z.x-z.r-12,z.y-z.r-18);X.lineTo(z.x-z.r+10,z.y-z.r);X.fill();
+      X.beginPath();X.moveTo(z.x+z.r,z.y-z.r);X.lineTo(z.x+z.r+12,z.y-z.r-18);X.lineTo(z.x+z.r-10,z.y-z.r);X.fill();
+      // glowing eyes + mouth
+      const glow=z.fireCd<25?'#ffd24a':'#ff3b3b'; // flares just before a fireball
+      X.fillStyle=glow;X.fillRect(z.x-z.r*0.55,z.y-z.r*0.35,9,7);X.fillRect(z.x+z.r*0.2,z.y-z.r*0.35,9,7);
+      X.fillStyle='#1a0010';X.fillRect(z.x-z.r*0.5,z.y+z.r*0.2,z.r,6);
+      continue;
+    }
+    if(z.enraged){ // motion streaks trailing behind an enraged (low-HP) zombie
+      X.fillStyle='rgba(255,59,59,.25)';X.fillRect(z.x-z.r+6,z.y-z.r,z.r*2,z.r*2);
+      X.fillRect(z.x-z.r+12,z.y-z.r,z.r*2,z.r*2);}
+    X.fillStyle=z.hit>0?'#fff':(z.enraged?'#d65a45':z.col);
+    X.fillRect(z.x-z.r,z.y-z.r,z.r*2,z.r*2);
+    // eyes glow red when enraged
+    X.fillStyle=z.enraged?'#ff2a2a':'#0a0a0a';X.fillRect(z.x-z.r*0.5,z.y-z.r*0.4,3,3);X.fillRect(z.x+z.r*0.2,z.y-z.r*0.4,3,3);
+    if(z.hp<z.maxhp){X.fillStyle='#000';X.fillRect(z.x-z.r,z.y-z.r-6,z.r*2,3);
+      X.fillStyle=z.enraged?'#ffae3b':'#ff3b3b';X.fillRect(z.x-z.r,z.y-z.r-6,z.r*2*(z.hp/z.maxhp),3);}
+  }
+  // fireballs
+  for(const f of fireballs){
+    X.fillStyle='rgba(255,138,59,.35)';X.beginPath();X.arc(f.x+f.vx*1.5,f.y+f.vy*1.5,f.r*1.3,0,6.28);X.fill(); // trail
+    X.fillStyle='#ffd24a';X.beginPath();X.arc(f.x,f.y,f.r,0,6.28);X.fill();
+    X.fillStyle='#ff5a1a';X.beginPath();X.arc(f.x,f.y,f.r*0.5,0,6.28);X.fill();
+  }
+  // boss health bar (top center) when a boss is on screen
+  const boss=zombies.find(z=>z.boss);
+  if(boss){
+    const bw=420,bx=(W-bw)/2,by=30;
+    X.fillStyle='#000';X.fillRect(bx-3,by-3,bw+6,20);
+    X.fillStyle='#3a0f44';X.fillRect(bx,by,bw,14);
+    X.fillStyle='#d24acb';X.fillRect(bx,by,bw*(boss.hp/boss.maxhp),14);
+    X.fillStyle='#fff';X.font='bold 12px monospace';X.textAlign='center';X.fillText('☠ BOSS',W/2,by+11);
+  }
+  // player (gunner on the left)
+  X.fillStyle='#00ff41';X.fillRect(P.x-10,P.y-26,20,30);
+  X.fillStyle='#0a3a18';
+  const a=Math.atan2(mouse.y-(P.y-10),mouse.x-(P.x+14));
+  X.save();X.translate(P.x+4,P.y-10);X.rotate(a);X.fillRect(0,-3,22,6);X.restore();
+  // bullets
+  for(const b of bullets){X.fillStyle=b.own==='t'?'#8af':'#ffd24a';X.fillRect(b.x-2,b.y-2,4,4);}
+  // particles
+  for(const p of particles){X.globalAlpha=clamp(p.life/24,0,1);X.fillStyle=p.col;X.fillRect(p.x-p.r,p.y-p.r,p.r*2,p.r*2);}
+  X.globalAlpha=1;
+  // reticle
+  X.strokeStyle='rgba(255,90,90,.7)';X.lineWidth=2;X.beginPath();X.arc(mouse.x,mouse.y,8,0,6.28);X.stroke();
+  X.restore();
+  // auto-wave intermission banner
+  if(betweenWaves&&!dead){
+    const secs=Math.ceil(waveBreak/60);
+    X.fillStyle='rgba(0,0,0,.45)';X.fillRect(0,H/2-58,W,116);
+    X.textAlign='center';
+    X.fillStyle='#00ff41';X.font='bold 28px monospace';X.fillText(`WAVE ${wave} HELD`,W/2,H/2-14);
+    X.fillStyle='#fff';X.font='16px monospace';X.fillText(`Next wave in ${secs}…  (build: [1] turret  [2] repair  [3] spikes  [4] mega wall  [5] anti-fireball)`,W/2,H/2+18);
+    if((wave+1)%10===0){X.fillStyle='#d24acb';X.font='bold 15px monospace';X.fillText('☠ BOSS INCOMING — it lobs fireballs. Shoot them down!',W/2,H/2+40);}
+    else{X.fillStyle='#ffd24a';X.font='13px monospace';X.fillText('+12 scrap bonus',W/2,H/2+40);}
+  }
+}
+function drawHUD(){
+  hud.innerHTML=
+   `WAVE <b>${wave}</b> &nbsp; SCORE <b>${score}</b> &nbsp; SCRAP <b style="color:#ffd24a">${scrap}</b><br>`+
+   `WALL <b style="color:${wall.hp<wall.maxhp*0.25?'#ff3b3b':'#00ff41'}">${Math.round(wall.hp)}</b>/${wall.maxhp} &nbsp; `+
+   `AMMO <b>${P.reloadT>0?'RELOAD…':P.ammo+'/'+P.maxClip}</b> &nbsp; LEFT <b>${zombies.length+spawnQueue}</b>`+
+   `${betweenWaves?` &nbsp; <span style="color:#ffd24a">NEXT WAVE ${Math.ceil(waveBreak/60)}s</span>`:''}<br>`+
+   `<span style="color:#9fffb0">[1] Turret $35 &nbsp; [2] Repair $20 &nbsp; [3] Spikes $25 &nbsp; [4] Mega Wall $150 &nbsp; [5] Anti-Fireball $1000 &nbsp; · waves auto-advance</span>`;
+}
+function gameOver(){
+  dead=true;
+  msg.classList.remove('hide');
+  msg.innerHTML=`<h1>OVERRUN</h1>
+    <p>The horde broke through on wave <b style="color:#fff">${wave}</b>.<br>
+       Final score: <b style="color:#ffd24a">${score}</b></p>
+    <button id="again">PLAY AGAIN</button>`;
+  document.getElementById('again').onclick=()=>{msg.classList.add('hide');reset();};
+}
+addEventListener('keydown',e=>{if(e.key.toLowerCase()==='p'&&started&&!dead&&!betweenWaves)paused=!paused;});
+function loop(){if(started){update();draw();drawHUD();}requestAnimationFrame(loop);}
+document.getElementById('start').onclick=()=>{started=true;msg.classList.add('hide');reset();};
+loop();
+</script>
+</body>
+</html>

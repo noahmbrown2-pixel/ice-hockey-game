@@ -1,0 +1,159 @@
+---
+description: MUST optimize prompts WHEN integrating LLMs TO enhance response quality and relevance.
+globs: ["**/llm/**", "**/prompts/**", "**/*prompt*/**", "**/*optimization*/**", "**/optimization/**", "**/prompt/**", "**/*llm*.*"]
+---
+# llm-prompt-optimization
+
+<version>1.1.0</version>
+
+## Metadata
+{
+  "rule_id": "3220-llm-prompt-optimization",
+  "taxonomy": {
+    "category": "LLM Integration",
+    "parent": "LLM IntegrationRule",
+    "ancestors": [
+      "Rule",
+      "LLM IntegrationRule"
+    ],
+    "children": [
+      "3221-llm-prompt-optimization-advanced",
+      "3222-llm-prompt-optimization-basic"
+    ]
+  },
+  "tags": [
+    "prompt optimization",
+    "LLM integration",
+    "AI assistance",
+    "efficiency"
+  ],
+  "priority": "75",
+  "inherits": [
+    "000",
+    "020",
+    "030",
+    "1000",
+    "1005"
+  ]
+}
+
+## Overview
+{
+  "purpose": "MUST optimize prompts to ensure LLMs generate high-quality and relevant responses.",
+  "application": "SHOULD be applied during the development and refinement of prompts for LLMs, especially when the output lacks clarity or relevance. NEVER assume all prompts are optimal without review.",
+  "importance": "This rule matters because effective prompt optimization significantly enhances the overall performance of LLMs, leading to better user experiences and more accurate outputs."
+}
+
+## prompt_structure
+
+{
+  "description": "MUST ensure that the structure of prompts is clear and focused to maximize the LLM's understanding.",
+  "requirements": [
+    "MUST define a clear objective for each prompt to guide the LLM's response.",
+    "SHOULD use concise and unambiguous language to avoid misinterpretation.",
+    "MUST include context when necessary to provide the LLM with relevant background information."
+  ]
+}
+
+## iterative_refinement
+
+{
+  "description": "MUST apply an iterative process to refine prompts based on output quality.",
+  "requirements": [
+    "SHOULD evaluate LLM responses critically and identify areas of improvement.",
+    "MUST adjust prompts based on feedback and test the revised versions to ensure better results.",
+    "NEVER skip the testing phase; all refined prompts MUST be validated against the original objectives."
+  ]
+}
+
+## user_feedback
+
+{
+  "description": "MUST incorporate user feedback into the prompt optimization process.",
+  "requirements": [
+    "SHOULD solicit user input on LLM outputs to understand user needs and expectations.",
+    "MUST document feedback and its impact on prompt adjustments for future reference.",
+    "NEVER disregard user feedback; it is essential for creating relevant and effective prompts."
+  ]
+}
+
+<example>
+LLM Prompt Optimization Example in Python
+
+```python
+import openai
+import time
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
+class LLMIntegration:
+    def __init__(self, api_key):
+        openai.api_key = api_key
+
+    def generate_response(self, prompt, max_retries=3):
+        retries = 0
+        while retries < max_retries:
+            try:
+                logging.info('Sending prompt to LLM...')
+                response = openai.ChatCompletion.create(
+                    model='gpt-3.5-turbo',
+                    messages=[{'role': 'user', 'content': prompt}],
+                    timeout=10  # set timeout for the request
+                )
+                return self.parse_response(response)
+            except openai.error.RateLimitError:
+                logging.warning('Rate limit exceeded. Retrying...')
+                time.sleep(2 ** retries)  # Exponential backoff
+                retries += 1
+            except Exception as e:
+                logging.error(f'An error occurred: {e}')
+                return None
+        logging.error('Max retries exceeded.')
+        return None
+
+    def parse_response(self, response):
+        # Check if response contains choices
+        if 'choices' in response and len(response['choices']) > 0:
+            return response['choices'][0]['message']['content'].strip()
+        logging.error('Invalid response structure.')
+        return None
+
+    def optimize_prompt(self, user_input):
+        # Define the context and clear objective
+        context = 'You are an expert in computer science.'
+        objective = 'Provide a detailed explanation of the concept.'
+        prompt = f'{context}\n{objective}\n{user_input}'
+        return prompt
+
+if __name__ == '__main__':
+    # Initialize LLM integration with your API key
+    llm = LLMIntegration(api_key='YOUR_API_KEY')
+    user_input = 'What is machine learning?'
+    prompt = llm.optimize_prompt(user_input)
+    response = llm.generate_response(prompt)
+    print('LLM Response:', response)
+```
+
+This example demonstrates best practices for LLM integration by focusing on prompt optimization and error handling. It features a structured class `LLMIntegration` that encapsulates the LLM functionalities. The `generate_response` method sends prompts to the OpenAI API and includes error handling for rate limits and general exceptions, applying an exponential backoff strategy when the rate limit is exceeded. The `parse_response` method validates the response structure before extracting content, ensuring that only valid responses are processed. The `optimize_prompt` method illustrates effective prompt engineering by incorporating context and a clear objective, thus enhancing the LLM's understanding of the task. Overall, this example emphasizes the importance of prompt clarity, iterative refinement, and error management when working with LLMs.
+</example>
+
+<danger>
+{
+  "critical_violations": [
+    "NEVER assume that any prompt is optimal without conducting a thorough review and testing process.",
+    "NEVER neglect to define a clear objective for each prompt; unclear objectives lead to ambiguous LLM responses.",
+    "NEVER skip incorporating user feedback into the prompt optimization process; disregarding feedback can result in irrelevant outputs.",
+    "NEVER use overly complex language or jargon in prompts; this can confuse the LLM and degrade response quality.",
+    "NEVER ignore the importance of context in prompts; failure to provide necessary context can lead to nonsensical or incorrect responses."
+  ],
+  "specific_risks": [
+    "Ignoring prompt optimization may result in low-quality responses that fail to meet user expectations, leading to dissatisfaction and loss of trust in the application.",
+    "Neglecting to test refined prompts could result in perpetuating errors, making the same mistakes repeatedly and decreasing overall system reliability.",
+    "Failing to define clear objectives may cause the LLM to generate irrelevant or off-topic answers, undermining the utility of the integration.",
+    "Using complex language can lead to misinterpretations by the LLM, significantly affecting the accuracy and relevance of the generated content.",
+    "Disregarding user feedback may create a disconnect between user needs and the LLM's outputs, resulting in a lack of alignment with user requirements and goals."
+  ]
+}
+</danger>

@@ -213,3 +213,88 @@
 2026-05-21 19:00:18 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
 2026-05-21 19:00:18 | INFO | file_path: C:\Users\noahm\Project\football-ceo.html
 2026-05-21 19:00:18 | INFO | Skipping non-Python file
+2026-05-25 01:00:39 | INFO | ==================================================
+2026-05-25 01:00:39 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:00:39 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:00:39 | INFO | file_path: C:\Users\noahm\Project\iphone.html
+2026-05-25 01:00:39 | INFO | Skipping non-Python file
+2026-05-25 01:00:49 | INFO | ==================================================
+2026-05-25 01:00:49 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:00:49 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:00:49 | INFO | file_path: C:\Users\noahm\Project\iphone.html
+2026-05-25 01:00:49 | INFO | Skipping non-Python file
+2026-05-25 01:00:57 | INFO | ==================================================
+2026-05-25 01:00:57 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:00:57 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:00:57 | INFO | file_path: C:\Users\noahm\Project\iphone.html
+2026-05-25 01:00:57 | INFO | Skipping non-Python file
+2026-05-25 01:05:26 | INFO | ==================================================
+2026-05-25 01:05:26 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:05:26 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:05:26 | INFO | file_path: C:\Users\noahm\Project\football-ceo.html
+2026-05-25 01:05:26 | INFO | Skipping non-Python file
+2026-05-25 01:05:33 | INFO | ==================================================
+2026-05-25 01:05:33 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:05:33 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:05:33 | INFO | file_path: C:\Users\noahm\Project\football-ceo.html
+2026-05-25 01:05:33 | INFO | Skipping non-Python file
+2026-05-25 01:05:41 | INFO | ==================================================
+2026-05-25 01:05:41 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:05:41 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:05:41 | INFO | file_path: C:\Users\noahm\Project\football-ceo.html
+2026-05-25 01:05:41 | INFO | Skipping non-Python file
+2026-05-25 01:05:51 | INFO | ==================================================
+2026-05-25 01:05:51 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:05:51 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:05:51 | INFO | file_path: C:\Users\noahm\Project\football-ceo.html
+2026-05-25 01:05:51 | INFO | Skipping non-Python file
+2026-05-25 01:06:02 | INFO | ==================================================
+2026-05-25 01:06:02 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:06:02 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:06:02 | INFO | file_path: C:\Users\noahm\Project\football-ceo.html
+2026-05-25 01:06:02 | INFO | Skipping non-Python file
+2026-05-25 01:06:26 | INFO | ==================================================
+2026-05-25 01:06:26 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:06:26 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:06:26 | INFO | file_path: C:\Users\noahm\Project\football-ceo.html
+2026-05-25 01:06:26 | INFO | Skipping non-Python file
+2026-05-25 01:06:36 | INFO | ==================================================
+2026-05-25 01:06:36 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:06:36 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:06:36 | INFO | file_path: C:\Users\noahm\Project\football-ceo.html
+2026-05-25 01:06:36 | INFO | Skipping non-Python file
+2026-05-25 01:06:52 | INFO | ==================================================
+2026-05-25 01:06:52 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:06:52 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:06:52 | INFO | file_path: C:\Users\noahm\Project\football-ceo.html
+2026-05-25 01:06:52 | INFO | Skipping non-Python file
+2026-05-25 01:07:22 | INFO | ==================================================
+2026-05-25 01:07:22 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:07:22 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:07:22 | INFO | file_path: C:\Users\noahm\Project\football-ceo.html
+2026-05-25 01:07:22 | INFO | Skipping non-Python file
+2026-05-25 01:07:49 | INFO | ==================================================
+2026-05-25 01:07:49 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:07:49 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:07:49 | INFO | file_path: C:\Users\noahm\Project\football-ceo.html
+2026-05-25 01:07:49 | INFO | Skipping non-Python file
+2026-05-25 01:10:52 | INFO | ==================================================
+2026-05-25 01:10:52 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:10:52 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:10:52 | INFO | file_path: C:\Users\noahm\Project\gamble.html
+2026-05-25 01:10:52 | INFO | Skipping non-Python file
+2026-05-25 01:11:49 | INFO | ==================================================
+2026-05-25 01:11:49 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:11:49 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:11:49 | INFO | file_path: C:\Users\noahm\Project\gamble.html
+2026-05-25 01:11:49 | INFO | Skipping non-Python file
+2026-05-25 01:12:13 | INFO | ==================================================
+2026-05-25 01:12:13 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:12:13 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:12:13 | INFO | file_path: C:\Users\noahm\Project\gamble.html
+2026-05-25 01:12:13 | INFO | Skipping non-Python file
+2026-05-25 01:12:15 | INFO | ==================================================
+2026-05-25 01:12:15 | INFO | TY VALIDATOR POSTTOOLUSE HOOK TRIGGERED
+2026-05-25 01:12:15 | INFO | hook_input keys: ['session_id', 'transcript_path', 'cwd', 'permission_mode', 'agent_id', 'agent_type', 'effort', 'hook_event_name', 'tool_name', 'tool_input', 'tool_response', 'tool_use_id', 'duration_ms']
+2026-05-25 01:12:15 | INFO | file_path: C:\Users\noahm\Project\gamble.html
+2026-05-25 01:12:15 | INFO | Skipping non-Python file

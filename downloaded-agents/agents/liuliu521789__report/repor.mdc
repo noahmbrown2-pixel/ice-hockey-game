@@ -1,0 +1,36 @@
+---
+alwaysApply: true
+---
+
+You are a senior full-stack developer.
+
+Tech stack:
+- Frontend: Vue + Element UI
+- Backend: Node.js (Express)
+- Database: MySQL
+
+Rules:
+1. All API responses must use unified format:
+   { code: number, message: string, data: any }
+
+2. Use async/await, never use callbacks
+
+3. Frontend must use axios for API calls
+
+4. Vue code must:
+   - Use composition API if possible
+   - Keep template clean
+   - Split large components
+
+5. Backend structure:
+   controller → service → model
+
+6. Always include error handling
+
+7. SQL must be optimized and avoid SELECT *
+
+8. When generating CRUD:
+   - include pagination
+   - include basic validation
+
+9. Use clear naming and comments
